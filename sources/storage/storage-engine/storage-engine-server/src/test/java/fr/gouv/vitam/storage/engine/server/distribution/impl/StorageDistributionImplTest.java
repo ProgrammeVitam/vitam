@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -118,6 +119,7 @@ public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
     private static final String OFFER_ID = "default";
+    private static final String OFFER_ID_2 = "default2";
     private static final int TENANT_ID = 0;
 
     private static StorageDistribution simpleDistribution;
@@ -600,10 +602,39 @@ public class StorageDistributionImplTest {
     @RunWithCustomExecutor
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         simpleDistribution
             .getContainerByCategory(VitamConfiguration.getDefaultStrategy(), null, "0", DataCategory.OBJECT,
                 AccessLogUtils.getNoLogAccessLog());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGetContainerByCategoryUnavailableDataFromAsyncOfferObjectId() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertThatThrownBy(() -> simpleDistribution
+            .getContainerByCategory("async_and_async_storage", null, "MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT,
+                AccessLogUtils.getNoLogAccessLog()))
+            .isInstanceOf(StorageUnavailableDataFromAsyncOfferException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testCopyObjectFromOfferToOfferOK() throws StorageException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        simpleDistribution.copyObjectFromOfferToOffer(
+            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID, "sync_and_async_storage"),
+            OFFER_ID, "myTapeOffer1");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testCopyObjectFromOfferToOfferUnavailableDataFromAsyncOfferObjectId() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertThatThrownBy( () -> simpleDistribution.copyObjectFromOfferToOffer(
+            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID, "sync_and_async_storage"),
+            "myTapeOffer1", OFFER_ID))
+            .isInstanceOf(StorageUnavailableDataFromAsyncOfferException.class);
     }
 
     @RunWithCustomExecutor

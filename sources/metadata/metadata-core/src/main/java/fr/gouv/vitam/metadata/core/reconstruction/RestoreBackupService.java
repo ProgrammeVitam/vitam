@@ -39,6 +39,7 @@ import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -160,7 +161,7 @@ public class RestoreBackupService {
             return new VitamAsyncInputStream(
                 storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog()));
 
-        } catch (StorageServerClientException e) {
+        } catch (StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
     }

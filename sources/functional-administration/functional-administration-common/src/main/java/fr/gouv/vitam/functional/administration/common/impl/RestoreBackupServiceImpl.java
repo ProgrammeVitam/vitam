@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -141,7 +142,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
                 // get backup collections to reconstruct.
                 return Optional.of(JsonHandler.getFromInputStream(inputStream, CollectionBackupModel.class));
-            } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+            } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
             } finally {
                 StreamUtils.consumeAnyEntityAndClose(response);
@@ -222,7 +223,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
             accessionRegisterBackupModel.setOffset(offset);
             return accessionRegisterBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundException e) {
+        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);

@@ -91,6 +91,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -905,7 +906,7 @@ public class RulesIT extends VitamRuleRunner {
 
     private FileRulesManagementReport checkReportGeneration(LogbookOperation logbookOperation)
         throws StorageNotFoundClientException, StorageServerClientException, InvalidParseOperationException,
-        StorageNotFoundException {
+        StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException {
         LogbookEventOperation ruleStorageEvent = findEventByEventType(logbookOperation, "RULES_REPORT");
         assertThat(ruleStorageEvent.getOutDetail()).isEqualTo("RULES_REPORT.OK");
         JsonNode evDetData = JsonHandler.getFromString(ruleStorageEvent.getEvDetData());
@@ -933,7 +934,8 @@ public class RulesIT extends VitamRuleRunner {
     }
 
     private FileRulesManagementReport readReportFile(String fileName)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             InputStream inputStream = storageClient

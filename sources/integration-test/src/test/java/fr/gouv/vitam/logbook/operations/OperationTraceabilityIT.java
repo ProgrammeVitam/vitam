@@ -62,6 +62,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -500,7 +501,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     }
 
     private void downloadZip(String fileName, File folder) throws IOException, StorageNotFoundException,
-        StorageServerClientException {
+        StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response containerAsync = storageClient
                 .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName,

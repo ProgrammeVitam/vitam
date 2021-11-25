@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -88,11 +89,12 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param objectName fully qualified name relative to the container.
      * @return the object you intended to receive
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageUnavailableDataFromAsyncOfferException Thrown when object cannot be read due to missing access request on AsyncRead ContentAddressableStorage
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException,
+        ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 
     /**
      * Create an access request for objects (asynchronous read from tape to local FS).

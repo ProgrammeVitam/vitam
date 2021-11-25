@@ -128,6 +128,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -795,7 +796,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             new ReferentialAuditService(storageClientFactory, vitamCounterService);
         try {
             referentialAuditService.runAudit(referentialAuditOptions.getCollectionName(), tenant);
-        } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+        } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();

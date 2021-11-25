@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -58,7 +57,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -154,7 +152,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
@@ -176,7 +174,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_null_when_loading_and_storage_returns_file_invalid()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
@@ -194,7 +192,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
-        throws StorageServerClientException, StorageNotFoundException {
+        throws Exception {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
@@ -209,7 +207,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",

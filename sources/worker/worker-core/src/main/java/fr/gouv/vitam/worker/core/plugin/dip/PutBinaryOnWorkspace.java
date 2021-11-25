@@ -52,6 +52,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -113,7 +114,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
-            } catch (StorageNotFoundException | StorageServerClientException | ProcessingException e) {
+            } catch (StorageNotFoundException | StorageServerClientException | ProcessingException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 LOGGER.error(format("unable to transfer file from offer to workspace, retry: %d", i), e);
             }
         }
@@ -123,7 +124,8 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     }
 
     private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToInfo)
-        throws ProcessingException, StorageNotFoundException, StorageServerClientException {
+        throws ProcessingException, StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {

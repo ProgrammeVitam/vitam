@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
@@ -550,6 +552,17 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         final StorageObjectRequest request = new StorageObjectRequest(null, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
             connection.getObject(request);
+        }
+    }
+
+    @Test
+    public void getObjectUnavailableDataFromAsyncOffer() throws Exception {
+        when(mock.get()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            assertThatThrownBy( () -> connection.getObject(request))
+                .isInstanceOf(StorageDriverUnavailableDataFromAsyncOfferException.class);
         }
     }
 

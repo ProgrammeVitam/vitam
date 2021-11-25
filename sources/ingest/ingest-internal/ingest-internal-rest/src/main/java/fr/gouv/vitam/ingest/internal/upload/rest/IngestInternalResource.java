@@ -76,6 +76,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -490,7 +491,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error("Storage error was thrown : ", e);
             return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND,
                 e.getMessage())).build();
-        } catch (StorageServerClientException e) {
+        } catch (StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
                 e.getMessage())).build();

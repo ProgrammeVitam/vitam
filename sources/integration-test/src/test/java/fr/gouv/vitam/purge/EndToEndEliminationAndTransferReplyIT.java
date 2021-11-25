@@ -129,6 +129,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -1627,7 +1628,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 UnitReportEntry unit = JsonHandler.getFromJsonNode(reportIterator.next(), UnitReportEntry.class);
                 assertEquals(expectedStatus,unit.params.status);
             }
-        } catch (StorageServerClientException | StorageNotFoundException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
             fail("Cannot read report");
         }
     }
@@ -1635,7 +1636,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private void checkIngestCleanupReport(String ingestCleanupOperationId, String opi,
         Map<String, StatusCode> expectedUnitStatusMap, Map<String, StatusCode> expectedObjectGroupStatusMap,
         Map<String, Set<String>> expectedObjectIdsByObjectGroupIds)
-        throws IOException, StorageNotFoundException, StorageServerClientException, InvalidParseOperationException {
+        throws IOException, StorageNotFoundException, StorageServerClientException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         try (InputStream reportInputStream = readStoredReport(ingestCleanupOperationId + JSONL);
             JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(reportInputStream,
@@ -1877,7 +1879,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> expectedPartiallyDeletedObjectGroupIds, RequestResponseOK<JsonNode> ingestedUnits,
         RequestResponseOK<JsonNode> ingestedObjectGroups)
 
-        throws IOException, StorageNotFoundException, StorageServerClientException {
+        throws IOException, StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         try (InputStream reportInputStream = readStoredReport(transferReplyOperationId + JSONL);
             JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(reportInputStream,
@@ -1998,7 +2001,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private void checkTransferRequestReport(String transferOperationId, Collection<String> okUnitIds,
         Collection<String> alredyTransferedUnitIds)
-        throws IOException, StorageNotFoundException, StorageServerClientException {
+        throws IOException, StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         try (InputStream is = readStoredReport(transferOperationId + JSONL);
             JsonLineGenericIterator<JsonNode> reportIterator =
@@ -2136,7 +2140,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private InputStream readStoredReport(String filename)
-        throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             Response reportResponse = null;
@@ -2151,7 +2156,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 return new VitamAsyncInputStream(reportResponse);
 
 
-            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException e) {
+            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 StreamUtils.consumeAnyEntityAndClose(reportResponse);
                 throw e;
             }

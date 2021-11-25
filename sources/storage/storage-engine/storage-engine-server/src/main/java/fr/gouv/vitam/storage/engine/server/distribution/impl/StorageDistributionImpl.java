@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
@@ -85,6 +86,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsExcepti
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.metrics.DownloadCountingSizeMetricsResponse;
@@ -1235,23 +1237,17 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (StringUtils.isBlank(offerId)) {
 
             // FIXME : #9031 : Unify offer selection algorithm
+            // FIXME : #9032 : Handle failover over async offers
             final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
             List<StorageOffer> collect = offerReferences.stream()
                 .map(StorageDistributionImpl::apply)
-                // FIXME: Remove filter(StorageOffer::notAsyncRead) when adding cold strategy
-                .filter(StorageOffer::notAsyncRead)
                 .collect(Collectors.toList());
 
             storageOffers.addAll(collect);
         } else {
             // get the storage offer from the given identifier
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
-
-            if (offer.isAsyncRead()) {
-                throw new StorageTechnicalException(
-                    "AsyncRead offer (" + offerId + ") found. AsyncOffer not allowed for direct read");
-            }
 
             storageOffers = singletonList(offer);
         }
@@ -1308,6 +1304,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         StorageGetResult result;
         boolean offerOkNoBinary = false;
+
+        // FIXME : #9038 : Retry on first offer failure
         for (final StorageOffer storageOffer : storageOffers) {
             final Driver driver = retrieveDriverInternal(storageOffer.getId());
             try (Connection connection = driver.connect(storageOffer.getId())) {
@@ -1322,6 +1320,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY, exc);
                 offerOkNoBinary = true;
+            } catch (final StorageDriverUnavailableDataFromAsyncOfferException exc) {
+                throw new StorageUnavailableDataFromAsyncOfferException("Access not acceptable for object '" + type.getFolder()
+                    + "/" + objectId + "' from offer " + storageOffer.getId() + " of strategy " + strategyId, exc);
             } catch (final StorageDriverException exc) {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY, exc);
             }

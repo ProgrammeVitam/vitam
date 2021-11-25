@@ -119,6 +119,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
@@ -456,7 +457,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             headers.put(GlobalDataRest.X_QUALIFIER, qualifier);
             headers.put(GlobalDataRest.X_VERSION, Integer.toString(version));
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
-        } catch (final StorageServerClientException e) {
+        } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new AccessInternalExecutionException(e);
         }
     }
@@ -557,7 +558,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
             Map<String, String> headers = new HashMap<>();
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
-        } catch (final StorageServerClientException e) {
+        } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new AccessInternalExecutionException(e);
         }
     }

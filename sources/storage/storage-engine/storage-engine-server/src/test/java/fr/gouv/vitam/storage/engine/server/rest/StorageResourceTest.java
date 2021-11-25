@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsExcepti
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -129,6 +131,7 @@ public class StorageResourceTest {
     private static final String REST_URI = "/storage/v1";
     private static final String DELETE_URI = "/delete";
     private static final String OBJECTS_URI = "/objects";
+    private static final String COPY_URI = "/copy";
     private static final String REPORTS_URI = "/reports";
     private static final String PROFILE_URI = "/profiles";
     private static final String OBJECT_ID_URI = "/{id_object}";
@@ -153,12 +156,15 @@ public class StorageResourceTest {
     private static final String STORAGE_BACKUP_OPERATION_ID_URI = "/{operationId}";
 
     private static final String ID_O1 = "idO1";
+    private static final String ID_O2 = "idO2";
     private static final String OFFER_ID = "offerId";
+    private static final String OFFER_ID_2 = "offerId2";
     private static final String OFFER_ID_KO = "offerIdKo";
 
     private static JunitHelper junitHelper;
 
     private static final String STRATEGY_ID = "strategyId";
+    private static final String TAPE_STORAGE_STRATEGY_ID = "tape_storage";
 
     private static final Integer TENANT_ID = 0;
     private static final Integer TENANT_ID_E = 1;
@@ -632,6 +638,54 @@ public class StorageResourceTest {
                 STRATEGY_ID)
             .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
             .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getObjectUnavailableFromAsyncOffer() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(),
+                TAPE_STORAGE_STRATEGY_ID)
+            .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O2).then()
+            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode());
+    }
+
+    @Test
+    public void copyObjectFromOfferToOfferTechnicalException() {
+        given().accept(MediaType.APPLICATION_JSON)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E,
+                VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+                GlobalDataRest.X_CONTENT_SOURCE, OFFER_ID,
+                GlobalDataRest.X_CONTENT_DESTINATION, OFFER_ID_2,
+                GlobalDataRest.X_DATA_CATEGORY, DataCategory.OBJECT.name()
+            )
+            .when().post(COPY_URI + OBJECT_ID_URI, "id0").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void copyObjectFromOfferToOfferOk() {
+        given().accept(MediaType.APPLICATION_JSON)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
+                VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+                GlobalDataRest.X_CONTENT_SOURCE, OFFER_ID,
+                GlobalDataRest.X_CONTENT_DESTINATION, OFFER_ID_2,
+                GlobalDataRest.X_DATA_CATEGORY, DataCategory.OBJECT.name()
+            )
+            .when().post(COPY_URI + OBJECT_ID_URI, "id0").then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void copyObjectFromOfferToOfferUnavailableFromAsyncOffer() {
+        given().accept(MediaType.APPLICATION_JSON)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
+                VitamHttpHeader.STRATEGY_ID.getName(), TAPE_STORAGE_STRATEGY_ID,
+                GlobalDataRest.X_CONTENT_SOURCE, OFFER_ID,
+                GlobalDataRest.X_CONTENT_DESTINATION, OFFER_ID_2,
+                GlobalDataRest.X_DATA_CATEGORY, DataCategory.OBJECT.name()
+            )
+            .when().post(COPY_URI + OBJECT_ID_URI, ID_O2).then()
+            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode());
     }
 
     @Test
@@ -1266,7 +1320,19 @@ public class StorageResourceTest {
         public StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String destinationOffer,
             String sourceOffer)
             throws StorageException {
-            throw new UnsupportedOperationException("UnsupportedOperationException");
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            if (TENANT_ID_E.equals(tenantId)) {
+                throw new StorageNotFoundException("Object not found");
+            }
+            if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical exception");
+            }
+
+            if (context.getStrategyId().equals(TAPE_STORAGE_STRATEGY_ID) &&  ID_O2.equals(context.getObjectId())) {
+                throw new StorageUnavailableDataFromAsyncOfferException("Error");
+            }
+
+            return null;
         }
 
         @Override
@@ -1310,7 +1376,7 @@ public class StorageResourceTest {
         public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
             AccessLogInfoModel logInfo)
             throws StorageException {
-            return getContainerByCategoryResponse();
+            return getContainerByCategoryResponse(strategyId, objectId);
         }
 
         @Override
@@ -1368,16 +1434,21 @@ public class StorageResourceTest {
         public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
             String offerId) throws StorageException {
 
-            return getContainerByCategoryResponse();
+            return getContainerByCategoryResponse(strategyId, objectId);
         }
 
-        private Response getContainerByCategoryResponse() throws StorageNotFoundException, StorageTechnicalException {
+        private Response getContainerByCategoryResponse(String strategyId, String objectId)
+            throws StorageNotFoundException, StorageTechnicalException, StorageUnavailableDataFromAsyncOfferException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Object not found");
             }
             if (TENANT_ID_A_E.equals(tenantId)) {
                 throw new StorageTechnicalException("Technical exception");
+            }
+
+            if (TAPE_STORAGE_STRATEGY_ID.equals(strategyId) && ID_O2.equals(objectId)) {
+                throw new StorageUnavailableDataFromAsyncOfferException("Error");
             }
 
             final Response response = new AbstractMockClient.FakeInboundResponse(Status.OK,

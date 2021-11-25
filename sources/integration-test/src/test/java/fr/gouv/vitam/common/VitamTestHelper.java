@@ -69,6 +69,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -216,7 +217,7 @@ public class VitamTestHelper {
             return getReport(reportResponse);
         } catch (InvalidParseOperationException | IOException e) {
             fail("error while retrieving report for operation ", operationGuid, e);
-        } catch (StorageServerClientException | StorageNotFoundException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
             fail("error while retrieving container from storage ", e);
         }
         return null;

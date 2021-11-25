@@ -70,6 +70,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -437,7 +438,7 @@ public class EvidenceService {
                 return file;
             }
 
-        } catch (StorageNotFoundException | StorageServerClientException | IOException | IllegalPathException e) {
+        } catch (StorageNotFoundException | StorageServerClientException | IOException | IllegalPathException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL,
                 String.format("Could not retrieve traceability zip file '%s'", fileName), e);
         } finally {

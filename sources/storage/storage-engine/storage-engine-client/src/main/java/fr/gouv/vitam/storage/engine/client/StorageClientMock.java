@@ -262,7 +262,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+    public RequestResponseOK copyObjectFromOfferToOffer(String objectId, DataCategory category, String source,
         String destination, String strategyId) throws StorageServerClientException, InvalidParseOperationException {
         throw new  UnsupportedOperationException("Not Implemented");
     }

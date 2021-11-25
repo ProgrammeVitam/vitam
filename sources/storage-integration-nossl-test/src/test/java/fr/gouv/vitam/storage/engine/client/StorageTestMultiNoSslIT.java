@@ -56,6 +56,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -562,7 +563,7 @@ public class StorageTestMultiNoSslIT {
                         LOGGER.error("Error: " + status.getReasonPhrase());
                         return false;
                     }
-                } catch (StorageServerClientException | StorageNotFoundException e) {
+                } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
                     LOGGER.error("Size: " + size, e);
                     return false;
                 } finally {

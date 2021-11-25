@@ -48,6 +48,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
@@ -85,7 +86,8 @@ public class DataRectificationService {
 
     public Optional<IdentifierType> correctUnits(EvidenceAuditReportLine line, String containerName)
         throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
-        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException {
+        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         String securedHash = line.getSecuredHash();
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
@@ -96,7 +98,7 @@ public class DataRectificationService {
         String message =
             String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
         storageClientFactory.getClient()
-            .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
+            .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
                 badOffers.get(0), line.getStrategyId());
         updateLifecycleUnit(containerName, line.getIdentifier(), UNIT_CORRECTIVE_AUDIT, message);
 
@@ -105,7 +107,8 @@ public class DataRectificationService {
 
     public List<IdentifierType> correctObjectGroups(EvidenceAuditReportLine line, String containerName)
         throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
-        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException {
+        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         String securedHash = line.getSecuredHash();
         List<IdentifierType> listCorrections = new ArrayList<>();
@@ -117,7 +120,7 @@ public class DataRectificationService {
             String message =
                 String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
             storageClientFactory.getClient()
-                .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
+                .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
                     goodOffers.get(0), badOffers.get(0), line.getStrategyId());
 
             updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_GROUP_CORRECTIVE_AUDIT, message);
@@ -140,7 +143,7 @@ public class DataRectificationService {
                 String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
                     goodOffers.get(0), object.getIdentifier());
             storageClientFactory.getClient()
-                .copyObjectToOneOfferAnother(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
+                .copyObjectFromOfferToOffer(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
                     badOffers.get(0), object.getStrategyId());
 
             updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT,

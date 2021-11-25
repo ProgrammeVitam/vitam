@@ -34,6 +34,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialExcep
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.apache.commons.lang3.time.StopWatch;
 
+import java.io.Closeable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +43,8 @@ public class ArchiveCacheEvictionController {
     private final AccessRequestReferentialRepository accessRequestReferentialRepository;
     private final ObjectReferentialRepository objectReferentialRepository;
     private final BucketTopologyHelper bucketTopologyHelper;
+    private final LockManager<ArchiveCacheEntry> archiveCacheEntryLockManager;
+
 
     public ArchiveCacheEvictionController(
         AccessRequestReferentialRepository accessRequestReferentialRepository,
@@ -50,6 +53,7 @@ public class ArchiveCacheEvictionController {
         this.accessRequestReferentialRepository = accessRequestReferentialRepository;
         this.objectReferentialRepository = objectReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
+        this.archiveCacheEntryLockManager = new LockManager<>();
     }
 
     /**
@@ -61,17 +65,18 @@ public class ArchiveCacheEvictionController {
 
         Set<String> inUseArchiveIds = listArchiveIdsRequiredByActiveAccessRequests();
 
-        return (fileBucketArchiveIdPair) -> {
+        return (archiveCacheEntry) -> {
 
-            boolean keepFileBucketIdForeverInCache =
-                inUseArchiveIds.contains(fileBucketArchiveIdPair.getTarId());
+            if (inUseArchiveIds.contains(archiveCacheEntry.getTarId())) {
+                return false;
+            }
 
-            if (keepFileBucketIdForeverInCache) {
+            if (this.archiveCacheEntryLockManager.isLocked(archiveCacheEntry)) {
                 return false;
             }
 
             boolean tarIdRequiredByActiveAccessRequests =
-                bucketTopologyHelper.keepFileBucketIdForeverInCache(fileBucketArchiveIdPair.getFileBucketId());
+                bucketTopologyHelper.keepFileBucketIdForeverInCache(archiveCacheEntry.getFileBucketId());
             return !tarIdRequiredByActiveAccessRequests;
         };
 
@@ -102,5 +107,9 @@ public class ArchiveCacheEvictionController {
         } catch (AccessRequestReferentialException | ObjectReferentialException e) {
             throw new RuntimeException("Could not list objectIds in use by active Access Requests", e);
         }
+    }
+
+    public LockHandle createLock(Set<ArchiveCacheEntry> archiveCacheEntries) {
+        return this.archiveCacheEntryLockManager.createLock(archiveCacheEntries);
     }
 }

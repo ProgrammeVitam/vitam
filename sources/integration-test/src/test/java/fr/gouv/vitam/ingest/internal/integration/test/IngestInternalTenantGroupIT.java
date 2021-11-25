@@ -107,6 +107,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -527,7 +528,8 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     }
 
     private InputStream readStoredReport(String filename)
-        throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             Response reportResponse = null;
@@ -542,7 +544,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
                 return new VitamAsyncInputStream(reportResponse);
 
 
-            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException e) {
+            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 StreamUtils.consumeAnyEntityAndClose(reportResponse);
                 throw e;
             }

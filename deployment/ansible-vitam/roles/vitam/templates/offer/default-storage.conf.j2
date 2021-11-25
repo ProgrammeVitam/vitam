@@ -49,10 +49,10 @@ s3TrustStorePassword: {{ password_truststore }}
 
 {% if vitam_offers[offer_conf]["provider"] in ["tape-library"] %}
 tapeLibraryConfiguration:
-  inputFileStorageFolder: "{{ vitam_folder_data }}/offer/inputFiles"
-  inputTarStorageFolder: "{{ vitam_folder_data }}/offer/inputTars"
-  tmpTarOutputStorageFolder: "{{ vitam_folder_data }}/offer/tmpTarOutput"
-  cachedTarStorageFolder: "{{ vitam_folder_data }}/offer/cachedTars"
+  inputFileStorageFolder: "{{ vitam_folder_data }}/inputFiles"
+  inputTarStorageFolder: "{{ vitam_folder_data }}/inputTars"
+  tmpTarOutputStorageFolder: "{{ vitam_folder_data }}/tmpTarOutput"
+  cachedTarStorageFolder: "{{ vitam_folder_data }}/cachedTars"
   maxTarEntrySize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarEntrySize"] | default(100000) }}
   maxTarFileSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarFileSize"] | default(1000000) }}
   useSudo: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["useSudo"] | default('false') }}

@@ -45,6 +45,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
@@ -173,7 +174,8 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void copyInputFiles(Path batchDirectory, List<PreservationDistributionLine> entries)
-        throws IOException, StorageNotFoundException, StorageServerClientException {
+        throws IOException, StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             Path inputFilesDirectory = Files.createDirectory(batchDirectory.resolve(INPUT_FILES));
             for (PreservationDistributionLine entryParams : entries) {
@@ -183,7 +185,8 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory)
-        throws IOException, StorageNotFoundException, StorageServerClientException {
+        throws IOException, StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         Response fileResponse = null;
         InputStream src = null;
         try {

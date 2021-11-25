@@ -54,6 +54,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,7 +114,7 @@ public class ArchiveCacheEvictionControllerTest {
     }
 
     @Test
-    public void givenMultipleAccessRequestsWhenComputeEvictionJudgeThenOnlyUnusedArchiveIdsFromExpirableFileBucketsCanBeEvicted()
+    public void givenMultipleAccessRequestsAndLocksWhenComputeEvictionJudgeThenOnlyNonLockedUnusedArchiveIdsFromExpirableFileBucketsCanBeEvicted()
         throws Exception {
 
         // Given
@@ -190,6 +191,19 @@ public class ArchiveCacheEvictionControllerTest {
 
         // container2/obj3 : does not exist (deleted or never inserted)
 
+        // tarId4 & tarId8 are locked then unlocked by lock1
+        LockHandle lock1 = archiveCacheEvictionController.createLock(Set.of(
+            new ArchiveCacheEntry("test-objects", "tarId4"),
+            new ArchiveCacheEntry("test-objects", "tarId8")
+        ));
+        lock1.release();
+
+        // tarId7 & tarId8 are locked by lock2
+        LockHandle lock2 = archiveCacheEvictionController.createLock(Set.of(
+            new ArchiveCacheEntry("test-objects", "tarId7"),
+            new ArchiveCacheEntry("test-objects", "tarId8")
+        ));
+
         // When
         LRUCacheEvictionJudge<ArchiveCacheEntry> evictionJudge = archiveCacheEvictionController.computeEvictionJudge();
 
@@ -203,12 +217,15 @@ public class ArchiveCacheEvictionControllerTest {
         // "default" file-bucket is always in cache
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-default", "any"))).isFalse();
 
-        // tarId1 is required by O_object/obj1 & O_object/obj2, which are required by accessRequest1 and/or accessRequest2
-        // tarId2 is required by O_object/obj2, which is required by accessRequest1
-        // tarId3 is required by 1_object/obj1, which is required by accessRequest3
-        // tarId4 is required by O_object/obj4, which is required by accessRequest2
-        // tarId5 is required by O_object/obj5, which is only required by an expired access request accessRequest4
-        // tarId6 is required by 1_object/obj2, which is not required by any access request
+        // tarId1 is required by O_object/obj1 & O_object/obj2, which are required by accessRequest1 and/or accessRequest2, and is not locked
+        // tarId2 is required by O_object/obj2, which is required by accessRequest1, and is not locked
+        // tarId3 is required by 1_object/obj1, which is required by accessRequest3, and is not locked
+        // tarId4 is required by O_object/obj4, which is required by accessRequest2, and is not locked
+        // tarId5 is required by O_object/obj5, which is only required by an expired access request accessRequest4, and no more locked by lock1
+        // tarId6 is required by 1_object/obj2, which is not required by any access request, and is not locked
+        // tarId7 is not required by any access request, but is locked by lock2
+        // tarId8 is not required by any access request and is no more locked by lock1, but still locked by lock2
+        // tarId9 is not required by any access request and is not locked
 
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId1"))).isFalse();
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId2"))).isFalse();
@@ -216,6 +233,9 @@ public class ArchiveCacheEvictionControllerTest {
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId4"))).isFalse();
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId5"))).isTrue();
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("admin-objects", "tarId6"))).isTrue();
+        assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId7"))).isFalse();
+        assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId8"))).isFalse();
+        assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId9"))).isTrue();
 
     }
 

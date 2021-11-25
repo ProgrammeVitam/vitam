@@ -52,6 +52,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -136,7 +137,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
                 saveItemToWorkSpace(item, handlerIO);
             }
             reader.close();
-        } catch (StorageServerClientException | StorageNotFoundException | IOException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | IOException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {

@@ -34,19 +34,20 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +63,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.TMP_EXTENSION;
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.fileBuckedInputFilePath;
 
 public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
@@ -257,7 +259,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
             this.bucketId,
             this.fileBucketId,
             LocalFileUtils
-                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
+                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId,
+                    this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
             this.currentTarAppender.getTarId(),
@@ -312,5 +315,49 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
     private void checkTarBufferingTimeout(String tarId) {
         addFirst(new TarBufferingTimedOutMessage(tarId));
+    }
+
+    public boolean containsTar(String tarId) {
+
+        Path tempTarPath = fileBucketStoragePath.resolve(tarId + TMP_EXTENSION);
+        if (Files.exists(tempTarPath)) {
+            LOGGER.debug(tempTarPath + " found");
+            return true;
+        }
+
+        Path readyTarPath = fileBucketStoragePath.resolve(tarId);
+        if (Files.exists(readyTarPath)) {
+            LOGGER.debug(readyTarPath + " found");
+            return true;
+        }
+
+        LOGGER.info("Tar file " + tarId + " could not be located. Concurrent delete?");
+        return false;
+    }
+
+    public Optional<FileInputStream> tryReadTar(String tarId) {
+
+        Path tempTarPath = fileBucketStoragePath.resolve(tarId + TMP_EXTENSION);
+        if (Files.exists(tempTarPath)) {
+            try {
+                FileInputStream fileInputStream = new FileInputStream(tempTarPath.toFile());
+                return Optional.of(fileInputStream);
+            } catch (FileNotFoundException e) {
+                LOGGER.info("Could not open " + tempTarPath + ". Concurrent rename?", e);
+            }
+        }
+
+        Path readyTarPath = fileBucketStoragePath.resolve(tarId);
+        if (Files.exists(readyTarPath)) {
+            try {
+                FileInputStream fileInputStream = new FileInputStream(readyTarPath.toFile());
+                return Optional.of(fileInputStream);
+            } catch (FileNotFoundException e) {
+                LOGGER.info("Could not open " + readyTarPath + ". Concurrent delete?", e);
+            }
+        }
+
+        LOGGER.info("Tar file " + tarId + " could not be located. Concurrent delete?");
+        return Optional.empty();
     }
 }
