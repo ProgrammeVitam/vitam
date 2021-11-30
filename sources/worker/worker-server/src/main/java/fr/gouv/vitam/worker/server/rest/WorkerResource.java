@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.worker.common.WorkerAccessRequest;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerFactory;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
@@ -56,6 +57,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path("/worker/v1")
 @Tag(name = "Worker")
@@ -129,8 +132,10 @@ public class WorkerResource extends ApplicationStatusResource {
                 .build();
         } catch (final ProcessingRetryAsyncException retryExc) {
             LOGGER.warn(retryExc);
+            List<WorkerAccessRequest> entity = new ArrayList<>();
+            retryExc.getAccessRequestIdByContext().forEach((key, value) -> value.forEach(accessRequestId -> entity.add(new WorkerAccessRequest(accessRequestId, key.getStrategyId(), key.getOfferId()))));
             return Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
-                .entity(retryExc.getAccessRequestIdByContext())
+                .entity(entity)
                 .build();
         } catch (final IllegalArgumentException | ProcessingException exc) {
             LOGGER.error(exc);

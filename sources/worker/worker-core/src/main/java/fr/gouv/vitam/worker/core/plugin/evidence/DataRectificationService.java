@@ -92,11 +92,12 @@ public class DataRectificationService {
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
 
-        if (!doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+        if (!DataRectificationHelper.doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
             return Optional.empty();
         }
         String message =
             String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
+        // TODO gafou offre froide
         storageClientFactory.getClient()
             .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
                 badOffers.get(0), line.getStrategyId());
@@ -116,9 +117,10 @@ public class DataRectificationService {
         List<String> badOffers = new ArrayList<>();
 
 
-        if (doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+        if (DataRectificationHelper.doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
             String message =
                 String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
+            // TODO gafou offre froide
             storageClientFactory.getClient()
                 .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
                     goodOffers.get(0), badOffers.get(0), line.getStrategyId());
@@ -136,12 +138,13 @@ public class DataRectificationService {
             if (object.getEvidenceStatus() == EvidenceStatus.OK) {
                 continue;
             }
-            if (!doCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+            if (!DataRectificationHelper.doCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
                 continue;
             }
             String message =
                 String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
                     goodOffers.get(0), object.getIdentifier());
+            // TODO gafou offre froide
             storageClientFactory.getClient()
                 .copyObjectFromOfferToOffer(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
                     badOffers.get(0), object.getStrategyId());
@@ -215,26 +218,6 @@ public class DataRectificationService {
 
     }
 
-    private boolean doCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
-        List<String> badOffers) {
-        if (offers.isEmpty()) {
-            return false;
-        }
-        if (offers.size() == 1) {
-            return false;
-        }
 
-        for (Map.Entry<String, String> currentOffer : offers.entrySet()) {
-
-            if (securedHash.equals(currentOffer.getValue())) {
-
-                goodOffers.add(currentOffer.getKey());
-            } else {
-                badOffers.add(currentOffer.getKey());
-            }
-        }
-
-        return !goodOffers.isEmpty() && !badOffers.isEmpty() && badOffers.size() == 1;
-    }
 
 }

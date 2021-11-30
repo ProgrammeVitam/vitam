@@ -567,9 +567,12 @@ public class PreservationIT extends VitamRuleRunner {
             assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
             assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("versions").get(0).get("_storage").get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
 
+            // Ensures that check availability is in logbook
+            assertThat(jsonNode.get(6).get("outDetail").asText()).isEqualTo("PRESERVATION_CHECK_RESOURCE_AVAILABILITY.OK");
+
             // Ensure evDetData in not set in logbook operation for distributed step STP_PRESERVATION_ACTION / action PRESERVATION_BINARY_HASH
-            assertThat(jsonNode.get(8).get("outDetail").asText()).isEqualTo("PRESERVATION_BINARY_HASH.OK");
-            assertThat(jsonNode.get(8).get("evDetData").asText()).isEqualTo("{}");
+            assertThat(jsonNode.get(9).get("outDetail").asText()).isEqualTo("PRESERVATION_BINARY_HASH.OK");
+            assertThat(jsonNode.get(9).get("evDetData").asText()).isEqualTo("{}");
         }
     }
 

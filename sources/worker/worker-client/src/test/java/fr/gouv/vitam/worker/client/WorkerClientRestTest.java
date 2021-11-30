@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Step;
@@ -37,10 +38,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.worker.common.WorkerAccessRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -49,13 +53,18 @@ import org.junit.Test;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -67,12 +76,15 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     protected static WorkerClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    private static WorkerClientFactory factory = WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
-    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
+    private static WorkerClientFactory factory =
+        WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
+    private static VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(WorkerClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -148,6 +160,62 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void submitAsyncDataRetryException() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        List<WorkerAccessRequest> entity = List.of(new WorkerAccessRequest("accessRequestId1", "strategyId1", "offerId"),
+            new WorkerAccessRequest("accessRequestId2", "strategyId1", "offerId"),
+            new WorkerAccessRequest("accessRequestId3", "strategyId2",null));
+
+        when(mock.post()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
+                .entity(entity)
+                .build());
+        Throwable thrown = catchThrowable(
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
+        assertThat(thrown)
+            .isInstanceOf(ProcessingRetryAsyncException.class)
+            .hasFieldOrProperty("accessRequestIdByContext");
+        ProcessingRetryAsyncException exc = (ProcessingRetryAsyncException) thrown;
+        assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("strategyId1", "offerId"));
+        assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("strategyId1", "offerId"))).contains(
+            "accessRequestId1", "accessRequestId2");
+        assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("strategyId2", null));
+        assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("strategyId2", null))).contains(
+            "accessRequestId3");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void submitAsyncDataRetryInvalidProcessingException() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        List<WorkerAccessRequest> entity = List.of(new WorkerAccessRequest(null, "strategyId1", "offerId"));
+
+        when(mock.post()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
+                .entity(entity)
+                .build());
+        Throwable thrown = catchThrowable(
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
+        assertThat(thrown)
+            .isInstanceOf(ProcessingException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void submitAsyncDataRetryNoDataProcessingException() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+
+        when(mock.post()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
+                .build());
+        Throwable thrown = catchThrowable(
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
+        assertThat(thrown)
+            .isInstanceOf(ProcessingException.class);
     }
 
 }

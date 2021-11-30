@@ -1,0 +1,22 @@
+{
+  "identifier" : "aebaaaaaaaeaaaababk6gal5sqs3g2aaaaaq",
+  "status" : "KO",
+  "objectType" : "OBJECTGROUP",
+  "objectsReports" : [ {
+    "identifier" : "aeaaaaaaaaeaaaabaccqgal5tf54bkqaaaaq",
+    "status" : "OK",
+    "securedHash" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+    "strategyId" : "default",
+    "offersHashes" : {
+      "default" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+      "default-bis" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"
+    }
+  } ],
+  "message" : "Traceability audit KO  Database check failure Errors are :  [ \" Metadata hash '0fdIWph4G/HaeTbwYiU5oOGLQQIJbVy3sd3LFG7AJDUx/UljYinXJKjfKwJZIMlYDQeBf2CTyZrb1fWhfVHvhg==' mismatch secured metadata hash '1JLKnDgw1MAMKOrYEH/nOCbmRXtNnfkurwHQO17ZJxci3DGIW6xzlQf071aS8rMgOh4dg8dcxnX6Ri7jPb56QA==' \" ]",
+  "strategyId" : "default",
+  "offersHashes" : {
+    "default" : "4f297a0b37cdf58f8e00461d73c51ccb93ad85ce176b96f5074dbf91b129e6cb1e71df16726d22478f44e73ca61cb396f02a7e529a49f1d2e1e22cf887399447",
+    "default-bis" : "4f297a0b37cdf58f8e00461d73c51ccb93ad85ce176b96f5074dbf91b129e6cb1e71df16726d22478f44e73ca61cb396f02a7e529a49f1d2e1e22cf887399446"
+  },
+  "securedHash" : "4f297a0b37cdf58f8e00461d73c51ccb93ad85ce176b96f5074dbf91b129e6cb1e71df16726d22478f44e73ca61cb396f02a7e529a49f1d2e1e22cf887399446"
+}

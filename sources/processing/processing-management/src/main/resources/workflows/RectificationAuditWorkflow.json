@@ -126,6 +126,12 @@
       "actions": [
         {
           "action": {
+            "actionKey": "CORRECTIVE_AUDIT_CHECK_RESOURCE_AVAILABILITY",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
             "actionKey": "CORRECTIVE_AUDIT",
             "behavior": "BLOCKING"
           }

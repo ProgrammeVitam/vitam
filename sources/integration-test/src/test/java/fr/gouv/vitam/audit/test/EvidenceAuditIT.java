@@ -29,6 +29,7 @@ package fr.gouv.vitam.audit.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
@@ -81,8 +82,10 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationCheckResourceAvailability;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -103,6 +106,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Audit evidence integration test
@@ -156,6 +160,11 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
     }
 
+    @After
+    public void afterTest() {
+        handleAfter();
+    }
+
     @Test
     @RunWithCustomExecutor
     public void should_execute_evidence_audit_workflow_without_error() throws Exception {
@@ -198,7 +207,11 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
         doTraceabilityUnits();
         doTraceabilityGots();
-        deleteObjectInStorage(ingestOperationId);
+        String deletedGotId = deleteObjectInStorage(ingestOperationId);
+        String gotIdOfUnitModified = changeMetadataUnitInMongo(ingestOperationId, deletedGotId);
+        String gotIdModified = changeMetadataGotInMongo(ingestOperationId, deletedGotId, gotIdOfUnitModified);
+        assertNotEquals(deletedGotId, gotIdModified);
+        assertNotEquals(gotIdOfUnitModified, gotIdModified);
 
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
@@ -219,16 +232,17 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // Check report exists
             List<JsonNode> reportLines = VitamTestHelper.getReports(evidenceAuditOperation);
-            assertThat(reportLines.size()).isEqualTo(4);
+
+            assertThat(reportLines.size()).isEqualTo(6);
             assertThat(reportLines.get(3).get("strategyId").asText())
                 .isEqualTo(VitamConfiguration.getDefaultStrategy());
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
             assertThat(reportLines.get(3).get("strategyId").asText())
                 .isEqualTo(VitamConfiguration.getDefaultStrategy());
-            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(13);
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(11);
             assertThat(reportLines.get(3).get("strategyId").asText())
                 .isEqualTo(VitamConfiguration.getDefaultStrategy());
-            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(2);
+            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbArchiveUnits").asInt()).isEqualTo(7);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(4);
@@ -250,6 +264,8 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             // Then
             assertThat(rectificationAuditOperationEvents.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+            assertThat(rectificationAuditOperationEvents.iterator()).extracting(j -> j.get("outDetail").asText())
+                .contains(DataRectificationCheckResourceAvailability.PLUGIN_NAME + ".OK");
 
             // Check report exists
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -320,6 +336,69 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             waitOperation(evidenceAuditOperationGUID.toString());
         }
         return evidenceAuditOperationGUID.toString();
+    }
+
+    private String changeMetadataUnitInMongo(String ingestOperationId, String deletedGotId)
+        throws Exception {
+        try (final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.and()
+                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOperationId))
+                .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.object(), deletedGotId)))
+            );
+            // Get AU and update it
+            final JsonNode unitResult = metaDataClient.selectUnits(select.getFinalSelect());
+            if (unitResult == null || unitResult.get("$results").size() <= 0) {
+                throw new VitamException("Could not find unit");
+            }
+            JsonNode unit = unitResult.get("$results").get(0);
+            assertThat(unit).isNotNull();
+            final String unitId = unit.get("#id").asText();
+            final String gotId = unit.get("#object").asText("EMPTY");
+            Bson filterUnit = Filters.eq("_id", unitId);
+            Bson updateUnit = Updates.set("Title", "title");
+            UpdateResult updateUnitResult = MetadataCollections.UNIT.getCollection().updateOne(filterUnit, updateUnit);
+            assertEquals(updateUnitResult.getModifiedCount(), 1);
+            return gotId;
+        }
+    }
+
+    private String changeMetadataGotInMongo(String initialOperationId, String... gotIdExcluded)
+        throws Exception {
+        try (final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+
+            GUID accessGuid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+            VitamThreadUtils.getVitamSession().setRequestId(accessGuid);
+
+            SelectMultiQuery selectQuery = new SelectMultiQuery();
+            selectQuery.setQuery(QueryHelper.and()
+                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperationId))
+                .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.id(), gotIdExcluded)))
+                .add(QueryHelper.gte(VitamFieldsHelper.nbobjects(), 1)));
+            selectQuery.setLimitFilter(0, 1);
+            JsonNode gotResult = metaDataClient.selectObjectGroups(selectQuery.getFinalSelect());
+            JsonNode got = gotResult.get("$results").get(0);
+            assertThat(got).isNotNull();
+            final String gotId = got.get("#id").asText();
+            Bson filterGot = Filters.eq("_id", gotId);
+            Bson updateGot = Updates.combine(Updates.set("FileInfo.FileName", "test_audit_wrong.pdf"),
+                Updates.set("FileInfo.Filename", "test_audit_wrong.pdf"),
+                Updates.set("_qualifiers.0.versions.0.FileInfo.Filename", "test_audit_wrong.pdf"));
+            UpdateResult updateGotResult =
+                MetadataCollections.OBJECTGROUP.getCollection().updateOne(filterGot, updateGot);
+            assertEquals(updateGotResult.getModifiedCount(), 1);
+            FindIterable<Document> gots = MetadataCollections.OBJECTGROUP.getCollection().find(filterGot);
+            JsonNode gotModified = JsonHandler.getFromString(gots.first().toJson());
+            String fileNameGlobal = gotModified.get("FileInfo").get("FileName").asText();
+            String fileNameVersion =
+                gotModified.get("_qualifiers").get(0).get("versions").get(0).get("FileInfo").get("Filename").asText();
+            assertEquals("test_audit_wrong.pdf", fileNameGlobal);
+            assertEquals("test_audit_wrong.pdf", fileNameVersion);
+            return gotId;
+        }
     }
 
     private void setFakeStrategyInMetadatasUnit()
@@ -398,14 +477,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             GUID storageGuid = GUIDFactory.newRequestIdGUID(TENANT_ID);
             VitamThreadUtils.getVitamSession().setRequestId(storageGuid);
             storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, objectId);
-            return objectId;
+            return gotPojo.getId();
 
         }
-    }
-
-    @After
-    public void afterTest() {
-        handleAfter();
     }
 
 }

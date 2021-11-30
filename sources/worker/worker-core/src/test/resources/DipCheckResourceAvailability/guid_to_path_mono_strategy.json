@@ -1,0 +1,38 @@
+{
+  "TEST_ID": {
+    "qualifier": "BinaryMaster",
+    "version": 1,
+    "contextId": "contextTest",
+    "archiveId": "UnitTest",
+    "strategyId": "other_binary_strategy",
+    "objectSize": 0,
+    "FILE_NAME": "Content/TEST_ID"
+  },
+  "TEST_ID0": {
+    "qualifier": "BinaryMaster",
+    "version": 1,
+    "contextId": "contextTest",
+    "archiveId": "UnitTest",
+    "strategyId": "other_binary_strategy",
+    "objectSize": 0,
+    "FILE_NAME": "Content/TEST_ID0"
+  },
+  "TEST_ID1": {
+    "qualifier": "BinaryMaster",
+    "version": 1,
+    "contextId": "contextTest",
+    "archiveId": "UnitTest",
+    "strategyId": "other_binary_strategy",
+    "objectSize": 0,
+    "FILE_NAME": "Content/TEST_ID1"
+  },
+  "TEST_ID2": {
+    "qualifier": "BinaryMaster",
+    "version": 1,
+    "contextId": "contextTest",
+    "archiveId": "UnitTest",
+    "strategyId": "other_binary_strategy",
+    "objectSize": 0,
+    "FILE_NAME": "Content/TEST_ID2"
+  }
+}
