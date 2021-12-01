@@ -41,10 +41,12 @@ Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra
 .. note:: Cette procédure doit être lancée une seule fois, et pour chaque offre Swift V2/V3, APRES upgrade Vitam.
 
 
-Migrations des unités achivestiques
+Migration des unités archivistiques
 -----------------------------------
 
-La migration des données est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :
+Cette migration de données consiste à supprimer le champ ``us_sp`` et rendre inactive l'indexation des champs dynamiques, créés au niveau des régles de gestion héritées au niveau de la propriété ``endDates``.
+
+ELle est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --vault-password-file vault_pass.txt``
 
@@ -52,7 +54,9 @@ ou, si vault_pass.txt n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass``
 
-L'indexation des champs dynamiques, créés au niveau des régles de gestion héritées, et précisément au niveau de la propriété ``endDates`` est rendue inactive. Il faudrait ainsi réindexer toutes les unités archivitiques.
+Après le passage du script de migration, il faut procéder à la réindexation de toutes les unités archivistiques :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass``
 
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.
 
