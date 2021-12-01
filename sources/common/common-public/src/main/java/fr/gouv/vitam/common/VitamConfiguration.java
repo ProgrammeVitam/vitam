@@ -331,7 +331,7 @@ public class VitamConfiguration {
     /**
      * Distributor batch size
      */
-    private static int distributeurBatchSize = 100;
+    private static int distributeurBatchSize = 800;
     /**
      * Worker bulk size
      */
