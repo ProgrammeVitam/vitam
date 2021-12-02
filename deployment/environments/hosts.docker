@@ -36,13 +36,13 @@ library
 ##### Zone externe
 
 [hosts_ihm_recette]
-172.17.0.1
+vitam.dev
 
 [zone_external:children]
 hosts_ihm_demo
 
 [hosts_ihm_demo]
-172.17.0.1
+vitam.dev
 
 
 ##### Zone access
@@ -52,10 +52,10 @@ hosts_ingest_external
 hosts_access_external
 
 [hosts_ingest_external]
-172.17.0.1
+vitam.dev
 
 [hosts_access_external]
-172.17.0.1
+vitam.dev
 
 ##### Zone applicative
 
@@ -73,37 +73,37 @@ hosts_storage_engine
 hosts_security_internal
 
 [hosts_security_internal]
-172.17.0.1
+vitam.dev
 
 [hosts_logbook]
-172.17.0.1
+vitam.dev
 
 [hosts_workspace]
-172.17.0.1
+vitam.dev
 
 [hosts_ingest_internal]
-172.17.0.1
+vitam.dev
 
 [hosts_access_internal]
-172.17.0.1
+vitam.dev
 
 [hosts_metadata]
-172.17.0.1
+vitam.dev
 
 [hosts_functional_administration]
-172.17.0.1
+vitam.dev
 
 [hosts_processing]
-172.17.0.1
+vitam.dev
 
 [hosts_storage_engine]
-172.17.0.1
+vitam.dev
 
 [hosts_batch_report]
-172.17.0.1
+vitam.dev
 
 [hosts_worker]
-172.17.0.1
+vitam.dev
 
 
 ##### Zone storage
