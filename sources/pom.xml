@@ -206,7 +206,7 @@
         <jaxb.version>2.3.2</jaxb.version>
         <httpclient.version>4.5.13</httpclient.version>
         <netty.version>4.1.58.Final</netty.version>
-        <commons-compress.version>1.19</commons-compress.version>
+        <commons-compress.version>1.21</commons-compress.version>
         <easystream.version>1.2.15</easystream.version>
         <zjsonpatch.version>0.4.9</zjsonpatch.version>
         <!-- Json Validation -->
