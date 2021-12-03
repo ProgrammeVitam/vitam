@@ -29,10 +29,12 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -41,16 +43,29 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.model.DataMigrationBody;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -60,17 +75,21 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang.StringUtils;
 
+import javax.validation.ValidationException;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -78,10 +97,13 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.VitamConfiguration.getTenants;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.status;
 
@@ -97,9 +119,15 @@ public class AdminMigrationResource {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
 
-    AdminMigrationResource() {
+    private final AdminManagementConfiguration configuration;
+    private final MongoDbAccessAdminImpl mongoAccess;
+    private VitamCounterService vitamCounterService;
+    private final MetaDataClientFactory metaDataClientFactory;
+
+    AdminMigrationResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+            WorkspaceClientFactory.getInstance(), configuration, ontologyLoader, indexManager);
     }
 
     /**
@@ -112,11 +140,25 @@ public class AdminMigrationResource {
     @VisibleForTesting
     public AdminMigrationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory, AdminManagementConfiguration configuration,
+        OntologyLoader ontologyLoader, ElasticsearchFunctionalAdminIndexManager indexManager) {
+        this.configuration = configuration;
+        DbConfigurationImpl adminConfiguration;
+        if (configuration.isDbAuthentication()) {
+            adminConfiguration =
+                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
+        } else {
+            adminConfiguration =
+                new DbConfigurationImpl(configuration.getMongoDbNodes(),
+                    configuration.getDbName());
+        }
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
         xrequestIds = new HashMap<>();
+        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
+        metaDataClientFactory = MetaDataClientFactory.getInstance();
     }
 
     /**
@@ -189,6 +231,93 @@ public class AdminMigrationResource {
         }
 
         return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Migrate Collections :
+     * To add a new Migration scenary, please add a AUTHORIZED_FIELDS_TO_UPDATE list in the concerned collection to control fields to update.
+     * Collection should be controled by its enum family ( FunctionalAdminCollections, OfferCollections, LogbookCollections, ... )
+     * @param dataMigrationBody
+     * @return
+     */
+    @Path("collectionMigration")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response migrateCollection(DataMigrationBody dataMigrationBody) {
+
+        // Validate Body
+        try {
+            validateDataMigrationBody(dataMigrationBody);
+        } catch (ValidationException e) {
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, (e.getMessage()))).build();
+        }
+
+        // Check Collection & fields and start data migration
+        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().equals(dataMigrationBody.getCollection()) &&
+            authorizedFieldsForCollection(AccessionRegisterDetail.AUTHORIZED_FIELDS_TO_UPDATE, dataMigrationBody.getFields())) {
+            return migrateAccessionRegisterDetails(dataMigrationBody);
+        }
+
+        return Response.status(BAD_REQUEST)
+            .entity(getErrorEntity(BAD_REQUEST, "Incorrect body fields! Data migration has been aborted !")).build();
+
+    }
+
+    private boolean authorizedFieldsForCollection(List<String> authorizedFieldsToUpdate, List<String> fields) {
+        return authorizedFieldsToUpdate.containsAll(fields);
+    }
+
+    private Response migrateAccessionRegisterDetails(DataMigrationBody dataMigrationBody) {
+
+        try {
+            AccessionRegisterDetailModel accessionRegister =
+                JsonHandler.getFromJsonNode(dataMigrationBody.getModel(), AccessionRegisterDetailModel.class);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("register ID / Originating Agency: " + accessionRegister.getId() + " / " +
+                    accessionRegister.getOriginatingAgency());
+            }
+            ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
+
+            if (VitamThreadUtils.getVitamSession().getTenantId() == null && accessionRegister.getTenant() != null) {
+                VitamThreadUtils.getVitamSession().setTenantId(accessionRegister.getTenant());
+            }
+
+            try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+                new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
+                    configuration)) {
+                accessionRegisterManagement.migrateAccessionRegister(accessionRegister, dataMigrationBody.getFields());
+                return Response.status(CREATED).build();
+            } catch (final BadRequestException e) {
+                LOGGER.error(e);
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        }
+    }
+
+    private void validateDataMigrationBody(DataMigrationBody dataMigrationBody) throws ValidationException {
+        if (StringUtils.isBlank(dataMigrationBody.getCollection())){
+            throw new ValidationException("Collection name is empty !");
+        }
+
+        if (dataMigrationBody.getFields() == null || dataMigrationBody.getFields().isEmpty()){
+            throw new ValidationException("Fields are empty !");
+        }
+
+        if (JsonHandler.isNullOrEmpty(dataMigrationBody.getModel())){
+            throw new ValidationException("Model is empty !");
+        }
     }
 
     private void migrateTo(Integer tenant) {

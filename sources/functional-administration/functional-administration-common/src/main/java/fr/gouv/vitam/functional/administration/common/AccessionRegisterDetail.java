@@ -65,8 +65,9 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     public static final String OPERATION_IDS = "OperationIds";
     public static final String EVENTS = "Events";
     public static final String TENANT = "_tenant";
-    private static final String OB_ID_IN = "obIdIn";
-    private static final String COMMENT = "Comment";
+    public static final String OB_ID_IN = "obIdIn";
+    public static final String COMMENT = "Comment";
+    public static final List<String> AUTHORIZED_FIELDS_TO_UPDATE = List.of(COMMENT, OB_ID_IN);
 
     /**
      * Empty Constructor
