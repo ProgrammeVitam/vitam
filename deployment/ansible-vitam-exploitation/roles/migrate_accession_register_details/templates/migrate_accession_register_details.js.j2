@@ -1,0 +1,38 @@
+result={touchedAccessionRegisterDetails:[]}
+db.getSiblingDB('masterdata').AccessionRegisterDetail.find(
+    {
+        $and: [
+            { "obIdIn": { $exists: false } },
+            { "Comment": { $exists: false } },
+            { "OpType": 'INGEST' }
+        ]
+    }
+).forEach(function (accRegDetail) {
+               var logbook = db.getSiblingDB('logbook').LogbookOperation.findOne(
+                   {
+                       "_id": accRegDetail.Opi
+                   }
+               )
+               if (logbook && logbook.obIdIn && logbook.evDetData) {
+                    var accessRegisterCustomized = {};
+                    accessRegisterCustomized._id = accRegDetail._id
+                    accessRegisterCustomized._tenant = accRegDetail._tenant
+                    accessRegisterCustomized.OriginatingAgency = accRegDetail.OriginatingAgency
+                    accessRegisterCustomized.Opi = accRegDetail.Opi
+
+                   // Assign Message Identifier
+                   accessRegisterCustomized.obIdIn = logbook.obIdIn;
+
+                   // Assign Manifest Comment
+                   logbookCommentStringified = JSON.parse(logbook.evDetData).EvDetailReq
+                   if (logbookCommentStringified) {
+                       accessRegisterCustomized.Comment = logbookCommentStringified.split("_")
+                   }
+
+                   const convertedAccessionRegisterDetail = tojson(accessRegisterCustomized).replace(/NumberLong\((\d*)\)/g, "$1")
+                                      .replace("_id","#id").replace("_tenant","#tenant")
+
+                   result.touchedAccessionRegisterDetails.push(JSON.parse(convertedAccessionRegisterDetail))
+               }
+           })
+print(JSON.stringify(result))

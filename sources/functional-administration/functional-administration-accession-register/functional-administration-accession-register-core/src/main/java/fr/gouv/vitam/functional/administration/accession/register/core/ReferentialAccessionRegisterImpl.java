@@ -481,4 +481,38 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             throw new ReferentialException("Unknown error", e);
         }
     }
+
+    public void migrateAccessionRegister(AccessionRegisterDetailModel accessionRegister,
+        List<String> fieldsToUpdate)
+        throws ReferentialException, BadRequestException {
+        try {
+            List<Action> actions = new ArrayList<>();
+
+            if (fieldsToUpdate.contains(AccessionRegisterDetail.COMMENT)) {
+                actions.add(new SetAction(AccessionRegisterDetail.COMMENT, accessionRegister.getComment()));
+            }
+
+            if (fieldsToUpdate.contains(AccessionRegisterDetail.OB_ID_IN)) {
+                actions.add(new SetAction(AccessionRegisterDetail.OB_ID_IN, accessionRegister.getObIdIn()));
+            }
+
+            Update update = new Update();
+            update.setQuery(
+                QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, accessionRegister
+                    .getOriginatingAgency()), QueryHelper.eq(AccessionRegisterDetail.OPI, accessionRegister.getOpi())));
+
+            update.addActions(actions.toArray(Action[]::new));
+
+            // Update document in on mongo & ES
+            mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
+
+            // Update document in Offer
+            storeAccessionRegisterDetail(accessionRegister);
+
+        } catch (final InvalidCreateOperationException | SchemaValidationException e) {
+            throw new BadRequestException("Error when migrating register detail !", e);
+        } catch (final Exception e) {
+            throw new ReferentialException("Error when migrating register detail !", e);
+        }
+    }
 }
