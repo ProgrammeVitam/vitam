@@ -205,7 +205,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">
             <SystemProperty name="jetty.port" default="8444"/>
         </Set>
@@ -229,7 +229,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">28102</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">
