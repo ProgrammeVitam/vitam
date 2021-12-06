@@ -1,0 +1,237 @@
+[hosts]
+
+[hosts:children]
+vitam
+reverse
+hosts_dev_tools
+ldap
+
+########### Tests environments specifics ###########
+
+[reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+localhost
+
+[ldap] # Extra : OpenLDAP server
+
+[library] # EXTRA : Library server
+
+[hosts_dev_tools]
+
+[elasticsearch:children] # EXTRA : elasticsearch
+hosts_elasticsearch_data
+hosts_elasticsearch_log
+
+########### VITAM services ###########
+
+[vitam:children]
+hosts_ihm_recette
+zone_external
+zone_access
+zone_applicative
+zone_storage
+zone_data
+zone_admin
+library
+
+##### Zone externe
+
+[hosts_ihm_recette]
+vitam.dev
+
+[zone_external:children]
+hosts_ihm_demo
+
+[hosts_ihm_demo]
+vitam.dev
+
+
+##### Zone access
+
+[zone_access:children]
+hosts_ingest_external
+hosts_access_external
+
+[hosts_ingest_external]
+vitam.dev
+
+[hosts_access_external]
+vitam.dev
+
+##### Zone applicative
+
+[zone_applicative:children]
+hosts_ingest_internal
+hosts_processing
+hosts_batch_report
+hosts_worker
+hosts_access_internal
+hosts_metadata
+hosts_functional_administration
+hosts_logbook
+hosts_workspace
+hosts_storage_engine
+hosts_security_internal
+
+[hosts_security_internal]
+vitam.dev
+
+[hosts_logbook]
+vitam.dev
+
+[hosts_workspace]
+vitam.dev
+
+[hosts_ingest_internal]
+vitam.dev
+
+[hosts_access_internal]
+vitam.dev
+
+[hosts_metadata]
+vitam.dev
+
+[hosts_functional_administration]
+vitam.dev
+
+[hosts_processing]
+vitam.dev
+
+[hosts_storage_engine]
+vitam.dev
+
+[hosts_batch_report]
+vitam.dev
+
+[hosts_worker]
+vitam.dev
+
+
+##### Zone storage
+
+[zone_storage:children]
+hosts_storage_offer_default
+hosts_mongodb_offer
+
+[hosts_storage_offer_default]
+localhost offer_conf=offer-fs-1
+
+[hosts_mongodb_offer:children]
+hosts_mongos_offer
+hosts_mongoc_offer
+hosts_mongod_offer
+
+[hosts_mongos_offer]
+localhost
+
+[hosts_mongoc_offer]
+localhost                       mongo_rs_bootstrap=true
+
+[hosts_mongod_offer]
+localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
+
+##### Zone data
+
+[zone_data:children]
+hosts_elasticsearch_data
+hosts_mongodb_data
+
+[hosts_elasticsearch_data]
+localhost elasticsearch_memory=256m
+
+[hosts_mongodb_data:children]
+hosts_mongos_data
+hosts_mongoc_data
+hosts_mongod_data
+
+[hosts_mongodb_data:vars]
+mongo_cluster_name=mongo-data
+
+[hosts_mongos_data]
+localhost
+
+[hosts_mongoc_data]
+localhost                        mongo_rs_bootstrap=true
+
+[hosts_mongod_data]
+localhost      mongo_shard_id=0  mongo_rs_bootstrap=true
+
+###### Zone admin
+
+[zone_admin:children]
+hosts_cerebro
+hosts_consul_server
+hosts_kibana_data
+log_servers
+hosts_elasticsearch_log
+prometheus
+hosts_grafana
+
+[hosts_cerebro]
+localhost
+
+[hosts_consul_server]
+localhost
+
+[hosts_kibana_data]
+localhost
+
+[log_servers:children]
+hosts_kibana_log
+hosts_logstash
+
+[hosts_logstash]
+
+[hosts_kibana_log]
+
+[hosts_elasticsearch_log]
+
+########### Extra VITAM applications ###########
+[prometheus:children]
+hosts_prometheus
+hosts_alertmanager
+
+[hosts_prometheus]
+localhost
+
+[hosts_alertmanager]
+localhost
+
+[hosts_grafana]
+localhost
+
+########### Global vars ###########
+
+[hosts:vars]
+
+# ===============================
+# VITAM
+# ===============================
+
+ansible_connection=local
+ansible_become=true
+
+### dns ###
+dns_servers=["10.100.211.222", "8.8.8.8"]
+
+### memory settings ###
+memory_opts="-Xms32m -Xmx256m"
+timer_memory_opts="-Xms32m -Xmx128m"
+
+vitam_site_name=local
+primary_site=true
+
+# ===============================
+# EXTRA
+# ===============================
+
+### vitam-itest repository ###
+vitam_tests_branch=master
+vitam_tests_gitrepo_protocol=https
+vitam_tests_gitrepo_baseurl=github.com
+vitam_tests_gitrepo_url={{ vitam_tests_gitrepo_protocol }}://{{ vitam_tests_gitrepo_baseurl }}/ProgrammeVitam/vitam-itests.git
+
+### reverse proxy ###
+reverse_proxy_port=80
+http_proxy_environnement=
+vitam_reverse_external_dns=localhost
+vitam_reverse_external_protocol=http
