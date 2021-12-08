@@ -88,6 +88,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.bson.Document;
 import org.elasticsearch.common.Strings;
 
+import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -97,8 +98,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.File;
 import java.io.OutputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -296,8 +297,9 @@ public class ManifestBuilder implements AutoCloseable {
             for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
                 if (minimalDataObjectType instanceof BinaryDataObjectType) {
                     BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
-                    String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
-                    String fileName = StoreExports.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
+                    String extension = getExtension(binaryDataObjectType).toLowerCase();
+                    String fileName = StoreExports.CONTENT + File.separator + binaryDataObjectType.getId() +
+                        (extension.equals("") ? "" : "." + extension);
                     binaryDataObjectType.setUri(fileName);
 
                     String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
@@ -318,6 +320,19 @@ public class ManifestBuilder implements AutoCloseable {
         } catch (InternalServerException | LogbookClientException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
+    }
+
+    @Nonnull
+    private String getExtension(BinaryDataObjectType binaryDataObjectType) {
+        String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
+        if(Strings.isNullOrEmpty(extension)) {
+            extension = FilenameUtils.getExtension(binaryDataObjectType.getFileInfo().getFilename());
+        }
+        if(Strings.isNullOrEmpty(extension)) {
+            extension = "";
+            LOGGER.warn("cannot find extension for object" + binaryDataObjectType.getId());
+        }
+        return extension;
     }
 
     private void marshallHackForNonXmlRootObject(DataObjectGroupType dataObjectGroup) throws JAXBException {
