@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.model.administration.VersionUsageModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ManagementContract;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -85,6 +84,7 @@ import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import org.apache.commons.lang3.EnumUtils;
 
 import javax.ws.rs.core.Response;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -112,6 +112,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
     private static final String THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The management contract status must be ACTIVE or INACTIVE but not ";
+    private static final String DATE_MUST_BE_VALID = "must be a valid date";
 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_MANAGEMENT_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_MANAGEMENT_CONTRACT";
@@ -434,22 +435,40 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         final VitamError<ManagementContractModel> error, final String field, final JsonNode value,
         ManagementContractModel managementContractModel) {
 
-        if (AccessContract.STATUS.equals(field)) {
-            if (!(ActivationStatus.ACTIVE.name().equals(value.asText())
-                || ActivationStatus.INACTIVE.name().equals(value.asText()))) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
-                ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+        switch (field) {
+            case ManagementContract.STATUS: {
+                if (!(ActivationStatus.ACTIVE.name().equals(value.asText())
+                    || ActivationStatus.INACTIVE.name().equals(value.asText()))) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
             }
-        } else {
-            validateStorage(validationService, contractName, error, field, value);
-            validateVersionRetentionPolicy(validationService, contractName, error, field, value,
-                managementContractModel);
+            case ManagementContract.LAST_UPDATE:
+            case ManagementContract.CREATIONDATE:
+            case ManagementContract.ACTIVATIONDATE:
+            case ManagementContract.DEACTIVATIONDATE:
+                try {
+                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                } catch (DateTimeParseException e) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        String.format("%s %s", field, DATE_MUST_BE_VALID))
+                        .setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                }
+                break;
         }
+
+
+        validateStorage(validationService, contractName, error, field, value);
+        validateVersionRetentionPolicy(validationService, contractName, error, field, value,
+            managementContractModel);
+
     }
 
     private void validateStorage(ManagementContractValidationService validationService, String contractName,
         VitamError<ManagementContractModel> error, String field, JsonNode value) {
+
         if (ManagementContract.STORAGE.equals(field)) {
             final Iterator<String> it = value.fieldNames();
             while (it.hasNext()) {

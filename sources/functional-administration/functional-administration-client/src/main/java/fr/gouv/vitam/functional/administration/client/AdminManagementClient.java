@@ -448,7 +448,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
+    RequestResponse<ProfileModel> importProfileFile(String profileMetadataId, InputStream stream)
         throws ReferentialException, DatabaseConflictException;
 
 
@@ -609,7 +609,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AdminManagementClientServerException
      * @throws ReferentialNotFoundException
      */
-    RequestResponse updateSecurityProfile(String identifier, JsonNode queryDsl)
+    RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
@@ -828,14 +828,13 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param queryDsl search by dsl
      * @return a lis of accession register symbolic or a empty list if nothing is found
      */
-    RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
-        JsonNode queryDsl)
+    RequestResponse<AccessionRegisterSymbolicModel> getAccessionRegisterSymbolic(Integer tenant, JsonNode queryDsl)
         throws AdminManagementClientServerException;
 
-    RequestResponse importGriffins(List<GriffinModel> griffinModelList)
+    RequestResponse<GriffinModel> importGriffins(List<GriffinModel> griffinModelList)
         throws AdminManagementClientServerException;
 
-    RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
+    RequestResponse<PreservationScenarioModel> importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
         throws AdminManagementClientServerException;
 
     RequestResponse<GriffinModel> findGriffinByID(String id)

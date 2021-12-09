@@ -93,6 +93,7 @@ import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -116,6 +117,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         "The Access contract EveryOriginatingAgency must be true or false but not ";
     private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Access contract status must be ACTIVE or INACTIVE but not ";
+    private static final String DATE_MUST_BE_VALID = "must be a valid date";
     private static final String ACCESS_CONTRACT_NOT_FOUND = "Access contract not found";
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER =
         "The collection of access contracts is mandatory";
@@ -706,133 +708,145 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private void validateUpdateAction(AccessContractValidationService validationService, String contractName, final VitamError<AccessContractModel> error,
         final String field, final JsonNode value) {
 
-        if (AccessContract.STATUS.equals(field)) {
-            if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
-                .name().equals(value.asText()))) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
-                    .setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-            }
-        }
-
-        if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
-            if (!(value instanceof BooleanNode)) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                        value.asText()
-                ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-            }
-        }
-
-        if (AccessContractModel.ORIGINATING_AGENCIES.equals(field)) {
-            if (!value.isArray()) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    ORIGINATING_AGENCIES_INVALID +
-                        value.asText()
-                ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-            } else {
-
-                try {
-                    Set<String> originatingAgencies = JsonHandler.getFromJsonNode(value, new TypeReference<>() {
-                    });
-                    AccessContractModel toValidate = new AccessContractModel();
-                    toValidate.setOriginatingAgencies(originatingAgencies);
-                    Optional<GenericRejectionCause> rejection =
-                        validationService.checkExistenceOriginatingAgenciesValidator()
-                            .validate(toValidate, contractName);
-
-                    // Validation error
-                    rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), genericRejectionCause.getReason())
-                            .setMessage(UPDATE_AGENCY_NOT_FOUND)));
-
-                } catch (InvalidParseOperationException e) {
+        switch (field) {
+            case AccessContract.STATUS:
+                if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
+                    .name().equals(value.asText()))) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        ROOT_UNIT_INVALID +
-                            value.asText()
-                    ));
+                        THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
+                        .setMessage(UPDATE_VALUE_NOT_IN_ENUM));
                 }
-            }
-        }
-
-        if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
-            if (!(value instanceof BooleanNode)) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                        value.asText()
-                ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-            }
-        }
-
-        if (AccessContractModel.DATA_OBJECT_VERSION.equals(field)) {
-            if (!validateObjectVersion(value)) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    DATA_OBJECT_VERSION_INVALID +
-                        value.asText()
-                ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-            }
-        }
-
-        // Validate that RootUnits if not empty exists in database
-        if (AccessContractModel.ROOT_UNITS.equals(field)) {
-            if (!value.isArray()) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    ROOT_UNIT_INVALID +
-                        value.asText()
-                ).setMessage(UPDATE_KO));
-            } else {
-
+                break;
+            case AccessContract.LAST_UPDATE:
+            case AccessContract.CREATIONDATE:
+            case AccessContract.ACTIVATIONDATE:
+            case AccessContract.DEACTIVATIONDATE:
                 try {
-                    Set<String> rootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
-                    AccessContractModel toValidate = new AccessContractModel();
-                    toValidate.setRootUnits(rootUnits);
-                    Optional<GenericRejectionCause> rejection =
-                        validationService.validateExistsArchiveUnits(metaDataClient)
-                            .validate(toValidate, contractName);
+                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                } catch (DateTimeParseException e) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        String.format("%s %s", field, DATE_MUST_BE_VALID))
+                        .setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                }
+                break;
+            case AccessContractModel.EVERY_ORIGINATINGAGENCY:
+                if (!(value instanceof BooleanNode)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
+                            value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
+            case AccessContractModel.ORIGINATING_AGENCIES:
+                if (!value.isArray()) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        ORIGINATING_AGENCIES_INVALID +
+                            value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                } else {
 
-                    // Validation error
-                    rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), genericRejectionCause.getReason())
-                            .setMessage(UPDATE_KO)));
+                    try {
+                        Set<String> originatingAgencies = JsonHandler.getFromJsonNode(value, new TypeReference<>() {
+                        });
+                        AccessContractModel toValidate = new AccessContractModel();
+                        toValidate.setOriginatingAgencies(originatingAgencies);
+                        Optional<GenericRejectionCause> rejection =
+                            validationService.checkExistenceOriginatingAgenciesValidator()
+                                .validate(toValidate, contractName);
 
-                } catch (InvalidParseOperationException e) {
+                        // Validation error
+                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                genericRejectionCause.getReason())
+                                .setMessage(UPDATE_AGENCY_NOT_FOUND)));
+
+                    } catch (InvalidParseOperationException e) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ROOT_UNIT_INVALID +
+                                value.asText()
+                        ));
+                    }
+                }
+                break;
+            case AccessContractModel.EVERY_DATA_OBJECT_VERSION:
+                if (!(value instanceof BooleanNode)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
+                            value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
+            case AccessContractModel.DATA_OBJECT_VERSION:
+                if (!validateObjectVersion(value)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        DATA_OBJECT_VERSION_INVALID +
+                            value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
+            case AccessContractModel.ROOT_UNITS:
+                // Validate that RootUnits if not empty exists in database
+                if (!value.isArray()) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         ROOT_UNIT_INVALID +
                             value.asText()
                     ).setMessage(UPDATE_KO));
+                } else {
+
+                    try {
+                        Set<String> rootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
+                        AccessContractModel toValidate = new AccessContractModel();
+                        toValidate.setRootUnits(rootUnits);
+                        Optional<GenericRejectionCause> rejection =
+                            validationService.validateExistsArchiveUnits(metaDataClient)
+                                .validate(toValidate, contractName);
+
+                        // Validation error
+                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                genericRejectionCause.getReason())
+                                .setMessage(UPDATE_KO)));
+
+                    } catch (InvalidParseOperationException e) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ROOT_UNIT_INVALID +
+                                value.asText()
+                        ).setMessage(UPDATE_KO));
+                    }
                 }
-            }
-        }
-
-        // Validate that ExcludedRootUnits, if not empty, exists in database
-        if (AccessContractModel.EXCLUDED_ROOT_UNITS.equals(field)) {
-            if (!value.isArray()) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    EXCLUDED_ROOT_UNIT_INVALID +
-                        value.asText()
-                ).setMessage(UPDATE_KO));
-            } else {
-
-                try {
-                    Set<String> excludedRootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
-                    AccessContractModel toValidate = new AccessContractModel();
-                    toValidate.setExcludedRootUnits(excludedRootUnits);
-                    Optional<GenericRejectionCause> rejection =
-                        validationService.validateExistsArchiveUnits(metaDataClient)
-                            .validate(toValidate, contractName);
-
-                    // Validation error
-                    rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), genericRejectionCause.getReason())
-                            .setMessage(UPDATE_KO)));
-
-                } catch (InvalidParseOperationException e) {
+                break;
+            case AccessContractModel.EXCLUDED_ROOT_UNITS:
+                // Validate that ExcludedRootUnits, if not empty, exists in database
+                if (!value.isArray()) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        ROOT_UNIT_INVALID +
+                        EXCLUDED_ROOT_UNIT_INVALID +
                             value.asText()
                     ).setMessage(UPDATE_KO));
+                } else {
+
+                    try {
+                        Set<String> excludedRootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
+                        AccessContractModel toValidate = new AccessContractModel();
+                        toValidate.setExcludedRootUnits(excludedRootUnits);
+                        Optional<GenericRejectionCause> rejection =
+                            validationService.validateExistsArchiveUnits(metaDataClient)
+                                .validate(toValidate, contractName);
+
+                        // Validation error
+                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                genericRejectionCause.getReason())
+                                .setMessage(UPDATE_KO)));
+
+                    } catch (InvalidParseOperationException e) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ROOT_UNIT_INVALID +
+                                value.asText()
+                        ).setMessage(UPDATE_KO));
+                    }
                 }
-            }
+                break;
+
         }
     }
 

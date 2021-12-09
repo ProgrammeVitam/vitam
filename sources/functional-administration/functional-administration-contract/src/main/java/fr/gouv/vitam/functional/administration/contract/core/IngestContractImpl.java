@@ -86,6 +86,7 @@ import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -113,14 +114,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String EVERYFORMAT_LIST_EMPTY = "formatType field must not be empty when everyFormat is false";
     private static final String EVERYFORMAT_LIST_NOT_EMPTY = "formatType field must be empty when everyFormat is true";
+    private static final String DATE_MUST_BE_VALID = "must be a valid date";
+
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
 
 
-    private static final String EMPTY_REQUIRED_FIELD = CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
-    private static final String DUPLICATE_IN_DATABASE = CONTRACTS_IMPORT_EVENT + ContractLogbookService.DUPLICATE_IN_DATABASE;
-    private static final String PROFILE_NOT_FOUND_IN_DATABASE = CONTRACTS_IMPORT_EVENT + ContractLogbookService.PROFILE_NOT_FOUND_IN_DATABASE;
+    private static final String EMPTY_REQUIRED_FIELD =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
+    private static final String DUPLICATE_IN_DATABASE =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.DUPLICATE_IN_DATABASE;
+    private static final String PROFILE_NOT_FOUND_IN_DATABASE =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.PROFILE_NOT_FOUND_IN_DATABASE;
     private static final String FORMAT_NOT_FOUND = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_NOT_FOUND;
     private static final String FORMAT_MUST_BE_EMPTY = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_MUST_BE_EMPTY;
     private static final String FORMAT_MUST_NOT_BE_EMPTY = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_MUST_NOT_BE_EMPTY;
@@ -673,14 +679,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    if (AbstractContractModel.TAG_STATUS.equals(field)) {
-                        if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
-                            .name().equals(value.asText()))) {
-                            error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
-                            ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
-                        }
-                    }
+                    validateUpdateAction(validationService, ingestContractModel.getName(), error, field, value,
+                        ingestContractModel);
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
@@ -841,6 +841,33 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             return error;
         }
+    }
+
+    private void validateUpdateAction(IngestContractValidationService validationService, String name,
+        VitamError<IngestContractModel> error, String field, JsonNode value, IngestContractModel ingestContractModel) {
+        switch (field) {
+            case IngestContract.STATUS:
+                if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
+                    .name().equals(value.asText()))) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
+            case IngestContract.LAST_UPDATE:
+            case IngestContract.CREATIONDATE:
+            case IngestContract.ACTIVATIONDATE:
+            case IngestContract.DEACTIVATIONDATE:
+                try {
+                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                } catch (DateTimeParseException e) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        String.format("%s %s", field, DATE_MUST_BE_VALID))
+                        .setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                }
+                break;
+        }
+
     }
 
     private Set<String> getFromJsonNodeOrFromIngestContractModel(IngestContractModel ingestContractModel,

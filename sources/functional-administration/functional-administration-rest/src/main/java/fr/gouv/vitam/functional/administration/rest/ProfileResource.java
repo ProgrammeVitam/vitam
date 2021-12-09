@@ -187,7 +187,7 @@ public class ProfileResource {
         try (ProfileService profileService =
             new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
             SanityChecker.checkParameter(profileMetadataId);
-            RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
+            RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
