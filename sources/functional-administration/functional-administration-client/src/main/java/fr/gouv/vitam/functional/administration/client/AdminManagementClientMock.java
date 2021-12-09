@@ -603,7 +603,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
+    public RequestResponse<AccessionRegisterSymbolicModel> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl)
         throws AdminManagementClientServerException {
         throw new RuntimeException("Cannot be used");

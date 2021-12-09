@@ -72,6 +72,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -96,6 +98,7 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -1414,7 +1417,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-            RequestResponse result = client.getAccessionRegisterSymbolic(tenant, select);
+            RequestResponse<AccessionRegisterSymbolicModel> result = client.getAccessionRegisterSymbolic(tenant, select);
             return Response.status(result.getHttpCode()).entity(result).build();
         } catch (Exception e) {
             return VitamCodeHelper.toVitamError(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR, e.getMessage())
@@ -1767,7 +1770,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateContext(identifier, update.getFinalUpdate());
+            RequestResponse<ContextModel> response = client.updateContext(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1808,7 +1811,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateProfile(identifier, update.getFinalUpdate());
+            RequestResponse<ProfileModel> response = client.updateProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1850,7 +1853,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
+            RequestResponse<ArchiveUnitProfileModel> response = client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1875,7 +1878,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
      */
     @Path("/accesscontracts/{identifier:.+}")
     @PUT
@@ -1884,14 +1886,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = ACCESSCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat d'accès")
     public Response updateAccessContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateAccessContract(identifier, update.getFinalUpdate());
+            RequestResponse<AccessContractModel> response = client.updateAccessContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1917,7 +1919,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
      */
     @Path("/ingestcontracts/{identifier:.+}")
     @PUT
@@ -1927,14 +1928,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Effectuer une mise à jour sur un contrat d'entrée")
     public Response updateIngestContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateIngestContract(identifier, update.getFinalUpdate());
+            RequestResponse<IngestContractModel> response = client.updateIngestContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1959,8 +1960,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param identifier
      * @param queryDsl
      * @return Response
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
      */
     @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE + "/{identifier:.+}")
     @PUT
@@ -1968,15 +1967,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = MANAGEMENTCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat de gestion")
     public Response updateManagementContract(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateManagementContract(identifier, update.getFinalUpdate());
+            RequestResponse<ManagementContractModel> response = client.updateManagementContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1994,15 +1992,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
-        }
-    }
-
-    private Response getResponse(RequestResponse response) {
-        if (response.isOk()) {
-            return Response.status(Status.OK).entity(response).build();
-        } else {
-            final VitamError error = (VitamError) response;
-            return Response.status(error.getHttpCode()).entity(response).build();
         }
     }
 
@@ -2025,7 +2014,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter("accession register id is a mandatory parameter", originatingAgency);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
-            RequestResponse result =
+            RequestResponse<AccessionRegisterDetailModel> result =
                 client.getAccessionRegisterDetail(originatingAgency, select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
@@ -2172,7 +2161,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(getFromStringAsTypeReference(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {
+                new TypeReference<>() {
                 }));
 
             return Response.status(status).build();
@@ -2284,7 +2273,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param queryDsl query to execute
      * @return Response
      * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
      */
     @Path("/securityprofiles/{identifier}")
     @PUT
@@ -2301,7 +2289,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
+            RequestResponse<SecurityProfileModel> response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -3054,4 +3042,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+    private <T> Response getResponse(RequestResponse<T> response) {
+        if (response.isOk()) {
+            return Response.status(Status.OK).entity(response).build();
+        } else {
+            final VitamError<T> error = (VitamError<T>) response;
+            return Response.status(error.getHttpCode()).entity(response).build();
+        }
+    }
 }

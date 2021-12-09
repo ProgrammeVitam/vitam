@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
@@ -243,11 +244,14 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @param queryDsl that filter the accession register to find
      * @return the list of accession register symbolic or an empty list
      */
-    public List<AccessionRegisterSymbolic> findAccessionRegisterSymbolic(JsonNode queryDsl)
-        throws ReferentialException {
-        return mongoAccess.findDocuments(queryDsl, ACCESSION_REGISTER_SYMBOLIC)
-            .getRequestResponseOK(queryDsl, AccessionRegisterSymbolic.class)
-            .getResults();
+    public RequestResponseOK<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(JsonNode queryDsl)
+        throws ReferentialException, InvalidParseOperationException {
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(queryDsl, ACCESSION_REGISTER_SYMBOLIC)) {
+            return result
+                .getRequestResponseOK(queryDsl, AccessionRegisterSymbolic.class, AccessionRegisterSymbolicModel.class);
+
+        }
     }
 
     /**

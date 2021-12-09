@@ -31,17 +31,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -49,15 +47,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
@@ -75,9 +73,11 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -128,6 +128,37 @@ public class AccessContractsIT extends VitamRuleRunner {
         runAfter();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_desactivate_then_activate_access_contract() {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Update updateQuery = new Update();
+            updateQuery.addActions(UpdateActionHelper.set("Status", "INACTIVE"), UpdateActionHelper
+                    .set("DeactivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
+                UpdateActionHelper.unset("ActivationDate"));
+            RequestResponse<AccessContractModel> updatedAccessContract =
+                client.updateAccessContract("aName", updateQuery.getFinalUpdate());
+            assertTrue(updatedAccessContract.isOk());
+
+            RequestResponse<AccessContractModel> contract = client.findAccessContractsByID("aName");
+            assertTrue(contract.isOk());
+            List<JsonNode> results = RequestResponseOK.getFromJsonNode(contract.toJsonNode()).getResults();
+            assertEquals(1, results.size());
+            assertEquals(ActivationStatus.INACTIVE,
+                JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getStatus());
+
+
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
+            updateQuery.reset();
+            updateQuery.addActions(UpdateActionHelper.set("Status", "ACTIVE"), UpdateActionHelper
+                    .set("DeactivationDate", ""),
+                UpdateActionHelper.set("ActivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+            assertThatCode(() -> client.updateAccessContract("aName", updateQuery.getFinalUpdate()))
+                .isInstanceOf(AdminManagementClientBadRequestException.class);
+        } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
+            fail("Error retreiving access contract", e);
+        }
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -139,7 +170,6 @@ public class AccessContractsIT extends VitamRuleRunner {
             assertEquals(1, results.size());
             assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter()).contains(RuleType.HoldRule);
         } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException e) {
-            e.printStackTrace();
             fail("Error retreiving access contract", e);
         }
     }
@@ -161,7 +191,6 @@ public class AccessContractsIT extends VitamRuleRunner {
             assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter())
                 .contains(RuleType.HoldRule);
         } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
-            e.printStackTrace();
             fail("Error retreiving access contract", e);
         }
     }

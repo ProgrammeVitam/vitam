@@ -365,7 +365,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     public void getAccessionRegisterDetail()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<AccessionRegisterDetailModel> request =
                 client.getAccessionRegisterDetail("request", JsonHandler.getFromString(QUERY));
@@ -394,7 +394,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     public void getAccessionRegisterSummary()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<AccessionRegisterSummaryModel> request =
                 client.getAccessionRegister(JsonHandler.getFromString(QUERY));

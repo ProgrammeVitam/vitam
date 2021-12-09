@@ -76,7 +76,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException thrown if the profiles could not be imported
      */
-    RequestResponse importProfileFile(String profileIdentifier,
+    RequestResponse<ProfileModel> importProfileFile(String profileIdentifier,
         InputStream profileFile)
         throws VitamException;
 

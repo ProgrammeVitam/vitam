@@ -195,10 +195,10 @@ public class ContractResource {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse requestResponse = accessContract.createContracts(accessContractModelList);
+            RequestResponse<AccessContractModel> requestResponse = accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
 
@@ -227,10 +227,10 @@ public class ContractResource {
             vitamCounterService)) {
             RequestResponse<AccessContractModel> requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
-                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
             } else if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
                 return Response.status(Status.OK).entity(requestResponse).build();
