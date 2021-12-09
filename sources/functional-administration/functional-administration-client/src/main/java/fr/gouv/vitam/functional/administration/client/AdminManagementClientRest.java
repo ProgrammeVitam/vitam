@@ -1386,7 +1386,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
+    public RequestResponse<AccessionRegisterSymbolicModel> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Tenant is mandatory.", tenant);

@@ -195,7 +195,7 @@ public class ContractResource {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse requestResponse = accessContract.createContracts(accessContractModelList);
+            RequestResponse<AccessContractModel> requestResponse = accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());

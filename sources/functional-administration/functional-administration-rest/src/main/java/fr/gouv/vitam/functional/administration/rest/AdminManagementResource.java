@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
@@ -959,10 +960,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     contract.getOriginatingAgencies().toArray(String[]::new)).setDepthLimit(0));
             }
 
-            List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
-            RequestResponseOK<AccessionRegisterSymbolic> entity = new RequestResponseOK<AccessionRegisterSymbolic>()
-                .addAllResults(accessionRegisterSymbolic)
-                .setQuery(queryDsl);
+            RequestResponseOK<AccessionRegisterSymbolicModel> entity = service.findAccessionRegisterSymbolic(queryDsl);
             return Response.status(OK)
                 .entity(entity)
                 .build();
