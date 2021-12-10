@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
-import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;

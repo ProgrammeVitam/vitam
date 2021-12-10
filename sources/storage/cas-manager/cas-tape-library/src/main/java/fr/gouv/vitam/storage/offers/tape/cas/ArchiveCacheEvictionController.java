@@ -34,7 +34,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialExcep
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.apache.commons.lang3.time.StopWatch;
 
-import java.io.Closeable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 

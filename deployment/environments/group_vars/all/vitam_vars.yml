@@ -397,11 +397,14 @@ vitam:
         storageLogTraceabilityThreadPoolSize: 16
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
-        # Retries attempts
+        offerSyncThreadPoolSize: 32
+        # Retries attempts on failures
         offerSyncNumberOfRetries: 3
+        # Retry wait delay on failures (in seconds)
         offerSyncFirstAttemptWaitingTime: 15
         offerSyncWaitingTime: 30
-        offerSyncThreadPoolSize: 32
+        # Offer synchronization wait delay  (in seconds) for async offers (synchronization from a tape-storage offer)
+        offerSyncAccessRequestCheckWaitingTime: 10
         logback_total_size_cap:
           offersync:
             history_days: 30
