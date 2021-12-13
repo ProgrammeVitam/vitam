@@ -72,6 +72,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -987,7 +988,7 @@ public class StorageResourceTest {
 
     @Test
     public void createAccessRequestIfRequiredWithInternalServerError()
-        throws InvalidParseOperationException, InvalidFormatException {
+        throws InvalidParseOperationException {
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
@@ -1266,6 +1267,162 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public void checkObjectAvailabilitySynchronousOffer() throws InvalidParseOperationException,
+        InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "OfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+
+        RequestResponseOK<BulkObjectAvailabilityResponse> response =
+            JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+                new TypeReference<>() {
+                });
+        BulkObjectAvailabilityResponse bulkObjectAvailabilityResponse = response.getFirstResult();
+        assertThat(bulkObjectAvailabilityResponse).isNotNull();
+        assertThat(bulkObjectAvailabilityResponse.getAreObjectsAvailable()).isTrue();
+    }
+
+    @Test
+    public void checkObjectAvailabilityAsynchronousOffer()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+
+        RequestResponseOK<BulkObjectAvailabilityResponse> response =
+            JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+                new TypeReference<>() {
+                });
+        BulkObjectAvailabilityResponse bulkObjectAvailabilityResponse = response.getFirstResult();
+        assertThat(bulkObjectAvailabilityResponse).isNotNull();
+        assertThat(bulkObjectAvailabilityResponse.getAreObjectsAvailable()).isFalse();
+    }
+
+    @Test
+    public void checkObjectAvailabilityDefaultStrategyOffer()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+
+        RequestResponseOK<BulkObjectAvailabilityResponse> response =
+            JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+                new TypeReference<>() {
+                });
+        BulkObjectAvailabilityResponse bulkObjectAvailabilityResponse = response.getFirstResult();
+        assertThat(bulkObjectAvailabilityResponse).isNotNull();
+        assertThat(bulkObjectAvailabilityResponse.getAreObjectsAvailable()).isFalse();
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithInternalServerError()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithNoTenant()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithNoStrategy()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithNoObjectIds() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithEmptyObjectIds()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(emptyList()))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithNullObjectId()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("obj1", null)))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/object-availability-check/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
     public static class BusinessApplicationInner extends Application {
 
         private Set<Object> singletons;
@@ -1328,7 +1485,7 @@ public class StorageResourceTest {
                 throw new StorageTechnicalException("Technical exception");
             }
 
-            if (context.getStrategyId().equals(TAPE_STORAGE_STRATEGY_ID) &&  ID_O2.equals(context.getObjectId())) {
+            if (context.getStrategyId().equals(TAPE_STORAGE_STRATEGY_ID) && ID_O2.equals(context.getObjectId())) {
                 throw new StorageUnavailableDataFromAsyncOfferException("Error");
             }
 
@@ -1336,9 +1493,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public List<String> getOfferIds(String strategyId) throws StorageException {
+        public List<String> getOfferIds(String strategyId) {
             throw new UnsupportedOperationException("UnsupportedOperationException");
-
         }
 
         @Override
@@ -1612,6 +1768,20 @@ public class StorageResourceTest {
             }
             throw new StorageException("FATAL");
         }
-    }
 
+        @Override
+        public boolean checkObjectAvailability(String strategyId, String offerId,
+            DataCategory dataCategory, List<String> objectsNames) throws StorageException {
+
+            if ("SyncStrategy".equals(strategyId)) {
+                return true;
+            }
+
+            if ("AsyncStrategy".equals(strategyId)) {
+                return false;
+            }
+
+            throw new StorageException("FATAL");
+        }
+    }
 }

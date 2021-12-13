@@ -566,7 +566,7 @@ public class AccessRequestManagerTest {
 
         // When / Then
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertThatThrownBy( () -> instance.removeAccessRequest(accessRequest))
+        assertThatThrownBy(() -> instance.removeAccessRequest(accessRequest))
             .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
@@ -942,6 +942,141 @@ public class AccessRequestManagerTest {
 
         verifyNoMoreInteractions(accessRequestReferentialRepository);
     }
+
+
+
+    @Test
+    public void givenAvailableAndNonAvailableObjectsWhenCheckObjectAvailabilityThenFalse() throws Exception {
+        // Given :
+
+        doReturn(List.of(
+            // obj1 : still in input_file
+            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId(CONTAINER_1, "obj1"),
+                100L, "SHA-512", "digest1", "obj1-guid1", new TapeLibraryInputFileObjectStorageLocation(),
+                nextDate(), nextDate()),
+            // obj2 : in tars
+            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId(CONTAINER_1, "obj2"),
+                400L, "SHA-512", "digest2", "obj2-guid2", new TapeLibraryTarObjectStorageLocation(
+                List.of(new TarEntryDescription("tarId1", "obj2-0", 1500L, 100L, "digest2-1"),
+                    new TarEntryDescription("tarId2", "obj2-1", 0L, 100L, "digest2-2"),
+                    new TarEntryDescription("tarId3", "obj2-2", 0L, 100L, "digest2-3"),
+                    new TarEntryDescription("tarId4", "obj2-3", 0L, 100L, "digest2-4"))
+            ), nextDate(), nextDate())
+        )).when(objectReferentialRepository).bulkFind(CONTAINER_1, Set.of("obj1", "obj2"));
+
+        doReturn(List.of(
+            // Tar1 : Ready on disk
+            new TapeArchiveReferentialEntity("tarId1", new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+                EntryType.DATA, 2000L, "digest-tarId1", nextDate()),
+            // Tar2 : Building on disk
+            new TapeArchiveReferentialEntity("tarId2", new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                EntryType.DATA, null, null, nextDate()),
+            // Tar3 : On tape + in cache
+            new TapeArchiveReferentialEntity("tarId3", new TapeLibraryOnTapeArchiveStorageLocation("tape1", 1234),
+                EntryType.DATA, 5000L, "digest-tarId3", nextDate()),
+            // Tar4 : Only on tape
+            new TapeArchiveReferentialEntity("tarId4", new TapeLibraryOnTapeArchiveStorageLocation("tape2", 4321),
+                EntryType.DATA, 8000L, "digest-tarId4", nextDate())
+        )).when(archiveReferentialRepository).bulkFind(Set.of("tarId1", "tarId2", "tarId3", "tarId4"));
+
+        doReturn(true).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId3");
+        doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId4");
+
+        // When
+        boolean objectAvailability = instance.checkObjectAvailability(CONTAINER_1, List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(objectAvailability).isFalse();
+        verifyNoMoreInteractions(accessRequestReferentialRepository);
+
+        verify(objectReferentialRepository).bulkFind(CONTAINER_1, Set.of("obj1", "obj2"));
+        verifyNoMoreInteractions(objectReferentialRepository);
+
+        verify(archiveReferentialRepository).bulkFind(Set.of("tarId1", "tarId2", "tarId3", "tarId4"));
+        verifyNoMoreInteractions(archiveReferentialRepository);
+
+        verify(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId3");
+        verify(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId4");
+        verifyNoMoreInteractions(archiveCacheStorage);
+        verifyNoMoreInteractions(readWriteQueue);
+    }
+
+    @Test
+    public void givenAvailableObjectsWhenCheckObjectAvailabilityThenTrue() throws Exception {
+        // Given :
+
+        doReturn(List.of(
+            // obj1 : still in input_file
+            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId(CONTAINER_1, "obj1"),
+                100L, "SHA-512", "digest1", "obj1-guid1", new TapeLibraryInputFileObjectStorageLocation(),
+                nextDate(), nextDate()),
+            // obj2 : in tars
+            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId(CONTAINER_1, "obj2"),
+                400L, "SHA-512", "digest2", "obj2-guid2", new TapeLibraryTarObjectStorageLocation(
+                List.of(new TarEntryDescription("tarId1", "obj2-0", 1500L, 100L, "digest2-1"),
+                    new TarEntryDescription("tarId2", "obj2-1", 0L, 100L, "digest2-2"),
+                    new TarEntryDescription("tarId3", "obj2-2", 0L, 100L, "digest2-3"))
+            ), nextDate(), nextDate())
+        )).when(objectReferentialRepository).bulkFind(CONTAINER_1, Set.of("obj1", "obj2"));
+
+        doReturn(List.of(
+            // Tar1 : Ready on disk
+            new TapeArchiveReferentialEntity("tarId1", new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+                EntryType.DATA, 2000L, "digest-tarId1", nextDate()),
+            // Tar2 : Building on disk
+            new TapeArchiveReferentialEntity("tarId2", new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                EntryType.DATA, null, null, nextDate()),
+            // Tar3 : On tape + in cache
+            new TapeArchiveReferentialEntity("tarId3", new TapeLibraryOnTapeArchiveStorageLocation("tape1", 1234),
+                EntryType.DATA, 5000L, "digest-tarId3", nextDate())
+        )).when(archiveReferentialRepository).bulkFind(Set.of("tarId1", "tarId2", "tarId3"));
+
+        doReturn(true).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId3");
+
+        // When
+        boolean objectAvailability = instance.checkObjectAvailability(CONTAINER_1, List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(objectAvailability).isTrue();
+
+        verifyNoMoreInteractions(accessRequestReferentialRepository);
+
+        verify(objectReferentialRepository).bulkFind(CONTAINER_1, Set.of("obj1", "obj2"));
+        verifyNoMoreInteractions(objectReferentialRepository);
+
+        verify(archiveReferentialRepository).bulkFind(Set.of("tarId1", "tarId2", "tarId3"));
+        verifyNoMoreInteractions(archiveReferentialRepository);
+
+        verify(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId3");
+        verifyNoMoreInteractions(archiveCacheStorage);
+
+        verifyNoMoreInteractions(readWriteQueue);
+    }
+
+    @Test
+    public void givenMissingParametersWhenCheckObjectAvailabilityThenKO() {
+
+        Assertions.assertThatThrownBy(() -> instance.checkObjectAvailability(CONTAINER_1, null))
+            .isInstanceOf(IllegalArgumentException.class);
+        Assertions.assertThatThrownBy(() -> instance.checkObjectAvailability(CONTAINER_1, Arrays.asList("obj1", null)))
+            .isInstanceOf(IllegalArgumentException.class);
+        Assertions.assertThatThrownBy(() -> instance.checkObjectAvailability(null, List.of("obj1", "obj2")))
+            .isInstanceOf(IllegalArgumentException.class);
+        Assertions.assertThatThrownBy(() -> instance.checkObjectAvailability(CONTAINER_1, emptyList()))
+            .isInstanceOf(ContentAddressableStorageBadRequestException.class);
+    }
+
+    @Test
+    public void givenDuplicateObjectsWhenCheckingObjectAvailabilityThenKO() {
+
+        // Given
+        List<String> objectIds = List.of("obj1", "obj2", "obj1");
+
+        // When / Then
+        Assertions.assertThatThrownBy(() -> instance.checkObjectAvailability(CONTAINER_1, objectIds))
+            .isInstanceOf(ContentAddressableStorageBadRequestException.class);
+    }
+
 
     private String nextDate() {
         logicalClock.logicalSleep(1, ChronoUnit.SECONDS);

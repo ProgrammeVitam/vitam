@@ -119,7 +119,6 @@ public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
     private static final String OFFER_ID = "default";
-    private static final String OFFER_ID_2 = "default2";
     private static final int TENANT_ID = 0;
 
     private static StorageDistribution simpleDistribution;
@@ -613,7 +612,8 @@ public class StorageDistributionImplTest {
     public void testGetContainerByCategoryUnavailableDataFromAsyncOfferObjectId() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertThatThrownBy(() -> simpleDistribution
-            .getContainerByCategory("async_and_async_storage", null, "MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT,
+            .getContainerByCategory("async_and_async_storage", null, "MyUnavailableFromAsyncOfferObjectId",
+                DataCategory.OBJECT,
                 AccessLogUtils.getNoLogAccessLog()))
             .isInstanceOf(StorageUnavailableDataFromAsyncOfferException.class);
     }
@@ -623,7 +623,8 @@ public class StorageDistributionImplTest {
     public void testCopyObjectFromOfferToOfferOK() throws StorageException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         simpleDistribution.copyObjectFromOfferToOffer(
-            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID, "sync_and_async_storage"),
+            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID,
+                "sync_and_async_storage"),
             OFFER_ID, "myTapeOffer1");
     }
 
@@ -631,8 +632,9 @@ public class StorageDistributionImplTest {
     @Test
     public void testCopyObjectFromOfferToOfferUnavailableDataFromAsyncOfferObjectId() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertThatThrownBy( () -> simpleDistribution.copyObjectFromOfferToOffer(
-            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID, "sync_and_async_storage"),
+        assertThatThrownBy(() -> simpleDistribution.copyObjectFromOfferToOffer(
+            new DataContext("MyUnavailableFromAsyncOfferObjectId", DataCategory.OBJECT, null, TENANT_ID,
+                "sync_and_async_storage"),
             "myTapeOffer1", OFFER_ID))
             .isInstanceOf(StorageUnavailableDataFromAsyncOfferException.class);
     }
@@ -945,6 +947,70 @@ public class StorageDistributionImplTest {
             "accessRequestId1", AccessRequestStatus.READY,
             "accessRequestId2", AccessRequestStatus.READY
         ));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityInSyncOffer() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When
+        boolean areObjectsAvailable =
+            customDistribution.checkObjectAvailability("default", "default", DataCategory.OBJECT,
+                List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(areObjectsAvailable).isTrue();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityInDefaultReferentSyncOffer() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When
+        boolean areObjectsAvailable =
+            customDistribution.checkObjectAvailability("sync_and_async_storage", null, DataCategory.OBJECT,
+                List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(areObjectsAvailable).isTrue();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityInAsyncOffer() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When
+        boolean areObjectsAvailable =
+            customDistribution.checkObjectAvailability("async_and_async_storage", "myTapeOffer2", DataCategory.OBJECT,
+                List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(areObjectsAvailable).isFalse();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityInDefaultReferenceAsyncOffer() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When
+        boolean areObjectsAvailable =
+            customDistribution.checkObjectAvailability("async_and_async_storage", null, DataCategory.OBJECT,
+                List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(areObjectsAvailable).isTrue();
     }
 
     @Test

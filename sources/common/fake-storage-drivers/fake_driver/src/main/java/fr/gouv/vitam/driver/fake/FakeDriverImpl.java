@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -225,7 +226,8 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
-            if(this.offerId.equals("myTapeOffer1") && objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
+            if (this.offerId.equals("myTapeOffer1") &&
+                objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
                 throw new StorageDriverUnavailableDataFromAsyncOfferException("any", "msg");
             }
 
@@ -273,6 +275,18 @@ public class FakeDriverImpl extends AbstractDriver {
             }
             throw new IllegalStateException(
                 "removeAccessRequest should not be invoked with sync offer '" + this.offerId + "'");
+        }
+
+        @Override
+        public boolean checkObjectAvailability(StorageCheckObjectAvailabilityRequest request) {
+            if (this.offerId.equals("myTapeOffer1")) {
+                return true;
+            }
+            if (this.offerId.equals("myTapeOffer2")) {
+                return false;
+            }
+            throw new IllegalStateException(
+                "checkObjectAvailability should not be invoked with sync offer '" + this.offerId + "'");
         }
 
         @Override
@@ -325,7 +339,8 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
-            return new StorageMetadataResult(new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now"));
+            return new StorageMetadataResult(
+                new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now"));
         }
 
         @Override

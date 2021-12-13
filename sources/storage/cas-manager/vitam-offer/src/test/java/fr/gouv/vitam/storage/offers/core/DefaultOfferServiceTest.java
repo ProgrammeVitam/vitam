@@ -1120,7 +1120,7 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
-    public void givenTapeOfferWhenCreateAccessRequestThenKO() throws ContentAddressableStorageException {
+    public void givenTapeOfferWhenCreateAccessRequestThenOK() throws ContentAddressableStorageException {
 
         // Given
         configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
@@ -1187,7 +1187,7 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
-    public void givenNonTapeOfferWhenCheckAccessRequestStatusesThenOK() throws ContentAddressableStorageException {
+    public void givenNonTapeOfferWhenCheckAccessRequestStatusesThenKO() throws ContentAddressableStorageException {
 
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
@@ -1237,6 +1237,45 @@ public class DefaultOfferServiceTest {
 
         // When / Then
         assertThatThrownBy(() -> offerService.removeAccessRequest("accessRequest1"))
+            .isInstanceOf(ContentAddressableStorageException.class);
+    }
+
+    @Test
+    public void givenTapeOfferWhenCheckObjectAvailabilityThenOK() throws ContentAddressableStorageException {
+
+        // Given
+        configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
+        ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
+        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            null, offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE, 1);
+
+        doReturn(true).when(contentAddressableStorage)
+            .checkObjectAvailability("container", List.of("obj1", "obj2"));
+
+        // When
+        boolean areObjectsAvailable = offerService.checkObjectAvailability("container", List.of("obj1", "obj2"));
+
+        // Then
+        assertThat(areObjectsAvailable).isTrue();
+    }
+
+    @Test
+    public void givenNonTapeOfferWhenCheckObjectAvailabilityThenKO() throws ContentAddressableStorageException {
+
+        // Given
+        ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
+        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            null, offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE, 1);
+
+        doReturn(true).when(contentAddressableStorage)
+            .checkObjectAvailability("container", List.of("obj1", "obj2"));
+
+        // When / Then
+        assertThatThrownBy(() -> offerService.checkObjectAvailability("container", List.of("obj1", "obj2")))
             .isInstanceOf(ContentAddressableStorageException.class);
     }
 

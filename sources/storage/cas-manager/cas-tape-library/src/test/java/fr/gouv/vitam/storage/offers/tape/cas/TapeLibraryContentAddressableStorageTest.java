@@ -43,8 +43,8 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveSt
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -447,6 +447,23 @@ public class TapeLibraryContentAddressableStorageTest {
 
         // Then
         verify(accessRequestManager).removeAccessRequest("accessRequestId");
+        verifyNoMoreInteractions(accessRequestManager);
+    }
+
+    @Test
+    public void checkObjectAvailability() throws Exception {
+        // Given
+        doReturn(true).when(accessRequestManager)
+            .checkObjectAvailability("0_object", List.of("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
+
+        // When
+        boolean result = tapeLibraryContentAddressableStorage
+            .checkObjectAvailability("0_object", List.of("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
+
+        // Then
+        verify(accessRequestManager)
+            .checkObjectAvailability("0_object", List.of("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
+        assertThat(result).isTrue();
         verifyNoMoreInteractions(accessRequestManager);
     }
 
@@ -1017,8 +1034,8 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 1");
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
-       verify(fileBucketTarCreatorManager, never()).containsTar("test-objects", tarId);
-       verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
+        verify(fileBucketTarCreatorManager, never()).containsTar("test-objects", tarId);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
             fileBucketTarCreatorManager, archiveCacheEvictionController, archiveCacheStorage);

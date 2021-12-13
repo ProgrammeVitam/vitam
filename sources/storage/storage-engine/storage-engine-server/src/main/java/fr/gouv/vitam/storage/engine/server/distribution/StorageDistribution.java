@@ -295,4 +295,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
 
     void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
         throws StorageException;
+
+    boolean checkObjectAvailability(String strategyId, String offerId, DataCategory dataCategory,
+        List<String> objectsNames) throws StorageException;
 }

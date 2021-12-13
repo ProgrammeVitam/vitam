@@ -65,12 +65,13 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -86,9 +87,9 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsExcepti
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.metrics.DownloadCountingSizeMetricsResponse;
 import fr.gouv.vitam.storage.engine.common.metrics.UploadCountingInputStreamMetrics;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -354,7 +355,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         StorageStrategy storageStrategy = checkStrategy(strategyId);
 
         List<String> strategyOfferIds = storageStrategy.getOffers().stream()
-            .map(offerReference -> offerReference.getId())
+            .map(OfferReference::getId)
             .collect(Collectors.toList());
         List<StorageOffer> offers = new ArrayList<>();
 
@@ -621,6 +622,49 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
+    @Override
+    public boolean checkObjectAvailability(String strategyId, String optionalOfferId,
+        DataCategory dataCategory,
+        List<String> objectsNames) throws StorageException {
+
+        if (objectsNames.isEmpty()) {
+            LOGGER.debug("No objects to check.");
+            return true;
+        }
+
+        OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
+
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
+
+        if (!offer.isAsyncRead()) {
+            LOGGER.debug("Offer {} is synchronous, objects {} are availability for immediate access", offer.getId(),
+                objectsNames);
+            return true;
+        }
+
+        LOGGER.debug("Offer {} is asynchronous, checking object availability", offer.getId());
+        final Driver driver = retrieveDriverInternal(offerReference.getId());
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            boolean areObjectsAvailable = connection.checkObjectAvailability(
+                new StorageCheckObjectAvailabilityRequest(
+                    VitamThreadUtils.getVitamSession().getTenantId(),
+                    dataCategory.getFolder(),
+                    objectsNames));
+
+
+            if (areObjectsAvailable) {
+                LOGGER.debug("Objects {} are AVAILABLE", objectsNames);
+            } else {
+                LOGGER.debug("Objects {} are NOT AVAILABLE", objectsNames);
+            }
+            return areObjectsAvailable;
+
+        } catch (StorageDriverException | RuntimeException e) {
+            throw new StorageTechnicalException("Could not check object availability", e);
+        }
+    }
+
     private OfferReference selectFirstOffer(String strategyId, String optionalOfferId)
         throws StorageTechnicalException, StorageNotFoundException, StorageDriverNotFoundException {
 
@@ -783,11 +827,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         final String offerIds = String.join(", ", offerResults.keySet());
         // Aggregate result of all store actions. If all went well, allSuccess is true, false if one action failed
-        final boolean allWithoutInternalServerError = offerResults.entrySet().stream()
-            .map(Map.Entry::getValue)
+        final boolean allWithoutInternalServerError = offerResults.values().stream()
             .noneMatch(Status.INTERNAL_SERVER_ERROR::equals);
-        final boolean allWithoutAlreadyExists = offerResults.entrySet().stream()
-            .map(Map.Entry::getValue)
+        final boolean allWithoutAlreadyExists = offerResults.values().stream()
             .noneMatch(Status.CONFLICT::equals);
 
         if (!allWithoutInternalServerError) {
@@ -1071,14 +1113,14 @@ public class StorageDistributionImpl implements StorageDistribution {
                 .filter(OfferReference::isReferent)
                 .findFirst();
 
-            if (!offerReference.isPresent()) {
+            if (offerReference.isEmpty()) {
                 // Try to take a not referent offer
                 offerReference = offerReferenceList
                     .stream()
                     .findFirst();
             }
 
-            if (!offerReference.isPresent()) {
+            if (offerReference.isEmpty()) {
                 LOGGER.error("No offer found");
                 throw new StorageTechnicalException("No offer found");
             }
@@ -1321,8 +1363,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY, exc);
                 offerOkNoBinary = true;
             } catch (final StorageDriverUnavailableDataFromAsyncOfferException exc) {
-                throw new StorageUnavailableDataFromAsyncOfferException("Access not acceptable for object '" + type.getFolder()
-                    + "/" + objectId + "' from offer " + storageOffer.getId() + " of strategy " + strategyId, exc);
+                throw new StorageUnavailableDataFromAsyncOfferException(
+                    "Access not acceptable for object '" + type.getFolder()
+                        + "/" + objectId + "' from offer " + storageOffer.getId() + " of strategy " + strategyId, exc);
             } catch (final StorageDriverException exc) {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY, exc);
             }
@@ -1390,7 +1433,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, objectId);
         ParametersChecker.checkParameter(OFFER_IDS_IS_MANDATORY, offerIds);
 
-        Map<String, Boolean> resultByOffer = new HashMap<String, Boolean>();
+        Map<String, Boolean> resultByOffer = new HashMap<>();
 
         StorageStrategy storageStrategy = checkStrategy(strategyId);
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
@@ -1464,7 +1507,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             found.ifPresent(offerReferencesToDelete::add);
 
-            if (!found.isPresent()) {
+            if (found.isEmpty()) {
                 throw new StorageTechnicalException(
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }

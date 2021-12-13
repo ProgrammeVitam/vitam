@@ -99,6 +99,9 @@ public interface DefaultOfferService {
     void removeAccessRequest(String accessRequestId)
         throws ContentAddressableStorageException;
 
+    boolean checkObjectAvailability(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageException;
+
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
      * send in the great order.

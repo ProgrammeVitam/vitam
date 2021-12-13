@@ -36,7 +36,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -323,7 +322,7 @@ public class AccessRequestReferentialRepository {
         try {
             return BsonHelper.fromDocumentToObject(document, TapeAccessRequestReferentialEntity.class);
         } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("Could not parse document from DB " + JSON.serialize(document), e);
+            throw new IllegalStateException("Could not parse document from DB " + document.toJson(), e);
         }
     }
 }

@@ -61,10 +61,12 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -101,6 +103,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String GUID_MUST_HAVE_A_VALID_VALUE = "GUID must have a valid value";
     private static final String REQUIRED_ACCESS_REQUEST_ID = "Access Request id is required";
     private static final String REQUIRED_ACCESS_REQUEST_IDS = "Access Request ids are required";
+    private static final String REQUIRED_REQUEST = "Request is required";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
     private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
         "Type of storage object must have a valid value";
@@ -768,6 +771,55 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         try (Response response = make(request)) {
             check(response);
             LOGGER.debug("Access request deleted successfully");
+
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
+        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest)
+        throws StorageServerClientException {
+
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(REQUIRED_REQUEST, bulkObjectAvailabilityRequest);
+        ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, bulkObjectAvailabilityRequest
+            .getType());
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, bulkObjectAvailabilityRequest.getObjectNames());
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, bulkObjectAvailabilityRequest.getObjectNames()
+            .toArray(String[]::new));
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamRequestBuilder request = get()
+            .withPath("/object-availability-check/" + bulkObjectAvailabilityRequest.getType().name())
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withJson()
+            .withBody(bulkObjectAvailabilityRequest.getObjectNames());
+
+        try (Response response = make(request)) {
+            check(response);
+
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                throw new VitamClientInternalException(
+                    String.format("Unexpected status code: '%d' and reason '%s'.", response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+            }
+
+            RequestResponseOK<BulkObjectAvailabilityResponse> requestResponseOK =
+                (RequestResponseOK<BulkObjectAvailabilityResponse>) RequestResponse.parseFromResponse(
+                    response, BulkObjectAvailabilityResponse.class);
+
+            BulkObjectAvailabilityResponse objectAvailabilityResponse = requestResponseOK.getFirstResult();
+            LOGGER.debug("Object availability response: {}", objectAvailabilityResponse);
+            if (objectAvailabilityResponse == null) {
+                throw new StorageServerClientException("Null objectAvailabilityResponse");
+            }
+            return objectAvailabilityResponse;
 
         } catch (VitamClientInternalException e) {
             final String errorMessage =

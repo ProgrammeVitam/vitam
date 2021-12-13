@@ -39,6 +39,7 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -51,7 +52,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -123,6 +123,17 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     void removeAccessRequest(String accessRequestId, int tenant) throws StorageDriverException;
+
+    /**
+     * Check immediate availability of objects from asynchronous storage offer.
+     *
+     * @param request the request to send. It contains information needed to check object availability.
+     * @return {@code true} if ALL objects are available, otherwise {@code false}.
+     * @throws StorageDriverException if any problem occurs during request
+     * @throws IllegalArgumentException if request is wrong
+     */
+    boolean checkObjectAvailability(StorageCheckObjectAvailabilityRequest request)
+        throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criteria defined in request argument and underlying

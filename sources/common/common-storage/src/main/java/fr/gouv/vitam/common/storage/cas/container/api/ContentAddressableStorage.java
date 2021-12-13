@@ -33,9 +33,9 @@ import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -127,6 +127,18 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param accessRequestId the identifier of the access request to cancel.
      */
     default void removeAccessRequest(String accessRequestId)
+        throws ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    /**
+     * Check object availability for async offers.
+     *
+     * @param containerName container where this exists.
+     * @param objectNames list of objects names for which availability is to be checked.
+     * @return {@code true} if ALL objects are available, otherwise {@code false}.
+     */
+    default boolean checkObjectAvailability(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
         throw new UnsupportedOperationException("Operation not supported");
     }

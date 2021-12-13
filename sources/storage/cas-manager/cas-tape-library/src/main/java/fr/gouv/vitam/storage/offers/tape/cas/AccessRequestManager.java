@@ -166,16 +166,6 @@ public class AccessRequestManager {
 
         try {
 
-            // Object access by object storage location :
-            // - not found                 ==> Object can be accessed immediately (NOT_FOUND)
-            // - input_files               ==> Object can be accessed immediately from disk (inputFiles/container/*)
-            // - tar
-            //   - building_on_disk        ==> Object can be accessed immediately from disk (inputTars/*.tar.tmp)
-            //   - ready_on_disk           ==> Object can be accessed immediately from disk (inputTars/*.tar)
-            //   - on_tape
-            //     - existing in cache     ==> Object can be accessed immediately from disk (inputTars/*.tar)
-            //     - non existing in cache ==> A ReadOrder is required
-
             // Select objects stored in TARs, whose TARs are "on_tape", and not present in cache
             List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk
                 = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
@@ -272,6 +262,46 @@ public class AccessRequestManager {
         }
     }
 
+    /**
+     * Check immediate availability of objects for access.
+     * An object is available if it is fully stored on disk. Not found objects are available for immediate access (immediate 404).
+     *
+     * @param containerName container name
+     * @param objectNames list of object names whose immediate availability is to be checked
+     * @return {@code true} if ALL objects are available, otherwise {@code false}.
+     * @throws ContentAddressableStorageException on technical exception
+     */
+    public boolean checkObjectAvailability(String containerName, List<String> objectNames)
+        throws ContentAddressableStorageException {
+
+        // Check params
+        ParametersChecker.checkParameter("Required containerName", containerName);
+        ParametersChecker.checkParameter("Required objectNames", objectNames);
+        ParametersChecker.checkParameter("Required objectNames", objectNames.toArray(String[]::new));
+        checkRequestSize(objectNames);
+        checkDuplicateObjectNames(objectNames);
+
+        try {
+
+            // Check if there are objects stored in TARs, whose TARs are "on_tape", and not present in cache
+            List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk
+                = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
+
+            if (unavailableArchivesOnDisk.isEmpty()) {
+                LOGGER.debug("Immediate access is available for objects {} of container ", objectNames, containerName);
+                return true;
+            }
+
+            LOGGER.warn("One or more objects are not available of container {} are not available for on disk. " +
+                "Object names: {}", containerName, objectNames);
+            return false;
+
+        } catch (ArchiveReferentialException | ObjectReferentialException e) {
+            throw new ContentAddressableStorageServerException("An error occurred while checking object availability.",
+                e);
+        }
+    }
+
     private void checkRequestSize(List<String> objectsNames) throws ContentAddressableStorageBadRequestException {
         if (objectsNames.isEmpty()) {
             throw new ContentAddressableStorageBadRequestException("Empty request");
@@ -299,6 +329,16 @@ public class AccessRequestManager {
 
     private List<TapeArchiveReferentialEntity> getUnavailableArchivesOnDiskForObjects(String containerName,
         List<String> objectsIds) throws ObjectReferentialException, ArchiveReferentialException {
+
+        // Object access by object storage location :
+        // - not found                 ==> Object can be accessed immediately (NOT_FOUND)
+        // - input_files               ==> Object can be accessed immediately from disk (inputFiles/container/*)
+        // - tar
+        //   - building_on_disk        ==> Object can be accessed immediately from disk (inputTars/*.tar.tmp)
+        //   - ready_on_disk           ==> Object can be accessed immediately from disk (inputTars/*.tar)
+        //   - on_tape
+        //     - existing in cache     ==> Object can be accessed immediately from disk (inputTars/*.tar)
+        //     - non existing in cache ==> A ReadOrder is required
 
         // Select unique TarIds for objects stored in tars
         Set<String> tarIds = getTarIds(containerName, objectsIds);

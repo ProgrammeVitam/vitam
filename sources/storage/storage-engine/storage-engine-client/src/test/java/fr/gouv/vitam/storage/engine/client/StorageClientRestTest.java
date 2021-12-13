@@ -58,9 +58,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -337,6 +339,21 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             assertThat(accessRequestId).isEqualTo("accessRequestId1");
 
             return expectedResponse.delete();
+        }
+
+        @GET
+        @Path("/object-availability-check/{dataCategory}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkObjectAvailability(@PathParam("dataCategory") DataCategory dataCategory,
+            List<String> objectsNames, @Context HttpHeaders headers) {
+            assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
+            assertThat(dataCategory).isEqualTo(DataCategory.OBJECT);
+            assertThat(objectsNames).containsExactly("obj1", "obj2");
+
+            return expectedResponse.get();
         }
     }
 
@@ -620,9 +637,10 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test
     public void failsGetContainerObjectExecutionWhenUnavailableDataFromAsyncOffer() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        when(mock.get()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
         assertThatThrownBy(() ->
-        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+            client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
             .isInstanceOf(StorageUnavailableDataFromAsyncOfferClientException.class);
     }
 
@@ -660,7 +678,9 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void failsCopyObjectExecutionWhenPreconditionFailed() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+        assertThatThrownBy(
+            () -> client.copyObjectFromOfferToOffer("guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer",
+                "strategyId"))
             .isInstanceOf(StorageServerClientException.class);
     }
 
@@ -668,8 +688,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test
     public void failsCopyObjectExecutionWhenUnavailableDataFromAsyncOffer() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
-        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+        when(mock.post()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        assertThatThrownBy(
+            () -> client.copyObjectFromOfferToOffer("guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer",
+                "strategyId"))
             .isInstanceOf(StorageUnavailableDataFromAsyncOfferClientException.class);
     }
 
@@ -678,7 +701,9 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void failsCopyObjectExecutionWhenInternalServerError() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+        assertThatThrownBy(
+            () -> client.copyObjectFromOfferToOffer("guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer",
+                "strategyId"))
             .isInstanceOf(StorageServerClientException.class);
     }
 
@@ -999,6 +1024,41 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
         // When / Then
         assertThatThrownBy(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1"))
+            .isInstanceOf(StorageServerClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        when(mock.get()).thenReturn(new RequestResponseOK<>()
+            .addResult(new BulkObjectAvailabilityResponse(true))
+            .setHttpCode(Status.OK.getStatusCode())
+            .toResponse());
+
+        // When
+        BulkObjectAvailabilityResponse objectAvailabilityResponse =
+            client.checkBulkObjectAvailability("myStrategyId", "myOfferId",
+                new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of("obj1", "obj2")));
+
+        // Then
+        assertThat(objectAvailabilityResponse).isNotNull();
+        assertThat(objectAvailabilityResponse.getAreObjectsAvailable()).isTrue();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkObjectAvailabilityWithServerErrorThenException() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        // When / Then
+        assertThatThrownBy(() -> client.checkBulkObjectAvailability("myStrategyId", "myOfferId",
+            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of("obj1", "obj2"))))
             .isInstanceOf(StorageServerClientException.class);
     }
 

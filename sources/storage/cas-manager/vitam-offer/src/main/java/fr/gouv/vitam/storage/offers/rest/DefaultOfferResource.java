@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -300,7 +301,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * </p>
      *
      * @param type Object type
-     * @param objectsIds objects ids :.+ in order to get all path if some '/' are provided
+     * @param objectNames : object names for which access is requested
      * @param headers http header
      * @return response
      */
@@ -308,7 +309,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/access-request/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
+    public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectNames,
         @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
@@ -317,7 +318,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            if (objectsIds == null || objectsIds.isEmpty()) {
+            if (objectNames == null || objectNames.isEmpty()) {
                 LOGGER.error(MISSING_OBJECTS_IDS_LIST_PARAMETER);
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
@@ -328,7 +329,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
 
             final String containerName = buildContainerName(type, xTenantId);
-            String accessRequestId = defaultOfferService.createAccessRequest(containerName, objectsIds);
+            String accessRequestId = defaultOfferService.createAccessRequest(containerName, objectNames);
 
             return new RequestResponseOK<>()
                 .addResult(accessRequestId)
@@ -409,6 +410,52 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * Check object availability for immediate access on async storage offers (tape storage only).
+     * For tape storage, an object is immediately accessible only when it's currently stored fully on disk.
+     * This API is not supported for synchronous storage offers.
+     *
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
+     *
+     * @param type Object type
+     * @param objectNames object names for which immediate availability is to be checked
+     * @param headers http header
+     * @return response
+     */
+    @GET
+    @Path("/object-availability-check/{type}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkObjectAvailability(@PathParam("type") DataCategory type, List<String> objectNames,
+        @Context HttpHeaders headers) {
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        try {
+
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+
+            if (objectNames == null || objectNames.isEmpty()) {
+                LOGGER.error(MISSING_OBJECTS_IDS_LIST_PARAMETER);
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+
+            final String containerName = buildContainerName(type, xTenantId);
+            boolean areObjectsAvailable =
+                defaultOfferService.checkObjectAvailability(containerName, objectNames);
+
+            return new RequestResponseOK<>()
+                .addResult(new StorageCheckObjectAvailabilityResult(areObjectsAvailable))
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
+
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
         }

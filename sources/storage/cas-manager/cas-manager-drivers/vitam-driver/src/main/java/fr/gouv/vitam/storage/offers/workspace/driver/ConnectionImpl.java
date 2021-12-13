@@ -60,6 +60,8 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -101,6 +103,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String OBJECTS_PATH = "/objects";
     private static final String ACCESS_REQUEST_PATH = "/access-request";
     private static final String ACCESS_REQUEST_STATUSES_PATH = "/access-request/statuses";
+    private static final String CHECK_OBJECT_AVAILABILITY_PATH = "/object-availability-check";
     private static final String LOGS_PATH = "/logs";
     private static final String METADATAS = "/metadatas";
 
@@ -168,7 +171,7 @@ public class ConnectionImpl extends AbstractConnection {
 
     @Override
     public StorageCapacityResult getStorageCapacity(Integer tenantId)
-        throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException {
+        throws StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
 
         VitamRequestBuilder request = head()
@@ -289,6 +292,39 @@ public class ConnectionImpl extends AbstractConnection {
 
         try (Response response = make(request)) {
             checkStorageException(response);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
+        }
+    }
+
+    @Override
+    public boolean checkObjectAvailability(StorageCheckObjectAvailabilityRequest request)
+        throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getObjectNames());
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER,
+            request.getObjectNames().toArray(String[]::new));
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+
+        VitamRequestBuilder requestBuilder = get()
+            .withPath(CHECK_OBJECT_AVAILABILITY_PATH + "/" + DataCategory.getByFolder(request.getType()))
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withBody(request.getObjectNames())
+            .withJson();
+
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            RequestResponseOK<StorageCheckObjectAvailabilityResult> accessRequestCreationResponse =
+                (RequestResponseOK<StorageCheckObjectAvailabilityResult>) RequestResponse.parseFromResponse(
+                    response, StorageCheckObjectAvailabilityResult.class);
+            StorageCheckObjectAvailabilityResult objectAvailabilityResult =
+                accessRequestCreationResponse.getFirstResult();
+            if (objectAvailabilityResult == null) {
+                throw new IllegalStateException("Could not retrieve object availability");
+            }
+            return objectAvailabilityResult.getAreObjectsAvailable();
         } catch (final VitamClientInternalException e) {
             throw new StorageDriverException(getDriverName(), true, e);
         }
@@ -481,7 +517,7 @@ public class ConnectionImpl extends AbstractConnection {
 
     @Override
     public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request)
-        throws StorageDriverException, StorageDriverNotFoundException {
+        throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
