@@ -92,8 +92,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_CHUNK_LENGTH;
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
@@ -109,6 +111,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -126,6 +130,7 @@ public class ProcessDistributorImplTest {
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
     private final static String operationId = "FakeOperationId";
     private static final Integer TENANT = 0;
+    private static final String FAKE_UUID = "c938e5c2-66fe-443f-8e93-96ee86d13b6a";
     private final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
     private final WorkerClient workerClient = mock(WorkerClient.class);
     @Rule
@@ -572,12 +577,67 @@ public class ProcessDistributorImplTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void whenDistributeOnStreamPauseThenResumeWithIndexOffsetOK() throws Exception {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        AtomicReference<DistributorIndex> distributorIndex = new AtomicReference<>();
+
+        File file = createRandomDataSetInfo();
+
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, file.getAbsolutePath());
+
+        givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", file.getAbsolutePath());
+
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID))))
+            .thenAnswer(invocation -> {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+                countDownLatch.countDown();
+                return getMockedItemStatus(StatusCode.OK);
+            });
+
+        doAnswer(invocation -> {
+            DistributorIndex myDistributorIndex = invocation.getArgument(1);
+            distributorIndex.set(myDistributorIndex);
+            return myDistributorIndex;
+        }).when(processDataManagement).persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
+
+        ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
+
+        assertThat(is).isNotNull();
+        assertThat(is.getStatusMeter()).isNotNull();
+
+        int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
+        assertThat(treatedElements).isEqualTo(step.getElementProcessed().get());
+        assertThat(treatedElements).isBetween(370, 375);
+
+        countDownLatch.await();
+
+        doReturn(Optional.of(distributorIndex.get())).when(processDataManagement).getDistributorIndex(eq(operationId));
+
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID))))
+            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
+
+        // simulate resume action
+        step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
+        is = processDistributor.distribute(workerParameters, step, operationId);
+        assertThat(is).isNotNull();
+        assertThat(is.getStatusMeter()).isNotNull();
+
+        treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
+        AtomicLong processedElements = step.getElementProcessed();
+        assertThat(treatedElements).isEqualTo(processedElements.get());
+        assertThat(processedElements.get()).isEqualTo(750L);
+        verify(workerClient, times(750)).submitStep(any());
+    }
+
     private File createRandomDataSetInfo() throws IOException {
 
         File file = testFolder.newFile();
 
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
-
+            int line = 0;
             for (int distributionLevel = 1; distributionLevel <= 100; distributionLevel++) {
 
                 int nbEntriesPerLevel = distributionLevel % 2 == 0 ? 5 : 10;
@@ -585,7 +645,7 @@ public class ProcessDistributorImplTest {
                 for (int entry = 0; entry < nbEntriesPerLevel; entry++) {
 
                     writer.append("{ \"id\": \"")
-                        .append(String.valueOf(UUID.randomUUID()))
+                        .append((++line == 375) ? FAKE_UUID : String.valueOf(UUID.randomUUID()))
                         .append("\", \"distribGroup\": ")
                         .append(String.valueOf(distributionLevel))
                         .append(",\"params\":{\"name\":\"someData\",\"distributionNumber\":\"")
@@ -734,7 +794,7 @@ public class ProcessDistributorImplTest {
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
         givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p"))))
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION))))
             .thenAnswer(invocation -> {
                 step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
                 return getMockedItemStatus(StatusCode.OK);
@@ -764,9 +824,9 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(resourceFile, any(), any());
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION))))
             .thenThrow(new WorkerServerClientException("Exception While Executing d"));
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p"))))
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION))))
             .thenAnswer(invocation -> {
                 step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
                 return getMockedItemStatus(StatusCode.OK);
@@ -796,7 +856,7 @@ public class ProcessDistributorImplTest {
         ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
         givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION))))
             .thenAnswer(invocation -> {
                 step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
                 return getMockedItemStatus(StatusCode.OK);
@@ -820,9 +880,55 @@ public class ProcessDistributorImplTest {
         assertThat(processedElements).isBetween(7, 26);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void whenDistributeOnListPauseThenResumeWithIndexOffsetOK() throws Exception {
+
+        final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
+        givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        AtomicReference<DistributorIndex> distributorIndex = new AtomicReference<>();
+
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "hh" + JSON_EXTENSION))))
+            .thenAnswer(invocation -> {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+                countDownLatch.countDown();
+                return getMockedItemStatus(StatusCode.OK);
+            });
+
+        doAnswer(invocation -> {
+            DistributorIndex myDistributorIndex = invocation.getArgument(1);
+            distributorIndex.set(myDistributorIndex);
+            return myDistributorIndex;
+        }).when(processDataManagement).persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
+
+        // we run the step
+        processDistributor.distribute(workerParameters, step, operationId);
+
+        countDownLatch.await();
+
+        doReturn(Optional.of(distributorIndex.get())).when(processDataManagement).getDistributorIndex(eq(operationId));
+
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
+            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
+
+        // simulate resume action
+        step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
+        ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
+        assertThat(is).isNotNull();
+        assertThat(is.getStatusMeter()).isNotNull();
+
+        int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
+        AtomicLong processedElements = step.getElementProcessed();
+        assertThat(treatedElements).isEqualTo(processedElements.get());
+        assertThat(processedElements.get()).isEqualTo(170L);
+    }
+
     private boolean matcher(DescriptionStep descriptionStep, String elementName) {
         if (Objects.nonNull(descriptionStep))
-            return descriptionStep.getWorkParams().getObjectNameList().contains(elementName + JSON_EXTENSION);
+            return descriptionStep.getWorkParams().getObjectNameList().contains(elementName);
         else
             return false;
     }
