@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
@@ -59,10 +61,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static fr.gouv.vitam.processing.distributor.api.IWorkerManager.WORKER_DB_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class WorkerManagerTest {
@@ -106,9 +109,6 @@ public class WorkerManagerTest {
 
     @Before
     public void setup() throws Exception {
-        reset(workerClientFactory);
-        reset(workerClient);
-
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
         doNothing().when(workerClient).checkStatus();
@@ -130,12 +130,19 @@ public class WorkerManagerTest {
         final WorkerTask task =
             new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
                 workerClientFactory);
+        doReturn(new ItemStatus().increment(StatusCode.OK))
+            .when(workerClient).submitStep(descriptionStep);
 
         workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
 
-        CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+
+        assertThat(workerTaskResult).isNotNull();
+        assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
+        assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult.isProcessed()).isTrue();
     }
 
     private DescriptionStep getDescriptionStep() {
@@ -174,11 +181,18 @@ public class WorkerManagerTest {
         final WorkerTask task =
             new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
                 workerClientFactory);
+        doReturn(new ItemStatus().increment(StatusCode.OK))
+            .when(workerClient).submitStep(descriptionStep);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
-        CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+
+        assertThat(workerTaskResult).isNotNull();
+        assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
+        assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult.isProcessed()).isTrue();
 
     }
 

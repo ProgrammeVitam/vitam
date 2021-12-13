@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -150,13 +151,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 metaDataClientFactory, workspaceClientFactory);
     }
 
-    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
-        CompletableFuture<Void> allDoneFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        return allDoneFuture
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
-    }
-
     /**
      * Temporary method for distribution supporting multi-list
      *
@@ -246,7 +240,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     final List<URI> objectsListUri =
                         JsonHandler.getFromStringAsTypeReference(
                             workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                                step.getDistribution().getElement())
+                                    step.getDistribution().getElement())
                                 .toJsonNode().get("$results").get(0).toString(),
                             LIST_URI_TYPE_REFERENCE);
                     for (URI uri : objectsListUri) {
@@ -362,7 +356,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          *
          * In the current step in case of the multiple level,
          * if the current level is not equals to the level in the initFromDistributorIndex
-         * Then return false to passe to the next step
+         * Then return false to pass to the next step
          */
         if (initFromDistributorIndex) {
             try {
@@ -377,14 +371,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     /*
                      * Handle the next level if the current level is not equals to the distributorIndex level
-                     * This mean that the current level is already treated
+                     * This mean that the current level is already processed
                      */
                     if (!distributorIndex.getLevel().equals(level)) {
                         return false;
                     }
 
                     /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                     * If all elements of the step are processed then response with the ItemStatus of the distributorIndex
                      */
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
@@ -430,15 +424,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             int nextOffset = Math.min(sizeList, offset + batchSize);
             List<String> subList = objectsList.subList(offset, nextOffset);
-            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
-            List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
 
             /*
-             * When server stop and in the batch of elements we have remaining elements (not yet treated)
-             * Then after restart we treat only those not yet treated elements of this batch
-             * If all elements of the batch were treated,
+             * When server stop and in the batch of elements we have remaining elements (not yet processed)
+             * Then after restart we process only those not yet processed elements of this batch
+             * If all elements of the batch were processed,
              * then at this point, we are automatically in the new batch
-             * and we have to treat all elements of this batch
+             * and we have to process all elements of this batch
              */
             boolean emptyRemainingElements = remainingElementsFromRecover.isEmpty();
 
@@ -448,55 +440,38 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 remainingElementsFromRecover.clear();
             }
 
-            prepareCurrentWorkerTaskAndCompletableLists(workerParameters, step, tenantId, requestId,
-                contractId, contextId, applicationId, bulkSize, subList, completableFutureList, currentWorkerTaskList);
+            List<WorkerTask> workerTaskList = createWorkerTasks(workerParameters, step, tenantId, requestId,
+                contractId, contextId, applicationId, bulkSize, subList);
 
-            CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
-            CompletableFuture<ItemStatus> reduce = getItemStatusCompletableFuture(step, sequence);
+            final ItemStatus itemStatus = step.getStepResponses();
+            updateStepWithTaskResults(workerTaskResults, step);
 
-            try {
-                // store information
-                final ItemStatus itemStatus = reduce.get();
-                /*
-                 * As pause can occurs on not started WorkerTask,
-                 * so we have to get the corresponding elements in order to execute them after restart
-                 */
-                List<String> remainingElements = new ArrayList<>();
-                currentWorkerTaskList.forEach(e -> {
-                    if (!e.isCompleted()) {
-                        remainingElements.addAll(e.getObjectNameList());
-                    }
-                });
+            /*
+             * As pause can occur on not started WorkerTask,
+             * so we have to get the corresponding elements in order to execute them after restart
+             */
+            List<String> remainingElements = getRemainingElements(workerTaskResults, itemStatus);
 
-                if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    // We have to restart all the current offset
-                    remainingElements.clear();
-                } else if (remainingElements.isEmpty()) {
-                    offset = nextOffset;
-                }
+            offset = getNextOffset(offset, nextOffset, remainingElements, itemStatus);
 
-                DistributorIndex distributorIndex =
-                    new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
+            DistributorIndex distributorIndex =
+                new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
 
-                // All elements of the current level are treated so finish it
-                if (offset >= sizeList && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    distributorIndex.setLevelFinished(true);
-                }
+            // All elements of the current level are processed so finish it
+            if (offset >= sizeList && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                distributorIndex.setLevelFinished(true);
+            }
 
-                // update persisted DistributorIndex if not Fatal
-                updatePersistedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
-                    "Error while persist DistributorIndex");
+            // update persisted DistributorIndex if not Fatal
+            updatePersistedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                "Error while persist DistributorIndex");
 
-                checkCancelledOrPaused(step);
+            checkCancelledOrPaused(step);
 
-                if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-
-                    return true;
-                }
-
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+            if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                return true;
             }
         }
         return true;
@@ -556,7 +531,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          *
          * In the current step in case of the multiple level,
          * if the current level is not equals to the level in the initFromDistributorIndex
-         * Then return false to passe to the next step
+         * Then return false to pass to the next step
          */
 
 
@@ -572,7 +547,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     DistributorIndex distributorIndex = distributorIndexOptional.get();
 
                     /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                     * If all elements of the step are processed then response with the ItemStatus of the distributorIndex
                      */
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
@@ -626,9 +601,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             int nextOffset = offset + globalBatchSize;
             List<JsonLineModel> distributionList = new ArrayList<>();
-            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
-            List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
-
             for (int i = offset; i < nextOffset && linesPeekIterator.hasNext(); i++) {
 
                 JsonLineModel currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
@@ -664,11 +636,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
             /*
-             * When server stop and in the batch of elements we have remaining elements (not yet treated)
-             * Then after restart we treat only those not yet treated elements of this batch
-             * If all elements of the batch were treated,
+             * When server stop and in the batch of elements we have remaining elements (not yet processed)
+             * Then after restart we process only those not yet processed elements of this batch
+             * If all elements of the batch were processed,
              * then at this point, we are automatically in the new batch
-             * and we have to treat all elements of this batch
+             * and we have to process all elements of this batch
              */
             if (!remainingElementsFromRecover.isEmpty()) {
 
@@ -682,65 +654,50 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 remainingElementsFromRecover.clear();
             }
 
-            prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, requestId, contractId,
-                contextId, applicationId, bulkSize, distributionList, completableFutureList,
-                currentWorkerTaskList);
+            List<WorkerTask> workerTaskList =
+                createWorkerTasksOnStream(workerParameters, step, tenantId, requestId, contractId,
+                    contextId, applicationId, bulkSize, distributionList);
 
-            CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
-            CompletableFuture<ItemStatus> reduce = getItemStatusCompletableFuture(step, sequence);
+            final ItemStatus itemStatus = step.getStepResponses();
+            updateStepWithTaskResults(workerTaskResults, step);
 
-            try {
-                // store information
-                final ItemStatus itemStatus = reduce.get();
-                /*
-                 * As pause can occurs on not started WorkerTask,
-                 * so we have to get the corresponding elements in order to execute them after restart
-                 */
-                List<String> remainingElements = new ArrayList<>();
-                currentWorkerTaskList.forEach(e -> {
-                    if (!e.isCompleted()) {
-                        remainingElements.addAll(e.getObjectNameList());
-                    }
-                });
+            /*
+             * As pause can occur on not started WorkerTask,
+             * so we have to get the corresponding elements in order to execute them after restart
+             */
+            List<String> remainingElements = getRemainingElements(workerTaskResults, itemStatus);
 
-                if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    remainingElements.clear();
-                } else if (remainingElements.isEmpty()) {
-                    offset = nextOffset;
-                }
-                // update && persist DistributorIndex if not Fatal
-                DistributorIndex distributorIndex =
-                    new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
-                        remainingElements);
-                // All elements of the current level are treated so finish it
-                if (!linesPeekIterator.hasNext() && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    distributorIndex.setLevelFinished(true);
-                }
-                updatePersistedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
-                    AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX);
+            offset = getNextOffset(offset, nextOffset, remainingElements, itemStatus);
 
-
-                checkCancelledOrPaused(step);
-
-                if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    return;
-                }
-
-            } catch (InterruptedException | ExecutionException e) {
-
-                throw new ProcessingException(e);
+            // update && persist DistributorIndex if not Fatal
+            DistributorIndex distributorIndex =
+                new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
+                    remainingElements);
+            // All elements of the current level are processed so finish it
+            if (!linesPeekIterator.hasNext() && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                distributorIndex.setLevelFinished(true);
             }
+            updatePersistedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX);
+
+            checkCancelledOrPaused(step);
+
+            if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                return;
+            }
+
         }
     }
 
     private void skipOffsetLines(BufferedReader bufferedReader, int offset) throws ProcessingException {
-        for (int i = 0; i < offset; i++) {
-            try {
+        try {
+            for (int i = 0; i < offset; i++) {
                 bufferedReader.readLine();
-            } catch (IOException e) {
-                throw new ProcessingException(e);
             }
+        } catch (IOException e) {
+            throw new ProcessingException(e);
         }
     }
 
@@ -752,78 +709,125 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private void prepareCurrentWorkerTaskAndCompletableLists(WorkerParameters workerParameters, Step step,
+    private List<WorkerTask> createWorkerTasks(
+        WorkerParameters workerParameters, Step step,
         Integer tenantId, String requestId, String contractId, String contextId,
         String applicationId,
-        int bulkSize, List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
-        List<WorkerTask> currentWorkerTaskList) {
-        int subOffset = 0;
-        int subListSize = subList.size();
+        int bulkSize, List<String> subList) {
 
-        while (subOffset < subListSize) {
-            int nextSubOffset = Math.min(subListSize, subOffset + bulkSize);
+        // Process by bulk
+        Iterator<List<String>> distributionSubListBulkIterator = Iterators.partition(subList.iterator(), bulkSize);
 
-            // split the list of items to be processed according to the capacity of the workers
-            List<String> newSubList = subList.subList(subOffset, nextSubOffset);
+        // Create a worker task for each bulk
+        List<WorkerTask> workerTaskList = new ArrayList<>();
+        distributionSubListBulkIterator.forEachRemaining(objectNames -> {
+            WorkerParameters taskWorkerParams = ((DefaultWorkerParameters) workerParameters).newInstance();
+            taskWorkerParams.setObjectNameList(objectNames);
+            workerTaskList.add(new WorkerTask(
+                new DescriptionStep(step, taskWorkerParams),
+                tenantId, requestId, contractId, contextId, applicationId, workerClientFactory
+            ));
+        });
+        return workerTaskList;
+    }
 
-            // prepare & instantiate the worker tasks
-            workerParameters.setObjectNameList(newSubList);
+    private List<WorkerTask> createWorkerTasksOnStream(
+        WorkerParameters workerParameters, Step step, Integer tenantId, String requestId, String contractId,
+        String contextId, String applicationId, int bulkSize, List<JsonLineModel> distributionList) {
 
-            final WorkerTask workerTask =
-                new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
+        // Process by bulk
+        Iterator<List<JsonLineModel>> batchIterator =
+            Iterators.partition(distributionList.iterator(), bulkSize);
 
-            currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
+        // Create a worker task for each bulk
+        List<WorkerTask> workerTaskList = new ArrayList<>();
+        batchIterator.forEachRemaining(entryList -> {
+            WorkerParameters taskWorkerParams = ((DefaultWorkerParameters) workerParameters).newInstance();
+            taskWorkerParams.setObjectNameList(
+                entryList.stream().map(JsonLineModel::getId).collect(Collectors.toList()));
+            taskWorkerParams.setObjectMetadataList(
+                entryList.stream().map(JsonLineModel::getParams).collect(Collectors.toList()));
 
-            subOffset = nextSubOffset;
+            workerTaskList.add(new WorkerTask(
+                new DescriptionStep(step, taskWorkerParams),
+                tenantId, requestId, contractId, contextId, applicationId, workerClientFactory
+            ));
+        });
+        return workerTaskList;
+    }
+
+    private List<WorkerTaskResult> executeWorkerTasks(WorkerParameters workerParameters,
+        List<WorkerTask> workerTaskList) throws ProcessingException {
+
+        List<CompletableFuture<WorkerTaskResult>> completableFutureList =
+            scheduleWorkerTasks(workerParameters, workerTaskList);
+
+        return awaitCompletion(completableFutureList);
+    }
+
+    private List<CompletableFuture<WorkerTaskResult>> scheduleWorkerTasks(
+        WorkerParameters workerParameters, List<WorkerTask> workerTaskList) {
+        List<CompletableFuture<WorkerTaskResult>> completableFutureList = new ArrayList<>();
+        for (WorkerTask workerTask : workerTaskList) {
+            CompletableFuture<WorkerTaskResult> scheduledTask =
+                scheduleTaskInExecutionBlockingQueue(workerTask, workerParameters.getLogbookTypeProcess());
+            completableFutureList.add(scheduledTask);
+        }
+        return completableFutureList;
+    }
+
+    private static <T> List<T> awaitCompletion(List<CompletableFuture<T>> futures)
+        throws ProcessingException {
+        try {
+            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()))
+                .get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new ProcessingException(e);
         }
     }
 
-    private void prepareCurrentWorkerTaskAndCompletableListsOnStream(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String requestId, String contractId, String contextId,
-        String applicationId,
-        int bulkSize, List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
-        List<WorkerTask> currentWorkerTaskList) {
-        int distribOffSet = 0;
-        int distributionSize = distributionList.size();
+    private void updateStepWithTaskResults(List<WorkerTaskResult> workerTaskResults, Step step) {
 
-        while (distribOffSet < distributionSize) {
-            int nextDistributionOffset = Math.min(distributionSize, distribOffSet + bulkSize);
+        // Update global step item status
+        workerTaskResults.stream()
+            // Do not compute PAUSE and CANCEL actions
+            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()) &&
+                !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
+            .forEach(result -> step.getStepResponses().setItemsStatus(result.getItemStatus()));
 
-            // split the list of items to be processed according to the capacity of the workers
-            List<JsonLineModel> newSubList = distributionList.subList(distribOffSet, nextDistributionOffset);
-
-            // prepare & instantiate the worker tasks
-            workerParameters
-                .setObjectNameList(newSubList.stream().map(JsonLineModel::getId).collect(Collectors.toList()));
-            workerParameters
-                .setObjectMetadataList(newSubList.stream().map(JsonLineModel::getParams).collect(Collectors.toList()));
-
-            final WorkerTask workerTask =
-                new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
-
-            currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
-
-            distribOffSet = nextDistributionOffset;
-        }
+        // Update stats (used by tests only)
+        int processedElements = workerTaskResults.stream()
+            //Do not update processed if pause or cancel occurs or if status is Fatal
+            .filter(result -> !StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()) &&
+                !StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus()))
+            .mapToInt(result -> result.getWorkerTask().getObjectNameList().size())
+            .sum();
+        ((ProcessStep) step).getElementProcessed().addAndGet(processedElements);
     }
 
-    private CompletableFuture<ItemStatus> getItemStatusCompletableFuture(Step step,
-        CompletableFuture<List<ItemStatus>> sequence) {
+    private List<String> getRemainingElements(List<WorkerTaskResult> workerTaskResults, ItemStatus itemStatus) {
 
-        return sequence
-            .thenApplyAsync((List<ItemStatus> is) -> is.stream()
-                // Do not compute PAUSE and CANCEL actions
-                .filter(i -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(i.getItemId()))
-                .filter(i -> !PauseOrCancelAction.ACTION_PAUSE.name().equals(i.getItemId()))
-                // Reduce remaining item status
-                .reduce(step.getStepResponses(), ItemStatus::setItemsStatus));
+        if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+            // We have to restart all the current offset
+            return Collections.emptyList();
+        }
 
+        return workerTaskResults.stream()
+            .filter(workerTaskResult -> !workerTaskResult.isProcessed())
+            .flatMap(workerTaskResult -> workerTaskResult.getWorkerTask().getObjectNameList().stream())
+            .collect(Collectors.toList());
+    }
+
+    private int getNextOffset(int currentOffset, int nextOffset, List<String> remainingElements,
+        ItemStatus itemStatus) {
+
+        // Do not move offset if some tasks have not been completed (FATAL/PAUSE)
+        if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal() || !remainingElements.isEmpty()) {
+            return currentOffset;
+        }
+
+        return nextOffset;
     }
 
     private void checkCancelledOrPaused(Step step) {
@@ -836,13 +840,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private CompletableFuture<ItemStatus> prepare(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
+    private CompletableFuture<WorkerTaskResult> scheduleTaskInExecutionBlockingQueue(WorkerTask task,
+        LogbookTypeProcess logbookTypeProcess) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
 
             LOGGER.error("No WorkerFamilyManager found for : " + step.getWorkerGroupId());
-            return CompletableFuture.completedFuture(new ItemStatus(step.getStepName()).increment(StatusCode.FATAL));
+            return CompletableFuture.completedFuture(new WorkerTaskResult(
+                task, false, new ItemStatus(step.getStepName()).increment(StatusCode.FATAL)));
         }
 
         // Add metrics increment as new task created
@@ -850,6 +856,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
             .inc();
 
+        // /!\ CAUTION :
+        // WorkerFamilyManager is backed by a limited blocking queue (why?).
+        // CompletableFuture.supplyAsync() method might block caller thread if queue is full
         return CompletableFuture
             .supplyAsync(task, wmf)
             .exceptionally((completionException) -> {
@@ -873,20 +882,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     evDetDetail.put("Error", "Error occurred while handling step by the distributor");
                 }
 
-                return new ItemStatus(step.getStepName())
+                ItemStatus itemStatus = new ItemStatus(step.getStepName())
                     .setItemsStatus(step.getStepName(),
                         new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
                             .increment(StatusCode.FATAL));
-            })
-            .thenApply(is -> {
-                //Do not update processed if pause or cancel occurs or if status is Fatal
-                if (StatusCode.UNKNOWN.equals(is.getGlobalStatus()) || StatusCode.FATAL.equals(is.getGlobalStatus())) {
-                    return is;
-                }
-                // update processed elements
-                ProcessStep processStep = (ProcessStep) step;
-                processStep.getElementProcessed().addAndGet(task.getObjectNameList().size());
-                return is;
+                return new WorkerTaskResult(task, false, itemStatus);
             })
             .thenApply(is -> {
                 // Decrement as this task is completed
