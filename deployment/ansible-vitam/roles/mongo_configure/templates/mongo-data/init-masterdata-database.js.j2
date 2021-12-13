@@ -5,6 +5,8 @@ db = db.getSiblingDB('masterdata')
 // Create indexes
 // A single collection can have no more than 64 indexes.
 
+db.Agencies.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
+
 db.FileRules.createIndex( { "_tenant" : 1 , "RuleId" : 1 } , { unique: true } )
 db.FileRules.createIndex( { "_tenant" : 1 } )
 db.FileRules.createIndex( { "RuleId" : 1 } )

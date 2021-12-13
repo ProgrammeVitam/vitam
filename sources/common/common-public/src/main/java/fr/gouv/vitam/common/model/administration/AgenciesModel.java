@@ -199,6 +199,6 @@ public class AgenciesModel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(tenant, identifier);
+        return Objects.hash(tenant, identifier, name, description);
     }
 }

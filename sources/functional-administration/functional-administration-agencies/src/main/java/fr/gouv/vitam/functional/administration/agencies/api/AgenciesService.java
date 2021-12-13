@@ -30,14 +30,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -47,9 +45,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -63,37 +59,30 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.ContractsFinder;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
 import fr.gouv.vitam.functional.administration.common.FileAgenciesErrorCode;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
-import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDeletionException;
+import fr.gouv.vitam.functional.administration.common.exception.InvalidFileException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -107,19 +96,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
 import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
@@ -128,7 +115,7 @@ import static fr.gouv.vitam.functional.administration.common.server.FunctionalAd
 /**
  * AgenciesService class allowing multiple operation on AgenciesService collection
  */
-public class AgenciesService implements VitamAutoCloseable {
+public class AgenciesService {
 
     /**
      * IMPORT_AGENCIES
@@ -147,240 +134,106 @@ public class AgenciesService implements VitamAutoCloseable {
      */
     private static final String IMPORT_AGENCIES_BACKUP_CSV = "IMPORT_AGENCIES_BACKUP_CSV";
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
-    private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
+
+    private static final String AGENCIES_IMPORT_ANOTHER_IMPORT_IN_PROGRESS =
+        AGENCIES_IMPORT_EVENT + ".CHECK_CONCURRENT_AGENCIES_IMPORT";
+
     private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
     private static final String AGENCIES_IMPORT_CONTRACT_USAGE = AGENCIES_IMPORT_EVENT + ".USED_CONTRACT";
-    private static final String CSV = "csv";
+
+    private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
+    private static final String AGENCIES_IMPORT_CONCURRENCE_ERROR = "CONCURRENCE";
+
+    private static final String CSV = ".csv";
+
 
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
+    private static final String USED_AGENCIES_WANT_TO_BE_DELETED_ERROR = "used Agencies want to be deleted";
+
 
     private static final String MESSAGE_ERROR = "Import agency error > ";
     private static final String UND_ID = "_id";
     private static final String UND_TENANT = "_tenant";
+    private static final String AGENCIES_PROCESS_IMPORT_ALREADY_EXIST =
+        "There is already another agencies import in progress";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final LogbookOperationsClient logBookclient;
-    private final VitamCounterService vitamCounterService;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final FunctionalBackupService backupService;
-    private final OntologyLoader ontologyLoader;
-    private AgenciesManager manager;
-    private Map<Integer, List<ErrorReportAgencies>> errorsMap;
-    private Set<AgenciesModel> usedAgenciesByContracts;
-    private Set<AgenciesModel> usedAgenciesByAU;
-    private Set<AgenciesModel> unusedAgenciesToDelete;
-    private Set<AgenciesModel> agenciesToInsert;
-    private Set<AgenciesModel> agenciesToUpdate;
-    private Set<AgenciesModel> agenciesToDelete;
-    private Set<AgenciesModel> agenciesToImport = new HashSet<>();
-    private Set<AgenciesModel> agenciesInDb;
-    private GUID eip;
-    private ContractsFinder finder;
+    private final LogbookAgenciesImportManager manager;
+    private final ContractService<AccessContractModel> accessContractService;
+    private final VitamCounterService vitamCounterService;
 
-    public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService backupService, OntologyLoader ontologyLoader)
-        throws InvalidGuidOperationException {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.backupService = backupService;
-        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
-        this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        this.errorsMap = new HashMap<>();
-        this.usedAgenciesByContracts = new HashSet<>();
-        this.usedAgenciesByAU = new HashSet<>();
-        this.unusedAgenciesToDelete = new HashSet<>();
-        this.agenciesToInsert = new HashSet<>();
-        this.agenciesToUpdate = new HashSet<>();
-        this.agenciesToDelete = new HashSet<>();
-        this.agenciesToImport = new HashSet<>();
-        this.agenciesInDb = new HashSet<>();
-        this.finder = new ContractsFinder(mongoAccess, vitamCounterService);
-        this.eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
-        this.manager = new AgenciesManager(logBookclient, eip);
-        this.ontologyLoader = ontologyLoader;
+    public AgenciesService(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        FunctionalBackupService backupService) {
+        this(mongoAccess, vitamCounterService, backupService,
+            new LogbookAgenciesImportManager(LogbookOperationsClientFactory.getInstance()),
+            new AccessContractImpl(mongoAccess, vitamCounterService));
     }
 
     @VisibleForTesting
-    public AgenciesService(
-        MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService,
-        FunctionalBackupService backupService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
-        AgenciesManager manager,
-        Set<AgenciesModel> agenciesInDb,
-        Set<AgenciesModel> agenciesToDelete,
-        Set<AgenciesModel> agenciesToInsert,
-        Set<AgenciesModel> agenciesToUpdate,
-        Set<AgenciesModel> usedAgenciesByAU,
-        Set<AgenciesModel> usedAgenciesByContracts,
-        Set<AgenciesModel> unusedAgenciesToDelete,
-        OntologyLoader ontologyLoader) {
+    public AgenciesService(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        FunctionalBackupService backupService, LogbookAgenciesImportManager manager,
+        ContractService<AccessContractModel> accessContractService) {
         this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.logBookclient = this.logbookOperationsClientFactory.getClient();
-        this.errorsMap = new HashMap<>();
-        this.agenciesInDb = agenciesInDb;
-        this.agenciesToDelete = agenciesToDelete;
-        this.agenciesToInsert = agenciesToInsert;
-        this.agenciesToUpdate = agenciesToUpdate;
-        this.usedAgenciesByAU = usedAgenciesByAU;
-        this.usedAgenciesByContracts = usedAgenciesByContracts;
-        this.finder = new ContractsFinder(mongoAccess, vitamCounterService);
         this.manager = manager;
-        this.unusedAgenciesToDelete = unusedAgenciesToDelete;
-        this.ontologyLoader = ontologyLoader;
-    }
-
-    /**
-     * Find documents with a query
-     *
-     * @param select the query as a json
-     * @return list of response as a RequestResponseOK object
-     * @throws ReferentialException thrown if an error is encountered
-     */
-    public RequestResponseOK findDocuments(JsonNode select)
-        throws ReferentialException {
-        return findAgencies(select).getRequestResponseOK(select, Agencies.class);
-    }
-
-    private List<Agencies> findAllAgencies() throws ReferentialException {
-        final Select select = new Select();
-        RequestResponseOK<Agencies> response = findDocuments(select.getFinalSelect());
-        return response.getResults();
-    }
-
-
-    /**
-     * Construct query DSL for find all Agencies (referential)
-     *
-     * @throws VitamException thrown if query could not be executed
-     */
-    public void findAllAgenciesUsedByUnits() throws VitamException {
-        // no need to do the check, just log status ok
-        if (agenciesToUpdate.isEmpty()) {
-            manager.logEventSuccess(AGENCIES_IMPORT_AU_USAGE);
-            return;
-        }
-
-        for (AgenciesModel agency : agenciesToUpdate) {
-            final SelectMultiQuery selectMultiple = new SelectMultiQuery();
-            try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-
-                // FIXME Add limit when Dbrequest is Fix and when distinct is implement in DbRequest:
-                ObjectNode objectNode = JsonHandler.createObjectNode();
-                objectNode.put(VitamFieldsHelper.id(), 1);
-                ArrayNode arrayNode = JsonHandler.createArrayNode();
-                selectMultiple
-                    .setQuery(eq(VitamFieldsHelper.management() + ".OriginatingAgency", agency.getIdentifier()));
-                selectMultiple.addRoots(arrayNode);
-                selectMultiple.addProjection(JsonHandler.createObjectNode().set("$fields", objectNode));
-
-                final JsonNode unitsResultNode = metaDataClient.selectUnits(selectMultiple.getFinalSelect());
-
-                if (unitsResultNode != null && unitsResultNode.get("$results").size() > 0) {
-                    usedAgenciesByAU.add(agency);
-                }
-            } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException |
-                MetaDataDocumentSizeException | MetaDataClientServerException e) {
-                LOGGER.error("Query construction not valid ", e);
-            }
-        }
-
-        // no update is done on used agencies, just log success
-        if (usedAgenciesByAU.isEmpty()) {
-            manager.logEventSuccess(AGENCIES_IMPORT_AU_USAGE);
-            return;
-        }
-
-        // log warning
-        final ArrayNode usedAgenciesAUNode = JsonHandler.createArrayNode();
-        usedAgenciesByAU.forEach(agency -> usedAgenciesAUNode.add(agency.getIdentifier()));
-
-        final ObjectNode data = JsonHandler.createObjectNode();
-        data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesAUNode);
-
-        manager.setEvDetData(data);
-
-        manager.logEventWarning(AGENCIES_IMPORT_AU_USAGE);
+        this.vitamCounterService = vitamCounterService;
+        this.accessContractService = accessContractService;
     }
 
     /**
      * Find all agencies used by access contracts
      *
+     * @return list of agencies
      * @throws InvalidCreateOperationException thrown if the query could not be created
      * @throws VitamException thrown if an error is encountered
      */
-    public void findAllAgenciesUsedByAccessContracts() throws InvalidCreateOperationException, VitamException {
-        // no need to do the check, just log status ok
-        if (agenciesToUpdate.isEmpty()) {
-            manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
-            return;
-        }
+    private Set<AgenciesModel> findAgenciesUsedByAccessContracts(Set<AgenciesModel> agenciesToCheck)
+        throws InvalidCreateOperationException, VitamException {
+        Set<AgenciesModel> usedAgenciesByContracts = new HashSet<>();
 
-        for (AgenciesModel agency : agenciesToUpdate) {
-
-            final Select select = new Select();
-            select.setQuery(in(AccessContract.ORIGINATINGAGENCIES, agency.getIdentifier()));
-            final JsonNode queryDsl = select.getFinalSelect();
-
-            RequestResponseOK<AccessContractModel> result = finder.findAccessContrats(queryDsl);
-
-            if (result != null && !result.getResults().isEmpty()) {
+        for (AgenciesModel agency : agenciesToCheck) {
+            if (isUsedByAccessContract(agency)) {
                 usedAgenciesByContracts.add(agency);
-
             }
         }
-
-        // no update is done on used agencies, just log success
-        if (usedAgenciesByContracts.isEmpty()) {
-            manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
-            return;
-        }
-
-        // log warning
-        final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
-        usedAgenciesByContracts.forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
-
-        final ObjectNode data = JsonHandler.createObjectNode();
-        data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesContractNode);
-
-        manager.setEvDetData(data);
-
-        manager.logEventWarning(AGENCIES_IMPORT_CONTRACT_USAGE);
-    }
-
-    private File convertInputStreamToFile(InputStream agenciesStream) throws IOException {
-        try {
-            String uniqueFileId = GUIDFactory.newGUID().getId();
-            File csvFile = PropertiesUtils.fileFromTmpFolder(uniqueFileId + "." + AgenciesService.CSV);
-            Files.copy(agenciesStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            return csvFile;
-        } finally {
-            StreamUtils.closeSilently(agenciesStream);
-        }
+        return usedAgenciesByContracts;
     }
 
     /**
-     * Check file integrity
+     * Find all agencies used in metadata
      *
-     * @param stream the stream to be checked
-     * @throws ReferentialException thrown if the file is not correct
+     * @return list of agencies
+     * @throws InvalidCreateOperationException thrown if the query could not be created
+     * @throws VitamException thrown if an error is encountered
+     */
+    private Set<AgenciesModel> findAgenciesUsedInMetadata(Set<AgenciesModel> agenciesToCheck)
+        throws InvalidCreateOperationException, VitamException {
+        Set<AgenciesModel> usedAgenciesByContracts = new HashSet<>();
+
+        for (AgenciesModel agency : agenciesToCheck) {
+            if (isUsedInMetadata(agency)) {
+                usedAgenciesByContracts.add(agency);
+            }
+        }
+        return usedAgenciesByContracts;
+    }
+
+    /**
+     * convert csv file into a set of AgenciesModel
+     *
+     * @param csvFile the stream to be converted
+     * @return a set of AgenciesModel
      * @throws IOException thrown if the file could be read
      */
-    public void checkFile(InputStream stream)
-        throws ReferentialException,
-        IOException {
+    public AgenciesImportResult parseFile(File csvFile) throws IOException, ReferentialException {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Map<Integer, List<ErrorReportAgencies>> errorsMap = new HashMap<>();
         int lineNumber = 1;
-        File csvFileReader = convertInputStreamToFile(stream);
-        InputStream csvFileInputStream = null;
-
-        try (FileReader reader = new FileReader(csvFileReader)) {
+        final Map<String, AgenciesModel> agenciesModelMap = new HashMap<>();
+        try (FileReader reader = new FileReader(csvFile)) {
             final CSVParser parser =
                 new CSVParser(reader, CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false));
-            final HashSet<String> idsset = new HashSet<>();
             try {
                 for (final CSVRecord record : parser) {
                     List<ErrorReportAgencies> errors = new ArrayList<>();
@@ -392,15 +245,17 @@ public class AgenciesService implements VitamAutoCloseable {
 
                         final AgenciesModel agenciesModel = new AgenciesModel(identifier, name, description, tenantId);
 
-                        checkParametersNotEmpty(identifier, name, description, errors, lineNumber);
+                        checkParametersNotEmpty(identifier, name, errors, lineNumber);
 
-                        if (idsset.contains(identifier)) {
+
+
+                        if (agenciesModelMap.containsKey(identifier)) {
                             errors
                                 .add(new ErrorReportAgencies(FileAgenciesErrorCode.STP_IMPORT_AGENCIES_ID_DUPLICATION,
                                     lineNumber, agenciesModel));
                         }
 
-                        idsset.add(identifier);
+                        agenciesModelMap.put(identifier, agenciesModel);
 
                         if (!errors.isEmpty()) {
                             errorsMap.put(lineNumber, errors);
@@ -418,73 +273,27 @@ public class AgenciesService implements VitamAutoCloseable {
                 if (message.contains("Description not found")) {
                     message = ReportConstants.FILE_INVALID + "Description";
                 }
-                List<ErrorReportAgencies> errors = new ArrayList<>();
-                errors
-                    .add(new ErrorReportAgencies(FileAgenciesErrorCode.STP_IMPORT_AGENCIES_NOT_CSV_FORMAT,
-                        lineNumber, message));
-                errorsMap.put(lineNumber, errors);
 
-                throw new ReferentialException(message);
-            } catch (Exception e) {
-                throw new ReferentialException(e);
+                throw new InvalidFileException(message);
             }
 
-            csvFileInputStream = new FileInputStream(csvFileReader);
-            agenciesToImport = new HashSet<>(AgenciesParser.readFromCsv(csvFileInputStream));
-
-            if (errorsMap.size() > 0) {
-                throw new ReferentialException(INVALID_CSV_FILE);
-            }
-        } finally {
-            IOUtils.closeQuietly(csvFileInputStream);
-            if (csvFileReader != null && !csvFileReader.delete()) {
-                LOGGER.warn("Failed to delete file");
-            }
+            return new AgenciesImportResult(new HashSet<>(agenciesModelMap.values()), errorsMap);
         }
     }
 
     /**
-     * Check agencies in database
+     * Retrieve agencies in database
+     *
+     * @return list of agencies in database
      */
-    public void checkAgenciesInDb() throws ReferentialException {
-
-        List<Agencies> tempAgencies = findAllAgencies();
-        tempAgencies.forEach(a -> agenciesInDb.add(a.wrap()));
-
+    public Set<AgenciesModel> retrieveAgenciesInDb() throws ReferentialException {
+        final Select select = new Select();
+        RequestResponseOK<Agencies> response =
+            findAgencies(select.getFinalSelect()).getRequestResponseOK(select.getFinalSelect(), Agencies.class);
+        return response.getResults().stream().map(Agencies::wrap).collect(Collectors.toSet());
     }
 
-    private void createInsertUpdateDeleteList() {
-
-        agenciesToInsert.addAll(agenciesToImport);
-
-        agenciesToDelete.addAll(agenciesInDb);
-
-        for (AgenciesModel agencyToImport : agenciesToImport) {
-            for (AgenciesModel agencyInDb : agenciesInDb) {
-
-                boolean descriptionChanged =
-                    !Objects.equals(agencyInDb.getDescription(), agencyToImport.getDescription());
-                boolean nameChanged = !Objects.equals(agencyInDb.getName(), agencyToImport.getName());
-
-                if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier())
-                    && (nameChanged || descriptionChanged)) {
-
-                    agenciesToUpdate.add(agencyToImport);
-                }
-
-                if (agencyToImport.getIdentifier().equals(agencyInDb.getIdentifier())) {
-                    agenciesToInsert.remove(agencyToImport);
-                }
-
-                if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier())) {
-                    agenciesToDelete.remove(agencyInDb);
-                }
-            }
-        }
-    }
-
-    private void checkParametersNotEmpty(String identifier, String name, String description,
-        List<ErrorReportAgencies> errors, int line) {
+    private void checkParametersNotEmpty(String identifier, String name, List<ErrorReportAgencies> errors, int line) {
         List<String> missingParam = new ArrayList<>();
         if (StringUtils.isEmpty(identifier)) {
             missingParam.add(AgenciesModel.TAG_IDENTIFIER);
@@ -510,85 +319,157 @@ public class AgenciesService implements VitamAutoCloseable {
      * @param filename the file name
      * @return a response as a RequestResponse <AgenciesModel> object
      * @throws VitamException thrown if logbook could not be initialized
-     * @throws IOException thrown in case or error with stream
-     * @throws InvalidCreateOperationException thrown if the error report could not be stored
      */
     public RequestResponse<AgenciesModel> importAgencies(InputStream stream, String filename)
-        throws VitamException, IOException {
-
-        manager.logStarted(AGENCIES_IMPORT_EVENT);
+        throws VitamException {
+        GUID eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+        manager.logStarted(eip, AGENCIES_IMPORT_EVENT);
         InputStream reportStream;
         File file = null;
-        InputStream csvFileInputStream = null;
         try {
 
-            file = convertInputStreamToFile(stream);
+            checkConcurrentImportOperation(eip);
 
-            try (FileInputStream inputStream = new FileInputStream(file)) {
-                checkFile(inputStream);
+            file = FileUtil.convertInputStreamToFile(stream, GUIDFactory.newGUID().getId(), AgenciesService.CSV);
+
+            AgenciesImportResult agenciesImportResult = parseFile(file);
+
+            if (agenciesImportResult.getErrorsMap().size() > 0) {
+                throw new InvalidFileException(INVALID_CSV_FILE);
             }
 
-            checkAgenciesInDb();
+            Set<AgenciesModel> agenciesToImport = agenciesImportResult.getAgenciesToImport();
 
-            createInsertUpdateDeleteList();
+            Set<AgenciesModel> agenciesInDb = retrieveAgenciesInDb();
 
-            checkAgenciesDeletion();
+            // agenciesToInsert
+            Set<AgenciesModel> agenciesToUpdate = new HashSet<>(agenciesToImport);
+            agenciesToUpdate.removeAll(agenciesInDb);
 
-            findAllAgenciesUsedByAccessContracts();
+            Set<AgenciesModel> agenciesToInsert =
+                agenciesToUpdate.stream()
+                    .filter(e -> agenciesInDb.stream().map(AgenciesModel::getIdentifier)
+                        .noneMatch(t -> t.equals(e.getIdentifier())))
+                    .collect(Collectors.toSet());
 
-            findAllAgenciesUsedByUnits();
+            agenciesImportResult.setInsertedAgencies(agenciesToInsert);
 
-            commitAgencies();
+            agenciesToUpdate.removeAll(agenciesToInsert);
 
-            reportStream = generateReportOK();
-            // store report
-            backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
-                eip + ".json");
+            agenciesImportResult.setUpdatedAgencies(agenciesToUpdate);
 
-            // store source File
-            csvFileInputStream = new FileInputStream(file);
-            backupService.saveFile(csvFileInputStream, eip, IMPORT_AGENCIES_BACKUP_CSV, DataCategory.REPORT,
-                eip + ".csv");
-            // store collection
-            backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
-                FunctionalAdminCollections.AGENCIES, eip.toString());
+            Set<AgenciesModel> agenciesToDelete =
+                agenciesInDb.stream().filter(
+                    e -> agenciesToImport.stream().map(AgenciesModel::getIdentifier)
+                        .noneMatch(t -> t.equals(e.getIdentifier())))
+                    .collect(Collectors.toSet());
 
-            manager.logFinish(filename);
-        } catch (final AgencyImportDeletionException e) {
+            agenciesImportResult.setDeletedAgencies(agenciesToDelete);
+            try {
+                Set<AgenciesModel> usedAgenciesToCheck = findAgenciesUsedByAccessContracts(agenciesToDelete);
+                if (usedAgenciesToCheck.isEmpty()) {
+                    manager.logEventSuccess(eip, AGENCIES_IMPORT_CONTRACT_USAGE);
+                } else {
+                    throw new AgencyImportDeletionException(USED_AGENCIES_WANT_TO_BE_DELETED_ERROR);
+                }
+                usedAgenciesToCheck = findAgenciesUsedInMetadata(agenciesToDelete);
+                if (usedAgenciesToCheck.isEmpty()) {
+                    manager.logEventSuccess(eip, AGENCIES_IMPORT_AU_USAGE);
+                } else {
+                    throw new AgencyImportDeletionException(USED_AGENCIES_WANT_TO_BE_DELETED_ERROR);
+                }
 
+                Set<AgenciesModel> usedAgenciesByContractsToUpdate =
+                    findAgenciesUsedByAccessContracts(agenciesToUpdate);
+                if (usedAgenciesByContractsToUpdate.isEmpty()) {
+                    // OK
+                    manager.logEventSuccess(eip, AGENCIES_IMPORT_CONTRACT_USAGE);
+                } else {
+                    // warning
+                    final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
+                    usedAgenciesByContractsToUpdate
+                        .forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
+
+                    final ObjectNode data = JsonHandler.createObjectNode();
+                    data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesContractNode);
+
+                    manager.setEvDetData(data);
+
+                    manager.logEventWarning(eip, AGENCIES_IMPORT_CONTRACT_USAGE);
+                }
+                agenciesImportResult.setUsedAgenciesContract(usedAgenciesByContractsToUpdate);
+
+                Set<AgenciesModel> usedAgenciesInMetadataToUpdate = findAgenciesUsedInMetadata(agenciesToUpdate);
+                if (usedAgenciesByContractsToUpdate.isEmpty()) {
+                    // OK
+                    manager.logEventSuccess(eip, AGENCIES_IMPORT_AU_USAGE);
+                } else {
+                    // warning
+                    final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
+                    usedAgenciesByContractsToUpdate
+                        .forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
+
+                    final ObjectNode data = JsonHandler.createObjectNode();
+                    data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesContractNode);
+
+                    manager.setEvDetData(data);
+
+                    manager.logEventWarning(eip, AGENCIES_IMPORT_AU_USAGE);
+                }
+                agenciesImportResult.setUsedAgenciesAU(usedAgenciesInMetadataToUpdate);
+
+                commitAgencies(agenciesToInsert, agenciesToUpdate, agenciesToDelete);
+
+                // store source File
+                try (InputStream csvFileInputStream = new FileInputStream(file)) {
+                    backupService.saveFile(csvFileInputStream, eip, IMPORT_AGENCIES_BACKUP_CSV, DataCategory.REPORT,
+                        eip + CSV);
+                }
+                // store collection
+                backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
+                    FunctionalAdminCollections.AGENCIES, eip.toString());
+
+                reportStream = generateReportOK(agenciesImportResult);
+                // store report
+                backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
+                    eip + JSON_EXTENSION);
+
+                manager.logFinishSuccess(eip, filename, StatusCode.OK);
+            } catch (final AgencyImportDeletionException e) {
+
+                LOGGER.error(MESSAGE_ERROR, e);
+                InputStream errorStream = generateErrorReport(agenciesImportResult);
+
+                backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
+                    eip + JSON_EXTENSION);
+                errorStream.close();
+
+                ObjectNode errorMessage = JsonHandler.createObjectNode();
+                String listAgencies = agenciesToDelete.stream().map(AgenciesModel::getIdentifier)
+                    .collect(Collectors.joining(","));
+                errorMessage.put("Agencies ", listAgencies);
+
+                return generateVitamBadRequestError(eip, errorMessage.toString(),
+                    AgenciesService.AGENCIES_IMPORT_DELETION_ERROR);
+
+            } catch (InvalidCreateOperationException | IOException e) {
+                // FATAL ERROR
+                LOGGER.error(MESSAGE_ERROR, e);
+                return generateVitamFatalError(eip, MESSAGE_ERROR + e.getMessage());
+            }
+
+        } catch (ReferentialImportInProgressException e) {
             LOGGER.error(MESSAGE_ERROR, e);
-            InputStream errorStream = generateErrorReport();
-
-            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
-                eip + ".json");
-            errorStream.close();
-
-            ObjectNode errorMessage = JsonHandler.createObjectNode();
-            String listAgencies = agenciesToDelete.stream().map(AgenciesModel::getIdentifier)
-                .collect(Collectors.joining(","));
-            errorMessage.put("Agencies ", listAgencies);
-
-            return generateVitamBadRequestError(errorMessage.toString());
-
-        } catch (SchemaValidationException | BadRequestException e) {
+            // no need to generate a report or store the file
+            return generateVitamBadRequestError(eip, AgenciesService.AGENCIES_PROCESS_IMPORT_ALREADY_EXIST,
+                AGENCIES_IMPORT_CONCURRENCE_ERROR);
+        } catch (InvalidFileException e) {
             LOGGER.error(MESSAGE_ERROR, e);
-
-            InputStream errorStream = generateErrorReport();
-            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
-                eip + ".json");
-            errorStream.close();
-
-            return getVitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem(), e.getMessage()
-            ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
-        } catch (final Exception e) {
+            return generateVitamBadRequestError(eip, MESSAGE_ERROR + e.getMessage(), null);
+        } catch (IOException | IllegalPathException | VitamException e) {
             LOGGER.error(MESSAGE_ERROR, e);
-            InputStream errorStream = generateErrorReport();
-            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
-                eip + ".json");
-            errorStream.close();
-            return generateVitamError(MESSAGE_ERROR + e.getMessage());
+            return generateVitamFatalError(eip, MESSAGE_ERROR + e.getMessage());
         } finally {
-            IOUtils.closeQuietly(csvFileInputStream);
             if (file != null && !file.delete()) {
                 LOGGER.warn("Failed to delete file");
             }
@@ -598,69 +479,47 @@ public class AgenciesService implements VitamAutoCloseable {
 
     }
 
-    private void checkAgenciesDeletion() throws VitamException, InvalidCreateOperationException {
+    private boolean isUsedByAccessContract(AgenciesModel agency)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException {
+        final Select select = new Select();
+        select.setQuery(in(AccessContract.ORIGINATINGAGENCIES, agency.getIdentifier()));
+        final JsonNode queryDsl = select.getFinalSelect();
 
-        if (agenciesToDelete.isEmpty()) {
-            manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
-            return;
-        }
+        RequestResponseOK<AccessContractModel> result = accessContractService.findContracts(queryDsl);
 
-        for (AgenciesModel agency : agenciesToDelete) {
-
-            final Select select = new Select();
-            select.setQuery(in(AccessContract.ORIGINATINGAGENCIES, agency.getIdentifier()));
-            final JsonNode queryDsl = select.getFinalSelect();
-
-            RequestResponseOK<AccessContractModel> result = finder.findAccessContrats(queryDsl);
-
-            if (result != null && result.getResults().isEmpty()) {
-                unusedAgenciesToDelete.add(agency);
-            }
-        }
-
-        for (AgenciesModel agency : agenciesToDelete) {
-            Select select = new Select();
-            select.setQuery(
-                QueryHelper.and()
-                    .add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, agency.getIdentifier())));
-            final JsonNode queryDsl = select.getFinalSelect();
-            DbRequestResult result =
-                mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-            RequestResponseOK<AccessionRegisterDetail> response =
-                result.getRequestResponseOK(queryDsl, AccessionRegisterDetail.class);
-
-            if (response != null && !response.getResults().isEmpty()) {
-                throw new AgencyImportDeletionException("used Agencies want to be deleted");
-            }
-        }
-
-        // not used anywhere , then will be deleted
-        unusedAgenciesToDelete = new HashSet<>(unusedAgenciesToDelete);
-        if (!unusedAgenciesToDelete.isEmpty()) {
-            return;
-        }
-
-        manager.logError(AGENCIES_IMPORT_AU_USAGE, "used Agencies want to be deleted");
-        throw new AgencyImportDeletionException("used Agencies want to be deleted");
+        return !result.getResults().isEmpty();
     }
 
-    private VitamError getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, "Agencies", StatusCode.KO);
+    private boolean isUsedInMetadata(AgenciesModel agency)
+        throws InvalidCreateOperationException, ReferentialException {
+        Select select = new Select();
+        select.setQuery(
+            QueryHelper.and()
+                .add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, agency.getIdentifier())));
+        final JsonNode queryDsl = select.getFinalSelect();
+        DbRequestResult result =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        RequestResponseOK<AccessionRegisterDetail> response =
+            result.getRequestResponseOK(queryDsl, AccessionRegisterDetail.class);
+
+        return !response.getResults().isEmpty();
     }
 
-    private VitamError generateVitamBadRequestError(String err) throws VitamException {
-        manager.logError(err, AgenciesService.AGENCIES_IMPORT_DELETION_ERROR);
-        return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
+    private VitamError<AgenciesModel> generateVitamBadRequestError(GUID eip, String err, String subEvenType)
+        throws VitamException {
+        manager.logError(eip, err, subEvenType);
+        return new VitamError<AgenciesModel>(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
             .setCode(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
             .setDescription(err)
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
-    private VitamError generateVitamError(String err) throws VitamException {
-        manager.logError(err, null);
-        return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
-            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+    private VitamError<AgenciesModel> generateVitamFatalError(GUID eip, String err)
+        throws VitamException {
+        manager.logEventFatal(eip, AGENCIES_IMPORT_EVENT);
+        return new VitamError<AgenciesModel>(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
+            .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
             .setDescription(err)
             .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -693,7 +552,8 @@ public class AgenciesService implements VitamAutoCloseable {
 
     }
 
-    private void commitAgencies()
+    private void commitAgencies(Set<AgenciesModel> agenciesToInsert, Set<AgenciesModel> agenciesToUpdate,
+        Set<AgenciesModel> agenciesToDelete)
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
         SchemaValidationException, BadRequestException, DocumentAlreadyExistsException {
 
@@ -704,7 +564,9 @@ public class AgenciesService implements VitamAutoCloseable {
             updateAgency(agency, sequence);
         }
 
-        unusedAgenciesToDelete.forEach(this::deleteAgency);
+        for (AgenciesModel agenciesModel : agenciesToDelete) {
+            deleteAgency(agenciesModel);
+        }
 
         if (!agenciesToInsert.isEmpty()) {
             insertDocuments(agenciesToInsert, sequence);
@@ -733,16 +595,17 @@ public class AgenciesService implements VitamAutoCloseable {
         mongoAccess.updateData(updateParser.getRequest().getFinalUpdate(), AGENCIES, sequence);
     }
 
-    private void deleteAgency(AgenciesModel fileAgenciesModel) {
+    private void deleteAgency(AgenciesModel fileAgenciesModel) throws BadRequestException, ReferentialException {
         final Delete delete = new Delete();
         DbRequestResult result;
 
         try {
             delete.setQuery(eq(AgenciesModel.TAG_IDENTIFIER, fileAgenciesModel.getIdentifier()));
-            result = mongoAccess.deleteCollectionForTesting(FunctionalAdminCollections.AGENCIES, delete);
+            result = mongoAccess.deleteDocument(delete.getFinalDelete(), FunctionalAdminCollections.AGENCIES);
             result.close();
-        } catch (InvalidCreateOperationException | DatabaseException e) {
-            LOGGER.error(e);
+
+        } catch (final SchemaValidationException | InvalidCreateOperationException e) {
+            throw new BadRequestException(e);
         }
     }
 
@@ -758,48 +621,34 @@ public class AgenciesService implements VitamAutoCloseable {
         return mongoAccess.findDocuments(queryDsl, AGENCIES);
     }
 
-    private InputStream generateReportOK() {
-        AgenciesReport reportFinal = generateReport();
+    private InputStream generateReportOK(AgenciesImportResult agenciesImportResult) {
+        AgenciesReport reportFinal = generateReport(agenciesImportResult);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
 
-    private AgenciesReport generateReport() {
-
-        final ArrayList<String> insertAgencies = new ArrayList<>();
-        final ArrayList<String> updateAgencies = new ArrayList<>();
-        final ArrayList<String> usedAgenciesContract = new ArrayList<>();
-        final ArrayList<String> usedAgenciesAU = new ArrayList<>();
-        final ArrayList<String> agenciesTodelete = new ArrayList<>();
-        final ArrayList<String> allAgencies = new ArrayList<>();
+    private AgenciesReport generateReport(AgenciesImportResult agenciesImportResult) {
         AgenciesReport report = new AgenciesReport();
         HashMap<String, String> guidmasterNode = new HashMap<>();
 
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         guidmasterNode.put(ReportConstants.EV_TYPE, AGENCIES_IMPORT_EVENT);
         guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
-        if (eip == null) {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        }
-        guidmasterNode.put(ReportConstants.EV_ID, eip.toString());
+        guidmasterNode.put(ReportConstants.EV_ID, operationId);
 
-        agenciesToInsert.forEach(agency -> insertAgencies.add(agency.getIdentifier()));
-
-        agenciesToUpdate.forEach(agency -> updateAgencies.add(agency.getIdentifier()));
-
-        usedAgenciesByContracts.forEach(agency -> usedAgenciesContract.add(agency.getIdentifier()));
-
-        usedAgenciesByAU.forEach(agency -> usedAgenciesAU.add(agency.getIdentifier()));
-
-        agenciesToDelete.forEach(agency -> agenciesTodelete.add(agency.getIdentifier()));
-
-        agenciesToImport.forEach(agency -> allAgencies.add(agency.getIdentifier()));
-
-        report.setJdo(guidmasterNode);
-        report.setAgenciesToImport(allAgencies);
-        report.setInsertAgencies(insertAgencies);
-        report.setUpdatedAgencies(updateAgencies);
-        report.setUsedAgenciesByContracts(usedAgenciesContract);
-        report.setUsedAgenciesByAu(usedAgenciesAU);
-        report.setUsedAgenciesToDelete(agenciesTodelete);
+        report.setOperation(guidmasterNode);
+        report.setAgenciesToImport(agenciesImportResult.getAgenciesToImport().stream().map(AgenciesModel::getIdentifier)
+            .collect(Collectors.toList()));
+        report.setInsertedAgencies(agenciesImportResult.getInsertedAgencies().stream().map(AgenciesModel::getIdentifier)
+            .collect(Collectors.toList()));
+        report.setUpdatedAgencies(agenciesImportResult.getUpdatedAgencies().stream().map(AgenciesModel::getIdentifier)
+            .collect(Collectors.toList()));
+        report.setUsedAgenciesByContracts(
+            agenciesImportResult.getUsedAgenciesContract().stream().map(AgenciesModel::getIdentifier)
+                .collect(Collectors.toList()));
+        report.setUsedAgenciesByAu(agenciesImportResult.getUsedAgenciesAU().stream().map(AgenciesModel::getIdentifier)
+            .collect(Collectors.toList()));
+        report.setAgenciesToDelete(agenciesImportResult.getDeletedAgencies().stream().map(AgenciesModel::getIdentifier)
+            .collect(Collectors.toList()));
 
         return report;
     }
@@ -810,15 +659,15 @@ public class AgenciesService implements VitamAutoCloseable {
      *
      * @return an input stream containing the report
      */
-    public InputStream generateErrorReport() {
+    public InputStream generateErrorReport(AgenciesImportResult agenciesImportResult) {
 
-        final AgenciesReport reportFinal = generateReport();
+        final AgenciesReport reportFinal = generateReport(agenciesImportResult);
 
         final ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
         final HashMap<String, Object> errors = new HashMap<>();
 
-        for (Integer line : errorsMap.keySet()) {
-            List<ErrorReportAgencies> errorsReports = errorsMap.get(line);
+        for (Integer line : agenciesImportResult.getErrorsMap().keySet()) {
+            List<ErrorReportAgencies> errorsReports = agenciesImportResult.getErrorsMap().get(line);
             for (ErrorReportAgencies error : errorsReports) {
                 final ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.put(ReportConstants.CODE, error.getCode().name() + ".KO");
@@ -842,12 +691,14 @@ public class AgenciesService implements VitamAutoCloseable {
             }
             errors.put(String.format("line %s", line), messagesArrayNode);
         }
-        reportFinal.setError(errors);
+        reportFinal.setErrors(errors);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
 
-    @Override
-    public void close() {
-        logBookclient.close();
+    private void checkConcurrentImportOperation(GUID eip) throws VitamException {
+        if (manager.isImportOperationInProgress(eip)) {
+            throw new ReferentialImportInProgressException(AGENCIES_PROCESS_IMPORT_ALREADY_EXIST);
+        }
+        manager.logEventSuccess(eip, AGENCIES_IMPORT_ANOTHER_IMPORT_IN_PROGRESS);
     }
 }

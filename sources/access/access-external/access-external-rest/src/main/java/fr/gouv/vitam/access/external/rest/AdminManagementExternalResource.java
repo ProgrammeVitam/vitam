@@ -102,7 +102,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -389,7 +389,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
                 .toResponse();
-        } catch (final FileRulesImportInProgressException e) {
+        } catch (final ReferentialImportInProgressException e) {
             LOGGER.warn(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage())
                 .toResponse();
@@ -457,7 +457,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
                 .toResponse();
-        } catch (FileRulesImportInProgressException e) {
+        } catch (ReferentialImportInProgressException e) {
             LOGGER.warn(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage())
                 .toResponse();

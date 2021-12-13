@@ -29,19 +29,19 @@ package fr.gouv.vitam.functional.administration.common.exception;
 /**
  * Exception thrown when a file rules import is already in progress
  */
-public class FileRulesImportInProgressException extends ReferentialException {
+public class ReferentialImportInProgressException extends ReferentialException {
 
     /**
      * @param message message to associate with the exception
      */
-    public FileRulesImportInProgressException(String message) {
+    public ReferentialImportInProgressException(String message) {
         super(message);
     }
 
     /**
      * @param cause cause to associate with the exception
      */
-    public FileRulesImportInProgressException(Throwable cause) {
+    public ReferentialImportInProgressException(Throwable cause) {
         super(cause);
     }
 
@@ -49,7 +49,7 @@ public class FileRulesImportInProgressException extends ReferentialException {
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
-    public FileRulesImportInProgressException(String message, Throwable cause) {
+    public ReferentialImportInProgressException(String message, Throwable cause) {
         super(message, cause);
     }
 }

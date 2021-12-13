@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.agencies.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -39,6 +38,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -46,7 +46,9 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -67,8 +69,11 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -92,18 +97,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESS_CONTRACT;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -127,9 +129,9 @@ public class AgenciesServiceTest {
             PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-    private static String _id = GUIDFactory.newGUID().toString();
-    private static String contract = "{ \"_tenant\": 1,\n" +
-        "    \"_id\": \"" + _id + "\", \n " +
+    private static final String ACCESS_CONTRACT_ID = GUIDFactory.newGUID().toString();
+    private static final String ACCESS_CONTRACT = "{ \"_tenant\": 1,\n" +
+        "    \"_id\": \"" + ACCESS_CONTRACT_ID + "\", \n " +
         "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
         "    \"Identifier\": \"AC-000018\",\n" +
         "    \"Description\": \"aDescription of the contract\",\n" +
@@ -151,23 +153,27 @@ public class AgenciesServiceTest {
         "}";
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
-    private static Set<AgenciesModel> usedAgenciesByContracts;
-    private static Set<AgenciesModel> agenciesToInsert;
-    private static Set<AgenciesModel> agenciesToUpdate;
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private FunctionalBackupService functionalBackupService;
+
     @Mock
-    private AgenciesManager manager;
+    private LogbookAgenciesImportManager manager;
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    private ContractService<AccessContractModel> accessContractService;
+
+
     private AgenciesService agencyService;
-    private TypeReference<List<String>> listOfStringType = new TypeReference<>() {
-    };
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
@@ -176,7 +182,7 @@ public class AgenciesServiceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(MongoRule.MONGO_HOST, mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode(MongoRule.MONGO_HOST, MongoRule.getDataBasePort()));
 
         dbImpl =
             MongoDbAccessAdminFactory
@@ -203,14 +209,21 @@ public class AgenciesServiceTest {
     @Before
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
         resetAgencies();
         File agencyFile = PropertiesUtils.findFile("agency.json");
         dbImpl.insertDocument(JsonHandler.getFromFile(agencyFile), AGENCIES).close();
-        VitamDocument<?> contrat = dbImpl.getDocumentById(_id, ACCESS_CONTRACT);
+        VitamDocument<?> contrat = dbImpl.getDocumentById(ACCESS_CONTRACT_ID, FunctionalAdminCollections.ACCESS_CONTRACT);
         if(contrat == null) {
-            JsonNode contractToPersist = JsonHandler.getFromString(contract);
-            dbImpl.insertDocument(contractToPersist, ACCESS_CONTRACT).close();
+            JsonNode contractToPersist = JsonHandler.getFromString(ACCESS_CONTRACT);
+            dbImpl.insertDocument(contractToPersist, FunctionalAdminCollections.ACCESS_CONTRACT).close();
         }
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(any())).thenReturn(getJsonResult(StatusCode.OK.name()));
+
+        when(accessContractService.findContracts(any(JsonNode.class)))
+            .thenReturn(new RequestResponseOK<>());
     }
 
     @After
@@ -225,11 +238,6 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void should_import_correctly_agencies() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
@@ -238,13 +246,13 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(getResourceFile("agencies.csv")), "MY-FILE-NAME");
-        JsonNode report = getFromFile(reportPath.toFile());
-        List<String> insertAgencies = JsonHandler.getFromJsonNode(report.get("InsertAgencies"), listOfStringType);
-
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies.csv")), "MY-FILE-NAME");
         // Then
         assertThat(response.isOk()).isTrue();
-        assertThat(insertAgencies).containsOnly("AG-000001", "AG-000002", "AG-000003");
+
+        AgenciesReport report = JsonHandler.getFromFile(reportPath.toFile(), AgenciesReport.class);
+
+        assertThat(report.getInsertedAgencies()).containsOnly("AG-000001", "AG-000002", "AG-000003");
     }
 
 
@@ -252,11 +260,6 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void should_report_error_when_deleting_used_agency() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
@@ -265,24 +268,18 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(getResourceFile("agencies_delete.csv")), "MY-FILE-NAME");
-        JsonNode report = getFromFile(reportPath.toFile());
-        List<String> usedAgencies = JsonHandler.getFromJsonNode(report.get("UsedAgencies to Delete"), listOfStringType);
-
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_delete.csv")), "MY-FILE-NAME");
         // Then
         assertThat(response.isOk()).isTrue();
-        assertThat(usedAgencies).containsOnly("AG-000000");
+
+        AgenciesReport report = JsonHandler.getFromFile(reportPath.toFile(), AgenciesReport.class);
+        assertThat(report.getAgenciesToDelete()).containsOnly("AG-000000");
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_update_correctly_agency() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
@@ -291,16 +288,16 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(getResourceFile("agencies2.csv")), "MY-FILE-NAME");
-        JsonNode report = getFromFile(reportPath.toFile());
-        List<String> insertAgencies = JsonHandler.getFromJsonNode(report.get("InsertAgencies"), listOfStringType);
-        List<String> updateAgencies = JsonHandler.getFromJsonNode(report.get("UpdatedAgencies"), listOfStringType);
-
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")), "MY-FILE-NAME");
         // Then
         assertThat(response.isOk()).isTrue();
-        assertThat(insertAgencies).containsOnly("AG-000001", "AG-000002", "AG-000003");
-        assertThat(updateAgencies).containsOnly("AG-000000");
-        Agencies updatedAgency = (Agencies) findDocumentById("AG-000000");
+
+        JsonNode report = JsonHandler.getFromFile(reportPath.toFile());
+        AgenciesReport agenciesReport = JsonHandler.getFromJsonNode(report, AgenciesReport.class);
+        assertThat(agenciesReport.getInsertedAgencies()).containsOnly("AG-000001", "AG-000002", "AG-000003");
+        assertThat(agenciesReport.getUpdatedAgencies()).containsOnly("AG-000000");
+
+        Agencies updatedAgency = findDocumentById("AG-000000");
         assertNotNull(updatedAgency);
         assertThat(updatedAgency.getName()).isEqualTo("agency 0");
         assertThat(updatedAgency.getDescription()).isEqualTo("un service agent déjà présent. Il a toujours été là");
@@ -310,11 +307,6 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void should_not_update_when_update_with_no_changes() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
@@ -323,24 +315,20 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(getResourceFile("agencies_no_changes.csv")), "MY-FILE-NAME");
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_no_changes.csv")), "MY-FILE-NAME");
 
         // Then
-        JsonNode report = getFromFile(reportPath.toFile());
+        assertTrue(response.isOk());
+        AgenciesReport report = JsonHandler.getFromFile(reportPath.toFile(), AgenciesReport.class);
         assertNotNull(report);
-        assertThat(report.has("InsertAgencies")).isFalse();
-        assertThat(report.has("UpdatedAgencies")).isFalse();
+        assertThat(report.getInsertedAgencies()).isNullOrEmpty();
+        assertThat(report.getUpdatedAgencies()).isNullOrEmpty();
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_report_error_when_csv_malformed() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
@@ -349,80 +337,70 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(getResourceFile("agencies_empty_line.csv")), "MY-FILE-NAME");
-        JsonNode report = getFromFile(reportPath.toFile());
-        assertNotNull(report);
-        String error =
-            "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
-        assertThat(report.get("error").toString()).isEqualTo(error);
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_empty_line.csv")), "MY-FILE-NAME");
+        // Then
+        assertTrue(response instanceof VitamError);
+        assertThat(reportPath.toFile()).doesNotExist();
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_log_warning_when_used_agency_updated() throws Exception {
         // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-
-        agencyService.findAllAgenciesUsedByAccessContracts();
-        verify(manager).logEventSuccess("IMPORT_AGENCIES.USED_CONTRACT");
-
-        AgenciesModel agModel = new AgenciesModel().setIdentifier("Test");
-        agenciesToUpdate.add(agModel);
-        usedAgenciesByContracts.add(agModel);
-
-        // When
-        agencyService.findAllAgenciesUsedByAccessContracts();
-
-        // Then
-        verify(manager).logEventWarning("IMPORT_AGENCIES.USED_CONTRACT");
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_not_throw_exception_check_file() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        reset(functionalBackupService);
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
-        File file = getResourceFile("agencies_delete.csv");
-        agencyService.checkFile(new FileInputStream(file));
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_remove_duplicates_from_file() throws Exception {
-        // Given
-        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any())).thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT), endsWith(".json"));
 
-        agenciesToInsert.clear();
+        when(accessContractService.findContracts(any(JsonNode.class)))
+            .thenReturn(new RequestResponseOK<AccessContractModel>().addResult(new AccessContractModel()));
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(getResourceFile("agenciesDUPLICATE.csv")), "MY-FILE-NAME");
-        JsonNode report = getFromFile(reportPath.toFile());
-        List<String> agenciesToImport = JsonHandler.getFromJsonNode(report.get("AgenciesToImport"), listOfStringType);
-        List<String> insertAgencies = JsonHandler.getFromJsonNode(report.get("InsertAgencies"), listOfStringType);
-        List<String> updatedAgencies = JsonHandler.getFromJsonNode(report.get("UpdatedAgencies"), listOfStringType);
-
+        RequestResponse<AgenciesModel> response = agencyService
+            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")), "MY-FILE-NAME");
         // Then
-        assertThat(response.isOk()).isTrue();
-        assertThat(updatedAgencies).containsOnly("AG-000000");
-        assertThat(insertAgencies).containsOnly("AG-000006", "AG-000005", "AG-000004", "AG-000003", "AG-000002", "AG-000001");
-        assertThat(agenciesToImport).containsOnly("AG-000006", "AG-000005", "AG-000004", "AG-000003", "AG-000002", "AG-000001", "AG-000000");
+        assertTrue(response.isOk());
+        verify(manager).logEventWarning(any(GUID.class), eq("IMPORT_AGENCIES.USED_CONTRACT"));
     }
 
-    private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_throw_exception_check_file() throws Exception {
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(any()))
+            .thenReturn(getJsonResult(StatusCode.OK.name()));
+
+        File file = PropertiesUtils.getResourceFile("agencies_delete.csv");
+        agencyService.parseFile(file);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_remove_duplicates_from_file() throws Exception {
+        // Given
+        Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
+        doAnswer(arguments -> {
+            Files.copy(arguments.<InputStream>getArgument(0), reportPath);
+            return null;
+        }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT), endsWith(".json"));
+
+
+        // When
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agenciesDUPLICATE.csv")), "MY-FILE-NAME");
+        // Then
+        assertThat(response.isOk()).isTrue();
+
+        JsonNode report = JsonHandler.getFromFile(reportPath.toFile());
+        AgenciesReport agenciesReport = JsonHandler.getFromJsonNode(report, AgenciesReport.class);
+
+        assertThat(agenciesReport.getUpdatedAgencies()).containsOnly("AG-000000");
+        assertThat(agenciesReport.getInsertedAgencies()).containsOnly("AG-000006", "AG-000005", "AG-000004", "AG-000003", "AG-000002", "AG-000001");
+        assertThat(agenciesReport.getAgenciesToImport()).containsOnly("AG-000006", "AG-000005", "AG-000004", "AG-000003", "AG-000002", "AG-000001", "AG-000000");
+    }
+
+    private JsonNode getJsonResult(String outcome) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
             "     \"httpCode\": 200,\n" +
             "     \"$hits\": {\n" +
@@ -462,45 +440,25 @@ public class AgenciesServiceTest {
             "               }\n" +
             "          }\n" +
             "     }\n" +
-            "}", outcome, tenantId));
+            "}", outcome, AgenciesServiceTest.TENANT_ID));
     }
 
     private void resetAgencies()
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
         BadRequestException, SchemaValidationException {
-        Set<AgenciesModel> agenciesInDb = new HashSet<>();
-        Set<AgenciesModel> agenciesToDelete = new HashSet<>();
-        agenciesToInsert = new HashSet<>();
-        agenciesToUpdate = new HashSet<>();
-        Set<AgenciesModel> usedAgenciesByAU = new HashSet<>();
-        usedAgenciesByContracts = new HashSet<>();
-        Set<AgenciesModel> unusedAgenciesToDelete = new HashSet<>();
         List<Agencies> agencies = getAllAgencies();
-        if(!agencies.isEmpty()) {
+        if (!agencies.isEmpty()) {
             String[] agenciesId = agencies.stream().map(Agencies::getIdentifier).toArray(String[]::new);
             Select select = new Select();
             select.setQuery(in(Agencies.IDENTIFIER, agenciesId));
             dbImpl.deleteDocument(select.getFinalSelect(), AGENCIES);
         }
         agencyService =
-            new AgenciesService(
-                dbImpl,
-                vitamCounterService,
-                functionalBackupService,
-                logbookOperationsClientFactory,
-                manager,
-                agenciesInDb,
-                agenciesToDelete,
-                agenciesToInsert,
-                agenciesToUpdate,
-                usedAgenciesByAU,
-                usedAgenciesByContracts,
-                unusedAgenciesToDelete,
-                Collections::emptyList
-            );
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService,
+                manager, accessContractService);
     }
 
-    private VitamDocument<Agencies> findDocumentById(String id)
+    private Agencies findDocumentById(String id)
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         SanityChecker.checkParameter(id);
 

@@ -94,7 +94,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
@@ -481,7 +481,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(CREATED).entity(CREATED.getReasonPhrase()).build();
-        } catch (final FileRulesImportInProgressException e) {
+        } catch (final ReferentialImportInProgressException e) {
             LOGGER.warn(e);
             return Response.status(FORBIDDEN).entity(e.getMessage()).build();
         } catch (final FileRulesException | FileRulesCsvException e) {
