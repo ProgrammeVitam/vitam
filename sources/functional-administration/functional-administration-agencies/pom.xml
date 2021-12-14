@@ -16,7 +16,7 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-agencies-contracts</artifactId>
+            <artifactId>functional-administration-contract</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

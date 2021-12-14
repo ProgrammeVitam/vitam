@@ -24,45 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration;
 
+package fr.gouv.vitam.functional.administration.common.exception;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-
-/**
- * Just a class for
- * <p>
- * Class for finding Contracts to prevent cyclic dependency between agencies and contracts module
- */
-public class ContractsFinder {
-    AccessContractImpl accessContract;
+public class InvalidFileException  extends ReferentialException {
 
     /**
-     * @param mongoAccess
-     * @param counter
+     * @param message message to associate with the exception
      */
-    public ContractsFinder(MongoDbAccessAdminImpl mongoAccess, VitamCounterService counter) {
-        accessContract = new AccessContractImpl(mongoAccess, counter);
+    public InvalidFileException(String message) {
+        super(message);
     }
 
     /**
-     * @param queryDsl
-     * @return response as a RequestResponseOK<AccessContractModel> object
-     * @throws InvalidCreateOperationException
-     * @throws VitamException
+     * @param cause cause to associate with the exception
      */
-    public RequestResponseOK<AccessContractModel> findAccessContrats(final JsonNode queryDsl)
-        throws InvalidCreateOperationException, VitamException {
+    public InvalidFileException(Throwable cause) {
+        super(cause);
+    }
 
-        return accessContract.findContracts(queryDsl);
-
+    /**
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public InvalidFileException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

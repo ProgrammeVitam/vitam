@@ -28,12 +28,9 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.functional.administration.common.ReportConstants;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Data Transfer Object Model of Reporting
@@ -41,152 +38,110 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AgenciesReport {
 
+    public static final String AGENCIES_TO_IMPORT = "AgenciesToImport";
 
-    @JsonProperty("AgenciesToImport")
-    private List<String> agenciesToImport = new ArrayList<>();
-    @JsonProperty("InsertAgencies")
-    private List<String> insertAgencies = new ArrayList<>();
+    public static final String INSERTED_AGENCIES = "InsertedAgencies";
 
-    @JsonProperty("UpdatedAgencies")
-    private List<String> updatedAgencies = new ArrayList<>();
-    @JsonProperty("UsedAgencies By Contract")
-    private List<String> usedAgenciesByContracts = new ArrayList<>();
-    @JsonProperty("UsedAgencies By AU")
-    private List<String> usedAgenciesByAu = new ArrayList<>();
-    @JsonProperty("UsedAgencies to Delete")
-    private List<String> usedAgenciesToDelete = new ArrayList<>();
+    public static final String UPDATED_AGENCIES = "UpdatedAgencies";
 
-    @JsonProperty("Operation")
-    private HashMap<String, String> jdo = new HashMap<>();
-    @JsonProperty("error")
+    public static final String DELETED_AGENCIES = "DeletedAgencies";
+
+    public static final String USED_AGENCIES_BY_CONTRACTS = "UsedAgenciesByContracts";
+
+    public static final String USED_AGENCIES_BY_AU = "UsedAgenciesByAu";
+
+    public static final String OPERATION = "Operation";
+
+    public static final String ERRORS = "Errors";
+
+
+    @JsonProperty(AGENCIES_TO_IMPORT)
+    private List<String> agenciesToImport;
+
+    @JsonProperty(INSERTED_AGENCIES)
+    private List<String> insertedAgencies;
+
+
+    @JsonProperty(UPDATED_AGENCIES)
+    private List<String> updatedAgencies;
+
+    @JsonProperty(DELETED_AGENCIES)
+    private List<String> agenciesToDelete;
+
+    @JsonProperty(USED_AGENCIES_BY_CONTRACTS)
+    private List<String> usedAgenciesByContracts;
+
+    @JsonProperty(USED_AGENCIES_BY_AU)
+    private List<String> usedAgenciesByAu;
+
+    @JsonProperty(OPERATION)
+    private HashMap<String, String> operation;
+
+    @JsonProperty(ERRORS)
     private HashMap<String, Object> errors;
 
-    /**
-     *
-     * @return
-     */
+
     public List<String> getAgenciesToImport() {
         return agenciesToImport;
     }
 
-    /**
-     *
-     * @param agenciesToImport
-     */
     public void setAgenciesToImport(List<String> agenciesToImport) {
         this.agenciesToImport = agenciesToImport;
     }
 
-    /**
-     *
-     * @return
-     */
-    public List<String> getInsertAgencies() {
-        return insertAgencies;
+    public List<String> getInsertedAgencies() {
+        return insertedAgencies;
     }
 
-    /**
-     *
-     * @param insertAgencies
-     */
-    public void setInsertAgencies(List<String> insertAgencies) {
-        this.insertAgencies = insertAgencies;
+    public void setInsertedAgencies(List<String> insertedAgencies) {
+        this.insertedAgencies = insertedAgencies;
     }
 
-    /**
-     *
-     * @return
-     */
     public List<String> getUpdatedAgencies() {
         return updatedAgencies;
     }
 
-    /**
-     *
-     * @param updatedAgencies
-     */
     public void setUpdatedAgencies(List<String> updatedAgencies) {
         this.updatedAgencies = updatedAgencies;
     }
 
-    /**
-     *
-     * @return
-     */
+    public List<String> getAgenciesToDelete() {
+        return agenciesToDelete;
+    }
+
+    public void setAgenciesToDelete(List<String> agenciesToDelete) {
+        this.agenciesToDelete = agenciesToDelete;
+    }
+
     public List<String> getUsedAgenciesByContracts() {
         return usedAgenciesByContracts;
     }
 
-    /**
-     *
-     * @param usedAgenciesByContracts
-     */
     public void setUsedAgenciesByContracts(List<String> usedAgenciesByContracts) {
         this.usedAgenciesByContracts = usedAgenciesByContracts;
     }
 
-    /**
-     *
-     * @return
-     */
     public List<String> getUsedAgenciesByAu() {
         return usedAgenciesByAu;
     }
 
-    /**
-     *
-     * @param usedAgenciesByAu
-     */
     public void setUsedAgenciesByAu(List<String> usedAgenciesByAu) {
         this.usedAgenciesByAu = usedAgenciesByAu;
     }
 
-    /**
-     *
-     * @return
-     */
-    public List<String> getUsedAgenciesToDelete() {
-        return usedAgenciesToDelete;
+    public HashMap<String, String> getOperation() {
+        return operation;
     }
 
-    /**
-     *
-     * @param usedAgenciesToDelete
-     */
-    public void setUsedAgenciesToDelete(List<String> usedAgenciesToDelete) {
-        this.usedAgenciesToDelete = usedAgenciesToDelete;
+    public void setOperation(HashMap<String, String> operation) {
+        this.operation = operation;
     }
 
-    /**
-     *
-     * @return
-     */
-    public HashMap<String, String> getJdo() {
-        return jdo;
-    }
-
-    /**
-     *
-     * @param jdo
-     */
-    public void setJdo(HashMap<String, String> jdo) {
-        this.jdo = jdo;
-    }
-
-    /**
-     *
-     * @return
-     */
     public HashMap<String, Object> getErrors() {
         return errors;
     }
 
-    /**
-     *
-     * @param errors
-     */
-    public void setError(HashMap<String, Object> errors) {
+    public void setErrors(HashMap<String, Object> errors) {
         this.errors = errors;
     }
-
 }
