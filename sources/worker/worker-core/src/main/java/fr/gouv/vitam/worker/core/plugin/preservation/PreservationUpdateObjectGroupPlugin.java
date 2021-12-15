@@ -65,6 +65,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -79,6 +80,7 @@ import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
@@ -360,6 +362,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         versionModel.setDataObjectVersion(workflowBatchResult.getTargetUse() + "_" + newDataObjectVersion);
         versionModel.setOpi(workflowBatchResult.getRequestId());
         versionModel.setAlgorithm(digestPreservationGeneration.getName());
+        versionModel.setUri(CONTENT_FOLDER + File.separator + outputExtra.getOutput().getOutputName());
 
         DbFileInfoModel fileInfoModel = new DbFileInfoModel();
         fileInfoModel.setFilename(outputExtra.getOutput().getOutputName());

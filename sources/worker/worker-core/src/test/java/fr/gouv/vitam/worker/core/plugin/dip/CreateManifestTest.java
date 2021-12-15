@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -48,7 +49,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,7 +59,6 @@ import org.mockito.junit.MockitoRule;
 import org.xmlunit.builder.Input;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -80,6 +79,7 @@ import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_R
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.REPORT;
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -107,7 +107,7 @@ public class CreateManifestTest {
 
     private CreateManifest createManifest;
 
-    private static Map<String, String> prefix2Uri = new HashMap<>();
+    private static final Map<String, String> prefix2Uri = new HashMap<>();
 
     static {
         prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
@@ -141,8 +141,6 @@ public class CreateManifestTest {
 
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
-
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
@@ -185,45 +183,56 @@ public class CreateManifestTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        Map<String, Object> linkBetweenBinaryIdAndFileName =
-            JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
+        Map<String, Map<String, Object>> linkBetweenBinaryIdAndFileName =
+            JsonHandler.getFromFileAsTypeReference(guidToPathFile, new TypeReference<>() {
+            });
 
         assertThat(linkBetweenBinaryIdAndFileName)
-            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")
+            .containsKey("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq")
+            .containsKey("aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba")
             .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
             .doesNotContainKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
-            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("strategyId"))
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq").get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.jpeg");
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq").get("strategyId"))
             .isEqualTo("default-fake");
 
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq"))).isNull();
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba").get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba.gif");
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba").get("strategyId"))
+            .isEqualTo("default-fake");
 
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).isNull();
+
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba").get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("strategyId"))
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba").get("strategyId"))
             .isEqualTo("default-fake-2");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
-        assertThat(fromFile).hasSize(2).extracting(JsonNode::asText)
-            .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
+        assertThat(fromFile).hasSize(3).extracting(JsonNode::asText)
+            .containsExactlyInAnyOrder("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq", "aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba", "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
             .doesNotContain("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
-            equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
+            equalTo("Content/aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.jpeg"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
+            "(//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri)[2]",
+            equalTo("Content/aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba.gif"))
+            .withNamespaceContext(prefix2Uri));
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:PhysicalDataObject/vitam:PhysicalId",
             equalTo("1 Num 1/204-4"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DescriptiveMetadata/vitam:ArchiveUnit/vitam:Management/vitam:LogBook/vitam:Event/vitam:EventIdentifier",
             equalTo("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq")).withNamespaceContext(prefix2Uri));
     }
@@ -248,20 +257,12 @@ public class CreateManifestTest {
         JsonNode queryUnit =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
-        JsonNode queryDataObjectVersion =
-            JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/dataObjectVersionFilter.json"));
-
         JsonNode queryUnitWithTree =
             JsonHandler
                 .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
 
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
-
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
-
-        given(handlerIO.getJsonFromWorkspace("dataObjectVersionFilter.json")).willReturn(queryDataObjectVersion);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
@@ -308,26 +309,27 @@ public class CreateManifestTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        Map<String, Object> linkBetweenBinaryIdAndFileName =
-            JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
+        Map<String, Map<String, Object>> linkBetweenBinaryIdAndFileName =
+            JsonHandler.getFromFileAsTypeReference(guidToPathFile, new TypeReference<>() {
+            });
 
         assertThat(linkBetweenBinaryIdAndFileName).hasSize(1);
         assertThat(linkBetweenBinaryIdAndFileName)
-            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+            .containsKey("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq");
 
-        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
-            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
+        assertThat(linkBetweenBinaryIdAndFileName.get("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq").get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.jpeg");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
         assertThat(fromFile).hasSize(1).extracting(JsonNode::asText)
-            .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+            .containsExactlyInAnyOrder("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq");
 
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
-            equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
+            equalTo("Content/aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.jpeg"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+        assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
@@ -358,8 +360,6 @@ public class CreateManifestTest {
         JsonNode queryObjectGroup =
             JsonHandler
                 .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroupbug5160.json"));
-
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler
@@ -402,7 +402,7 @@ public class CreateManifestTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        Assert.assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
+        assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
             Charset.defaultCharset()).get(0), "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"),
             equalTo(1));
 
@@ -430,8 +430,6 @@ public class CreateManifestTest {
 
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
-
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
@@ -506,8 +504,6 @@ public class CreateManifestTest {
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
-
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler
                 .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
@@ -574,7 +570,6 @@ public class CreateManifestTest {
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler
@@ -595,18 +590,8 @@ public class CreateManifestTest {
         given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
         given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
 
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
-
         ExportRequest exportRequest = getExportRequest(queryUnit);
-        exportRequest.setMaxSizeThreshold(2480000L);
+        exportRequest.setMaxSizeThreshold(500000L);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
@@ -641,8 +626,6 @@ public class CreateManifestTest {
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
-
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler
                 .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
@@ -661,16 +644,6 @@ public class CreateManifestTest {
         File reportFile = tempFolder.newFile();
         given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
         given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
         ExportRequest exportRequest = getExportRequest(queryUnit);
         exportRequest.setMaxSizeThreshold(7000L);
