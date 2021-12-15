@@ -57,7 +57,6 @@ import fr.gouv.vitam.common.model.administration.StorageDetailModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ManagementContract;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -80,7 +79,7 @@ import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyReferentOfferExc
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 
 import javax.ws.rs.core.Response;
-
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -95,12 +94,14 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
     private static final String MANAGEMENT_CONTRACT_NOT_FOUND = "Management contract not found";
     private static final String CONTRACT_IS_MANDATORY_PARAMETER = "The collection of management contracts is mandatory";
 
-    private static final String THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The management contract status must be ACTIVE or INACTIVE but not ";
+    private static final String THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
+        "The management contract status must be ACTIVE or INACTIVE but not ";
+    private static final String DATE_MUST_BE_VALID = "must be a valid date";
 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_MANAGEMENT_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_MANAGEMENT_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_MANAGEMENT_CONTRACT";
-    
+
 
     private static final String EMPTY_REQUIRED_FIELD = CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
     private static final String DUPLICATE_IN_DATABASE = CONTRACTS_IMPORT_EVENT + ContractLogbookService.DUPLICATE_IN_DATABASE;
@@ -112,11 +113,11 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
     private static final String UPDATE_VALUE_NOT_IN_ENUM = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_VALUE_NOT_IN_ENUM;
     private static final String UPDATE_STRATEGY_VALIDATION_ERROR = CONTRACT_UPDATE_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
 
-    
+
 
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
-    
+
     private static final String CONTRACT_KEY = "ManagementContract";
     private static final String CONTRACT_CHECK_KEY = "managementContractCheck";
 
@@ -161,11 +162,11 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         ManagementContractValidationService validationService = new ManagementContractValidationService(storageClient, mongoAccess);
         ContractLogbookService logbookService = new ContractLogbookService(logbookClient,eip, CONTRACTS_IMPORT_EVENT,
                 CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
-        
+
         logbookService.logStarted();
 
         final VitamError error = getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                "Management contract import error", StatusCode.KO)
+                "Management contract import error")
                         .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
@@ -175,8 +176,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 if (null != mcm.getId()) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                             GenericContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(mcm.getName())
-                                    .getReason(),
-                            StatusCode.KO));
+                                    .getReason()));
                     continue;
                 }
 
@@ -192,7 +192,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     final Optional<GenericContractValidator.GenericRejectionCause> result = validationService
                             .checkEmptyIdentifierSlaveModeValidator().validate(mcm, mcm.getIdentifier());
                     result.ifPresent(t -> error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            result.get().getReason(), StatusCode.KO).setMessage(EMPTY_REQUIRED_FIELD)));
+                            result.get().getReason()).setMessage(EMPTY_REQUIRED_FIELD)));
                 }
 
             }
@@ -246,7 +246,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             final String err = new StringBuilder("Import management contracts error > ").append(exp.getMessage())
                     .toString();
             logbookService.logValidationError(err, CONTRACTS_IMPORT_EVENT, CONTRACT_BAD_REQUEST);
-            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage(), StatusCode.KO)
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
                     .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (final Exception exp) {
             LOGGER.error(exp);
@@ -258,11 +258,15 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         }
     }
 
+    private static VitamError getVitamError (String vitamCode, String error){
+        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO);
+    }
+
     @Override
     public RequestResponse<ManagementContractModel> updateContract(String identifier, JsonNode queryDsl)
             throws VitamException {
         VitamError error = getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                "Management contract update error", StatusCode.KO)
+                "Management contract update error")
                         .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         if (queryDsl == null || !queryDsl.isObject()) {
@@ -273,7 +277,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         if (managementContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    MANAGEMENT_CONTRACT_NOT_FOUND + identifier, StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
+                    MANAGEMENT_CONTRACT_NOT_FOUND + identifier).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -333,7 +337,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             final String err = new StringBuilder("Update management contract error > ").append(exp.getMessage())
                     .toString();
             logbookService.logValidationError(err, CONTRACT_UPDATE_EVENT, UPDATE_CONTRACT_BAD_REQUEST);
-            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage(), StatusCode.KO)
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
                     .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (Exception e) {
             LOGGER.error(e);
@@ -381,14 +385,35 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
     private void validateUpdateAction(ManagementContractValidationService validationService, String contractName, final VitamError error,
             final String field, final JsonNode value) {
 
-        if (AccessContract.STATUS.equals(field)) {
-            if (!(ActivationStatus.ACTIVE.name().equals(value.asText())
+        switch (field) {
+            case ManagementContract.STATUS: {
+                if (!(ActivationStatus.ACTIVE.name().equals(value.asText())
                     || ActivationStatus.INACTIVE.name().equals(value.asText()))) {
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText(),
-                        StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
+                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+                break;
             }
+            case ManagementContract.LAST_UPDATE:
+            case ManagementContract.CREATIONDATE:
+            case ManagementContract.ACTIVATIONDATE:
+            case ManagementContract.DEACTIVATIONDATE:
+                try {
+                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                } catch (DateTimeParseException e) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        String.format("%s %s", field, DATE_MUST_BE_VALID))
+                        .setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                }
+                break;
         }
+
+        validateStorage(validationService, contractName, error, field, value);
+    }
+
+    private void validateStorage(ManagementContractValidationService validationService, String contractName,
+        VitamError error, String field, JsonNode value) {
 
         if (ManagementContract.STORAGE.equals(field)) {
             final Iterator<String> it = value.fieldNames();
@@ -400,14 +425,14 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         }
 
         if (ManagementContract.OBJECTGROUP_STRATEGY.equals(field)
-                || StorageDetailModel.TAG_OBJECT_GROUP_STRATEGY.equals(field)) {
+            || StorageDetailModel.TAG_OBJECT_GROUP_STRATEGY.equals(field)) {
             ManagementContractModel toValidate = new ManagementContractModel();
             toValidate.setStorage(new StorageDetailModel().setObjectGroupStrategy(value.asText()));
             Optional<GenericRejectionCause> rejection = validationService.checkStorageStrategies().validate(toValidate,
-                    contractName);
+                contractName);
             if (rejection.isPresent()) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        rejection.get().getReason(), StatusCode.KO).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
+                    rejection.get().getReason()).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
             }
         }
 
@@ -415,10 +440,10 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             ManagementContractModel toValidate = new ManagementContractModel();
             toValidate.setStorage(new StorageDetailModel().setUnitStrategy(value.asText()));
             Optional<GenericRejectionCause> rejection = validationService.checkStorageStrategies().validate(toValidate,
-                    contractName);
+                contractName);
             if (rejection.isPresent()) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        rejection.get().getReason(), StatusCode.KO).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
+                    rejection.get().getReason()).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
             }
         }
 
@@ -426,19 +451,16 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             ManagementContractModel toValidate = new ManagementContractModel();
             toValidate.setStorage(new StorageDetailModel().setObjectStrategy(value.asText()));
             Optional<GenericRejectionCause> rejection = validationService.checkStorageStrategies().validate(toValidate,
-                    contractName);
+                contractName);
             if (rejection.isPresent()) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        rejection.get().getReason(), StatusCode.KO).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
+                    rejection.get().getReason()).setMessage(UPDATE_STRATEGY_VALIDATION_ERROR));
             }
         }
 
-    }
 
-    private static VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, statusCode);
-    }
 
+    }
     /**
      * Contract validator
      */
@@ -472,7 +494,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            result.get().getReason(), StatusCode.KO).setMessage(validators.get(validator)));
+                            result.get().getReason()).setMessage(validators.get(validator)));
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
