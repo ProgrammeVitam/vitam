@@ -39,6 +39,16 @@
     - update_node_exporter_configuration
   notify: restart prometheus node exporter
 
+- name: Add directory for textfile_collector
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/node_exporter/textfile_collector"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  tags:
+    - update_node_exporter_configuration
+
 #### Consul configuration ####
 - name: Ensure consul config dir is OK
   file:
