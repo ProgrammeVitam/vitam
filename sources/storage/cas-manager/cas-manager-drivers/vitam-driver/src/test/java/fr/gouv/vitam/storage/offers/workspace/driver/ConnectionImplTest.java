@@ -61,6 +61,8 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckObjectAvailabilityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -304,6 +306,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             assertThat(accessRequestId).isEqualTo("accessRequestId1");
 
             return mock.delete();
+        }
+
+        @GET
+        @Path("/object-availability-check/{type}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkObjectAvailability(@PathParam("type") DataCategory type, List<String> objectsIds,
+            @Context HttpHeaders headers) {
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            assertThat(xTenantId).isEqualTo("3");
+            assertThat(objectsIds).containsExactly("obj1", "obj2");
+            assertThat(type).isEqualTo(DataCategory.OBJECT);
+            return mock.get();
         }
 
         void consumeAndCloseStream(InputStream stream) {
@@ -557,11 +572,12 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void getObjectUnavailableDataFromAsyncOffer() throws Exception {
-        when(mock.get()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        when(mock.get()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
 
-            assertThatThrownBy( () -> connection.getObject(request))
+            assertThatThrownBy(() -> connection.getObject(request))
                 .isInstanceOf(StorageDriverUnavailableDataFromAsyncOfferException.class);
         }
     }
@@ -1192,6 +1208,43 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         try (Connection connection = driver.connect(offer.getId())) {
 
             assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3))
+                .isInstanceOf(StorageDriverException.class);
+        }
+    }
+
+    @Test
+    public void checkObjectAvailabilityOK() throws Exception {
+
+        // Given
+        StorageCheckObjectAvailabilityRequest request = new StorageCheckObjectAvailabilityRequest(
+            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+        when(mock.get()).thenReturn(new RequestResponseOK<>()
+            .addResult(new StorageCheckObjectAvailabilityResult(true))
+            .setHttpCode(Status.OK.getStatusCode())
+            .toResponse());
+
+        // When
+        try (Connection connection = driver.connect(offer.getId())) {
+            boolean areObjectsAvailable = connection.checkObjectAvailability(request);
+
+            // Then
+            assertThat(areObjectsAvailable).isTrue();
+        }
+    }
+
+    @Test
+    public void checkObjectAvailabilityWithServerErrorThenException() throws Exception {
+
+        // Given
+        StorageCheckObjectAvailabilityRequest request = new StorageCheckObjectAvailabilityRequest(
+            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        // When / Then
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            assertThatThrownBy(() -> connection.checkObjectAvailability(request))
                 .isInstanceOf(StorageDriverException.class);
         }
     }

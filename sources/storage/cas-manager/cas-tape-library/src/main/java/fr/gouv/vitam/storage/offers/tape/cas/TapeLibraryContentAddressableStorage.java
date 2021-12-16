@@ -59,9 +59,9 @@ import fr.gouv.vitam.storage.engine.common.utils.ContainerUtils;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import org.apache.commons.collections4.SetUtils;
 
 import java.io.FileInputStream;
@@ -388,7 +388,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
     private InputStream loadTarFileInputStream(String containerName, String objectName,
         TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
-        throws ContentAddressableStorageUnavailableDataFromAsyncOfferException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageUnavailableDataFromAsyncOfferException,
+        ContentAddressableStorageServerException {
         try {
             FileInputStream fileInputStream =
                 locateAndOpenTarFileInputStream(containerName, objectName, tarEntry, tapeArchiveReferentialEntity);
@@ -468,6 +469,12 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     @Override
+    public boolean checkObjectAvailability(String containerName, List<String> objectNames)
+        throws ContentAddressableStorageException {
+        return this.accessRequestManager.checkObjectAvailability(containerName, objectNames);
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));
@@ -497,7 +504,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             return objectReferentialEntity.isPresent();
         } catch (ObjectReferentialException ex) {
             throw new ContentAddressableStorageServerException(
-                String.format("Could not check existence of object %s in container %s", objectName, containerName), ex);
+                String.format("Could not check existence of object %s in container %s", objectName, containerName),
+                ex);
         }
     }
 
@@ -566,7 +574,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
         } catch (ObjectReferentialException ex) {
             throw new ContentAddressableStorageServerException(
-                String.format("Could not get metadata of object %s in container %s", objectName, containerName), ex);
+                String.format("Could not get metadata of object %s in container %s", objectName, containerName),
+                ex);
         }
     }
 

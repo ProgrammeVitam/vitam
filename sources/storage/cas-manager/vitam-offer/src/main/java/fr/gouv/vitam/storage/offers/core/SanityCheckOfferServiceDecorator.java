@@ -105,6 +105,16 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     }
 
     @Override
+    public boolean checkObjectAvailability(String containerName, List<String> objectIds)
+        throws ContentAddressableStorageException {
+
+        for (String objectId : objectIds) {
+            checkSafeObjectPath(containerName, objectId);
+        }
+        return innerService.checkObjectAvailability(containerName, objectIds);
+    }
+
+    @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
         Long size, DigestType digestType) throws ContentAddressableStorageException {
 

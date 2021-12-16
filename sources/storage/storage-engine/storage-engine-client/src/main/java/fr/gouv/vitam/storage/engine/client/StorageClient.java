@@ -45,9 +45,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -114,7 +116,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId, BulkObjectStoreRequest bulkObjectStoreRequest)
+    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
@@ -202,22 +205,24 @@ public interface StorageClient extends BasicClient {
     /**
      * Call storage accesslog backup operation.
      *
+     * @param tenants tenants list to backup
      * @return Storage logbook backup response
      * @throws StorageServerClientException
      * @throws InvalidParseOperationException
-     * @param tenants tenants list to backup
      */
-    RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log backup operation.
      *
+     * @param tenants tenants list to backup
      * @return Storage logbook backup response
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
-     * @param tenants tenants list to backup
      */
-    RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log traceability operation.
@@ -227,7 +232,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage
@@ -254,7 +260,8 @@ public interface StorageClient extends BasicClient {
      * @return informations
      * @throws StorageServerClientException StorageServerClientException
      */
-    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds, Collection<String> objectIds)
+    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
+        Collection<String> offerIds, Collection<String> objectIds)
         throws StorageServerClientException;
 
     /**
@@ -283,8 +290,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize,
-        List<String> offerIds)
+    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException;
 
     /**
@@ -320,7 +327,8 @@ public interface StorageClient extends BasicClient {
      * @return an AccessRequestId if access request is required (async offer), otherwiser {@code Optional.empty()}
      * @throws StorageServerClientException if any problem occurs during request
      */
-    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory, List<String> objectNames)
+    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
+        List<String> objectNames)
         throws StorageServerClientException;
 
     /**
@@ -332,7 +340,8 @@ public interface StorageClient extends BasicClient {
      * @return the statuses of provided access request ids
      * @throws StorageServerClientException if any problem occurs during request
      */
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId, List<String> accessRequestIds)
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
+        List<String> accessRequestIds)
         throws StorageServerClientException;
 
     /**
@@ -344,6 +353,21 @@ public interface StorageClient extends BasicClient {
      * @param accessRequestId the accessRequestId to remove
      * @throws StorageServerClientException if any problem occurs during request
      */
-    void removeAccessRequest(String strategyId, String offerId, String accessRequestId) throws StorageServerClientException;
-    
+    void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
+        throws StorageServerClientException;
+
+    /**
+     * Checks immediate object availability in storage offer.
+     * Synchronous offers have guaranteed immediate availability of objects.
+     * Async offers (tape storage) may not be able to serve object immediately.
+     *
+     * @param strategyId the target storage strategy identifier
+     * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
+     * @param bulkObjectAvailabilityRequest object availability check request
+     * @return {@code true} if ALL objects are available, otherwise {@code false}.
+     * @throws StorageServerClientException
+     */
+    BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
+        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest)
+        throws StorageServerClientException;
 }

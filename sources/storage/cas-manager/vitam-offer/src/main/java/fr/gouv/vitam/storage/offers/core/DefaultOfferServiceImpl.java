@@ -149,7 +149,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public String createAccessRequest(String containerName, List<String> objectsIds)
+    public String createAccessRequest(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
 
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
@@ -158,7 +158,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-            return defaultStorage.createAccessRequest(containerName, objectsIds);
+            return defaultStorage.createAccessRequest(containerName, objectNames);
         } finally {
             log(stopwatch, containerName, "CREATE_ACCESS_REQUEST");
         }
@@ -192,6 +192,23 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             defaultStorage.removeAccessRequest(accessRequestId);
         } finally {
             log(stopwatch, accessRequestId, "REMOVE_ACCESS_REQUEST");
+        }
+    }
+
+    @Override
+    public boolean checkObjectAvailability(String containerName, List<String> objectNames)
+        throws ContentAddressableStorageException {
+
+        if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            throw new ContentAddressableStorageException(
+                "Object availability check is enabled only on tape library offer");
+        }
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            return defaultStorage.checkObjectAvailability(containerName, objectNames);
+        } finally {
+            log(stopwatch, containerName, "CHECK_OBJECT_AVAILABILITY");
         }
     }
 
@@ -381,7 +398,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
 
         if (type.canUpdate()) {
-            LOGGER.error("Write file failed for " + containerName + "/" + objectId + ". No need to cleanup (object is rewritable)");
+            LOGGER.error("Write file failed for " + containerName + "/" + objectId +
+                ". No need to cleanup (object is rewritable)");
             return;
         }
 
@@ -389,12 +407,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             LOGGER
                 .warn("Cleanup partially written object: " + containerName + "/" + objectId + ". Try deleting it...");
             defaultStorage.deleteObject(containerName, objectId);
-        }catch (ContentAddressableStorageNotFoundException e) {
+        } catch (ContentAddressableStorageNotFoundException e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found", e);
+            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found",
+                e);
         } catch (Exception e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.error("Cannot delete object " + containerName + "/" + objectId + ". Potentially partially written object on WORM container", e);
+            LOGGER.error("Cannot delete object " + containerName + "/" + objectId +
+                ". Potentially partially written object on WORM container", e);
         }
     }
 
@@ -585,12 +605,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             boolean shouldTakeFromList2 = iterator2.hasNext() &&
                 (!iterator1.hasNext() || iterator1.peek().getSequence() >= iterator2.peek().getSequence());
 
-            if(shouldTakeFromList1 && shouldTakeFromList2) {
+            if (shouldTakeFromList1 && shouldTakeFromList2) {
                 results.add(iterator1.next());
                 iterator2.next();
-            } else if(shouldTakeFromList1) {
+            } else if (shouldTakeFromList1) {
                 results.add(iterator1.next());
-            } else if(shouldTakeFromList2) {
+            } else if (shouldTakeFromList2) {
                 results.add(iterator2.next());
             } else {
                 break;

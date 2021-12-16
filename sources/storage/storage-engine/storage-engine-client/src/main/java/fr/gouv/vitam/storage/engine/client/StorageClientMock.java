@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -55,9 +54,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectAvailabilityRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
@@ -123,7 +124,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         }
     }
 
-    @Override public List<String> getOffers(String strategyId)
+    @Override
+    public List<String> getOffers(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
 
         ArrayList<String> array = new ArrayList<>();
@@ -149,6 +151,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         throws StorageServerClientException {
         return true;
     }
+
     @Override
     public boolean delete(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
@@ -240,7 +243,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds, boolean noCache)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds,
+        boolean noCache)
         throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
@@ -256,21 +260,23 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds,
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId,
+        DataCategory type, Collection<String> offerIds,
         Collection<String> objectIds) {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
     public RequestResponseOK copyObjectFromOfferToOffer(String objectId, DataCategory category, String source,
         String destination, String strategyId) throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
-    @Override public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+    @Override
+    public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
@@ -302,17 +308,23 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     @Override
     public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
         List<String> objectNames) {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
         List<String> accessRequestIds) {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
     public void removeAccessRequest(String strategyId, String offerId, String accessRequestId) {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
+        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest) {
+        throw new UnsupportedOperationException("Not Implemented");
     }
 }

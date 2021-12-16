@@ -78,6 +78,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailabilityResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -1915,6 +1916,67 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             LOGGER.info("Access request removed successfully " + accessRequestId);
             return Response.accepted().build();
+
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Bulk check of immediate object availability in offer
+     * If target offer supports synchronous read requests, objects can be read immediately.
+     * If target offer does not support synchronous read requests (tape library storage), request is forwarded to the offer for effective check.
+     *
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
+     * HEADER X-Strategy-Id (mandatory) : storage strategy
+     * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
+     *
+     * @param objectsNames objects for which access is requested
+     * @param headers http header
+     * @return HTTP 20O-OK with availability status
+     */
+    @GET
+    @Path("/object-availability-check/{dataCategory}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkObjectAvailability(@PathParam("dataCategory") DataCategory dataCategory,
+        List<String> objectsNames, @Context HttpHeaders headers) {
+
+        try {
+            VitamCode vitamCode =
+                checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID);
+            if (vitamCode != null) {
+                return buildErrorResponse(vitamCode);
+            }
+            try {
+                ParametersChecker.checkParameter("Data category is required", dataCategory);
+                ParametersChecker.checkParameter("ObjectsNames are required", objectsNames);
+                ParametersChecker.checkParameter("ObjectsNames are required", objectsNames.toArray(String[]::new));
+            } catch (IllegalArgumentException e) {
+                LOGGER.error(e);
+                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            }
+
+            if (objectsNames.isEmpty()) {
+                LOGGER.error("Empty objectsNames");
+                return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
+            }
+
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)
+                .stream().findFirst().orElse(null);
+
+            boolean areObjectsAvailable = distribution.checkObjectAvailability(
+                strategyId, offerId, dataCategory, objectsNames);
+
+            LOGGER.debug("Availability status for objects {} of type {} is {}", objectsNames, dataCategory,
+                areObjectsAvailable);
+
+            return new RequestResponseOK<BulkObjectAvailabilityResponse>()
+                .addResult(new BulkObjectAvailabilityResponse(areObjectsAvailable))
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
 
         } catch (Exception e) {
             LOGGER.error(e);
