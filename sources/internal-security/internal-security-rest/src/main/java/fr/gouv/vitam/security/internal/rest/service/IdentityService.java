@@ -26,10 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Optional;
-
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
@@ -38,12 +35,16 @@ import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
 /**
  * manage certificate.
  */
 public class IdentityService {
 
-    private IdentityRepository identityRepository;
+    private final IdentityRepository identityRepository;
 
     public IdentityService(IdentityRepository identityRepository) {
         this.identityRepository = identityRepository;
@@ -52,9 +53,9 @@ public class IdentityService {
     /**
      * create certificate
      *
-     * @param identityInsertModel
-     * @throws CertificateException
-     * @throws InvalidParseOperationException
+     * @param identityInsertModel Identity certificate to insert
+     * @throws CertificateException thrown if certificate parse fail
+     * @throws InvalidParseOperationException thrown if insertion fail
      */
     public void createIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
@@ -70,15 +71,17 @@ public class IdentityService {
         identityModel.setSubjectDN(certificate.getSubjectDN().getName());
         identityModel.setIssuerDN(certificate.getIssuerDN().getName());
         identityModel.setSerialNumber(String.valueOf(certificate.getSerialNumber()));
+        identityModel.setExpirationDate(LocalDateUtil.getFormattedDateForMongo(
+            LocalDateUtil.fromDate(certificate.getNotAfter())));
 
         identityRepository.createIdentity(identityModel);
     }
 
     /**
-     * @param identityInsertModel
-     * @return
-     * @throws CertificateException
-     * @throws InvalidParseOperationException
+     * @param identityInsertModel Identity certificate to insert
+     * @return the identity model if exists
+     * @throws CertificateException thrown if certificate parse fail
+     * @throws InvalidParseOperationException thrown retrieving identity fail
      */
     public Optional<IdentityModel> linkContextToIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
@@ -96,10 +99,10 @@ public class IdentityService {
     }
 
     /**
-     * @param certificate
-     * @return
-     * @throws CertificateException
-     * @throws InvalidParseOperationException
+     * @param certificate the certificate to find
+     * @return the identity model if exists
+     * @throws CertificateException thrown if certificate parse fail
+     * @throws InvalidParseOperationException thrown retrieving certificate fail
      */
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws CertificateException, InvalidParseOperationException {
@@ -118,7 +121,7 @@ public class IdentityService {
     }
 
     /**
-     * @param contextId
+     * @param contextId the context Id
      * @return true if the context is used by an identity
      */
     public boolean contextIsUsed(String contextId) {

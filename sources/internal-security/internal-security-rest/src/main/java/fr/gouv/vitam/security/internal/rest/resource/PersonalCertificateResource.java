@@ -26,23 +26,24 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 @Path("/v1/api/personalCertificate")
 @Tag(name="Security")
@@ -81,8 +82,7 @@ public class PersonalCertificateResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public void checkPersonalCertificate(byte[] certificate,
         @PathParam("permission") String permission)
-        throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException {
+        throws LogbookClientException, InvalidParseOperationException, PersonalCertificateException {
         ParametersChecker.checkParameter("Permission cannot be null", permission);
 
         personalCertificateService.checkPersonalCertificateExistence(certificate, permission);

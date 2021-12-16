@@ -28,18 +28,18 @@ package fr.gouv.vitam.security.internal.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.math.BigInteger;
-
 /**
  * base model for identity
  */
 public class CertificateBaseModel {
 
-    public  static final String ISSUER_DN_TAG = "IssuerDN";
+    public static final String ISSUER_DN_TAG = "IssuerDN";
 
-    public  static final String STATUS_TAG = "Status";
+    public static final String STATUS_TAG = "Status";
 
-    public  static final String REVOCATION_DATE_TAG = "RevocationDate";
+    public static final String EXPIRATION_DATE_TAG = "ExpirationDate";
+
+    public static final String REVOCATION_DATE_TAG = "RevocationDate";
 
     @JsonProperty("_id")
     private String id;
@@ -57,6 +57,9 @@ public class CertificateBaseModel {
 
     @JsonProperty(STATUS_TAG)
     private String certificateStatus = CertificateStatus.VALID.name();  //Default to 'VALID'
+
+    @JsonProperty(EXPIRATION_DATE_TAG)
+    private String expirationDate;
 
     @JsonProperty(REVOCATION_DATE_TAG)
     private String revocationDate;
@@ -126,6 +129,14 @@ public class CertificateBaseModel {
      */
     public void setCertificateStatus(CertificateStatus certificateStatus) {
         this.certificateStatus = certificateStatus.name();
+    }
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(String expirationDate) {
+        this.expirationDate = expirationDate;
     }
 
     /**
