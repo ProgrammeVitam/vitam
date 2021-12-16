@@ -21,29 +21,55 @@
           "#nbc": 1,
           "versions": [
             {
-              "#id": "aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq",
-              "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqaaaaaq",
+              "#id": "aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq",
               "DataObjectVersion": "BinaryMaster_1",
+              "DataObjectGroupId": "aebaaaaaaaerxz5cbmt2yal5tkullgyaaaaq",
               "FormatIdentification": {
-                "FormatLitteral": "Plain Text File",
-                "MimeType": "text/plain",
-                "FormatId": "x-fmt/111"
+                "FormatLitteral": "JPEG File Interchange Format",
+                "MimeType": "image/jpeg",
+                "FormatId": "fmt/43"
               },
               "FileInfo": {
-                "Filename": "OAIS-2012.pdf",
-                "LastModified": "2012-06-20T18:58:18.000+02:00"
+                "Filename": "Lake2.jpeg",
+                "LastModified": "2021-05-14T16:02:35"
               },
-              "Size": 1903749,
-              "Uri": "Content/ID5.pdf",
-              "MessageDigest": "283827d12876af7da450b13918bba23942f0d8f70f8b92ccff1e1cde1657a6cf86783539b2dac4d47b817fba6cc7a13ba511f1049e0c10ebf19f1e56f586444b",
+              "Size": 38628,
+              "Uri": "Content/Lake2.jpeg",
+              "MessageDigest": "a7c15313969583c478b2d66ad1a4b34e250d6751ee4b39e546a77f9c0d71ccefee55e2661b457f9e848a4e2d45d831058d3f61c1914b7fd45a168bace27f1d6f",
               "Algorithm": "SHA-512",
               "#storage": {
-                "#nbc": 1,
-                "offerIds": [
-                  "fakeOfferId"
-                ],
-                "strategyId": "default-fake"
-              }
+                "strategyId": "default-fake",
+                "#nbc": 0
+              },
+              "#opi": "aeeaaaaaacerxz5cbmvnyal5tkuje2iaaaaq"
+            }
+          ]
+        },
+        {
+          "qualifier": "Thumbnail",
+          "#nbc": 1,
+          "versions": [
+            {
+              "#id": "aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba",
+              "DataObjectVersion": "Thumbnail_1",
+              "DataObjectGroupId": "aebaaaaaaaerxz5cbmt2yal5tkullgyaaaaq",
+              "FormatIdentification": {
+                "FormatLitteral": "Graphics Interchange Format",
+                "MimeType": "image/gif",
+                "FormatId": "fmt/4"
+              },
+              "FileInfo": {
+                "Filename": "GENERATE-aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.GIF",
+                "LastModified": "2021-12-08T15:45:36.071"
+              },
+              "Size": 6446,
+              "MessageDigest": "b83188e5990d7518af2f6597fedfcd408e097801257f99dcd2cef0fdc670dc0a3a78d852004b1d416e060b4375a32b9ce27380e41fc2ecb07e7e8a0f1906b32f",
+              "Algorithm": "SHA-512",
+              "#storage": {
+                "strategyId": "default-fake",
+                "#nbc": 0
+              },
+              "#opi": "aeeaaaaaacerxz5cbmvgeal5tk4kz2qaaaaq"
             }
           ]
         }
