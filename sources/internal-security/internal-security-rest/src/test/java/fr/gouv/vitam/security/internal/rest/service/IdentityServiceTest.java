@@ -85,6 +85,7 @@ public class IdentityServiceTest {
         assertThat(identityModel.getIssuerDN()).isEqualTo(
             "O=VITAM, L=Paris, C=FR");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
+        assertThat(identityModel.getExpirationDate()).isEqualTo("9999-12-31T23:59:59.000");
     }
 
     @Test
