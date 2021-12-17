@@ -13,7 +13,7 @@ vitam_defaults:
     folder:
         root_path: /vitam
         folder_permission: "0750"
-        conf_permission: "0640"
+        conf_permission: "0440"
         folder_upload_permission: "0770"
         script_permission: "0750"
     users:
