@@ -26,11 +26,8 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import java.security.cert.CertificateException;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -42,10 +39,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
@@ -53,6 +51,9 @@ import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
+
+import java.security.cert.CertificateException;
+import java.util.Optional;
 
 /**
  * Manages personal certificates
@@ -65,8 +66,8 @@ public class PersonalCertificateService {
     private final static String NO_CERTIFICATE_MESSAGE = "No certificate transmitted";
     private static final String PERSONAL_LOGBOOK_EVENT = "STP_PERSONAL_CERTIFICATE_CHECK";
 
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private PersonalRepository personalRepository;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final PersonalRepository personalRepository;
 
     public PersonalCertificateService(LogbookOperationsClientFactory logbookOperationsClientFactory,
         PersonalRepository personalRepository) {
@@ -77,8 +78,8 @@ public class PersonalCertificateService {
     /**
      * Create certificate if not present in DB.
      *
-     * @throws CertificateException
-     * @throws InvalidParseOperationException
+     * @throws PersonalCertificateException thrown if certificate parse fail
+     * @throws InvalidParseOperationException thrown if creation fail
      */
     public void createPersonalCertificateIfNotPresent(byte[] certificate)
         throws PersonalCertificateException, InvalidParseOperationException {
@@ -102,6 +103,8 @@ public class PersonalCertificateService {
         personalModel.setSerialNumber(String.valueOf(parsedCertificate.getX509Certificate().getSerialNumber()));
 
         personalModel.setCertificateHash(parsedCertificate.getCertificateHash());
+        personalModel.setExpirationDate(LocalDateUtil.getFormattedDateForMongo(
+            LocalDateUtil.fromDate(parsedCertificate.getX509Certificate().getNotAfter())));
 
         personalRepository.createPersonalCertificate(personalModel);
     }
@@ -109,8 +112,8 @@ public class PersonalCertificateService {
     /**
      * Delete certificate if present.
      *
-     * @param certificate
-     * @throws PersonalCertificateException
+     * @param certificate the certificate to delete
+     * @throws PersonalCertificateException thrown if certificate parse fail
      */
     public void deletePersonalCertificateIfPresent(byte[] certificate)
         throws PersonalCertificateException {
@@ -122,17 +125,15 @@ public class PersonalCertificateService {
 
     /**
      * Checks if the personal certificate if valid.
+     *
      * @param certificate the certificate to check
      * @param permission the permission for which access if checked (required for logbook logging)
-     * @throws LogbookClientServerException
-     * @throws LogbookClientAlreadyExistsException
-     * @throws LogbookClientBadRequestException
-     * @throws InvalidParseOperationException
-     * @throws PersonalCertificateException
+     * @throws LogbookClientException thrown if logbook creation fail
+     * @throws InvalidParseOperationException thrown if logbook or certificate parse fail
+     * @throws PersonalCertificateException thrown if certificate parse fail
      */
     public void checkPersonalCertificateExistence(byte[] certificate, String permission)
-        throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException {
+        throws LogbookClientException, InvalidParseOperationException, PersonalCertificateException {
         ParsedCertificate parsedCertificate;
         if (certificate == null) {
             createNoPersonalCertificateLogbook(permission);
