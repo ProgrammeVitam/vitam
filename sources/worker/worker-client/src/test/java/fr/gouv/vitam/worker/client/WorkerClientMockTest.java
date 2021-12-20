@@ -29,7 +29,7 @@ package fr.gouv.vitam.worker.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Before;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -57,7 +57,7 @@ public class WorkerClientMockTest {
 
     @Test
     public void createSteps() throws WorkerNotFoundClientException,
-        WorkerServerClientException {
+        WorkerServerClientException, ProcessingRetryAsyncException {
         WorkerClientFactory.changeMode(null);
         final WorkerClient client = WorkerClientFactory.getInstance(null)
             .getClient();

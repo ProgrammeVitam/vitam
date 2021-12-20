@@ -24,33 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.processing.common.async;
 
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 
-/**
- * Mock client implementation for worker
- */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+public class AccessRequestResult {
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
+    // mandatory
+    private final AccessRequestValue accessRequestValue;
+    // mandatory
+    private final AccessRequestContext accessRequestContext;
+    // mandatory
+    private final AccessRequestStatus accessRequestStatus;
 
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
-
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
+    public AccessRequestResult(AccessRequestValue accessRequestValue, AccessRequestContext accessRequestContext,
+        AccessRequestStatus accessRequestStatus) {
+        this.accessRequestValue = accessRequestValue;
+        this.accessRequestContext = accessRequestContext;
+        this.accessRequestStatus = accessRequestStatus;
     }
 
+    public AccessRequestValue getValue() {
+        return accessRequestValue;
+    }
+
+    public AccessRequestContext getContext() {
+        return accessRequestContext;
+    }
+
+    public AccessRequestStatus getStatus() {
+        return accessRequestStatus;
+    }
+
+    public AsyncResourceCallback getCallback() {
+        if (this.accessRequestValue == null) {
+            return null;
+        } else {
+            return this.accessRequestValue.getCallback();
+        }
+    }
 }

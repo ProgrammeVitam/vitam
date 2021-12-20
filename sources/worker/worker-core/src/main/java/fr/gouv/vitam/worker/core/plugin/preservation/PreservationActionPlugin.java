@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -73,7 +72,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.LocalDateUtil.now;
@@ -85,6 +83,7 @@ import static fr.gouv.vitam.worker.core.plugin.PluginHelper.tryDeleteLocalPreser
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
@@ -124,7 +123,7 @@ public class PreservationActionPlugin extends ActionHandler {
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
         List<PreservationDistributionLine> entries = IntStream.range(0, workerParameters.getObjectNameList().size())
             .mapToObj(index -> mapToParamsPreservationDistributionFile(workerParameters, index))
-            .collect(Collectors.toList());
+            .collect(toList());
 
         String griffinId = entries.get(0).getGriffinId();
         String batchId = GUIDFactory.newGUID().getId();
@@ -150,7 +149,7 @@ public class PreservationActionPlugin extends ActionHandler {
 
             return workflowResults.stream()
                 .map(w -> buildItemStatus(PLUGIN_NAME, w.getGlobalStatus(), EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
-                .collect(Collectors.toList());
+                .collect(toList());
         } catch (Exception e) {
             tryDeleteLocalPreservationFiles(Paths.get(griffinInputFolder, griffinId, batchId));
             throw new ProcessingException(e);
@@ -205,7 +204,7 @@ public class PreservationActionPlugin extends ActionHandler {
         throws VitamException {
         List<InputPreservation> inputsPreservation = lines.stream()
             .map(this::mapToInput)
-            .collect(Collectors.toList());
+            .collect(toList());
         List<ActionPreservation> preservationActions = lines.get(0).getActionPreservationList();
 
         boolean debug = lines.get(0).isDebug();
@@ -249,7 +248,7 @@ public class PreservationActionPlugin extends ActionHandler {
     private List<WorkflowBatchResult> generateWorkflowBatchResults(ResultPreservation result, List<PreservationDistributionLine> entries) {
         return entries.stream()
             .map(e -> mapToWorkflowBatchResult(e, result))
-            .collect(Collectors.toList());
+            .collect(toList());
     }
 
     private WorkflowBatchResult mapToWorkflowBatchResult(PreservationDistributionLine e, ResultPreservation result) {
@@ -257,7 +256,7 @@ public class PreservationActionPlugin extends ActionHandler {
             .get(e.getObjectId())
             .stream()
             .map(OutputExtra::of)
-            .collect(Collectors.toList());
+            .collect(toList());
         return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras,
                 e.getSourceUse(), e.getSourceStrategy(), new ArrayList<>(e.getUnitsForExtractionAU()));
     }
@@ -274,7 +273,7 @@ public class PreservationActionPlugin extends ActionHandler {
         return workflowResults.stream()
             .flatMap(w -> w.getOutputExtras().stream()
                 .map(output -> getPreservationReportModel(requestId, tenantId, now, output, entries)))
-            .collect(Collectors.toList());
+            .collect(toList());
     }
 
     private PreservationReportEntry getPreservationReportModel(String requestId, int tenant, LocalDateTime now,

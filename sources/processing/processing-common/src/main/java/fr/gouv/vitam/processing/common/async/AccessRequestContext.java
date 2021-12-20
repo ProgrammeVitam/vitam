@@ -24,33 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.processing.common.async;
 
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+import java.util.Objects;
 
-/**
- * Mock client implementation for worker
- */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+public class AccessRequestContext {
+    // mandatory
+    private final String strategyId;
+    // optional
+    private final String offerId;
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
-
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
-
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
+    public AccessRequestContext(String strategyId, String offerId) {
+        this.strategyId = strategyId;
+        this.offerId = offerId;
     }
 
+    public AccessRequestContext(String strategyId) {
+        this.strategyId = strategyId;
+        this.offerId = null;
+    }
+
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    public String getOfferId() {
+        return offerId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        AccessRequestContext that = (AccessRequestContext) o;
+        return Objects.equals(strategyId, that.strategyId) && Objects.equals(offerId, that.offerId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(strategyId, offerId);
+    }
 }

@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.client;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -45,8 +46,9 @@ public interface WorkerClient extends MockOrRestClient {
      * @return List of EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      * @throws WorkerNotFoundClientException if the Server got a NotFound result
      * @throws WorkerServerClientException if the Server got an internal error
+     * @throws ProcessingRetryAsyncException if the server asked for an asynchronous resource should execution should be retried when the resource is available
      */
     ItemStatus submitStep(DescriptionStep step)
-        throws WorkerNotFoundClientException, WorkerServerClientException;
+        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException;
 
 }

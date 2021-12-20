@@ -59,6 +59,8 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.AsyncResourceCleaner;
+import fr.gouv.vitam.processing.distributor.core.AsyncResourcesMonitor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
@@ -93,7 +95,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -118,6 +119,10 @@ public class ProcessManagementImplTest {
     private WorkspaceProcessDataManagement processDataManagement;
     @Mock
     private OperationContextMonitor operationContextMonitor;
+    @Mock
+    private AsyncResourceCleaner asyncResourceCleaner;
+    @Mock
+    private AsyncResourcesMonitor asyncResourcesMonitor;
 
     private IWorkerManager workerManager = null;
     private ProcessDistributor processDistributor = null;
@@ -128,11 +133,6 @@ public class ProcessManagementImplTest {
 
     @Before
     public void setup() {
-        reset(workspaceClientFactory);
-        reset(workspaceClient);
-        reset(processDataAccess);
-        reset(processDataManagement);
-
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
         MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
@@ -143,8 +143,9 @@ public class ProcessManagementImplTest {
         ServerConfiguration configuration = new ServerConfiguration();
         when(processDataAccess.getWorkFlowList()).thenReturn(new ConcurrentHashMap<>());
         processDistributor =
-            new ProcessDistributorImpl(workerManager, configuration, processDataManagement,
-                workspaceClientFactory, metaDataClientFactory, workerClientFactory);
+            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner,
+                configuration, processDataManagement, workspaceClientFactory, metaDataClientFactory,
+                workerClientFactory);
     }
 
     @Test(expected = StateNotAllowedException.class)

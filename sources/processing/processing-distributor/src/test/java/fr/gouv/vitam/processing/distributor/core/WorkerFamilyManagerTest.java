@@ -46,8 +46,10 @@ public class WorkerFamilyManagerTest {
     @Test
     public void must_run_tasks() {
         WorkerFamilyManager wfm = new WorkerFamilyManager("familyId", 3);
-        WorkerBean workerBean1 = new WorkerBean("worker1","familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
-        WorkerBean workerBean2 = new WorkerBean("worker2","familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
+        WorkerBean workerBean1 =
+            new WorkerBean("worker1", "familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
+        WorkerBean workerBean2 =
+            new WorkerBean("worker2", "familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
         workerBean1.setWorkerId("workerId1");
         workerBean2.setWorkerId("workerId2");
         wfm.registerWorker(workerBean1);
@@ -62,29 +64,29 @@ public class WorkerFamilyManagerTest {
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
-        }, wfm);
+        }, wfm.getExecutor(false));
         // task
         CompletableFuture<Void> task2 = CompletableFuture.runAsync(() -> {
             // we add task 3 to the queue
             task3.set(CompletableFuture.runAsync(() -> {
                 // must be executed in worker 2
                 threadName.set(Thread.currentThread().getName());
-            }, wfm));
+            }, wfm.getExecutor(false)));
             wfm.unregisterWorker("workerId1"); // unregister worker 1
             countDownLatch.countDown();
-        }, wfm);
+        }, wfm.getExecutor(false));
         // wait until task 1 and task 2 completed
-        CompletableFuture.allOf(task1,task2).join();
+        CompletableFuture.allOf(task1, task2).join();
 
 
         // wait until task 3 finish
         task3.get().join();
         wfm.unregisterWorker("workerId2");
         // verify that task 3 has been executed on worker 2
-        Assert.assertEquals("WorkerExecutor_workerId2", threadName.get());
+        Assert.assertEquals("WorkerExecutor_workerId2_0", threadName.get());
 
         CompletableFuture<Void> task4 = CompletableFuture.runAsync(() -> {
-        }, wfm);
+        }, wfm.getExecutor(false));
 
         // we don't execute task 4 because there is no worker registred
         Assertions.assertThatThrownBy(() -> task4.get(10, TimeUnit.MILLISECONDS)).isInstanceOf(TimeoutException.class);

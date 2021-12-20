@@ -31,17 +31,15 @@ import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 // manage many worker per worker family
-public class WorkerFamilyManager implements Executor {
+public class WorkerFamilyManager {
 
     private final String family;
 
-    private final BlockingQueue<Runnable> queue;
+    private final PriorityTaskQueue<Runnable> queue;
 
     private final Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
 
@@ -51,7 +49,7 @@ public class WorkerFamilyManager implements Executor {
             throw new IllegalArgumentException("queue size must be greater than 2");
         }
         this.family = family;
-        queue = new ArrayBlockingQueue<>(queueSize, true);
+        queue = new PriorityTaskQueue<>(queueSize);
     }
 
     public void registerWorker(WorkerBean workerBean) {
@@ -59,7 +57,7 @@ public class WorkerFamilyManager implements Executor {
             WorkerExecutor executor = new WorkerExecutor(queue, workerBean);
             for (int i = 0; i < workerBean.getCapacity(); i++) {
                 final Thread thread = VitamThreadFactory.getInstance().newThread(executor);
-                thread.setName("WorkerExecutor_" + workerBean.getWorkerId());
+                thread.setName("WorkerExecutor_" + workerBean.getWorkerId() + "_" + i);
                 thread.start();
             }
 
@@ -83,15 +81,20 @@ public class WorkerFamilyManager implements Executor {
         }
     }
 
-    @Override
-    public void execute(Runnable command) {
-        try {
-            CommonProcessingMetrics.WORKER_TASKS_IN_QUEUE.labels(family).inc();
+    public Executor getExecutor(boolean isHighPriorityTask) {
+        return command -> {
+            try {
+                CommonProcessingMetrics.WORKER_TASKS_IN_QUEUE.labels(family).inc();
 
-            queue.put(command);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+                if (isHighPriorityTask) {
+                    queue.addHighPriorityEntry(command);
+                } else {
+                    queue.addRegularEntry(command);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
     public Map<String, WorkerExecutor> getWorkers() {

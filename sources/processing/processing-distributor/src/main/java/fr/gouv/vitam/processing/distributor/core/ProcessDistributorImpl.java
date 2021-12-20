@@ -51,6 +51,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+import fr.gouv.vitam.processing.common.async.AsyncResourceCallback;
+import fr.gouv.vitam.processing.common.async.WorkflowInterruptionChecker;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -85,10 +88,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -119,6 +125,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     };
 
     private final ProcessDataManagement processDataManagement;
+    private final AsyncResourcesMonitor asyncResourcesMonitor;
+    private final AsyncResourceCleaner asyncResourceCleaner;
     private final IWorkerManager workerManager;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
@@ -131,24 +139,29 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      * @param workerManager a WorkerManager instance
      * @param serverConfiguration distributor server configuration
      */
-    public ProcessDistributorImpl(IWorkerManager workerManager, ServerConfiguration serverConfiguration) {
-        this(workerManager, serverConfiguration, WorkspaceProcessDataManagement.getInstance(),
-            WorkspaceClientFactory.getInstance(), MetaDataClientFactory.getInstance(), null);
+    public ProcessDistributorImpl(IWorkerManager workerManager, AsyncResourcesMonitor asyncResourcesMonitor,
+        AsyncResourceCleaner asyncResourceCleaner, ServerConfiguration serverConfiguration) {
+        this(workerManager, asyncResourcesMonitor, asyncResourceCleaner, serverConfiguration,
+            WorkspaceProcessDataManagement.getInstance(), WorkspaceClientFactory.getInstance(),
+            MetaDataClientFactory.getInstance(), null);
     }
 
     @VisibleForTesting
-    public ProcessDistributorImpl(IWorkerManager workerManager, ServerConfiguration serverConfiguration,
+    public ProcessDistributorImpl(IWorkerManager workerManager, AsyncResourcesMonitor asyncResourcesMonitor,
+        AsyncResourceCleaner asyncResourceCleaner, ServerConfiguration serverConfiguration,
         ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory,
         MetaDataClientFactory metaDataClientFactory, WorkerClientFactory workerClientFactory) {
         this.workerManager = workerManager;
+        this.asyncResourcesMonitor = asyncResourcesMonitor;
+        this.asyncResourceCleaner = asyncResourceCleaner;
         this.serverConfiguration = serverConfiguration;
         this.workspaceClientFactory = workspaceClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
         this.workerClientFactory = workerClientFactory;
         this.processDataManagement = processDataManagement;
-        ParametersChecker
-            .checkParameter("Parameters are required.", workerManager, serverConfiguration, processDataManagement,
-                metaDataClientFactory, workspaceClientFactory);
+        ParametersChecker.checkParameter("Parameters are required.", workerManager, asyncResourcesMonitor,
+            asyncResourceCleaner, serverConfiguration, processDataManagement, metaDataClientFactory,
+            workspaceClientFactory);
     }
 
     /**
@@ -443,7 +456,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<WorkerTask> workerTaskList = createWorkerTasks(workerParameters, step, tenantId, requestId,
                 contractId, contextId, applicationId, bulkSize, subList);
 
-            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(step, workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
             updateStepWithTaskResults(workerTaskResults, step);
@@ -660,7 +673,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 createWorkerTasksOnStream(workerParameters, step, tenantId, requestId, contractId,
                     contextId, applicationId, bulkSize, distributionList);
 
-            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(step, workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
             updateStepWithTaskResults(workerTaskResults, step);
@@ -758,33 +771,45 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return workerTaskList;
     }
 
-    private List<WorkerTaskResult> executeWorkerTasks(WorkerParameters workerParameters,
+    private List<WorkerTaskResult> executeWorkerTasks(Step step, WorkerParameters workerParameters,
         List<WorkerTask> workerTaskList) throws ProcessingException {
 
-        List<CompletableFuture<WorkerTaskResult>> completableFutureList =
-            scheduleWorkerTasks(workerParameters, workerTaskList);
+        int queueSize = workerTaskList.size();
 
-        return awaitCompletion(completableFutureList);
+        ArrayBlockingQueue<WorkerTaskResult> resultQueue = new ArrayBlockingQueue<>(queueSize);
+
+        scheduleWorkerTasks(step, workerParameters, workerTaskList, resultQueue);
+
+        return awaitCompletion(resultQueue, queueSize);
     }
 
-    private List<CompletableFuture<WorkerTaskResult>> scheduleWorkerTasks(
-        WorkerParameters workerParameters, List<WorkerTask> workerTaskList) {
-        List<CompletableFuture<WorkerTaskResult>> completableFutureList = new ArrayList<>();
+    private void scheduleWorkerTasks(Step step, WorkerParameters workerParameters, List<WorkerTask> workerTaskList,
+        Queue<WorkerTaskResult> resultQueue) {
+
         for (WorkerTask workerTask : workerTaskList) {
-            CompletableFuture<WorkerTaskResult> scheduledTask =
-                scheduleTaskInExecutionBlockingQueue(workerTask, workerParameters.getLogbookTypeProcess());
-            completableFutureList.add(scheduledTask);
+
+            // Fail fast : if workflow is being paused or canceled, no need to schedule the task
+            if (isCanceledOrPaused(step)) {
+                resultQueue.add(WorkerTaskResult.ofPausedOrCanceledTask(workerTask));
+                continue;
+            }
+
+            scheduleTaskInExecutionBlockingQueue(workerTask, workerParameters.getLogbookTypeProcess(), resultQueue);
         }
-        return completableFutureList;
     }
 
-    private static <T> List<T> awaitCompletion(List<CompletableFuture<T>> futures)
+    private static List<WorkerTaskResult> awaitCompletion(BlockingQueue<WorkerTaskResult> resultQueue, int nbMessages)
         throws ProcessingException {
+
         try {
-            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()))
-                .get();
-        } catch (InterruptedException | ExecutionException e) {
+            List<WorkerTaskResult> workerTaskResults = new ArrayList<>();
+
+            for (int i = 0; i < nbMessages; i++) {
+                workerTaskResults.add(resultQueue.take());
+            }
+            return workerTaskResults;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new ProcessingException(e);
         }
     }
@@ -794,14 +819,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         // Update global step item status
         workerTaskResults.stream()
             // Do not compute PAUSE and CANCEL actions
-            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()) &&
-                !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
+            .filter(result -> !result.isPausedOrCanceled())
             .forEach(result -> step.getStepResponses().setItemsStatus(result.getItemStatus()));
 
         // Update stats (used by tests only)
         int processedElements = workerTaskResults.stream()
             //Do not update processed if pause or cancel occurs or if status is Fatal
-            .filter(result -> !StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()) &&
+            .filter(result -> !result.isPausedOrCanceled() &&
                 !StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus()))
             .mapToInt(result -> result.getWorkerTask().getObjectNameList().size())
             .sum();
@@ -832,27 +856,37 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return nextOffset;
     }
 
+    private boolean isCanceledOrPaused(Step step) {
+        return (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL
+            || step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_PAUSE);
+    }
+
     private void checkCancelledOrPaused(Step step) {
-        switch (step.getPauseOrCancelAction()) {
-            case ACTION_CANCEL:
-            case ACTION_PAUSE:
-                throw new PauseCancelException(step.getPauseOrCancelAction());
-            default:
-                // Nothing to do
+        if (isCanceledOrPaused(step)) {
+            throw new PauseCancelException(step.getPauseOrCancelAction());
         }
     }
 
-    private CompletableFuture<WorkerTaskResult> scheduleTaskInExecutionBlockingQueue(WorkerTask task,
-        LogbookTypeProcess logbookTypeProcess) {
+    void scheduleTaskInExecutionBlockingQueue(WorkerTask task,
+        LogbookTypeProcess logbookTypeProcess, Queue<WorkerTaskResult> resultQueue) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
 
             LOGGER.error("No WorkerFamilyManager found for : " + step.getWorkerGroupId());
-            return CompletableFuture.completedFuture(new WorkerTaskResult(
-                task, false, new ItemStatus(step.getStepName()).increment(StatusCode.FATAL)));
+            resultQueue.add(
+                WorkerTaskResult.ofFatalTask(task, new ItemStatus(step.getStepName()).increment(StatusCode.FATAL)));
+            return;
         }
 
+        scheduleTask(task, logbookTypeProcess, wmf, resultQueue, false, null);
+    }
+
+    private void scheduleTask(WorkerTask task, LogbookTypeProcess logbookTypeProcess,
+        WorkerFamilyManager wmf, Queue<WorkerTaskResult> resultQueue, boolean isHighPriorityTask,
+        Map<String, AccessRequestContext> currentAsyncResources) {
+
+        Step step = task.getStep();
         // Add metrics increment as new task created
         CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
             .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
@@ -861,8 +895,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         // /!\ CAUTION :
         // WorkerFamilyManager is backed by a limited blocking queue (why?).
         // CompletableFuture.supplyAsync() method might block caller thread if queue is full
-        return CompletableFuture
-            .supplyAsync(task, wmf)
+        CompletableFuture
+            .supplyAsync(task, wmf.getExecutor(isHighPriorityTask))
             .exceptionally((completionException) -> {
                 LOGGER.error("Exception occurred when executing task", completionException);
                 Throwable cause = completionException.getCause();
@@ -888,7 +922,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     .setItemsStatus(step.getStepName(),
                         new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
                             .increment(StatusCode.FATAL));
-                return new WorkerTaskResult(task, false, itemStatus);
+                return WorkerTaskResult.ofFatalTask(task, itemStatus);
             })
             .thenApply(is -> {
                 // Decrement as this task is completed
@@ -896,6 +930,41 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
                     .dec();
                 return is;
+            }).whenComplete((result, ex) -> {
+
+                // Mark last async resources for cleanup
+                if (currentAsyncResources != null) {
+                    this.asyncResourceCleaner.markAsyncResourcesForRemoval(currentAsyncResources);
+                }
+
+                // Handle incomplete tasks requiring async resources
+                if (result.getAsyncResources() != null) {
+
+                    WorkflowInterruptionChecker workflowInterruptionChecker = () -> {
+                        // Async resource status should be checked periodically unless workflow is being PAUSED or CANCELED
+                        return !isCanceledOrPaused(step);
+                    };
+
+                    AsyncResourceCallback callback = () -> {
+
+                        // Fail fast : if workflow is being paused or canceled, no need to re-schedule the task
+                        if (isCanceledOrPaused(step)) {
+                            resultQueue.add(WorkerTaskResult.ofPausedOrCanceledTask(task));
+                            this.asyncResourceCleaner.markAsyncResourcesForRemoval(result.getAsyncResources());
+                            return;
+                        }
+
+                        // Reschedule task with high priority
+                        scheduleTask(task, logbookTypeProcess, wmf, resultQueue, true, result.getAsyncResources());
+                    };
+
+                    asyncResourcesMonitor.watchAsyncResourcesForBulk(
+                        result.getAsyncResources(), task.getRequestId(), task.getTaskId(),
+                        workflowInterruptionChecker, callback);
+                    return;
+                }
+
+                resultQueue.offer(result);
             });
     }
 

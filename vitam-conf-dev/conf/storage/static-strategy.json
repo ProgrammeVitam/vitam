@@ -30,5 +30,14 @@
         "referent": false
       }
     ]
+  },
+  {
+    "id": "tape_only",
+    "offers": [
+      {
+        "id": "offer-tape-1.service.consul",
+        "referent": true
+      }
+    ]
   }
 ]

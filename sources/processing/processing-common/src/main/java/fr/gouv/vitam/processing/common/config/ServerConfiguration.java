@@ -46,6 +46,9 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
     private Integer maxDistributionInMemoryBufferSize = 100_000;
     private Integer maxDistributionOnDiskBufferSize = 100_000_000;
 
+    private Integer delayAsyncResourceMonitor = 300; // five minutes
+    private Integer delayAsyncResourceCleaner = 300; // five minutes
+
     /**
      * @return the urlMetadata
      */
@@ -136,6 +139,24 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
 
     public ServerConfiguration setMaxDistributionOnDiskBufferSize(Integer maxDistributionOnDiskBufferSize) {
         this.maxDistributionOnDiskBufferSize = maxDistributionOnDiskBufferSize;
+        return this;
+    }
+
+    public Integer getDelayAsyncResourceMonitor() {
+        return delayAsyncResourceMonitor;
+    }
+
+    public ServerConfiguration setDelayAsyncResourceMonitor(Integer delayAsyncResourceMonitor) {
+        this.delayAsyncResourceMonitor = delayAsyncResourceMonitor;
+        return this;
+    }
+
+    public Integer getDelayAsyncResourceCleaner() {
+        return delayAsyncResourceCleaner;
+    }
+
+    public ServerConfiguration setDelayAsyncResourceCleaner(Integer delayAsyncResourceCleaner) {
+        this.delayAsyncResourceCleaner = delayAsyncResourceCleaner;
         return this;
     }
 }

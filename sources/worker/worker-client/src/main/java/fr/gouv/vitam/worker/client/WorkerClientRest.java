@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.client;
 
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -34,15 +35,18 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
@@ -52,6 +56,8 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
 class WorkerClientRest extends DefaultClient implements WorkerClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
+    private static final GenericType<Map<AccessRequestContext, List<String>>> MAP_STRING_TYPE = new GenericType<>() {
+    };
 
     WorkerClientRest(WorkerClientFactory factory) {
         super(factory);
@@ -59,7 +65,7 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
 
     @Override
     public ItemStatus submitStep(DescriptionStep step)
-        throws WorkerNotFoundClientException, WorkerServerClientException {
+        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
         VitamRequestBuilder request = post()
@@ -75,7 +81,10 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     }
 
     private ItemStatus handleCommonResponseStatus(DescriptionStep step, Response response)
-        throws WorkerNotFoundClientException, WorkerServerClientException {
+        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
+        if (CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode() == response.getStatus()) {
+            throw new ProcessingRetryAsyncException(response.readEntity(MAP_STRING_TYPE));
+        }
         final Response.Status status = fromStatusCode(response.getStatus());
         switch (status) {
             case OK:
@@ -89,7 +98,8 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                         step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 } catch (final VitamThreadAccessException e) {
                     LOGGER.error(
-                        INTERNAL_SERVER_ERROR.getReasonPhrase() + " during execution of <unknown request id> Request, stepname:  " +
+                        INTERNAL_SERVER_ERROR.getReasonPhrase() +
+                            " during execution of <unknown request id> Request, stepname:  " +
                             step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());

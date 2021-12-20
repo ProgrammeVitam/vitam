@@ -24,33 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.common.mockito;
 
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+import org.apache.commons.collections4.CollectionUtils;
+import org.mockito.ArgumentMatcher;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.argThat;
 
 /**
- * Mock client implementation for worker
+ * Mockito Matcher that checks unordered list equality to avoid order validation.
  */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+public class UnorderedListMatcher<T extends Comparable<? super T>> implements ArgumentMatcher<List<T>> {
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
+    private final List<T> left;
 
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
-
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
+    public UnorderedListMatcher(List<T> expected) {
+        this.left = expected;
     }
 
+    @Override
+    public boolean matches(List<T> right) {
+        if (this.left == null) {
+            return right == null;
+        }
+        if (CollectionUtils.size(left) != CollectionUtils.size(right)) {
+            return false;
+        }
+        List<T> leftSet = new ArrayList<>(left);
+        List<T> rightSet = new ArrayList<>(right);
+        leftSet.sort(Comparator.naturalOrder());
+        rightSet.sort(Comparator.naturalOrder());
+        return leftSet.equals(rightSet);
+    }
+
+    @SafeVarargs
+    public static <T extends Comparable<? super T>> List<T> eqUnorderedList(T... items) {
+        return argThat(new UnorderedListMatcher<>(Arrays.asList(items)));
+    }
 }

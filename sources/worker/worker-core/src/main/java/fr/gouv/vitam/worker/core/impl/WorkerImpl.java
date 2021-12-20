@@ -342,7 +342,8 @@ public class WorkerImpl implements Worker {
             lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
 
             clearEvDetDataForDistributedSteps(step, responses);
-
+        } catch (ProcessingException e) {
+            throw e;
         } catch (Exception e) {
             throw new ProcessingException(e);
         }

@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.AsyncResourceCleaner;
+import fr.gouv.vitam.processing.distributor.core.AsyncResourcesMonitor;
 import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
@@ -76,15 +78,17 @@ public class VitamApplicationInitializr {
             final ServerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, ServerConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
 
-            IWorkerManager workerManager;
-            ProcessDistributor processDistributor;
+
 
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
 
-            workerManager = new WorkerManager();
+            IWorkerManager workerManager = new WorkerManager();
             workerManager.initialize();
 
-            processDistributor = new ProcessDistributorImpl(workerManager, configuration);
+            AsyncResourcesMonitor asyncResourcesMonitor = new AsyncResourcesMonitor(configuration);
+            AsyncResourceCleaner asyncResourceCleaner = new AsyncResourceCleaner(configuration);
+
+            ProcessDistributor processDistributor = new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, configuration);
 
             ProcessManagementResource processManagementResource =
                 new ProcessManagementResource(configuration, processDistributor);
