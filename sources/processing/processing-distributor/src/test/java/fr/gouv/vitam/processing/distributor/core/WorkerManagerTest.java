@@ -109,6 +109,7 @@ public class WorkerManagerTest {
 
     @Before
     public void setup() throws Exception {
+
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
         doNothing().when(workerClient).checkStatus();
@@ -137,7 +138,8 @@ public class WorkerManagerTest {
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
 
-        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+        WorkerTaskResult workerTaskResult =
+            CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false)).get();
 
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
@@ -187,7 +189,8 @@ public class WorkerManagerTest {
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
-        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+        WorkerTaskResult workerTaskResult =
+            CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false)).get();
 
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);

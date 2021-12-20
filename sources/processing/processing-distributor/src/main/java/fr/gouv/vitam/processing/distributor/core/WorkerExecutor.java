@@ -32,7 +32,6 @@ import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -41,10 +40,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class WorkerExecutor implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerExecutor.class);
     private final AtomicBoolean mustStop;
-    private final BlockingQueue<Runnable> queue;
+    private final PriorityTaskQueue<Runnable> queue;
     private final WorkerBean workerBean;
 
-    public WorkerExecutor(BlockingQueue<Runnable> queue, WorkerBean workerBean) {
+    public WorkerExecutor(PriorityTaskQueue<Runnable> queue, WorkerBean workerBean) {
         this.workerBean = workerBean;
         this.mustStop = new AtomicBoolean(false);
         this.queue = queue;
@@ -59,7 +58,7 @@ public class WorkerExecutor implements Runnable {
 
                 // if current thread must stop, we add the taken task to the queue to be treated by another thread
                 if (mustStop.get()) {
-                    queue.add(task);
+                    queue.addHighPriorityEntry(task);
                     break;
                 }
 

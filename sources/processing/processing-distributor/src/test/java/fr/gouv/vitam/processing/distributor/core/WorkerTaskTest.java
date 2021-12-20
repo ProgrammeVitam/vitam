@@ -197,7 +197,7 @@ public class WorkerTaskTest {
 
 
         try {
-            CompletableFuture.supplyAsync(task, workerFamilyManager)
+            CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false))
                 .exceptionally(th -> {
                     assertThat(th.getCause()).isInstanceOf(WorkerUnreachableException.class);
                     workerFamilyManager.unregisterWorker(WORKER_DESCRIPTION.getWorkerId());

@@ -28,18 +28,20 @@ package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
+import fr.gouv.vitam.worker.client.exception.WorkerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -47,7 +49,9 @@ import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import io.prometheus.client.Histogram;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -58,6 +62,7 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
     private final DescriptionStep descriptionStep;
     private final int tenantId;
     private final String requestId;
+    private final String taskId;
     private final String contractId;
     private final String contextId;
     private final String applicationId;
@@ -71,6 +76,7 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
         this.descriptionStep = descriptionStep;
         this.tenantId = tenantId;
         this.requestId = requestId;
+        this.taskId = GUIDFactory.newGUID().getId();
         this.contractId = contractId;
         this.contextId = contextId;
         this.applicationId = applicationId;
@@ -127,23 +133,11 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                     case ACTION_RUN:
                     case ACTION_RECOVER:
                     case ACTION_REPLAY:
-                        ItemStatus itemStatus = callWorker(workerBean, workerClient);
-                        return new WorkerTaskResult(this, true, itemStatus);
+                        return callWorker(workerBean, workerClient);
                     case ACTION_PAUSE:
-                        // The current elements will be persisted in the distributorIndex in the remaining elements
-                        return new WorkerTaskResult(this, false,
-                            new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
-                                .setItemsStatus(PauseOrCancelAction.ACTION_PAUSE.name(),
-                                    new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
-                                        .increment(StatusCode.UNKNOWN))
-                        );
                     case ACTION_CANCEL:
-                        return new WorkerTaskResult(this, false,
-                            new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
-                                .setItemsStatus(PauseOrCancelAction.ACTION_CANCEL.name(),
-                                    new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
-                                        .increment(StatusCode.UNKNOWN))
-                        );
+                        // Fail fast : if workflow is being paused or canceled, no need to execute it
+                        return WorkerTaskResult.ofPausedOrCanceledTask(this);
                     case ACTION_COMPLETE:
                         throw new WorkerExecutorException(workerBean.getWorkerId(),
                             "Step id: " + getStep().getId() + " and name :" + getStep().getStepName() +
@@ -152,33 +146,14 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                         throw new WorkerExecutorException(workerBean.getWorkerId(),
                             "The default case should not be handled");
                 }
+
             } catch (WorkerNotFoundClientException | WorkerServerClientException e) {
-                // check status
-                boolean checkStatus = false;
-                int numberCallCheckStatus = 0;
-                while (!checkStatus && numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY) {
-                    checkStatus =
-                        checkStatusWorker(workerClient, workerBean.getConfiguration().getServerHost(),
-                            workerBean.getConfiguration().getServerPort());
-                    numberCallCheckStatus++;
-                    if (!checkStatus) {
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(1000);
-                        } catch (final InterruptedException e1) {
-                            LOGGER.warn(e);
-                            Thread.currentThread().interrupt();
-                        }
-                    }
-                }
-                if (!checkStatus) {
-                    throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
-                }
+                checkWorkerAvailability(workerBean, workerClient, e);
                 throw new WorkerExecutorException(workerBean.getWorkerId(), e);
 
             } finally {
                 workerClient.close();
             }
-
         } catch (WorkerExecutorException e) {
             throw e;
         } catch (Exception e) {
@@ -192,7 +167,28 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
         }
     }
 
-    private ItemStatus callWorker(WorkerBean workerBean, WorkerClient workerClient)
+    private void checkWorkerAvailability(WorkerBean workerBean, WorkerClient workerClient, WorkerClientException e) {
+        // check status
+        for (int numberCallCheckStatus = 0;
+             numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY; numberCallCheckStatus++) {
+
+            boolean checkStatus =
+                checkStatusWorker(workerClient, workerBean.getConfiguration().getServerHost(),
+                    workerBean.getConfiguration().getServerPort());
+            if (checkStatus) {
+                return;
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(1000);
+            } catch (final InterruptedException e1) {
+                LOGGER.warn(e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
+    }
+
+    private WorkerTaskResult callWorker(WorkerBean workerBean, WorkerClient workerClient)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         // Add metrics
         Histogram.Timer workerTaskTimer = CommonProcessingMetrics.WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM
@@ -202,7 +198,18 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                 descriptionStep.getStep().getStepName())
             .startTimer();
         try {
-            return workerClient.submitStep(descriptionStep);
+            ItemStatus itemStatus = workerClient.submitStep(descriptionStep);
+            return WorkerTaskResult.ofProceededTask(this, itemStatus);
+        } catch (ProcessingRetryAsyncException prae) {
+            // In case of async add accessRequestIds to the async resources monitor for future retry and return null (no ItemStatus value)
+            LOGGER.warn(prae);
+            Map<String, AccessRequestContext> asyncResources = new HashMap<>();
+            for (AccessRequestContext context : prae.getAccessRequestIdByContext().keySet()) {
+                for (String accessRequestId : prae.getAccessRequestIdByContext().get(context)) {
+                    asyncResources.put(accessRequestId, context);
+                }
+            }
+            return WorkerTaskResult.ofTaskRequiringAsyncResourceAvailability(this, asyncResources);
         } finally {
             // Add metric on worker task execution duration
             workerTaskTimer.observeDuration();
@@ -225,5 +232,13 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
 
     public List<String> getObjectNameList() {
         return descriptionStep.getWorkParams().getObjectNameList();
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public String getRequestId() {
+        return requestId;
     }
 }

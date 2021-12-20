@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.server.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -56,7 +58,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 @Path("/worker/v1")
-@Tag(name="Worker")
+@Tag(name = "Worker")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
     private static final String WORKER_MODULE = "WORKER";
@@ -124,6 +126,11 @@ public class WorkerResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
+                .build();
+        } catch (final ProcessingRetryAsyncException retryExc) {
+            LOGGER.warn(retryExc);
+            return Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
+                .entity(retryExc.getAccessRequestIdByContext())
                 .build();
         } catch (final IllegalArgumentException | ProcessingException exc) {
             LOGGER.error(exc);

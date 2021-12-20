@@ -91,6 +91,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
+    // FIXME WHY SO STATIC ?
     private static final Map<String, IEventsState> PROCESS_MONITORS = new ConcurrentHashMap<>();
     private final OperationContextMonitor operationContextMonitor;
 

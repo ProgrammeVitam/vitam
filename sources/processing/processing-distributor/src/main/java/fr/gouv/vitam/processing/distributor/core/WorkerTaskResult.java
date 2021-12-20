@@ -27,17 +27,42 @@
 package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+
+import java.util.Map;
 
 public class WorkerTaskResult {
 
     private final WorkerTask workerTask;
     private final ItemStatus itemStatus;
     private final boolean isProcessed;
+    private final boolean isPausedOrCanceled;
+    private final Map<String, AccessRequestContext> asyncResources;
 
-    public WorkerTaskResult(WorkerTask workerTask, boolean isProcessed, ItemStatus itemStatus) {
+    public static WorkerTaskResult ofPausedOrCanceledTask(WorkerTask workerTask) {
+        return new WorkerTaskResult(workerTask, false, null, true, null);
+    }
+
+    public static WorkerTaskResult ofFatalTask(WorkerTask workerTask, ItemStatus itemStatus) {
+        return new WorkerTaskResult(workerTask, false, itemStatus, false, null);
+    }
+
+    public static WorkerTaskResult ofProceededTask(WorkerTask workerTask, ItemStatus itemStatus) {
+        return new WorkerTaskResult(workerTask, true, itemStatus, false, null);
+    }
+
+    public static WorkerTaskResult ofTaskRequiringAsyncResourceAvailability(WorkerTask workerTask,
+        Map<String, AccessRequestContext> asyncResources) {
+        return new WorkerTaskResult(workerTask, false, null, false, asyncResources);
+    }
+
+    private WorkerTaskResult(WorkerTask workerTask, boolean isProcessed, ItemStatus itemStatus,
+        boolean isPausedOrCanceled, Map<String, AccessRequestContext> asyncResources) {
         this.itemStatus = itemStatus;
         this.isProcessed = isProcessed;
         this.workerTask = workerTask;
+        this.isPausedOrCanceled = isPausedOrCanceled;
+        this.asyncResources = asyncResources;
     }
 
     public ItemStatus getItemStatus() {
@@ -50,5 +75,13 @@ public class WorkerTaskResult {
 
     public boolean isProcessed() {
         return isProcessed;
+    }
+
+    public boolean isPausedOrCanceled() {
+        return isPausedOrCanceled;
+    }
+
+    public Map<String, AccessRequestContext> getAsyncResources() {
+        return asyncResources;
     }
 }

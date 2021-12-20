@@ -57,6 +57,7 @@ import java.util.concurrent.ConcurrentMap;
 public class WorkerManager implements IWorkerManager {
     /**
      * Default queue size
+     * FIXME : why 15 ? Why not configurable
      */
     public static final int QUEUE_SIZE = 15;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);

@@ -28,7 +28,8 @@ package fr.gouv.vitam.common.client;
 
 public enum CustomVitamHttpStatusCode {
 
-    UNAVAILABLE_DATA_FROM_ASYNC_OFFER(460, "Access to data from async offer without active access request");
+    UNAVAILABLE_DATA_FROM_ASYNC_OFFER(460, "Access to data from async offer without active access request"),
+    UNAVAILABLE_ASYNC_DATA_RETRY_LATER(461, "Required async data is currently unavailable, retry later");
 
     private final int statusCode;
     private final String message;
@@ -36,15 +37,6 @@ public enum CustomVitamHttpStatusCode {
     CustomVitamHttpStatusCode(int statusCode, String message) {
         this.statusCode = statusCode;
         this.message = message;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    @Override
-    public String toString() {
-        return "Custom Vitam HTTP Status Code: " + this.statusCode + "-" + this.name();
     }
 
     public static CustomVitamHttpStatusCode fromStatusCode(int statusCode) {
@@ -56,6 +48,15 @@ public enum CustomVitamHttpStatusCode {
             }
         }
         return null;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    @Override
+    public String toString() {
+        return "Custom Vitam HTTP Status Code: " + this.statusCode + "-" + this.name();
     }
 
     public String getMessage() {

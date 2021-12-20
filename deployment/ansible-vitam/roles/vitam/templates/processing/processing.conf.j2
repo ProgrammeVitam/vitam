@@ -5,3 +5,7 @@ workflowRefreshPeriod: 1
 processingCleanerPeriod: 1
 maxDistributionInMemoryBufferSize: {{vitam.processing.maxDistributionInMemoryBufferSize | default(100000) }}
 maxDistributionOnDiskBufferSize: {{vitam.processing.maxDistributionOnDiskBufferSize | default(100000000) }}
+
+# Async resource monitoring config (for unavailable async resources when using tape storage offer)
+delayAsyncResourceMonitor: {{vitam.processing.delayAsyncResourceMonitor | default(300) }}
+delayAsyncResourceCleaner: {{vitam.processing.delayAsyncResourceCleaner | default(300) }}

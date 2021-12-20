@@ -24,33 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
-
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+package fr.gouv.vitam.processing.common.async;
 
 /**
- * Mock client implementation for worker
+ * A non-blocking / stateless function that checks if corresponding workflow is being interrupted (paused or canceled).
  */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+@FunctionalInterface
+public interface WorkflowInterruptionChecker {
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
-
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
-
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
-    }
-
+    /**
+     * @return {@code true} if the workflow is active, {@code false} if the workflow is being interrupted (paused or canceled).
+     */
+    boolean isAlive();
 }

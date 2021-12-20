@@ -24,33 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.processing.common.async;
 
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+import java.util.Objects;
 
-/**
- * Mock client implementation for worker
- */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+public class AsyncResourceBulkId {
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
+    private final String requestId;
+    private final String taskId;
 
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
-
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
+    public AsyncResourceBulkId(String requestId, String taskId) {
+        this.requestId = requestId;
+        this.taskId = taskId;
     }
 
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        AsyncResourceBulkId that = (AsyncResourceBulkId) o;
+        return Objects.equals(requestId, that.requestId) && Objects.equals(taskId, that.taskId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(requestId, taskId);
+    }
 }

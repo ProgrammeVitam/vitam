@@ -24,33 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.processing.common.async;
 
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 
-/**
- * Mock client implementation for worker
- */
-class WorkerClientMock extends AbstractMockClient implements WorkerClient {
+import java.util.List;
+import java.util.Map;
 
-    @Override
-    public ItemStatus submitStep(DescriptionStep data)
-        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        final ItemStatus mockResponse = new ItemStatus("StepId");
+public class ProcessingRetryAsyncException extends ProcessingException {
 
-        final ItemStatus itemStatus = new ItemStatus("ItemId");
-        itemStatus.setMessage("message");
-        final StatusCode status = StatusCode.OK;
-        itemStatus.increment(status);
+    private final Map<AccessRequestContext, List<String>> accessRequestIdByContext;
 
-        mockResponse.setItemsStatus("ItemId", itemStatus);
-        return mockResponse;
+    public ProcessingRetryAsyncException(Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+        super("One or more access request ids are not available");
+        this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
+    public ProcessingRetryAsyncException(String message, Throwable cause,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+        super(message, cause);
+        this.accessRequestIdByContext = accessRequestIdByContext;
+    }
+
+    public ProcessingRetryAsyncException(String message, Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+        super(message);
+        this.accessRequestIdByContext = accessRequestIdByContext;
+    }
+
+    public ProcessingRetryAsyncException(Throwable cause, Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+        super(cause);
+        this.accessRequestIdByContext = accessRequestIdByContext;
+    }
+
+    public Map<AccessRequestContext, List<String>> getAccessRequestIdByContext() {
+        return this.accessRequestIdByContext;
+    }
 }

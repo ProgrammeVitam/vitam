@@ -128,6 +128,7 @@ public class ProcessStep extends Step {
     /**
      * @return the elementProcessed
      */
+    @VisibleForTesting
     public AtomicLong getElementProcessed() {
         return elementProcessed;
     }
@@ -144,6 +145,7 @@ public class ProcessStep extends Step {
     /**
      * @return the elementToProcess
      */
+    @VisibleForTesting
     public AtomicLong getElementToProcess() {
         return elementToProcess;
     }
