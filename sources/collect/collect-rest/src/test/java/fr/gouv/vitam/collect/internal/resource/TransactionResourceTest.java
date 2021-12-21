@@ -36,6 +36,8 @@ import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.collect.internal.service.GenerateSipService;
+import fr.gouv.vitam.collect.internal.service.IngestSipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -85,6 +87,12 @@ public class TransactionResourceTest {
     @Mock
     private TransactionService transactionService;
 
+    @Mock
+    private GenerateSipService generateSipService;
+
+    @Mock
+    private IngestSipService ingestSipService;
+
     private static final String SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME = "init_transaction_response.json";
     private static JsonNode sampleInitTransaction;
 
@@ -94,7 +102,7 @@ public class TransactionResourceTest {
     @Before
     public void setUp() {
         given(collectConfiguration.getWorkspaceUrl()).willReturn("http://localhost:8082");
-        transactionResource = new TransactionResource(collectService, transactionService);
+        transactionResource = new TransactionResource(collectService, transactionService, generateSipService, ingestSipService);
     }
 
     @Test
@@ -168,7 +176,7 @@ public class TransactionResourceTest {
         sampleUploadArchiveUnit = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
         Optional<CollectModel> collectModel = Optional.of(new CollectModel(TransactionId));
         given(collectService.findCollect(TransactionId)).willReturn(collectModel);
-        ArchiveUnitDto archiveUnitDto = new ArchiveUnitDto(null,new ArchiveUnitContent("title", "description"),null, null);
+        ArchiveUnitDto archiveUnitDto = new ArchiveUnitDto(null,new ArchiveUnitContent("title", "description"),null, null, null);
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
         given(collectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
         given(transactionService.saveArchiveUnitInMetaData(Mockito.any())).willReturn(jsonResultMetaData);
@@ -190,7 +198,7 @@ public class TransactionResourceTest {
         sampleUploadArchiveUnit = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
         Optional<CollectModel> collectModel = Optional.of(new CollectModel(TransactionId));
         given(collectService.findCollect(TransactionId)).willReturn(collectModel);
-        ArchiveUnitDto archiveUnitDto = new ArchiveUnitDto(null,new ArchiveUnitContent("title", "description"),null, null);
+        ArchiveUnitDto archiveUnitDto = new ArchiveUnitDto(null,new ArchiveUnitContent("title", "description"),null, null, null);
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
         given(collectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d764");
         //Mockito.doReturn(jsonResultMetaData).when(transactionResourceSpy).saveArchiveUnitInMetaData(Mockito.any());

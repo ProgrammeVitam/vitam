@@ -55,3 +55,4 @@ V	99991231235959Z		F8	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_
 V	99991231235959Z		F9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
 V	241109143349Z		FA	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
 V	241109143600Z		FB	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	250111161309Z		FC	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage

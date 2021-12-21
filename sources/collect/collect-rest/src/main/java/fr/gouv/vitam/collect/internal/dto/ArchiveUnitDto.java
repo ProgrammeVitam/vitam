@@ -44,6 +44,9 @@ public class ArchiveUnitDto implements Serializable {
     @JsonProperty("up")
     private String parentUnit;
 
+    @JsonProperty("_opi")
+    private String transactionId;
+
     @JsonProperty("got")
     private String objectGroupDto;
 
@@ -51,11 +54,12 @@ public class ArchiveUnitDto implements Serializable {
         //Empty constructor for serialization
     }
 
-    public ArchiveUnitDto(String id, ArchiveUnitContent content, String parentUnit, String objectGroupDto) {
+    public ArchiveUnitDto(String id, ArchiveUnitContent content, String parentUnit, String objectGroupDto, String transactionId) {
         this.id = id;
         this.content = content;
         this.parentUnit = parentUnit;
         this.objectGroupDto = objectGroupDto;
+        this.transactionId = transactionId;
     }
 
     public ArchiveUnitContent getContent() {
@@ -92,5 +96,13 @@ public class ArchiveUnitDto implements Serializable {
 
     public void setObjectGroupDto(String objectGroupDto) {
         this.objectGroupDto = objectGroupDto;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 }

@@ -52,3 +52,5 @@ V	241109143336Z		D6	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
 V	241109143337Z		D7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-storage
 V	241109143547Z		D8	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
 V	241109143549Z		D9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-storage
+V	250111161255Z		DA	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
+V	250111161258Z		DB	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-storage

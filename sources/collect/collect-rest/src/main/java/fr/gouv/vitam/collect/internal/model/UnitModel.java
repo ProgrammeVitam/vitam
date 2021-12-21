@@ -41,7 +41,7 @@ public class UnitModel {
     @JsonProperty("data")
     private String data;
 
-    @JsonProperty("got")
+    @JsonProperty("#object")
     private String got;
 
     @JsonProperty("#id")

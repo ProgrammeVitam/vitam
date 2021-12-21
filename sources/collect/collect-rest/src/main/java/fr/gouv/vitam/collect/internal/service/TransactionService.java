@@ -30,16 +30,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.ObjectGroupModel;
 import fr.gouv.vitam.collect.internal.model.UnitModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.exception.*;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -51,20 +61,36 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetadataType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceType;
+import org.apache.tika.Tika;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class TransactionService {
 
     private final CollectService collectService;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
-    private static final String FOLDER_SIP = "SIP";
+    private static final String FOLDER_CONTENT = "Content";
     private static final String RESULTS = "$results";
+    private final Tika tika = new Tika();
+    private final FormatIdentifierFactory formatIdentifierFactory;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
 
@@ -73,36 +99,37 @@ public class TransactionService {
         WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl());
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
+        this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
     }
 
     public Optional<CollectModel> verifyAndGetCollectByTransaction(String transactionId)
-        throws InvalidParseOperationException {
+            throws InvalidParseOperationException {
         return collectService.findCollect(transactionId);
     }
 
     public void uploadVerifications(String archiveUnitId, String gotId)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, MetadataInvalidSelectException {
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException,
+            MetaDataDocumentSizeException, MetaDataNotFoundException, MetadataInvalidSelectException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             JsonNode archiveUnitJsonNode =
-                metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
+                    metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
 
             RequestResponseOK<UnitModel> archiveUnitResponse =
-                RequestResponseOK.getFromJsonNode(archiveUnitJsonNode, UnitModel.class);
+                    RequestResponseOK.getFromJsonNode(archiveUnitJsonNode, UnitModel.class);
             UnitModel unitModel = archiveUnitResponse.getFirstResult();
 
             //Check archiveUnit contains got
             if (unitModel == null || unitModel.getGot() == null || !unitModel.getGot().equals(gotId)) {
                 LOGGER.debug("Got with id({}) is not attached to archiveUnit({})", gotId, archiveUnitId);
                 throw new IllegalArgumentException(
-                    "Got with id(" + gotId + ") is not attached to archiveUnit(" + archiveUnitId + ")");
+                        "Got with id(" + gotId + ") is not attached to archiveUnit(" + archiveUnitId + ")");
             }
 
             JsonNode objectGroupJsonNode =
-                metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
+                    metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
             RequestResponseOK<ObjectGroupModel> objectGroupResponse =
-                RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
+                    RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
             ObjectGroupModel objectGroupModel = objectGroupResponse.getFirstResult();
 
             //Check Got exists
@@ -113,29 +140,35 @@ public class TransactionService {
         }
     }
 
-     public void pushSipStreamToWorkspace(String containerName, InputStream uploadedInputStream) {
+    public String pushSipStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName) throws CollectException {
         LOGGER.debug("Try to push stream to workspace...");
+        String digest = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             workspaceClient.createContainer(containerName);
-            String fileName = UUID.randomUUID().toString();
-            workspaceClient.putObject(containerName, fileName, uploadedInputStream);
-        } catch (ContentAddressableStorageException e) {
-            LOGGER.error(e);
+            workspaceClient.createFolder(containerName, FOLDER_CONTENT);
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
+            uploadedInputStream = new DigestInputStream(uploadedInputStream, messageDigest);
+            workspaceClient.putObject(containerName, FOLDER_CONTENT.concat("/").concat(fileName), uploadedInputStream);
+            digest = readMessageDigestReturn(messageDigest.digest());
+        } catch (ContentAddressableStorageException | NoSuchAlgorithmException e) {
+            LOGGER.error("Error when trying to push stream to workspace {} ", e);
+            throw new CollectException(e.getMessage());
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
         }
         LOGGER.debug(" -> push stream to workspace finished");
+        return digest;
     }
 
- public void updateGotWithBinaryInfos(String gotId, String usage)
-        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataClientServerException,
-        InvalidParseOperationException, MetaDataDocumentSizeException, MetadataInvalidSelectException {
+    public void updateGotWithBinaryInfos(String transactionId, String gotId, String usage, String fileName, String digest, int inputStreamSize, FormatIdentificationModel formatIdentifierModel)
+            throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataClientServerException,
+            InvalidParseOperationException, MetaDataDocumentSizeException, MetadataInvalidSelectException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             JsonNode objectGroupJsonNode =
-                metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
+                    metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
             RequestResponseOK<ObjectGroupModel> objectGroupResponse =
-                RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
+                    RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
             ObjectGroupModel objectGroupModel = objectGroupResponse.getFirstResult();
 
             if (objectGroupModel == null) {
@@ -144,14 +177,23 @@ public class TransactionService {
             }
 
             VersionsModel version = new VersionsModel();
-            version.setId(UUID.randomUUID().toString());
+            version.setId(collectService.createRequestIdVitamFormat().getId());
             version.setFileInfoModel(objectGroupModel.getFileInfo());
+            version.setOpi(transactionId);
+            version.setUri("Content/" + fileName);
+            version.setMessageDigest(digest);
+            version.setAlgorithm("SHA-512");
+            version.setSize(inputStreamSize);
+            version.setDataObjectVersion("BinaryMaster_1");
+            if(null != formatIdentifierModel){
+                version.setFormatIdentification(formatIdentifierModel);
+            }
 
             QualifiersModel qualifier = new QualifiersModel();
             qualifier.setQualifier(usage);
             qualifier.setVersions(List.of(version));
 
-            String qualifierToPush = "{\"$action\": [{ \"$push\": {\"qualifiers\": [" + JsonHandler.writeAsString(qualifier) + "]}}]}";
+            String qualifierToPush = "{\"$action\": [{ \"$push\": {\"_qualifiers\": [" + JsonHandler.writeAsString(qualifier) + "]}}]}";
 
             metaDataClient.updateObjectGroupById(JsonHandler.getFromString(qualifierToPush), objectGroupModel.getId());
         }
@@ -171,14 +213,14 @@ public class TransactionService {
     }
 
 
-    public JsonNode saveObjectGroupInMetaData(ObjectGroupDto objectGroupDto, String archiveUnitId){
-        String gotQuery = "{$query: {}, $projection: {}, $filter: {}, \"$data\": { \"_id\": \""+ objectGroupDto.getId()+"\", \"FileInfo\": {\n" +
-                "        \"Filename\": \""+ objectGroupDto.getFileInfo().getFileName()+"\",\"LastModified\":\""+objectGroupDto.getFileInfo().getLastModified() +"\"} }}";
+    public JsonNode saveObjectGroupInMetaData(ObjectGroupDto objectGroupDto, String archiveUnitId) {
+        String gotQuery = "{$query: {}, $projection: {}, $filter: {}, \"$data\": { \"_id\": \"" + objectGroupDto.getId() + "\", \"FileInfo\": {\n" +
+                "        \"Filename\": \"" + objectGroupDto.getFileInfo().getFileName() + "\",\"LastModified\":\"" + objectGroupDto.getFileInfo().getLastModified() + "\"} }}";
         JsonNode jsonNode = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            jsonNode =  metaDataClient.insertObjectGroup(JsonHandler.getFromString(gotQuery));
+            jsonNode = metaDataClient.insertObjectGroup(JsonHandler.getFromString(gotQuery));
             if (jsonNode != null) {
-                String archiveUnitToPush = "{\"$roots\": [ \""+ archiveUnitId +"\" ],$query: {}, $projection: {}, $filter: {}, $action:[ { $set : {\"_id\": \""+ archiveUnitId +"\" , \"_og\" :\"" + objectGroupDto.getId()+"\" , \"_mgt\":{} ,\"DescriptionLevel\":\"Item\" } } ]}";
+                String archiveUnitToPush = "{\"$roots\": [ \"" + archiveUnitId + "\" ],$query: {}, $projection: {}, $filter: {}, $action:[ { $set : {\"_id\": \"" + archiveUnitId + "\" , \"_og\" :\"" + objectGroupDto.getId() + "\" , \"_mgt\":{} } } ]}";
                 metaDataClient.updateUnitBulk(JsonHandler.getFromString(archiveUnitToPush));
 
             }
@@ -190,12 +232,12 @@ public class TransactionService {
     }
 
 
-    public ArrayNode getArchiveUnitById(String archiveUnitId){
+    public ArrayNode getArchiveUnitById(String archiveUnitId) {
         ArrayNode result = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             JsonNode archiveUnitJsonNode = metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
             return (ArrayNode) archiveUnitJsonNode.get(RESULTS);
-        } catch (MetaDataDocumentSizeException  | MetaDataClientServerException | MetaDataExecutionException |InvalidParseOperationException e) {
+        } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return result;
         }
@@ -204,8 +246,10 @@ public class TransactionService {
     private BulkUnitInsertEntry getBulkUnitInsertEntry(ArchiveUnitDto archiveUnitDto, Integer tenantId)
             throws InvalidParseOperationException {
         String uaData =
-                "{ \"_id\": \"" + archiveUnitDto.getId() + "\", \"_tenant\": " + tenantId + ", " + "\"data\": \"data1\"," +
-                        "\"Title\": \"" + archiveUnitDto.getContent().getTitle() + "\" }";
+                "{ \"_id\": \"" + archiveUnitDto.getId() + "\",\"DescriptionLevel\": \"RecordGrp\", \"_tenant\": " + tenantId + "," +
+                        "\"Title\": \"" + archiveUnitDto.getContent().getTitle() + "\",\"_opi\":\"" + archiveUnitDto.getTransactionId() +
+                        "\",\"Description\":\"" + archiveUnitDto.getContent().getDescription() + "\"" +
+                        ", \"_up\": \""+ archiveUnitDto.getParentUnit()+"\"}";
 
         if (null == archiveUnitDto.getParentUnit()) {
             return new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(uaData));
@@ -213,4 +257,66 @@ public class TransactionService {
             return new BulkUnitInsertEntry(Set.of(archiveUnitDto.getParentUnit()), JsonHandler.getFromString(uaData));
         }
     }
+
+    public String sanitizeFileName(String fileName) {
+        fileName = fileName.replaceAll("[^a-zA-Z0-9.]", "");
+        return fileName;
+    }
+
+    public String readMessageDigestReturn(byte[] theDigestResult) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : theDigestResult) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.toString().toLowerCase();
+    }
+
+
+    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+
+    public FormatIdentificationModel getFormatIdentification(String transactionId, String ObjectName) {
+        FormatIdentifier formatIdentifier;
+        try {
+            formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                if (workspaceClient.isExistingContainer(transactionId)) {
+                    InputStream is = workspaceClient.getObject(transactionId, "Content/" + ObjectName).readEntity(InputStream.class);
+                    Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), ObjectName);
+                    Files.copy(is, path);
+                    File tmpFile = path.toFile();
+                    final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
+                    final FormatIdentifierResponse format = getFirstPronomFormat(formats);
+                    FormatIdentificationModel formatIdentificationModel = new FormatIdentificationModel();
+                    formatIdentificationModel.setFormatId(format.getPuid());
+                    formatIdentificationModel.setMimeType(format.getMimetype());
+                    formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
+                    Files.delete(path);
+                    return formatIdentificationModel;
+                }
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException e) {
+                e.printStackTrace();
+            }
+        } catch (final FormatIdentifierNotFoundException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
+                    FORMAT_IDENTIFIER_ID), e);
+        } catch (final FormatIdentifierFactoryException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
+                    FORMAT_IDENTIFIER_ID), e);
+            ;
+        } catch (final FormatIdentifierTechnicalException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
+                    e);
+        }
+        return null;
+    }
+
+    private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
+        for (final FormatIdentifierResponse format : formats) {
+            if (FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
+                return format;
+            }
+        }
+        return null;
+    }
+
 }

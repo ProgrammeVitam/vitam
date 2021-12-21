@@ -28,6 +28,9 @@ package fr.gouv.vitam.collect.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Collect model
  */
@@ -36,11 +39,19 @@ public class CollectModel {
     @JsonProperty("Id")
     private String id;
 
+    @JsonProperty(value = "idGots", required = false)
+    private Set<String> idGots;
+
     public CollectModel() {
     }
 
     public CollectModel(String requestId) {
         this.id = requestId;
+    }
+
+    public CollectModel(String id, Set<String> idGots) {
+        this.id = id;
+        this.idGots = idGots;
     }
 
     public String getId() {
@@ -49,5 +60,16 @@ public class CollectModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Set<String> getIdGots() {
+        if(null == idGots){
+            return new HashSet<>();
+        }
+        return idGots;
+    }
+
+    public void setIdGots(Set<String> idGots) {
+        this.idGots = idGots;
     }
 }

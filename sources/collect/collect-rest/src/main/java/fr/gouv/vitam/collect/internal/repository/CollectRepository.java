@@ -36,8 +36,11 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.*;
 
 /**
  * repository for identity certificate entities  management in mongo.
@@ -66,6 +69,19 @@ public class CollectRepository{
     public void createCollect(CollectModel collectModel) throws InvalidParseOperationException {
         String json = JsonHandler.writeAsString(collectModel);
         collectCollection.insertOne(Document.parse(json));
+    }
+
+
+    /**
+     * replace a collect model
+     *
+     * @param collectModel
+     * @throws InvalidParseOperationException
+     */
+    public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
+        String json = JsonHandler.writeAsString(collectModel);
+        final Bson condition = and(eq("Id", collectModel.getId()));
+        collectCollection.replaceOne(condition , Document.parse(json));
     }
 
     /**

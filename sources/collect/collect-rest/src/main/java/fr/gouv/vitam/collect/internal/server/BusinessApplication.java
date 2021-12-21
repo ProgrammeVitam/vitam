@@ -30,6 +30,8 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.service.GenerateSipService;
+import fr.gouv.vitam.collect.internal.service.IngestSipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
@@ -77,6 +79,8 @@ public class BusinessApplication extends ConfigurationApplication {
 
             CollectRepository collectRepository = new CollectRepository(mongoDbAccess);
             CollectService collectService = new CollectService(collectRepository);
+            GenerateSipService generateSipService = new GenerateSipService();
+            IngestSipService ingestSipService = new IngestSipService();
             TransactionService
                 transactionService = new TransactionService(collectService, configuration);
             commonBusinessApplication = new CommonBusinessApplication();
@@ -86,7 +90,7 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(new ApplicationStatusResource());
-            singletons.add(new TransactionResource(collectService, transactionService));
+            singletons.add(new TransactionResource(collectService, transactionService, generateSipService, ingestSipService));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

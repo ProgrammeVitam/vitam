@@ -1,0 +1,11 @@
+serverHost: {{ vitam.ingestexternal.host }}
+serverPort: {{ vitam.ingestexternal.port_service }}
+secure: true
+sslConfiguration :
+ keystore :
+  - keyPath: {{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.p12
+    keyPassword: {{ keystores.client_external.ihm_demo }}
+ truststore :
+  - keyPath: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
+    keyPassword: {{ truststores.client_external }}
+hostnameVerification: true

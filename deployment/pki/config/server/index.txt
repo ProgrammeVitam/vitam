@@ -119,3 +119,9 @@ V	241109143539Z		0119	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer-fs-1.service
 V	241109143542Z		011A	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.fulllocal.consul
 V	241109143544Z		011B	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.fulllocal.consul
 V	241109143545Z		011C	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect.service.fulllocal.consul
+V	250111161243Z		011D	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.fulllocal.consul
+V	250111161245Z		011E	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.fulllocal.consul
+V	250111161248Z		011F	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer-fs-1.service.fulllocal.consul
+V	250111161250Z		0120	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.fulllocal.consul
+V	250111161252Z		0121	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.fulllocal.consul
+V	250111161253Z		0122	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect.service.fulllocal.consul

@@ -259,6 +259,7 @@ generateClientCertAndStorePassphrase        gatling                  client-exte
 generateClientCertAndStorePassphrase        vitam-admin-int          client-external
 generateClientCertAndStorePassphrase        ihm-recette              client-external
 generateClientCertAndStorePassphrase        reverse                  client-external
+generateClientCertAndStorePassphrase        collect                  client-external
 
 # Generate storage certificates
 pki_logger "Génération des certificats storage"

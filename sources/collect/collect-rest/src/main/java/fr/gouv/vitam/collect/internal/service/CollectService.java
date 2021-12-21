@@ -28,13 +28,19 @@ package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class CollectService {
     private final CollectRepository collectRepository;
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
 
     public CollectService(CollectRepository collectRepository) {
         this.collectRepository = collectRepository;
@@ -62,7 +68,16 @@ public class CollectService {
         return collectRepository.findCollect(id);
     }
 
+    public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
+        collectRepository.replaceCollect(collectModel);
+    }
+
     public String createRequestId() {
-        return UUID.randomUUID().toString();
+        return GUIDFactory.newRequestIdGUID(0).getId();
+        //return UUID.randomUUID().toString();
+    }
+
+    public GUID createRequestIdVitamFormat(){
+        return GUIDFactory.newRequestIdGUID(0);
     }
 }
