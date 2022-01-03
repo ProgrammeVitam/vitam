@@ -69,7 +69,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
-import org.apache.logging.log4j.util.Strings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,6 +80,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class TapeLibraryFactory {
 
@@ -287,10 +288,10 @@ public class TapeLibraryFactory {
 
     private void createWorkingDirectories(TapeLibraryConfiguration configuration) throws IOException {
 
-        if (Strings.isBlank(configuration.getInputFileStorageFolder()) ||
-            Strings.isBlank(configuration.getInputTarStorageFolder()) ||
-            Strings.isBlank(configuration.getTmpTarOutputStorageFolder()) ||
-            Strings.isBlank(configuration.getCachedTarStorageFolder())) {
+        if (isBlank(configuration.getInputFileStorageFolder()) ||
+            isBlank(configuration.getInputTarStorageFolder()) ||
+            isBlank(configuration.getTmpTarOutputStorageFolder()) ||
+            isBlank(configuration.getCachedTarStorageFolder())) {
             throw new VitamRuntimeException("Tape storage configuration");
         }
         createDirectory(configuration.getInputFileStorageFolder());
