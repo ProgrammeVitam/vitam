@@ -71,14 +71,21 @@ Après le passage du script de migration, il faut procéder à la réindexation 
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass``
 
+Cette migration devrait être faite avant la montée de version V5.
+
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.
 
 Augmenter la précision sur le nombre de résultats retournés dépassant 10000
 ---------------------------------------------------------------------------
 
 Suite à une évolution d'ElasticSearch ( à partir de la version 7.6 ), le nombre maximum de résultats retournés est limité à 10000. Ceci est dû à la haute consommation de ressources de ce calcul, qui est parfois inutile au niveau de la réponse.
-En cas de besoin pour avoir le nombre exact de résultats retournés, il faut, en premier temps, activer le paramètre nommé ``authorizeTrackTotalHits`` qui existe au niveau du fichier de configuration ``access-external.conf``. Ensuite, si l'API de recherche
-utilise le type d'entrée de DSL "SELECT_MULTIPLE", il faut ajouter ``$track_total_hits : true`` au niveau de la partie "filter" de la requête d'entrée.
+En cas de besoin pour avoir le nombre exact de résultats retournés, il faut, en premier temps, activer le paramètre nommé ``authorizeTrackTotalHits`` qui existe au niveau du fichier de configuration ``access-external.conf``.
+Ci-dessous, un exemple du fichier en question :
+
+.. literalinclude:: ../../../../../deployment/ansible-vitam/roles/vitam/templates/access-external/access-external.conf.j2
+   :language: yaml
+
+Ensuite, si l'API de recherche utilise le type d'entrée de DSL "SELECT_MULTIPLE", il faut ajouter ``$track_total_hits : true`` au niveau de la partie "filter" de la requête d'entrée.
 Ci-dessous, un exemple de requête d'entrée :
 
 .. code-block:: json
@@ -114,3 +121,5 @@ ou, si vault_pass.txt n'a pas été renseigné :
 
 En cas d'installation multi-sites, il faut obligatoirement lancer cette migration sur le site 1 et sur les autres sites si les reconstructions ont été faites correctement
 et la collection ``logbook`` est synchrone par rapport à celle du site 1.
+
+Cette migration devrait être faite après la montée de version V5.
