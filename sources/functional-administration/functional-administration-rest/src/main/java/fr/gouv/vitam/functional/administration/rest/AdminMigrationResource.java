@@ -281,8 +281,11 @@ public class AdminMigrationResource {
             }
             ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
 
-            if (VitamThreadUtils.getVitamSession().getTenantId() == null && accessionRegister.getTenant() != null) {
+            if ( accessionRegister.getTenant() != null) {
                 VitamThreadUtils.getVitamSession().setTenantId(accessionRegister.getTenant());
+            } else {
+                throw new ValidationException(
+                    String.format("The Tenant of the document's ID : %s is not setted !", accessionRegister.getId()));
             }
 
             try (ReferentialAccessionRegisterImpl accessionRegisterManagement =

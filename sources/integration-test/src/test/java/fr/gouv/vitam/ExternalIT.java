@@ -180,6 +180,7 @@ public class ExternalIT extends VitamRuleRunner {
         runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
+        shutdownUsedFactoriesCLients();
     }
 
     public static class IngestExternal {
@@ -804,5 +805,10 @@ public class ExternalIT extends VitamRuleRunner {
                     " }";
             return accessExternalClient.selectUnits(vitamContext, JsonHandler.getFromString(queryDsl));
         }
+    }
+    private static void shutdownUsedFactoriesCLients() {
+        AdminExternalClientFactory.getInstance().shutdown();
+        IngestExternalClientFactory.getInstance().shutdown();
+        AccessExternalClientFactory.getInstance().shutdown();
     }
 }
