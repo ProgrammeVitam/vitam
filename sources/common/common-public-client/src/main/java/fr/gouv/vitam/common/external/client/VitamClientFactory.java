@@ -440,10 +440,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             allManagers.remove(chunkedPoolingManager);
             chunkedPoolingManager.close();
+            givenClient = null;
         }
         if (notChunkedPoolingManager != null && notChunkedPoolingManager != POOLING_CONNECTION_MANAGER_NOT_CHUNKED) {
             allManagers.remove(notChunkedPoolingManager);
             notChunkedPoolingManager.close();
+            givenClientNotChunked = null;
         }
     }
 

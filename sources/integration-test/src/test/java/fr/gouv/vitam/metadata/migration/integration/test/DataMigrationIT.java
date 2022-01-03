@@ -30,6 +30,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -38,20 +41,28 @@ import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.DataMigrationBody;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -90,6 +101,7 @@ import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -101,9 +113,11 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.HEAD;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,9 +131,13 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.COMMENT;
+import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.OB_ID_IN;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class DataMigrationIT extends VitamRuleRunner {
 
@@ -138,7 +156,8 @@ public class DataMigrationIT extends VitamRuleRunner {
                 AccessInternalMain.class,
                 IngestInternalMain.class,
                 StorageMain.class,
-                DefaultOfferMain.class
+                DefaultOfferMain.class,
+                AccessExternalMain.class
             ));
 
     @Rule
@@ -151,12 +170,18 @@ public class DataMigrationIT extends VitamRuleRunner {
     private static final String BASIC_AUTHN_PWD = "pwd";
     private static final String ADMIN_MANAGEMENT_URL =
         "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
+    public static final String CONTRACT_ID = "aName";
+    public static final String CONTEXT_IT = "Context_IT";
+    public static final String IB_ID_IN_EXAMPLE = "TestObIdInForMigration";
+    public static final VitamContext VITAM_CONTEXT = new VitamContext(TENANT_ID).setAccessContract(CONTRACT_ID);
+
     private static MetadataAdminDataMigrationService metadataAdminDataMigrationService;
+    private static AdminExternalClient adminExternalClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1, 2), Collections.emptyMap());
-
+        adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
 
         new DataLoader("integration-processing").prepareData();
@@ -175,8 +200,8 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     public static void prepareVitamSession() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setContractId("aName");
-        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
+        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_IT);
     }
 
     @AfterClass
@@ -186,12 +211,14 @@ public class DataMigrationIT extends VitamRuleRunner {
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
+        shutdownUsedFactoriesCLients();
     }
 
     @After
     public void afterTest() {
-        VitamThreadUtils.getVitamSession().setContractId("aName");
-        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
+        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_IT);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
         runAfterMongo(Sets.newHashSet(
@@ -244,7 +271,7 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         waitMigration();
 
-        checkReport(requestId, Collections.emptyList(), Collections.emptyList());
+        checkReport(requestId, Collections.emptyList());
     }
 
     @Test
@@ -296,7 +323,85 @@ public class DataMigrationIT extends VitamRuleRunner {
             checkStoredUnit(rawUnitsById.get(unitId), rawUnitLfcById.get(unitId));
         }
 
-       checkReport(requestId, unitsBefore, Collections.emptyList());
+       checkReport(requestId, unitsBefore);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void startAccessionRegisterDetailsCollectionMigrationWithNoComments() throws Exception {
+        // Given
+        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery =
+            getAcRegDetBeforeMigration("migration_v5/1_UNIT_1_GOT_WITH_EMPTY_COMMENT.zip");
+
+        // Run Migration
+        DataMigrationBody dataMigrationBody =
+            new DataMigrationBody(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                List.of(OB_ID_IN, COMMENT), JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft()));
+        Response<Void> response =
+            metadataAdminDataMigrationService.runtCollectionMigration(dataMigrationBody).execute();
+
+        // Then
+        assertThat(response.isSuccessful()).isTrue();
+            RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
+                .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
+            AccessionRegisterDetailModel acRegDetAfterUpdate =
+                ((RequestResponseOK<AccessionRegisterDetailModel>)
+                    acRegDetResponseAfterUpdate).getResults().get(0);
+            assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
+            assertNull(acRegDetAfterUpdate.getComment());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void startAccessionRegisterDetailsCollectionMigration_withMultipleComments() throws Exception {
+        // Given
+        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery =
+            getAcRegDetBeforeMigration("migration_v5/1_UNIT_1_GOT_WITH_MULTIPLE_COMMENTS.zip");
+
+        // Run Migration
+        DataMigrationBody dataMigrationBody =
+            new DataMigrationBody(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                List.of(OB_ID_IN, COMMENT), JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft()));
+        Response<Void> response =
+            metadataAdminDataMigrationService.runtCollectionMigration(dataMigrationBody).execute();
+
+        // Then
+        assertThat(response.isSuccessful()).isTrue();
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
+            .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
+        AccessionRegisterDetailModel acRegDetAfterUpdate =
+            ((RequestResponseOK<AccessionRegisterDetailModel>)
+                acRegDetResponseAfterUpdate).getResults().get(0);
+        assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
+        assertEquals(2, acRegDetAfterUpdate.getComment().size());
+    }
+
+    private Pair<AccessionRegisterDetailModel, JsonNode> getAcRegDetBeforeMigration(String ingestZip)
+        throws VitamException, InvalidCreateOperationException {
+        prepareVitamSession();
+        String operationId = VitamTestHelper.doIngest(TENANT_ID, ingestZip);
+        verifyOperation(operationId, OK);
+
+        JsonNode queryDslByOpi = getQueryDslByOpi(operationId);
+
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseBeforeUpdate = adminExternalClient
+            .findAccessionRegisterDetails(VITAM_CONTEXT, queryDslByOpi);
+
+        AccessionRegisterDetailModel acRegDetBeforeUpdate =
+            ((RequestResponseOK<AccessionRegisterDetailModel>)
+                acRegDetResponseBeforeUpdate).getResults().get(0);
+
+        // Simulate update in comment ( wich is already done in migration playbook ) to avoid update identical document Exception in Mongo
+        acRegDetBeforeUpdate.setObIdIn(IB_ID_IN_EXAMPLE);
+
+        return Pair.of(acRegDetBeforeUpdate, queryDslByOpi);
+    }
+
+    private JsonNode getQueryDslByOpi(String Opi) throws InvalidCreateOperationException {
+        Select select = new Select();
+        Query query = QueryHelper.eq(AccessionRegisterDetailModel.OPI, Opi);
+        select.setQuery(query);
+        return select.getFinalSelect();
     }
 
     private void waitMigration() throws IOException {
@@ -333,7 +438,7 @@ public class DataMigrationIT extends VitamRuleRunner {
         }
     }
 
-    private void checkReport(String operationId, List<JsonNode> units, List<JsonNode> objectGroups)
+    private void checkReport(String operationId, List<JsonNode> units)
         throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException,
         StorageUnavailableDataFromAsyncOfferClientException {
 
@@ -407,6 +512,10 @@ public class DataMigrationIT extends VitamRuleRunner {
         }
     }
 
+    private static void shutdownUsedFactoriesCLients() {
+        AdminExternalClientFactory.getInstance().shutdown();
+    }
+
     private String getBasicAuthnToken() {
         return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
     }
@@ -418,6 +527,9 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         @HEAD("/adminmanagement/v1/migrationStatus")
         Call<Void> checkDataMigration(@Header("Authorization") String basicAuthnToken);
+
+        @PUT("/adminmanagement/v1/collectionMigration")
+        Call<Void> runtCollectionMigration(@Body DataMigrationBody dataMigrationBody);
 
     }
 }

@@ -74,6 +74,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -492,7 +493,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             List<Action> actions = new ArrayList<>();
 
-            if (fieldsToUpdate.contains(AccessionRegisterDetail.COMMENT)) {
+            if (CollectionUtils.isNotEmpty(accessionRegister.getComment()) &&
+                fieldsToUpdate.contains(AccessionRegisterDetail.COMMENT)) {
                 actions.add(new SetAction(AccessionRegisterDetail.COMMENT, accessionRegister.getComment()));
             }
 
