@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -51,14 +52,13 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static fr.gouv.vitam.worker.core.plugin.dip.DipCheckResourceAvailability.GUID_TO_INFO_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability.GUID_TO_INFO_RANK;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,7 +70,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
-public class DipCheckResourceAvailabilityTest {
+public class ExportCheckResourceAvailabilityTest {
     private final String objectId = "TEST_ID";
     private final String accessRequestId = "ACCESS_TEST_ID";
     @Rule
@@ -83,7 +83,7 @@ public class DipCheckResourceAvailabilityTest {
     private StorageClientFactory storageClientFactory;
 
     @InjectMocks
-    private DipCheckResourceAvailability plugin;
+    private ExportCheckResourceAvailability plugin;
 
     @Mock
     private HandlerIO handler;
@@ -96,7 +96,7 @@ public class DipCheckResourceAvailabilityTest {
         reset(storageClientFactory);
         reset(storageClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
-        plugin = new DipCheckResourceAvailability(storageClientFactory);
+        plugin = new ExportCheckResourceAvailability(storageClientFactory);
     }
 
 
@@ -104,8 +104,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_available_resource_should_return_ok() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_mono_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
         BulkObjectAvailabilityRequest request =
             new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
@@ -128,8 +128,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_unavailable_resource_should_throw_retry_exception() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_mono_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
         BulkObjectAvailabilityRequest request =
             new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
@@ -160,8 +160,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_storage_serverclientexception_should_throw_processing_exception() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_mono_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
         BulkObjectAvailabilityRequest request =
             new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
@@ -181,8 +181,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_3_available_resource_should_return_3_ok() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_mono_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext(3);
         BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.OBJECT,
             List.of(objectId + "0", objectId + "1", objectId + "2"));
@@ -209,8 +209,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_3_available_resource_in_diff_strategies_should_return_3_ok() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_multi_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_multi_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext("10", "20", "11");
 
         BulkObjectAvailabilityRequest request1 =
@@ -241,8 +241,8 @@ public class DipCheckResourceAvailabilityTest {
     @RunWithCustomExecutor
     public void given_1_on_3_unavailable_resource_in_diff_strategies_should_return_1_accessRequest() throws Exception {
         // Given
-        URL url = this.getClass().getResource("/DipCheckResourceAvailability/guid_to_path_multi_strategy.json");
-        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
+        File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_multi_strategy.json");
+        given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext("10", "20", "11");
 
         BulkObjectAvailabilityRequest request1 =

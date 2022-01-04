@@ -9,7 +9,7 @@ public class DataRectificationHelper {
         // Empty
     }
 
-    public static boolean doCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
+    public static boolean canDoCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
         List<String> badOffers) {
         if (offers.isEmpty()) {
             return false;

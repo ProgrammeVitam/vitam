@@ -80,7 +80,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.plugin.dip.DipCheckResourceAvailability;
+import fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -241,7 +241,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
             .contains(
-                tuple(DipCheckResourceAvailability.PLUGIN_NAME, StatusCode.OK.name())
+                tuple(ExportCheckResourceAvailability.PLUGIN_NAME, StatusCode.OK.name())
             );
 
 

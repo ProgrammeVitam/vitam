@@ -338,7 +338,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         return evidenceAuditOperationGUID.toString();
     }
 
-    private String changeMetadataUnitInMongo(String ingestOperationId, String deletedGotId)
+    private String changeMetadataUnitInMongo(String ingestOperationId, String... deletedGotId)
         throws Exception {
         try (final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
@@ -348,6 +348,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             select.addQueries(QueryHelper.and()
                 .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOperationId))
                 .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.object(), deletedGotId)))
+                .add(QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.object())))
             );
             // Get AU and update it
             final JsonNode unitResult = metaDataClient.selectUnits(select.getFinalSelect());
@@ -357,7 +358,10 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             JsonNode unit = unitResult.get("$results").get(0);
             assertThat(unit).isNotNull();
             final String unitId = unit.get("#id").asText();
-            final String gotId = unit.get("#object").asText("EMPTY");
+            String gotId = "EMPTY";
+            if(unit.has("#object")){
+                gotId = unit.get("#object").asText();
+            }
             Bson filterUnit = Filters.eq("_id", unitId);
             Bson updateUnit = Updates.set("Title", "title");
             UpdateResult updateUnitResult = MetadataCollections.UNIT.getCollection().updateOne(filterUnit, updateUnit);

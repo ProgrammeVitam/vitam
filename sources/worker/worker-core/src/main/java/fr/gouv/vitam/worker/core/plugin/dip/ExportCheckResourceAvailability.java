@@ -41,7 +41,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.common.CheckResourceAvailability;
-import fr.gouv.vitam.worker.core.plugin.preservation.PreservationCheckResourceAvailability;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 
 import java.io.File;
@@ -57,18 +56,18 @@ import java.util.stream.IntStream;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.stream.Collectors.toList;
 
-public class DipCheckResourceAvailability extends CheckResourceAvailability {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationCheckResourceAvailability.class);
-    public static final String PLUGIN_NAME = "DIP_CHECK_RESOURCE_AVAILABILITY";
+public class ExportCheckResourceAvailability extends CheckResourceAvailability {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportCheckResourceAvailability.class);
+    public static final String PLUGIN_NAME = "EXPORT_CHECK_RESOURCE_AVAILABILITY";
 
     static final int GUID_TO_INFO_RANK = 0;
 
-    public DipCheckResourceAvailability() {
+    public ExportCheckResourceAvailability() {
         this(StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public DipCheckResourceAvailability(StorageClientFactory storage) {
+    public ExportCheckResourceAvailability(StorageClientFactory storage) {
         super(storage);
     }
 

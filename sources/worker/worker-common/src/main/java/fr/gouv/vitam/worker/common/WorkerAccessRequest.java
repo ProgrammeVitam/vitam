@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.common;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -33,13 +34,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class WorkerAccessRequest {
     @JsonProperty("accessRequestId")
-    private String accessRequestId;
+    private final String accessRequestId;
     @JsonProperty("strategyId")
-    private String strategyId;
+    private final String strategyId;
     @JsonProperty("offerId")
-    private String offerId;
+    private final String offerId;
 
 
+    @JsonCreator
     public WorkerAccessRequest(@JsonProperty("accessRequestId") String accessRequestId,
         @JsonProperty("strategyId") String strategyId, @JsonProperty("offerId") String offerId) {
         this.accessRequestId = accessRequestId;
@@ -47,31 +49,15 @@ public class WorkerAccessRequest {
         this.offerId = offerId;
     }
 
-    public WorkerAccessRequest() {
-
-    }
-
     public String getAccessRequestId() {
         return accessRequestId;
-    }
-
-    public void setAccessRequestId(String accessRequestId) {
-        this.accessRequestId = accessRequestId;
     }
 
     public String getStrategyId() {
         return strategyId;
     }
 
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
-    }
-
     public String getOfferId() {
         return offerId;
-    }
-
-    public void setOfferId(String offerId) {
-        this.offerId = offerId;
     }
 }

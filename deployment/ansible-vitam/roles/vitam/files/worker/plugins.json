@@ -120,8 +120,8 @@
   "MIGRATION_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.migration.MigrationFinalize"
   },
-  "DIP_CHECK_RESOURCE_AVAILABILITY": {
-    "className": "fr.gouv.vitam.worker.core.plugin.dip.DipCheckResourceAvailability"
+  "EXPORT_CHECK_RESOURCE_AVAILABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability"
   },
   "PUT_BINARY_ON_WORKSPACE": {
     "className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",

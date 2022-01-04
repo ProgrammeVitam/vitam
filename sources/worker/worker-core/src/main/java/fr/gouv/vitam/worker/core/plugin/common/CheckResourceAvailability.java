@@ -34,7 +34,6 @@ import fr.gouv.vitam.processing.common.async.AccessRequestContext;
 import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectAvailabilityRequest;
@@ -68,12 +67,11 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      *
      * @param objectIdsByContextbyType object ids by context (strategy/offer) by type
      * @throws StorageServerClientException exception from storage
-     * @throws StorageNotFoundClientException exception from storage client
      * @throws ProcessingRetryAsyncException exception thrown when some resources are unavailable
      */
     protected void checkResourcesAvailabilityByTypes(
         Map<DataCategory, Map<AccessRequestContext, List<String>>> objectIdsByContextbyType)
-        throws StorageServerClientException, StorageNotFoundClientException,
+        throws StorageServerClientException,
         ProcessingRetryAsyncException {
         LOGGER.info("Check if resources are available for multiple categories.");
         Map<AccessRequestContext, List<String>> accessRequestsCreated = new HashMap<>();
@@ -101,12 +99,11 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @param objectIdsByContext object ids by context (strategy/offer)
      * @param type data category type
      * @throws StorageServerClientException exception from storage
-     * @throws StorageNotFoundClientException exception from storage client
      * @throws ProcessingRetryAsyncException exception thrown when some resources are unavailable
      */
     protected void checkResourcesAvailability(Map<AccessRequestContext, List<String>> objectIdsByContext,
         DataCategory type)
-        throws StorageServerClientException, StorageNotFoundClientException,
+        throws StorageServerClientException,
         ProcessingRetryAsyncException {
         LOGGER.info("Check if resources are available.");
         MultiValuedMap<AccessRequestContext, String> unavailableResources =
@@ -126,11 +123,11 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @param type data category type
      * @return unavailable objects ids by context
      * @throws StorageServerClientException exception from storage
-     * @throws StorageNotFoundClientException exception from storage client
      */
     private MultiValuedMap<AccessRequestContext, String> extractUnavailableResources(
         Map<AccessRequestContext, List<String>> objectIdsByContext, DataCategory type)
-        throws StorageServerClientException, StorageNotFoundClientException {
+        throws StorageServerClientException {
+        LOGGER.debug("Extract the resources that are unavailable");
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             MultiValuedMap<AccessRequestContext, String> unavailableObjects = new ArrayListValuedHashMap<>();
             for (AccessRequestContext context : objectIdsByContext.keySet()) {
@@ -167,6 +164,7 @@ public abstract class CheckResourceAvailability extends ActionHandler {
     private Map<AccessRequestContext, List<String>> createAccessRequests(
         MultiValuedMap<AccessRequestContext, String> objectIdsByContext, DataCategory type)
         throws StorageServerClientException {
+        LOGGER.debug("Create access requests if required");
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             Map<AccessRequestContext, List<String>> accessRequests = new HashMap<>();
             for (AccessRequestContext context : objectIdsByContext.keySet()) {
@@ -176,14 +174,15 @@ public abstract class CheckResourceAvailability extends ActionHandler {
                 while (objectIdsIterator.hasNext()) {
                     List<String> objectIdsBulk = objectIdsIterator.next();
                     objectIdsBulk.forEach(item -> {
-                        System.out.println(context.getStrategyId()+" "+context.getOfferId()+" "+type+" "+item);
+                        LOGGER.debug("Create access requests if required for "+
+                            context.getStrategyId() + " " + context.getOfferId() + " " + type + " " + item);
                     });
-
                     Optional<String> accessRequestId =
                         storageClient.createAccessRequestIfRequired(context.getStrategyId(), context.getOfferId(), type,
                             objectIdsBulk);
-                    accessRequestId.ifPresent(
-                        id -> accessRequests.computeIfAbsent(context, (x -> new ArrayList<>())).add(id));
+                    accessRequestId.ifPresentOrElse(
+                        id -> accessRequests.computeIfAbsent(context, (x -> new ArrayList<>())).add(id),
+                        () -> LOGGER.warn("Access Request was not created"));
                 }
             }
             return accessRequests;

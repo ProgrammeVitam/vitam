@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -54,7 +55,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,8 +122,9 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_available_resource_should_return_ok() throws Exception {
         // Given
         // Unit
-        URL unitUrl = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(new File(unitUrl.toURI()));
+        File file = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
+
 
         initWorkflowContext(unitId);
         BulkObjectAvailabilityRequest request =
@@ -146,8 +147,8 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_unavailable_resource_should_throw_retry_exception() throws Exception {
         // Given
         // Unit
-        URL unitUrl = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(new File(unitUrl.toURI()));
+        File file = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
 
         initWorkflowContext(unitId);
         BulkObjectAvailabilityRequest request =
@@ -161,7 +162,7 @@ public class DataRectificationCheckResourceAvailabilityTest {
             .willReturn(response);
         given(
             storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-                eq(List.of(unitId+".json"))))
+                eq(List.of(unitId + ".json"))))
             .willReturn(Optional.of(accessRequestId));
         // When + Then
         assertThatThrownBy(() -> plugin.executeList(parameter, handler)).isInstanceOf(
@@ -172,7 +173,7 @@ public class DataRectificationCheckResourceAvailabilityTest {
         verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
             any(BulkObjectAvailabilityRequest.class));
         verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"),
-            eq(DataCategory.UNIT), eq(List.of(unitId+".json")));
+            eq(DataCategory.UNIT), eq(List.of(unitId + ".json")));
 
     }
 
@@ -181,8 +182,8 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_storage_serverclientexception_should_throw_processing_exception() throws Exception {
         // Given
         // Unit
-        URL unitUrl = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(new File(unitUrl.toURI()));
+        File file = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
 
         initWorkflowContext(unitId);
         BulkObjectAvailabilityRequest request =
@@ -204,11 +205,11 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_2_available_resources_same_type_should_return_2_ok() throws Exception {
         // Given
         // Unit
-        URL unitUrl = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(new File(unitUrl.toURI()));
+        File file1 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file1);
         // Unit
-        URL unit2Url = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit2.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId2)).thenReturn(new File(unit2Url.toURI()));
+        File file2 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit2.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId2)).thenReturn(file2);
         initWorkflowContext(unitId, unitId2);
         BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.UNIT,
             List.of(unitId, unitId2));
@@ -233,13 +234,13 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_2_available_resource_in_diff_strategies_should_return_2_ok() throws Exception {
         // Given
         // Object Group
-        URL objectGroupUrl =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
-        when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(new File(objectGroupUrl.toURI()));
+        File file1 =
+            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
+        when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(file1);
         // Object Group
-        URL objectGroup2Url =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObjectGroup2.json");
-        when(handler.getFileFromWorkspace("alter/" + objectGroupId2)).thenReturn(new File(objectGroup2Url.toURI()));
+        File file2 =
+            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup2.json");
+        when(handler.getFileFromWorkspace("alter/" + objectGroupId2)).thenReturn(file2);
         initWorkflowContext(objectGroupId, objectGroupId2);
 
         BulkObjectAvailabilityRequest request1 =
@@ -273,17 +274,14 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_1_on_3_unavailable_resource_in_diff_context_should_return_1_accessRequest() throws Exception {
         // Given
         // Object
-        URL objectUrl =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(new File(objectUrl.toURI()));
+        File file1 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(file1);
         // Object
-        URL object2Url =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject2.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId2)).thenReturn(new File(object2Url.toURI()));
+        File file2 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject2.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId2)).thenReturn(file2);
         // Object
-        URL object3Url =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject3.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(new File(object3Url.toURI()));
+        File file3 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject3.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(file3);
         initWorkflowContext(objectId, objectId2, objectId3);
 
         BulkObjectAvailabilityRequest request1 =
@@ -324,22 +322,21 @@ public class DataRectificationCheckResourceAvailabilityTest {
         throws Exception {
         // Given
         // Unit
-        URL unitUrl = this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOUnit.json");
-        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(new File(unitUrl.toURI()));
+        File file1 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
+        when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file1);
         // Object Group
-        URL objectGroupUrl =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
-        when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(new File(objectGroupUrl.toURI()));
+        File file2 =
+            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
+        when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(file2);
         // Object
-        URL objectUrl =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(new File(objectUrl.toURI()));
+        File file3 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(file3);
         initWorkflowContext(unitId, objectGroupId, objectId);
 
         BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId+".json"));
+            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId + ".json"));
         BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECTGROUP, List.of(objectGroupId+".json"));
+            new BulkObjectAvailabilityRequest(DataCategory.OBJECTGROUP, List.of(objectGroupId + ".json"));
         BulkObjectAvailabilityRequest request3 =
             new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
         BulkObjectAvailabilityResponse response =
@@ -358,12 +355,12 @@ public class DataRectificationCheckResourceAvailabilityTest {
             response);
 
         given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-            eq(List.of(unitId+".json"))))
+            eq(List.of(unitId + ".json"))))
             .willReturn(Optional.of("accessRequestId1"));
 
         given(
             storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECTGROUP),
-                eq(List.of(objectGroupId+".json"))))
+                eq(List.of(objectGroupId + ".json"))))
             .willReturn(Optional.of("accessRequestId2"));
 
         given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
@@ -389,9 +386,9 @@ public class DataRectificationCheckResourceAvailabilityTest {
         verify(storageClient, times(3)).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
             any(BulkObjectAvailabilityRequest.class));
         verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-            eq(List.of(unitId+".json")));
+            eq(List.of(unitId + ".json")));
         verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"),
-            eq(DataCategory.OBJECTGROUP), eq(List.of(objectGroupId+".json")));
+            eq(DataCategory.OBJECTGROUP), eq(List.of(objectGroupId + ".json")));
         verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
             eq(List.of(objectId)));
     }
@@ -403,17 +400,14 @@ public class DataRectificationCheckResourceAvailabilityTest {
         // Given
         VitamConfiguration.setBatchSize(1);
         // Object
-        URL objectUrl =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(new File(objectUrl.toURI()));
+        File file1 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(file1);
         // Object
-        URL object2Url =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject2.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId2)).thenReturn(new File(object2Url.toURI()));
+        File file2 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject2.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId2)).thenReturn(file2);
         // Object
-        URL object3Url =
-            this.getClass().getResource("/DataRectificationCheckResourceAvailability/reportKOObject4.json");
-        when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(new File(object3Url.toURI()));
+        File file3 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject4.json");
+        when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(file3);
         initWorkflowContext(objectId, objectId2, objectId3);
 
         BulkObjectAvailabilityRequest requestObject =

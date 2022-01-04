@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -91,13 +90,9 @@ public class PreservationCheckResourceAvailability extends CheckResourceAvailabi
     }
 
     private Pair<AccessRequestContext, String> mapToParamsResourceDistributionLine(WorkerParameters workerParameters, int index) {
-        try {
-            String strategyId = workerParameters.getObjectMetadataList().get(index).get("sourceStrategy").asText();
-            String objectId = workerParameters.getObjectMetadataList().get(index).get("objectId").asText();
-            return new ImmutablePair<>(new AccessRequestContext(strategyId, null), objectId);
-        } catch (NullPointerException e) {
-            throw new VitamRuntimeException(e);
-        }
+        String strategyId = workerParameters.getObjectMetadataList().get(index).get("sourceStrategy").asText();
+        String objectId = workerParameters.getObjectMetadataList().get(index).get("objectId").asText();
+        return new ImmutablePair<>(new AccessRequestContext(strategyId, null), objectId);
     }
 
 }

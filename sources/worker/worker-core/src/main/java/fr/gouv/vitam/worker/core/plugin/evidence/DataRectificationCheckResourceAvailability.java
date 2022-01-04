@@ -115,7 +115,7 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
     private Optional<Pair<AccessRequestContext, String>> extractMetadata(EvidenceAuditReportLine line) {
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
-        if (DataRectificationHelper.doCorrection(line.getOffersHashes(), line.getSecuredHash(), goodOffers,
+        if (DataRectificationHelper.canDoCorrection(line.getOffersHashes(), line.getSecuredHash(), goodOffers,
             badOffers)) {
             return Optional.of(new ImmutablePair<>(new AccessRequestContext(line.getStrategyId(), goodOffers.get(0)),
                 line.getIdentifier() + ".json"));
@@ -130,7 +130,7 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
             List<String> goodOffers = new ArrayList<>();
             List<String> badOffers = new ArrayList<>();
             if (object.getEvidenceStatus() != EvidenceStatus.OK &&
-                DataRectificationHelper.doCorrection(object.getOffersHashes(), object.getSecuredHash(), goodOffers,
+                DataRectificationHelper.canDoCorrection(object.getOffersHashes(), object.getSecuredHash(), goodOffers,
                     badOffers)) {
                 entriesObject.computeIfAbsent(new AccessRequestContext(object.getStrategyId(), goodOffers.get(0)),
                     (x -> new ArrayList<>())).add(object.getIdentifier());
