@@ -54,7 +54,7 @@ public class ProcessManagementMain {
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.processing.port";
 
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     public ProcessManagementMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
@@ -63,7 +63,7 @@ public class ProcessManagementMain {
             AdminApplication.class);
         VitamApplicationInitializr.get().initialize(configurationFile);
         vitamStarter.getVitamServer().getServer()
-            .addLifeCycleListener(VitamApplicationInitializr.get().getVitamServerLifeCycle());
+            .addEventListener(VitamApplicationInitializr.get().getVitamServerLifeCycle());
     }
 
     @VisibleForTesting
