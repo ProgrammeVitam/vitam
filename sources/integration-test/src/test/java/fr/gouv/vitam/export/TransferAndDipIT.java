@@ -80,6 +80,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -226,6 +227,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         // When ArchiveDeliveryRequestReply
         String exportOperationId = exportDIP(exportRequest);
+
+        // Then
         VitamTestHelper.verifyOperation(exportOperationId, StatusCode.OK);
 
         JsonNode logbook = VitamTestHelper.findLogbook(exportOperationId);
@@ -234,9 +237,16 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(response.getResults()).isNotEmpty();
         assertThat(response.getResults().get(0).get(EV_TYPE).asText()).isEqualTo(Contexts.EXPORT_DIP.getEventType());
 
+        List<LogbookEventOperation> logbookEvents = getLogbookEvents(exportOperationId);
+
+        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
+            .contains(
+                tuple(ExportCheckResourceAvailability.PLUGIN_NAME, StatusCode.OK.name())
+            );
+
+
         String manifest = getManifestString(getDip(exportOperationId));
 
-        // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
         String header = PropertiesUtils.getResourceAsString("dip/header1");
@@ -764,11 +774,11 @@ public class TransferAndDipIT extends VitamRuleRunner {
         }
     }
 
-    private List<LogbookEventOperation> getLogbookEvents(GUID transferReplyWorkflowGuid)
+    private List<LogbookEventOperation> getLogbookEvents(String operationId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             JsonNode logbookEvents =
-                client.selectOperationById(transferReplyWorkflowGuid.getId())
+                client.selectOperationById(operationId)
                     .toJsonNode()
                     .get("$results")
                     .get(0)
@@ -777,6 +787,11 @@ public class TransferAndDipIT extends VitamRuleRunner {
             return JsonHandler.getFromJsonNode(logbookEvents, new TypeReference<>() {
             });
         }
+    }
+
+    private List<LogbookEventOperation> getLogbookEvents(GUID transferReplyWorkflowGuid)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        return getLogbookEvents(transferReplyWorkflowGuid.getId());
     }
 
     private GUID makeTransferReplyWorkflow(String atr) throws AccessInternalClientServerException {

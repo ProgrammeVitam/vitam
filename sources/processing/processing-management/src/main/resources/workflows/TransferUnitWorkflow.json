@@ -68,6 +68,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "EXPORT_CHECK_RESOURCE_AVAILABILITY",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "guid_to_path",
+                "uri": "WORKSPACE:data/guid_to_path.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PUT_BINARY_ON_WORKSPACE",
             "behavior": "BLOCKING",
             "in": [

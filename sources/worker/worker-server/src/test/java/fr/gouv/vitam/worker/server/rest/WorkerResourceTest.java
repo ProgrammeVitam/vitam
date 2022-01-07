@@ -26,24 +26,31 @@
  */
 package fr.gouv.vitam.worker.server.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.processing.common.async.AccessRequestContext;
+import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.worker.common.WorkerAccessRequest;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -53,9 +60,14 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -194,6 +206,46 @@ public class WorkerResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
+    @Test
+    public final void testSubmitStepAsyncDataUnavailableOK()
+        throws IOException, IllegalArgumentException, ProcessingException, InvalidParseOperationException {
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext =
+            new TreeMap<>(Comparator.comparing(AccessRequestContext::getStrategyId).thenComparing(
+                (s1, s2) -> {
+                    return StringUtils.compare(s1.getOfferId(), s2.getOfferId());
+                }
+            ));
+
+        accessRequestIdByContext.put(new AccessRequestContext("strategyId", "offerId"), List.of("AccessRequestId1", "AccessRequestId2"));
+        accessRequestIdByContext.put(new AccessRequestContext("strategyId", null), List.of("AccessRequestId3"));
+        ProcessingRetryAsyncException prae = new ProcessingRetryAsyncException(accessRequestIdByContext);
+
+        Mockito.reset(worker);
+
+        when(worker.run(any(), any())).thenThrow(prae);
+
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("descriptionStep.json");
+        final String body = StreamUtils.toString(stream);
+
+        JsonNode responseBody = given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
+            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode()).extract().body()
+            .as(JsonNode.class);
+
+        List<WorkerAccessRequest> accessRequests =
+            JsonHandler.getFromJsonNode(responseBody, new TypeReference<>() {
+            });
+        assertThat(accessRequests.size()).isEqualTo(3);
+        assertThat(accessRequests.get(0).getStrategyId()).isEqualTo("strategyId");
+        assertThat(accessRequests.get(0).getOfferId()).isEqualTo(null);
+        assertThat(accessRequests.get(0).getAccessRequestId()).isEqualTo("AccessRequestId3");
+        assertThat(accessRequests.get(1).getStrategyId()).isEqualTo("strategyId");
+        assertThat(accessRequests.get(1).getOfferId()).isEqualTo("offerId");
+        assertThat(accessRequests.get(1).getAccessRequestId()).isEqualTo("AccessRequestId1");
+        assertThat(accessRequests.get(2).getStrategyId()).isEqualTo("strategyId");
+        assertThat(accessRequests.get(2).getOfferId()).isEqualTo("offerId");
+        assertThat(accessRequests.get(2).getAccessRequestId()).isEqualTo("AccessRequestId2");
+    }
 
 }
 

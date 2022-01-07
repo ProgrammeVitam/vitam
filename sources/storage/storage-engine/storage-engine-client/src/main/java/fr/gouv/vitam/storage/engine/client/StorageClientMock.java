@@ -327,4 +327,5 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest) {
         throw new UnsupportedOperationException("Not Implemented");
     }
+
 }

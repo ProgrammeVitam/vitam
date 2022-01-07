@@ -40,9 +40,14 @@ import fr.gouv.vitam.processing.common.async.ProcessingRetryAsyncException;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.worker.common.WorkerAccessRequest;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +61,7 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
 class WorkerClientRest extends DefaultClient implements WorkerClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
-    private static final GenericType<Map<AccessRequestContext, List<String>>> MAP_STRING_TYPE = new GenericType<>() {
+    private static final GenericType<List<WorkerAccessRequest>> LIST_AR_TYPE = new GenericType<>() {
     };
 
     WorkerClientRest(WorkerClientFactory factory) {
@@ -83,7 +88,7 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     private ItemStatus handleCommonResponseStatus(DescriptionStep step, Response response)
         throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
         if (CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode() == response.getStatus()) {
-            throw new ProcessingRetryAsyncException(response.readEntity(MAP_STRING_TYPE));
+            throw extractException(response);
         }
         final Response.Status status = fromStatusCode(response.getStatus());
         switch (status) {
@@ -104,5 +109,20 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());
         }
+    }
+
+    private ProcessingRetryAsyncException extractException(Response response) {
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext = new HashMap<>();
+        List<WorkerAccessRequest> workerAccessRequests = response.readEntity(LIST_AR_TYPE);
+        workerAccessRequests.forEach(item -> {
+            if (StringUtils.isEmpty(item.getAccessRequestId())) {
+                throw new ProcessingException("Invalid accessRequestId was returned by worker");
+            }
+            accessRequestIdByContext.computeIfAbsent(
+                    new AccessRequestContext(item.getStrategyId(), item.getOfferId()), (x -> new ArrayList<>()))
+                .add(item.getAccessRequestId());
+
+        });
+        return new ProcessingRetryAsyncException(accessRequestIdByContext);
     }
 }

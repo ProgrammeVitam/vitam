@@ -1,0 +1,25 @@
+{
+  "identifier": "aebaaaaaaackemvrabfuealm66lqsjqaaaar",
+  "status": "KO",
+  "message": "Traceability audit KO  Database check failure Errors are :  [ \"There is an  error on the audit of the  linked  object\" ]",
+  "objectType": "OBJECTGROUP",
+  "objectsReports": [
+    {
+      "identifier": "aeaaaaaaaackemvrabfuealm66lqsiqaaaar",
+      "status": "KO",
+      "message": "[\"The digest '942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7' for the offer 'default-bis' is null \"]",
+      "securedHash": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+      "strategyId": "default",
+      "offersHashes": {
+        "default": "null",
+        "default-bis": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"
+      }
+    }
+  ],
+  "securedHash": "6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8",
+  "strategyId": "default",
+  "offersHashes": {
+    "default": "6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8",
+    "default-bis": "6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8"
+  }
+}

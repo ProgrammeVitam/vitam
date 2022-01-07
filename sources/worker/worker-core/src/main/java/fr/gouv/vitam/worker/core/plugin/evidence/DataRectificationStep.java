@@ -91,7 +91,6 @@ public class DataRectificationStep extends ActionHandler {
             EvidenceAuditReportLine evidenceAuditReportLine =
                 JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
 
-
             if (evidenceAuditReportLine.getObjectType().equals(MetadataType.OBJECTGROUP)) {
                 List<IdentifierType> objectGroups =
                     dataRectificationService.correctObjectGroups(evidenceAuditReportLine, param.getContainerName());

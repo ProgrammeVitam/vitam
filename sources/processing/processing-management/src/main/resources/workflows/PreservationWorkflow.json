@@ -57,6 +57,13 @@
       "actions": [
         {
           "action": {
+            "actionKey": "PRESERVATION_CHECK_RESOURCE_AVAILABILITY",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        },
+        {
+          "action": {
             "actionKey": "PRESERVATION_ACTION",
             "behavior": "NOBLOCKING",
             "lifecycleLog": "DISABLED",

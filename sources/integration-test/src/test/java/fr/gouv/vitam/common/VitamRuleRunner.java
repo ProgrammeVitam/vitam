@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
@@ -101,7 +102,8 @@ public class VitamRuleRunner {
             PurgeUnitRepository.PURGE_UNIT,
             EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
             TransferReplyUnitRepository.TRANSFER_REPLY_UNIT,
-            AuditReportRepository.AUDIT_OBJECT_GROUP);
+            AuditReportRepository.AUDIT_OBJECT_GROUP,
+            EvidenceAuditReportRepository.EVIDENCE_AUDIT);
 
     @ClassRule
     public static final ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

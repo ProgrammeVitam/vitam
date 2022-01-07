@@ -1,0 +1,12 @@
+{
+  "identifier" : "aeaqaaaaaaeaaaababk6gal5sqs3hiyaaaaq",
+  "status" : "KO",
+  "objectType" : "UNIT",
+  "message" : "Traceability audit KO  Database check failure Errors are :  [ \" Metadata hash 'ahbV6NMTjD1M5+bB4c29p/jmQBoljxu0nUDOoT2sJN9cVoRamhUaCY90Smxg6mkMqkUt1fHpZyEhbBW/a0AWTQ==' mismatch secured metadata hash 'DftIvJ49T5Nmt+/eOXaYqP5JJrT8y2oS7CwJxxpt28M7YaiYpnFIeCP5Ni8Nzax/JlF6IPX18Z9Q3kOics5X4Q==' \" ]",
+  "strategyId" : "default",
+  "offersHashes" : {
+    "default" : "6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8",
+    "default-bis" : "2a40d863047ed564d9809b4a02382f39de51c68f0758cf5474e6878ff7e4e7debacb2fee0059c9b9a9c108c42d502deb0e3a53043552ec3c6b57314e861662db"
+  },
+  "securedHash" : "2a40d863047ed564d9809b4a02382f39de51c68f0758cf5474e6878ff7e4e7debacb2fee0059c9b9a9c108c42d502deb0e3a53043552ec3c6b57314e861662db"
+}

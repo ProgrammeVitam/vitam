@@ -56,11 +56,11 @@ import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObjec
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper.newLogbookLifeCycleUnitParameters;
+import static fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationHelper.canDoCorrection;
 
 /**
  * DataCorrectionService class
@@ -92,7 +92,7 @@ public class DataRectificationService {
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
 
-        if (!doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+        if (!canDoCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
             return Optional.empty();
         }
         String message =
@@ -116,7 +116,7 @@ public class DataRectificationService {
         List<String> badOffers = new ArrayList<>();
 
 
-        if (doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+        if (canDoCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
             String message =
                 String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
             storageClientFactory.getClient()
@@ -136,7 +136,7 @@ public class DataRectificationService {
             if (object.getEvidenceStatus() == EvidenceStatus.OK) {
                 continue;
             }
-            if (!doCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+            if (!canDoCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
                 continue;
             }
             String message =
@@ -215,26 +215,6 @@ public class DataRectificationService {
 
     }
 
-    private boolean doCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
-        List<String> badOffers) {
-        if (offers.isEmpty()) {
-            return false;
-        }
-        if (offers.size() == 1) {
-            return false;
-        }
 
-        for (Map.Entry<String, String> currentOffer : offers.entrySet()) {
-
-            if (securedHash.equals(currentOffer.getValue())) {
-
-                goodOffers.add(currentOffer.getKey());
-            } else {
-                badOffers.add(currentOffer.getKey());
-            }
-        }
-
-        return !goodOffers.isEmpty() && !badOffers.isEmpty() && badOffers.size() == 1;
-    }
 
 }

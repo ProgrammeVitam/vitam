@@ -102,6 +102,9 @@
     "className": "fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditFinalize",
     "propertiesFile": "evidence_audit_finalize.properties"
   },
+  "CORRECTIVE_AUDIT_CHECK_RESOURCE_AVAILABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationCheckResourceAvailability"
+  },
   "CORRECTIVE_AUDIT": {
     "className": "fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationStep"
   },
@@ -116,6 +119,9 @@
   },
   "MIGRATION_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.migration.MigrationFinalize"
+  },
+  "EXPORT_CHECK_RESOURCE_AVAILABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability"
   },
   "PUT_BINARY_ON_WORKSPACE": {
     "className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",
@@ -291,6 +297,9 @@
   },
   "PRESERVATION_PREPARATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin"
+  },
+  "PRESERVATION_CHECK_RESOURCE_AVAILABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationCheckResourceAvailability"
   },
   "PRESERVATION_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin"
