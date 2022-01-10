@@ -5,7 +5,7 @@ import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.se
 import { PageComponent } from '../../common/page/page-component';
 import { LogbookService } from './logbook.service';
 import { Message } from 'primeng/primeng';
-import { Subscription } from "rxjs/Subscription";
+import { Subscription } from 'rxjs/Subscription';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Sécurisation', routerLink: ''},
@@ -22,7 +22,7 @@ export class LogbookComponent extends PageComponent {
   messages: Message[] = [];
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private logbookService : LogbookService) {
+              private logbookService: LogbookService) {
     super('Sécurisation des opérations', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -45,10 +45,12 @@ export class LogbookComponent extends PageComponent {
     this.logbookService.launchTraceabilityUnitLfc()
       .subscribe(() => {
         this.messages = [];
-        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie des unités archivistiques'});
+        this.messages.push({severity: 'info', summary: 'Sécurisation',
+            detail: 'Succès de l\'opération de sécurisation des cycles de vie des unités archivistiques'});
       }, () => {
         this.messages = [];
-        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie des unités archivistiques`});
+        this.messages.push({severity: 'error', summary: 'Sécurisation',
+            detail: `Echec de l'opération de sécurisation des cycles de vie des unités archivistiques`});
       })
   }
 
@@ -56,10 +58,12 @@ export class LogbookComponent extends PageComponent {
     this.logbookService.launchTraceabilityObjectGroupLfc()
       .subscribe(() => {
         this.messages = [];
-        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie des groupes d\'objets'});
+        this.messages.push({severity: 'info', summary: 'Sécurisation',
+            detail: 'Succès de l\'opération de sécurisation des cycles de vie des groupes d\'objets'});
       }, () => {
         this.messages = [];
-        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie des groupes d\'objets`});
+        this.messages.push({severity: 'error', summary: 'Sécurisation',
+            detail: `Echec de l'opération de sécurisation des cycles de vie des groupes d\'objets`});
       })
   }
 
@@ -72,5 +76,18 @@ export class LogbookComponent extends PageComponent {
         this.messages = [];
         this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des offres`});
       })
+  }
+
+  launchStorageLogBackup() {
+    this.logbookService.launchStorageLogBackup()
+        .subscribe(() => {
+          this.messages = [];
+          this.messages.push({severity: 'info', summary: 'Sécurisation',
+              detail: `Succès de la sauvegarde des journaux d'écriture dans offres`});
+        }, () => {
+          this.messages = [];
+          this.messages.push({severity: 'error', summary: 'Sécurisation',
+              detail: `Echec de la sauvegarde des journaux d'écriture dans offres`});
+        })
   }
 }

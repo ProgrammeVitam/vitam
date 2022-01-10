@@ -34,14 +34,17 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
@@ -249,5 +252,47 @@ public class ObjectReferentialRepository {
     private TapeObjectReferentialEntity fromBson(Document document)
         throws InvalidParseOperationException {
         return BsonHelper.fromDocumentToObject(document, TapeObjectReferentialEntity.class);
+    }
+
+    public CloseableIterator<ObjectEntry> listContainerObjectEntries(String containerName) throws ObjectReferentialException {
+
+        try {
+            MongoCursor<Document> mongoCursor = collection.find(
+                    Filters.eq(TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.CONTAINER_NAME,
+                        containerName))
+                .projection(Projections.include(
+                    TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.OBJECT_NAME,
+                    TapeObjectReferentialEntity.SIZE
+                ))
+                .batchSize(VitamConfiguration.getBatchSize())
+                .iterator();
+
+            return new CloseableIterator<>() {
+
+                @Override
+                public void close() {
+                    mongoCursor.close();
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return mongoCursor.hasNext();
+                }
+
+                @Override
+                public ObjectEntry next() {
+                    Document document = mongoCursor.next();
+                    Document documentId = (Document) document.get(TapeObjectReferentialEntity.ID);
+                    return new ObjectEntry(
+                        documentId.getString(TapeLibraryObjectReferentialId.OBJECT_NAME),
+                        // Handle both Integer & Long values
+                        document.get(TapeObjectReferentialEntity.SIZE, Number.class).longValue()
+                    );
+                }
+            };
+
+        } catch (MongoException ex) {
+            throw new ObjectReferentialException("Could not list objects of container " + containerName, ex);
+        }
     }
 }

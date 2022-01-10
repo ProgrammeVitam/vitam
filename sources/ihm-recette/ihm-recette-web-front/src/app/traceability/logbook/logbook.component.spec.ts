@@ -4,7 +4,8 @@ import { LogbookComponent } from './logbook.component';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
 import { Observable } from 'rxjs/Observable';
 import { LogbookService } from './logbook.service';
-import {GrowlModule} from 'primeng/primeng';
+import {GrowlModule, PanelModule } from 'primeng/primeng';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 let value: BreadcrumbElement[];
 
@@ -19,7 +20,8 @@ let response = Observable.of({status : 200});
 const LogbookServiceStub = {
   launchTraceability: () => response,
   launchTraceabilityUnitLfc: () => response,
-  launchTraceabilityObjectGroupLfc: () => response
+  launchTraceabilityObjectGroupLfc: () => response,
+  launchStorageLogBackup: () => response
 };
 
 describe('LogbookComponent', () => {
@@ -29,7 +31,7 @@ describe('LogbookComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ LogbookComponent ],
-      imports: [GrowlModule],
+      imports: [GrowlModule, PanelModule, BrowserAnimationsModule],
       providers: [
         { provide: BreadcrumbService, useValue: BreadcrumbServiceStub },
         { provide: LogbookService, useValue: LogbookServiceStub },
@@ -47,12 +49,14 @@ describe('LogbookComponent', () => {
   it('should display success message', () => {
     expect(component).toBeTruthy();
     component.launchTraceability();
-    expect(component.messages).toEqual([{severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des journaux'}]);
+    expect(component.messages).toEqual([{severity: 'info', summary: 'Sécurisation',
+      detail: 'Succès de l\'opération de sécurisation des journaux'}]);
   });
 
   it('should display error message', () => {
     response = Observable.throw({ status : 500 });
     component.launchTraceability();
-    expect(component.messages).toEqual([{severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des journaux`}]);
+    expect(component.messages).toEqual([{severity: 'error', summary: 'Sécurisation',
+      detail: `Echec de l'opération de sécurisation des journaux`}]);
   });
 });

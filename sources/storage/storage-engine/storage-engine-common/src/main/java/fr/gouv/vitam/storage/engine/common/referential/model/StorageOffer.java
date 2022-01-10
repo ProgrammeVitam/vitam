@@ -110,10 +110,6 @@ public class StorageOffer {
         return asyncRead;
     }
 
-    public boolean notAsyncRead() {
-        return asyncRead == false;
-    }
-
     public void setAsyncRead(boolean asyncRead) {
         this.asyncRead = asyncRead;
     }

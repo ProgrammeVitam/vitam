@@ -7,6 +7,7 @@ export class LogbookService {
   TRACABILITY_UNIT_LFC_API = 'lifecycles/units/traceability';
   TRACABILITY_OBJECTGROUP_LFC_API = 'lifecycles/objectgroups/traceability';
   TRACABILITY_STORAGE_API = 'storages/traceability';
+  STORAGE_LOG_BACKUP_API = 'storages/storagelogbackup';
 
   constructor(private client: ResourcesService) {}
 
@@ -25,4 +26,8 @@ export class LogbookService {
   launchTraceabilityStorage() {
     return this.client.post(this.TRACABILITY_STORAGE_API, null);
   }
+
+    launchStorageLogBackup() {
+      return this.client.post(this.STORAGE_LOG_BACKUP_API, null);
+    }
 }

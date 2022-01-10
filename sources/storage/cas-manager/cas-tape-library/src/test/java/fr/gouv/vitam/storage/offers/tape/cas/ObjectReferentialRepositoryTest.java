@@ -27,11 +27,13 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.collect.ImmutableSet;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
@@ -40,6 +42,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLoca
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,6 +60,8 @@ import java.util.stream.IntStream;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class ObjectReferentialRepositoryTest {
@@ -476,6 +481,100 @@ public class ObjectReferentialRepositoryTest {
                 .mapToObj(i -> List.of("tarId" + i + "-1", "tarId" + i + "-2"))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList()));
+    }
+
+    @Test
+    public void findAllOfEmptyContainer() throws ObjectReferentialException {
+
+        // Given
+
+        // When
+        CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
+
+        // Then
+        assertThat(result).isEmpty();
+        assertThatCode(result::close).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void findAllObjectsOfNonEmptyContainer() throws ObjectReferentialException {
+
+        // Given
+        for (int i = 0; i < 5; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    1_000_000_000L * i, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
+                ));
+        }
+
+        // When
+        CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
+
+        // Then
+        assertThat(result).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize).containsExactlyInAnyOrder(
+            tuple("objectName0", 0L),
+            tuple("objectName1", 1_000_000_000L),
+            tuple("objectName2", 2_000_000_000L),
+            tuple("objectName3", 3_000_000_000L),
+            tuple("objectName4", 4_000_000_000L)
+        );
+
+        assertThatCode(result::close).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void findAllObjectsIgnoresOtherContainers() throws ObjectReferentialException {
+
+        // Given
+        objectReferentialRepository.insertOrUpdate(
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("container", "objectName1"),
+                100, DigestType.SHA512.getName(), "digest1", "storageId1",
+                new TapeLibraryInputFileObjectStorageLocation(), "date1", "date2"));
+
+        objectReferentialRepository.insertOrUpdate(
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("ANOTHER_CONTAINER", "objectName2"),
+                200, DigestType.SHA512.getName(), "digest2", "storageId2",
+                new TapeLibraryInputFileObjectStorageLocation(), "date1", "date2"));
+
+        // When
+        CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
+
+        // Then
+        assertThat(result).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize).containsExactly(
+            tuple("objectName1", 100L));
+
+        assertThatCode(result::close).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void findAllObjectsThenCloseIteratorThenClosed() throws ObjectReferentialException {
+
+        // Given
+        for (int i = 0; i < 5; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    1_000_000_000L * i, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
+                ));
+        }
+
+        // When
+        CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
+
+        // Then
+        assertThat(result.next()).isNotNull();
+        assertThat(result.next()).isNotNull();
+
+        // When : iterator closed
+        result.close();
+
+        // Then : Cannot consume data
+        assertThatThrownBy(()-> IteratorUtils.toList(result)).isInstanceOf(IllegalStateException.class);
     }
 
     private TapeObjectReferentialEntity createObjectReferentialEntity() {

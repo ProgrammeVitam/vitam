@@ -1,14 +1,37 @@
-<button pButton type="button" iconPos="left" label='Générer le journal des opérations' (click)="launchTraceability()">
-</button>
+<p-panel header="Sécurisation des journaux">
+    <div class="inline-block">
+        <button pButton type="button" iconPos="left" label='Générer le journal des opérations'
+                (click)="launchTraceability()">
+        </button>
 
-<button pButton type="button" iconPos="left" label='Générer le journal des cycles de vie des unités archivistiques' (click)="launchTraceabilityUnitLfc()">
-</button>
+        <button pButton type="button" iconPos="left"
+                label='Générer le journal des cycles de vie des unités archivistiques'
+                (click)="launchTraceabilityUnitLfc()">
+        </button>
 
-<button pButton type="button" iconPos="left" label="Générer le journal des cycles de vie des groupes d'objets" (click)="launchTraceabilityObjectGroupLfc()">
-</button>
+        <button pButton type="button" iconPos="left" label="Générer le journal des cycles de vie des groupes d'objets"
+                (click)="launchTraceabilityObjectGroupLfc()">
+        </button>
 
-<button pButton type="button" iconPos="left" label='Générer le journal des offres de stockage' (click)="launchTraceabilityStorage()">
-</button>
+        <button pButton type="button" iconPos="left" label='Générer le journal des offres de stockage'
+                (click)="launchTraceabilityStorage()">
+        </button>
+    </div>
+</p-panel>
+<p-panel header="Backup des journaux d'écriture">
+    <div class="inline-block">
+
+        ATTENTION : Le backup se lancera sur une seule instance du Storage. Si plusieurs instances relancer et espérer
+        atterrir sur les noeuds storage suivants.
+        <br>
+
+        <button pButton type="button" iconPos="left" label="Sauvegarder les journaux d'écriture dans les offres"
+                (click)="launchStorageLogBackup()">
+        </button>
+
+    </div>
+</p-panel>
+
 
 <p-growl [(value)]="messages" life="2000"></p-growl>
 <h2>{{message}}</h2>

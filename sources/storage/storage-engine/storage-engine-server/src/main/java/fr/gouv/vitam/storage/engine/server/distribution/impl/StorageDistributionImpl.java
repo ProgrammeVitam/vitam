@@ -1134,12 +1134,9 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
         String offerId, boolean includeDisabled) throws StorageException {
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId, includeDisabled);
 
-        if (offer.isAsyncRead()) {
-            throw new StorageTechnicalException("AsyncRead offer (" + offerId +
-                ") found. AsyncOffer not allowed for direct read");
-        }
+        // Check offer exists
+        OFFER_PROVIDER.getStorageOffer(offerId, includeDisabled);
 
         final Driver driver = retrieveDriverInternal(offerId);
         try (Connection connection = driver.connect(offerId)) {
