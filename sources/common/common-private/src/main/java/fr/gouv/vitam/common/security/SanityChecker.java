@@ -26,6 +26,26 @@
  */
 package fr.gouv.vitam.common.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.json.JsonSanitizer;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import org.owasp.esapi.Validator;
+import org.owasp.esapi.errors.IntrusionException;
+import org.owasp.esapi.errors.ValidationException;
+import org.owasp.esapi.reference.DefaultValidator;
+import org.owasp.esapi.reference.validation.HTMLValidationRule;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,28 +56,6 @@ import java.io.Reader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
-import org.owasp.esapi.Validator;
-import org.owasp.esapi.errors.IntrusionException;
-import org.owasp.esapi.errors.ValidationException;
-import org.owasp.esapi.reference.DefaultValidator;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.json.JsonSanitizer;
-
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -97,17 +95,12 @@ public class SanityChecker {
      */
     private static int limitParamSize = DEFAULT_LIMIT_PARAMETER_SIZE;
 
-    // ISSUE with integration
-    private static final Validator ESAPI = init();
+    private static final Validator ESAPI = new SanityValidator();
 
     private SanityChecker() {
         // Empty constructor
     }
 
-    private static final Validator init() {
-        // ISSUE with integration
-        return new DefaultValidator();
-    }
 
     /**
      * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
@@ -117,7 +110,7 @@ public class SanityChecker {
      * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static final void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
+    public static void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
         checkXmlSanityFileSize(xmlFile);
         // First test tags through file reader (preventing XSS Bomb)
         checkXmlSanityTags(xmlFile);
@@ -132,7 +125,7 @@ public class SanityChecker {
      * @return sanitized json as String
      * @throws InvalidParseOperationException
      */
-    public static final String sanitizeJson(JsonNode json) throws InvalidParseOperationException {
+    public static String sanitizeJson(JsonNode json) throws InvalidParseOperationException {
         if (json == null) {
             return "";
         }
@@ -151,7 +144,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
+    public static void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
         if (json == null || json.isMissingNode()) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
         }
@@ -174,7 +167,7 @@ public class SanityChecker {
      * @param json as String
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static final void checkJsonAll(String json) throws InvalidParseOperationException {
+    public static void checkJsonAll(String json) throws InvalidParseOperationException {
         try {
             final String wellFormedJson = JsonSanitizer.sanitize(json);
             if (!wellFormedJson.equals(json)) {
@@ -194,7 +187,7 @@ public class SanityChecker {
      * @param params
      * @throws InvalidParseOperationException
      */
-    public static final void checkParameter(String... params) throws InvalidParseOperationException {
+    public static void checkParameter(String... params) throws InvalidParseOperationException {
         for (final String param : params) {
             checkParam(param);
         }
@@ -207,10 +200,10 @@ public class SanityChecker {
      * @throws InvalidParseOperationException
      * @throws IOException
      */
-    public static final void checkHTMLFile(File file) throws InvalidParseOperationException, IOException { 
+    public static void checkHTMLFile(File file) throws InvalidParseOperationException, IOException {
         try (final Reader fileReader = new FileReader(file)) {
             try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
-                String line = null;
+                String line;
                 while ((line = bufReader.readLine()) != null) {
                     checkParameter(line.split(","));
                 }
@@ -225,7 +218,7 @@ public class SanityChecker {
      * @throws InvalidParseOperationException
      */
     // TODO : this control is used only in AccessInternal, is it worth to use it or shall we remove it?
-    public static final void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
+    public static void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
         if (headers == null) {
             return;
         }
@@ -239,7 +232,7 @@ public class SanityChecker {
      * @param requestHeaders
      * @throws InvalidParseOperationException
      */
-    public static final void checkHeadersMap(MultivaluedMap<String, String> requestHeaders)
+    public static void checkHeadersMap(MultivaluedMap<String, String> requestHeaders)
         throws InvalidParseOperationException {
 
         if (requestHeaders != null && !requestHeaders.isEmpty()) {
@@ -265,7 +258,7 @@ public class SanityChecker {
      * @param uriParameters
      * @throws InvalidParseOperationException
      */
-    public static final void checkUriParametersMap(MultivaluedMap<String, String> uriParameters)
+    public static void checkUriParametersMap(MultivaluedMap<String, String> uriParameters)
         throws InvalidParseOperationException {
 
         if (uriParameters != null && !uriParameters.isEmpty()) {
@@ -296,7 +289,7 @@ public class SanityChecker {
         return !ESAPI.isValidInput(validator, value, validator, REQUEST_LIMIT, true);
     }
 
-    private static final boolean isIssueOnParam(String param) {
+    private static boolean isIssueOnParam(String param) {
         try {
             checkParam(param);
             return false;
@@ -306,7 +299,7 @@ public class SanityChecker {
         }
     }
 
-    private static final void checkParam(String param) throws InvalidParseOperationException {
+    private static void checkParam(String param) throws InvalidParseOperationException {
         checkSanityTags(param, getLimitParamSize());
         checkHtmlPattern(param);
     }
@@ -318,7 +311,7 @@ public class SanityChecker {
      * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    protected static final void checkXmlSanityTagValueSize(File xmlFile)
+    protected static void checkXmlSanityTagValueSize(File xmlFile)
         throws InvalidParseOperationException, IOException {
         try (final InputStream xmlStream = new FileInputStream(xmlFile)) {
 
@@ -363,7 +356,7 @@ public class SanityChecker {
      * @throws IOException                    when read file exception
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    protected static final void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
+    protected static void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
         if (xmlFile.length() > getLimitFileSize()) {
             throw new InvalidParseOperationException("File size exceeds sanity check");
         }
@@ -376,10 +369,10 @@ public class SanityChecker {
      * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    protected static final void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
+    protected static void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
         try (final Reader fileReader = new FileReader(xmlFile)) {
             try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
-                String line = null;
+                String line;
                 while ((line = bufReader.readLine()) != null) {
                     checkXmlSanityTags(line);
                 }
@@ -393,7 +386,7 @@ public class SanityChecker {
      * @param line line to check
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkXmlSanityTags(String line) throws InvalidParseOperationException {
+    private static void checkXmlSanityTags(String line) throws InvalidParseOperationException {
         for (final String rule : StringUtils.RULES) {
             checkSanityTags(line, rule);
         }
@@ -406,7 +399,7 @@ public class SanityChecker {
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkSanityTags(String line, int limit) throws InvalidParseOperationException {
+    private static void checkSanityTags(String line, int limit) throws InvalidParseOperationException {
         checkSanityEsapi(line, limit);
         checkXmlSanityTags(line);
     }
@@ -418,7 +411,7 @@ public class SanityChecker {
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkSanityEsapi(String line, int limit) throws InvalidParseOperationException {
+    private static void checkSanityEsapi(String line, int limit) throws InvalidParseOperationException {
         if (line.length() > limit) {
             throw new InvalidParseOperationException("Invalid input bytes length");
         }
@@ -429,10 +422,7 @@ public class SanityChecker {
         // Issue with integration of ESAPI
         try {
             ESAPI.getValidSafeHTML("CheckSafeHtml", line, limit, true);
-        } catch (final NoClassDefFoundError e) {
-            // Ignore
-            throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
-        } catch (ValidationException | IntrusionException e) {
+        } catch (final NoClassDefFoundError | ValidationException | IntrusionException e) {
             throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
         }
     }
@@ -443,7 +433,7 @@ public class SanityChecker {
      * @param invalidTag data to check as String
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkSanityTags(String dataLine, String invalidTag)
+    private static void checkSanityTags(String dataLine, String invalidTag)
         throws InvalidParseOperationException {
         if (dataLine != null && invalidTag != null && dataLine.contains(invalidTag)) {
             throw new InvalidParseOperationException("Invalid tag sanity check");
@@ -456,7 +446,7 @@ public class SanityChecker {
      * @param param
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkHtmlPattern(String param) throws InvalidParseOperationException {
+    private static void checkHtmlPattern(String param) throws InvalidParseOperationException {
         if (StringUtils.HTML_PATTERN.matcher(param).find()) {
             throw new InvalidParseOperationException("HTML PATTERN found");
         }
@@ -468,7 +458,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    protected static final void checkJsonSanity(JsonNode json) throws InvalidParseOperationException {
+    protected static void checkJsonSanity(JsonNode json) throws InvalidParseOperationException {
         if (json.isArray()) {
             ArrayNode nodes = (ArrayNode) json;
             for (JsonNode element : nodes) {
@@ -512,7 +502,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static final void checkJsonFileSize(String json) throws InvalidParseOperationException {
+    private static void checkJsonFileSize(String json) throws InvalidParseOperationException {
         if (json.length() > getLimitJsonSize()) {
             throw new InvalidParseOperationException(
                 "Json size exceeds sanity check : " + getLimitJsonSize());
@@ -522,56 +512,68 @@ public class SanityChecker {
     /**
      * @return the limit File Size (XML or JSON)
      */
-    public static final long getLimitFileSize() {
+    public static long getLimitFileSize() {
         return limitFileSize;
     }
 
     /**
      * @param limitFileSize the limit File Size to set (XML or JSON)
      */
-    public static final void setLimitFileSize(long limitFileSize) {
+    public static void setLimitFileSize(long limitFileSize) {
         SanityChecker.limitFileSize = limitFileSize;
     }
 
     /**
      * @return the limit Size of a Json
      */
-    public static final long getLimitJsonSize() {
+    public static long getLimitJsonSize() {
         return limitJsonSize;
     }
 
     /**
      * @param limitJsonSize the limit Size of a Json to set
      */
-    public static final void setLimitJsonSize(long limitJsonSize) {
+    public static void setLimitJsonSize(long limitJsonSize) {
         SanityChecker.limitJsonSize = limitJsonSize;
     }
 
     /**
      * @return the limit Size of a Field in a Json
      */
-    public static final int getLimitFieldSize() {
+    public static int getLimitFieldSize() {
         return limitFieldSize;
     }
 
     /**
      * @param limitFieldSize the limit Size of a Field in a Json to set
      */
-    public static final void setLimitFieldSize(int limitFieldSize) {
+    public static void setLimitFieldSize(int limitFieldSize) {
         SanityChecker.limitFieldSize = limitFieldSize;
     }
 
     /**
      * @return the limit Size of a parameter
      */
-    public static final int getLimitParamSize() {
+    public static int getLimitParamSize() {
         return limitParamSize;
     }
 
     /**
      * @param limitParamSize the limit Size of a parameter to set
      */
-    public static final void setLimitParamSize(int limitParamSize) {
+    public static void setLimitParamSize(int limitParamSize) {
         SanityChecker.limitParamSize = limitParamSize;
+    }
+
+    private static class SanityValidator extends DefaultValidator {
+        
+        @Override
+        public String getValidSafeHTML( String context, String input, int maxLength, boolean allowNull ) throws ValidationException, IntrusionException {
+            HTMLValidationRule hvr = new HTMLValidationRule( "safehtml", org.owasp.esapi.ESAPI.encoder() );
+            hvr.setMaximumLength(maxLength);
+            hvr.setAllowNull(allowNull);
+            hvr.setCanonicalize(false);
+            return hvr.getValid(context, input);
+        }
     }
 }
