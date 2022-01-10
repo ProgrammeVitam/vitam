@@ -26,21 +26,22 @@
  */
 package fr.gouv.vitam.common.server;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.xml.XmlConfiguration;
+import org.xml.sax.SAXException;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.xml.XmlConfiguration;
-import org.xml.sax.SAXException;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 /**
  * Basic implementation of a vitam server using embedded jetty as underlying app server
@@ -94,8 +95,8 @@ public class BasicVitamServer implements VitamServer {
 
         try {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
-            try (final Resource resource = Resource.newResource(PropertiesUtils.getConfigFile(jettyConfigPath))) {
-                serverConfiguration = new XmlConfiguration(resource);
+            try (final InputStream fis = PropertiesUtils.getConfigAsStream(jettyConfigPath)) {
+                serverConfiguration = new XmlConfiguration(fis);
                 server = new Server(vitamThreadPoolExecutor);
                 server = (Server) serverConfiguration.configure(server);
                 configured = true;
