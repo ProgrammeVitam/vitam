@@ -121,6 +121,9 @@
             <Set name="fileName">/vitam/conf/logbook/logback-access.xml</Set>
         </New>
     </Set>
+    <Ref id="RequestLogImpl">
+        <Call name="start"/>
+    </Ref>
 
     <!-- =========================================================== -->
     <!-- extra server options                                        -->
