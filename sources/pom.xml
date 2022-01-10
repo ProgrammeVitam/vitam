@@ -193,7 +193,7 @@
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <json-sanitize.version>1.2.2</json-sanitize.version>
         <commons-collections4.version>4.4</commons-collections4.version>
-        <esapi.version>2.1.0.1</esapi.version>
+        <esapi.version>2.2.3.1</esapi.version>
         <!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
         <xml-resolver.version>1.2</xml-resolver.version>
@@ -226,7 +226,7 @@
         <cucumber-html.version>0.2.6</cucumber-html.version>
         <xstream.version>1.4.15</xstream.version>
         <batik-css.version>1.11</batik-css.version>
-        <antisamy.version>1.5.8</antisamy.version>
+        <antisamy.version>1.6.4</antisamy.version>
         <jdeb.vafer.version>1.5</jdeb.vafer.version>
         <json-schema-core.version>1.2.5</json-schema-core.version>
         <json-patch.version>1.9</json-patch.version>

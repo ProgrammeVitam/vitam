@@ -117,8 +117,6 @@
 						<reuseForks>false</reuseForks>
 						<systemPropertyVariables>
 							<log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
-							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
-							<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
 							<org.owasp.esapi.resources>../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
 						</systemPropertyVariables>
 						<classpathDependencyExcludes>
