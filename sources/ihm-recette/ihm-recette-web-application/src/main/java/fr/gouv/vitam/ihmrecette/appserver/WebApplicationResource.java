@@ -90,6 +90,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -709,6 +710,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 result = storageClient.storageLogTraceability(Collections.singletonList(Integer.parseInt(xTenantId)));
+            } catch (final InvalidParseOperationException | StorageServerClientException e) {
+                LOGGER.error("The reporting json can't be created", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        }
+    }
+
+    /**
+     * launch the traceabiity for storage
+     *
+     * @param xTenantId the tenant id
+     * @return the response of the request
+     * @throws LogbookClientServerException if logbook internal resources exception occurred
+     */
+    @POST
+    @Path("storages/storagelogbackup")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response storageLogBackup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+
+        // /!\ Storage log backup will be done on a single instance.
+        //     If you need de backup on all instances, you need to retry multiple times since eventually all storage nodes are reached
+        try (final StorageClient storageClient =
+            StorageClientFactory.getInstance().getClient()) {
+            RequestResponseOK<StorageLogBackupResult> result;
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                result = storageClient.storageLogBackup(VitamConfiguration.getTenants());
             } catch (final InvalidParseOperationException | StorageServerClientException e) {
                 LOGGER.error("The reporting json can't be created", e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)

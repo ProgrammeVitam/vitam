@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.collection;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -68,22 +67,39 @@ public final class CloseableIteratorUtils {
      * The close methods does nothing.
      */
     public static <E> CloseableIterator<E> toCloseableIterator(Iterator<E> iterator) {
-        return new CloseableIterator<E>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
+        return new CloseableIteratorWrapper<>(iterator);
+    }
 
-            @Override
-            public E next() {
-                return iterator.next();
-            }
+    /**
+     * Converts an Iterable to a CloseableIterator.
+     * The close methods does nothing.
+     */
+    public static <E> CloseableIterator<E> toCloseableIterator(Iterable<E> iterable) {
+        return new CloseableIteratorWrapper<>(iterable.iterator());
+    }
 
-            @Override
-            public void close() {
-                // NOP
-            }
-        };
+    private static class CloseableIteratorWrapper<E> implements CloseableIterator<E> {
+
+        private final Iterator<E> iterator;
+
+        private CloseableIteratorWrapper(Iterator<E> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public E next() {
+            return iterator.next();
+        }
+
+        @Override
+        public void close() {
+            // NOP
+        }
     }
 
 }

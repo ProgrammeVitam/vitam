@@ -27,15 +27,18 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.mongodb.MongoException;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -581,9 +584,18 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
     @Override
     public void listContainer(String containerName, ObjectListingListener objectListingListener)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
-        LOGGER.debug(String.format("Listing of object in container %s", containerName));
-        throw new UnsupportedOperationException("To be implemented");
+        throws ContentAddressableStorageServerException, IOException {
+        LOGGER.info("Listing of objects of container {}", containerName);
+
+        try (CloseableIterator<ObjectEntry> entryIterator =
+            objectReferentialRepository.listContainerObjectEntries(containerName)) {
+            while (entryIterator.hasNext()) {
+                objectListingListener.handleObjectEntry(entryIterator.next());
+            }
+        } catch (ObjectReferentialException | MongoException e) {
+            throw new ContentAddressableStorageServerException("Could not list objects of container " + containerName, e);
+        }
+        LOGGER.info("Done listing objects of container {}", containerName);
     }
 
     @Override

@@ -26,11 +26,17 @@
  */
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import com.mongodb.MongoCursorNotFoundException;
+import com.mongodb.ServerAddress;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
+import fr.gouv.vitam.common.collection.EmptyCloseableIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
@@ -43,7 +49,9 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveSt
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
+import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -62,6 +70,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +86,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -388,14 +399,120 @@ public class TapeLibraryContentAddressableStorageTest {
     }
 
     @Test
-    public void listContainer() {
+    public void listContainerWithEmptyContainer()
+        throws ObjectReferentialException, ContentAddressableStorageServerException, IOException {
 
         // Given
+        CloseableIterator<ObjectEntry> closeableIterator = spy(new EmptyCloseableIterator<>());
+        doReturn(closeableIterator)
+            .when(objectReferentialRepository).listContainerObjectEntries("container");
+
+        ArrayList<ObjectEntry> entries = new ArrayList<>();
+        ObjectListingListener objectListingListener = entries::add;
+
+        // When
+        tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener);
+
+        // Then
+        assertThat(entries).isEmpty();
+        verify(closeableIterator).close();
+    }
+
+    @Test
+    public void listContainerWithNonEmptyContainer()
+        throws ObjectReferentialException, ContentAddressableStorageServerException, IOException {
+
+        // Given
+        List<ObjectEntry> objectEntries = List.of(
+            new ObjectEntry("obj1", 100L),
+            new ObjectEntry("obj2", 200L)
+        );
+        CloseableIterator<ObjectEntry> closeableIterator =
+            spy(CloseableIteratorUtils.toCloseableIterator(objectEntries));
+        doReturn(closeableIterator)
+            .when(objectReferentialRepository).listContainerObjectEntries("container");
+
+        ArrayList<ObjectEntry> entries = new ArrayList<>();
+        ObjectListingListener objectListingListener = entries::add;
+
+        // When
+        tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener);
+
+        // Then
+        assertThat(entries).isEqualTo(objectEntries);
+        verify(closeableIterator).close();
+    }
+
+    @Test
+    public void listContainerWithMongoExceptionThenIteratorClosedAndExceptionThrown()
+        throws ObjectReferentialException {
+
+        // Given
+        CloseableIterator<ObjectEntry> closeableIterator = mock(CloseableIterator.class);
+        when(closeableIterator.hasNext())
+            .thenReturn(true)
+            .thenReturn(true)
+            .thenThrow(IllegalStateException.class);
+        ObjectEntry objectEntry1 = new ObjectEntry("obj1", 100L);
+        when(closeableIterator.next())
+            .thenReturn(objectEntry1)
+            .thenThrow(new MongoCursorNotFoundException(124L, new ServerAddress()));
+
+        doReturn(closeableIterator)
+            .when(objectReferentialRepository).listContainerObjectEntries("container");
+
+        ArrayList<ObjectEntry> entries = new ArrayList<>();
+        ObjectListingListener objectListingListener = entries::add;
+
+        // When / Then
+        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+            .isInstanceOf(ContentAddressableStorageServerException.class)
+            .hasCauseInstanceOf(MongoCursorNotFoundException.class);
+
+        assertThat(entries).containsExactly(objectEntry1);
+        verify(closeableIterator).close();
+    }
+
+    @Test
+    public void listContainerWithObjectReferentialExceptionThenExceptionThrown()
+        throws ObjectReferentialException {
+
+        // Given
+        doThrow(new ObjectReferentialException("error"))
+            .when(objectReferentialRepository).listContainerObjectEntries("container");
+
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         // When / Then
-        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
-            .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+            .isInstanceOf(ContentAddressableStorageServerException.class)
+            .hasCauseInstanceOf(ObjectReferentialException.class);
+    }
+
+    @Test
+    public void listContainerWithIOExceptionWhileWritingEntriesThenIteratorClosedAndExceptionThrown()
+        throws ObjectReferentialException, IOException {
+
+        // Given
+        ObjectEntry objectEntry1 = new ObjectEntry("obj1", 100L);
+        ObjectEntry objectEntry2 = new ObjectEntry("obj2", 200L);
+        List<ObjectEntry> objectEntries = List.of(objectEntry1, objectEntry2);
+        CloseableIterator<ObjectEntry> closeableIterator =
+            spy(CloseableIteratorUtils.toCloseableIterator(objectEntries));
+        doReturn(closeableIterator)
+            .when(objectReferentialRepository).listContainerObjectEntries("container");
+
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+        doNothing().when(objectListingListener).handleObjectEntry(objectEntry1);
+        doThrow(new IOException("error")).when(objectListingListener).handleObjectEntry(objectEntry2);
+
+        // When / Then
+        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+            .isInstanceOf(IOException.class);
+
+        verify(objectListingListener).handleObjectEntry(objectEntry1);
+        verify(objectListingListener).handleObjectEntry(objectEntry2);
+        verify(closeableIterator).close();
     }
 
     @Test
@@ -432,7 +549,7 @@ public class TapeLibraryContentAddressableStorageTest {
                 List.of("accessRequestId1", "accessRequestId2"));
 
         // Then
-        assertThat(result).isEqualTo(result);
+        assertThat(result).isEqualTo(accessRequestStatuses);
         verify(accessRequestManager).checkAccessRequestStatuses(
             List.of("accessRequestId1", "accessRequestId2"));
         verifyNoMoreInteractions(accessRequestManager);

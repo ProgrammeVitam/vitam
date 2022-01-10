@@ -1,0 +1,37 @@
+
+# WARNING : À utiliser uniquement pour les environnement de développement.
+#           Le lancement de l'offer diff se fait via des playbook ansible sur les environnements déployés.
+#           Cf. http://www.programmevitam.fr/ressources/DocCourante/html/exploitation/topics/45-offerdiff.html
+
+
+@offer1= offer-fs-1.service.consul
+@offer2= offer-fs-2.service.consul
+
+// One off : "units", "objects", "objectgroups", "logbooks", "reports", "manifests", "profiles", "storagelog", "storageaccesslog", "storagetraceability", "rules", "dip", "agencies", "backup", "backupoperations", "unitgraph", "objectgroupgraph", "distributionreports", "accessionregistersdetail", "accessionregisterssymbolic", "tmp", "archivaltransferreply"
+@container= units
+
+@tenant= 0
+
+### Start diff
+POST http://localhost:29102/storage/v1/diff
+Authorization: Basic adminUser adminPassword
+Accept: application/json
+Content-Type: application/json
+
+{
+    "offer1": "{{offer1}}",
+    "offer2": "{{offer2}}",
+    "container": "{{container}}",
+    "tenantId": {{tenant}}
+}
+
+### Check if diff running
+HEAD http://localhost:29102/storage/v1/diff
+Authorization: Basic adminUser adminPassword
+
+
+### Get diff status
+GET http://localhost:29102/storage/v1/diff
+Authorization: Basic adminUser adminPassword
+Accept: application/json
+
