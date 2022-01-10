@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -66,7 +66,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
 
 /**
  *
