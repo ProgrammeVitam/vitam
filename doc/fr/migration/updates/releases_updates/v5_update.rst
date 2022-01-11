@@ -129,3 +129,17 @@ et la collection ``logbook`` est synchrone par rapport à celle du site 1.
 
 Cette migration devrait être faite après la montée de version V5.
 
+
+Mise à jour des certificats
+-----------------------------------
+
+Cette migration de données consiste à mettre à jour le champ ``ExpirationDate`` pour les anciens certificats existants dans la base de donnée.
+
+Elle est réalisée en exécutant la commande suivante (sur tous les sites, dans le cas d'une installation multi-sites) :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5_certificate.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5_certificate.yml --ask-vault-pass``
+
