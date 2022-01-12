@@ -117,13 +117,10 @@
     </Set>
 
     <Set name="RequestLog">
-        <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
+        <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.VitamRequestLogImpl">
             <Set name="fileName">/vitam/conf/logbook/logback-access.xml</Set>
         </New>
     </Set>
-    <Ref id="RequestLogImpl">
-        <Call name="start"/>
-    </Ref>
 
     <!-- =========================================================== -->
     <!-- extra server options                                        -->

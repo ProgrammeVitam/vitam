@@ -84,6 +84,21 @@ public final class PropertiesUtils {
     }
 
     /**
+     * Get the InputStream representation from the local path to the Resources directory
+     *
+     * @param resourcesFile properties file from resources directory
+     * @return the associated File
+     * @throws FileNotFoundException if the resource file not found
+     */
+    public static File getConfigFile(String resourcesFile) throws FileNotFoundException {
+        File file = new File(resourcesFile);
+        if (!file.canRead()) {
+            file = PropertiesUtils.fileFromConfigFolder(resourcesFile);
+        }
+        return file.canRead() ? file : getResourceFile(resourcesFile);
+    }
+
+    /**
      * Get the InputStream representation from the Resources directory
      *
      * @param resourcesFile properties file from resources directory
