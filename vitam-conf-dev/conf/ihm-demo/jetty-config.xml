@@ -117,11 +117,11 @@
     </Set>
 
     <Set name="RequestLog">
-        <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
+        <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.VitamRequestLogImpl">
             <Set name="fileName">logback-access.xml</Set>
         </New>
     </Set>
-    <Ref id="RequestLogImpl">
+    <Ref refid="RequestLogImpl">
         <Call name="start"/>
     </Ref>
 
