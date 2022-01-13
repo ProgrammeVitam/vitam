@@ -168,7 +168,6 @@
     - "server-identity.conf"
     - "logback.xml"
     - "logback-access.xml"
-    - "antisamy-esapi.xml"
     - "jetty-config.xml"
     - "vitam.conf"
   when: ( item != "logbook-client.conf" ) or
