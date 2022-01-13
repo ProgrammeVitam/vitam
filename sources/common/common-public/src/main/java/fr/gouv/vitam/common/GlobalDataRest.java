@@ -112,7 +112,10 @@ public class GlobalDataRest {
      */
     public static final String X_CONTENT_SOURCE = "X-CONTENT-SOURCE";
 
-
+    /**
+     * Allow cross tenant access request check from Admin Tenant
+     */
+    public static final String X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED = "X-Admin-Cross-Tenant-Access-Request-Allowed";
 
     /**
      * The X_PLATFORM_ID header

@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.client.exception;
  * Storage Client Exception thrown when access to data from async offer requires valid access request
  */
 public class StorageUnavailableDataFromAsyncOfferClientException extends StorageClientException {
+
     public StorageUnavailableDataFromAsyncOfferClientException(String message) {
         super(message);
     }

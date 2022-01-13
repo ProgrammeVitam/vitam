@@ -220,7 +220,7 @@ X-Tenant-Id: {{tenant}}
 @qualifier = {{objectgroup.response.body.$.$results.0.#qualifiers.0.qualifier}}
 @version = 1
 
-### Télécharger (should be "test x")
+### Télécharger le binaire
 # @name binary
 GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
 Accept: application/octet-stream
@@ -229,3 +229,44 @@ X-Qualifier: {{qualifier}}
 X-Version: {{version}}
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
+
+### Création de demande d'accès
+# @name access_request
+POST {{url-access}}/access-external/v1/units/{{unit-id}}/objects/accessRequests
+Accept: application/json
+Content-Type: application/json
+X-Qualifier: {{qualifier}}
+X-Version: {{version}}
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+
+@accessRequestId = {{access_request.response.body.$.$results.0.accessRequestId}}
+@storageStrategyId = {{access_request.response.body.$.$results.0.storageStrategyId}}
+
+### Check statut d'un lot de demandes d'accès
+GET {{url-access}}/access-external/v1/accessRequests
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "accessRequestId": "{{accessRequestId}}",
+    "storageStrategyId": "{{storageStrategyId}}"
+  }
+]
+
+### Suppression d'une demande d'accès
+DELETE {{url-access}}/access-external/v1/accessRequests
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "accessRequestId": "{{accessRequestId}}",
+  "storageStrategyId": "{{storageStrategyId}}"
+}
+

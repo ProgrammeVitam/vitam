@@ -270,7 +270,12 @@ public class AccessExtAPI {
      * Objects
      */
     public static final String OBJECTS = "/objects";
-    
+
+    /**
+     * Access request
+     */
+    public static final String ACCESS_REQUESTS = "/accessRequests";
+
     /**
      * Logbook external Operations
      */
@@ -281,5 +286,6 @@ public class AccessExtAPI {
      */
     public static final String COMPUTEDINHERITEDRULES = "computedInheritedRules";
 
-    
+
+    public static final int UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE = 460;
 }

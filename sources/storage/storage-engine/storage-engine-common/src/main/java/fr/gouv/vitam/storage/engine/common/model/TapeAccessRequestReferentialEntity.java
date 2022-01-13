@@ -42,6 +42,7 @@ public class TapeAccessRequestReferentialEntity {
     public static final String EXPIRATION_DATE = "expirationDate";
     public static final String PURGE_DATE = "purgeDate";
     public static final String UNAVAILABLE_ARCHIVE_IDS = "unavailableArchiveIds";
+    public static final String TENANT = "_tenant";
     public static final String VERSION = "_v";
 
     @JsonProperty(ID)
@@ -74,6 +75,9 @@ public class TapeAccessRequestReferentialEntity {
     @JsonInclude()
     private final List<String> unavailableArchiveIds;
 
+    @JsonProperty(TENANT)
+    private final int tenant;
+
     @JsonProperty(VERSION)
     private final int version;
 
@@ -87,6 +91,7 @@ public class TapeAccessRequestReferentialEntity {
         @JsonProperty(EXPIRATION_DATE) String expirationDate,
         @JsonProperty(PURGE_DATE) String purgeDate,
         @JsonProperty(UNAVAILABLE_ARCHIVE_IDS) List<String> unavailableArchiveIds,
+        @JsonProperty(TENANT) int tenant,
         @JsonProperty(VERSION) int version) {
         this.requestId = requestId;
         this.containerName = containerName;
@@ -96,6 +101,7 @@ public class TapeAccessRequestReferentialEntity {
         this.expirationDate = expirationDate;
         this.purgeDate = purgeDate;
         this.unavailableArchiveIds = unavailableArchiveIds;
+        this.tenant = tenant;
         this.version = version;
     }
 
@@ -129,6 +135,10 @@ public class TapeAccessRequestReferentialEntity {
 
     public List<String> getUnavailableArchiveIds() {
         return unavailableArchiveIds;
+    }
+
+    public int getTenant() {
+        return tenant;
     }
 
     public int getVersion() {

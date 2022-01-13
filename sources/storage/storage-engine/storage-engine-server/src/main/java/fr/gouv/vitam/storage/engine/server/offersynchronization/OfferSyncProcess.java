@@ -467,7 +467,7 @@ public class OfferSyncProcess {
 
         Map<String, AccessRequestStatus> accessRequestStatuses =
             new RetryableOnException<Map<String, AccessRequestStatus>, StorageException>(retryableParameters).exec(() ->
-                distribution.checkAccessRequestStatuses(strategyId, sourceOffer, List.of(accessRequestId)));
+                distribution.checkAccessRequestStatuses(strategyId, sourceOffer, List.of(accessRequestId), false));
 
         if (!accessRequestStatuses.containsKey(accessRequestId)) {
             throw new IllegalStateException("Access request status missing from response for " + accessRequestId);
@@ -503,7 +503,7 @@ public class OfferSyncProcess {
         try {
 
             new RetryableOnException<Void, StorageException>(retryableParameters).execute(() ->
-                distribution.removeAccessRequest(strategyId, sourceOffer, accessRequestId));
+                distribution.removeAccessRequest(strategyId, sourceOffer, accessRequestId, false));
 
         } catch (StorageException e) {
             LOGGER.error("Could not remove access request " + accessRequestId + " from offer " + sourceOffer +

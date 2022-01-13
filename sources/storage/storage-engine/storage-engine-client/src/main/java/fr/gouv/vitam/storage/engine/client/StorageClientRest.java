@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
@@ -721,7 +722,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds) throws StorageServerClientException {
+        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageServerClientException, StorageIllegalOperationClientException {
 
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(REQUIRED_ACCESS_REQUEST_IDS, accessRequestIds);
@@ -733,10 +735,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
             .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
+                Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJson()
             .withBody(accessRequestIds);
 
         try (Response response = make(request)) {
+
+            checkIllegalOperation(response);
             check(response);
             RequestResponseOK<Map<String, AccessRequestStatus>> accessRequestCreationResponse
                 = JsonHandler.getFromInputStreamAsTypeReference(response.readEntity(InputStream.class),
@@ -754,8 +760,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
-        throws StorageServerClientException {
+    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageServerClientException, StorageIllegalOperationClientException {
 
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(REQUIRED_ACCESS_REQUEST_ID, accessRequestId);
@@ -766,9 +773,12 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
             .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
+                Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJson();
 
         try (Response response = make(request)) {
+            checkIllegalOperation(response);
             check(response);
             LOGGER.debug("Access request deleted successfully");
 
@@ -837,5 +847,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         throw new VitamClientInternalException(
             String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
                 fromStatusCode(response.getStatus()).getReasonPhrase()));
+    }
+
+    private void checkIllegalOperation(Response response) throws StorageIllegalOperationClientException {
+        if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
+            throw new StorageIllegalOperationClientException(
+                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.", response.getStatus(),
+                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+        }
     }
 }

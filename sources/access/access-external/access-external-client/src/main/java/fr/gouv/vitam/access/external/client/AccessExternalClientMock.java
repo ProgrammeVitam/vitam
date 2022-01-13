@@ -33,16 +33,19 @@ import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collection;
 
 /**
  * Mock client implementation for Access External
@@ -106,10 +109,27 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     @Override
     public Response getObjectStreamByUnitId(VitamContext vitamContext,
         String unitId,
-        String usage, int version)
-        throws VitamClientException {
+        String usage, int version) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
+    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext,
+        String unitId, String usage, int version) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(VitamContext vitamContext,
+        Collection<AccessRequestReference> accessRequestReferences) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext,
+        AccessRequestReference accessRequestReference) {
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
@@ -125,13 +145,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public Response getTransferById(VitamContext vitamContext, String transferId) throws VitamClientException {
+    public Response getTransferById(VitamContext vitamContext, String transferId) {
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public Response getDIPById(VitamContext vitamContext, String dipId)
-        throws VitamClientException {
+    public Response getDIPById(VitamContext vitamContext, String dipId) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
@@ -142,12 +161,9 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
-        throws VitamClientException {
+    public RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery) {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
     }
-    
-
 
     @Override
     public RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
@@ -156,14 +172,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson)
-        throws VitamClientException {
+    public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson) {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(queryJson);
     }
 
     @Override
-    public RequestResponse<JsonNode> revertUpdateUnits(VitamContext vitamContext, JsonNode revertUpdateQuery)
-        throws VitamClientException {
+    public RequestResponse<JsonNode> revertUpdateUnits(VitamContext vitamContext, JsonNode revertUpdateQuery) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
@@ -193,7 +207,7 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
-        JsonNode deleteComputedInheritedRulesQuery) throws VitamClientException {
+        JsonNode deleteComputedInheritedRulesQuery) {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 

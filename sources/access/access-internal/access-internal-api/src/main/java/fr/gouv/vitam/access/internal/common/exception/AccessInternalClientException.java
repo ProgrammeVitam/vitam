@@ -62,17 +62,4 @@ public class AccessInternalClientException extends VitamException {
     public AccessInternalClientException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-    /**
-     * constructor with message throwable anableSuppression and writableStackTrace
-     *
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public AccessInternalClientException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message);
-    }
 }

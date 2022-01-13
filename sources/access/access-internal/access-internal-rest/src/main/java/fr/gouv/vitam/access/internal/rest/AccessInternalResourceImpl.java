@@ -40,12 +40,15 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
@@ -89,6 +92,8 @@ import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -142,6 +147,8 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect;
@@ -988,44 +995,60 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
-
-    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
-        String idObjectGroup, String idUnit, boolean post) {
-
-        if (post && !multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET"))
-                .build();
-
-        }
+    private Optional<Response> checkObjectQualifierAndUsageParams(MultivaluedMap<String, String> multipleMap,
+        String idObjectGroup) {
         if (!multipleMap.containsKey(GlobalDataRest.X_TENANT_ID) ||
             !multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
             !multipleMap.containsKey(GlobalDataRest.X_VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            return Response.status(Status.PRECONDITION_FAILED)
+            return Optional.of(Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(Status.PRECONDITION_FAILED,
                     "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                         .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
                         ")"))
-                .build();
+                .build());
         }
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
         if (!getVitamSession().getContract().isEveryDataObjectVersion() &&
             !validUsage(xQualifier.split("_")[0])) {
-            return Response.status(Status.UNAUTHORIZED)
-                .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier unallowed"))
-                .build();
+            return Optional.of(Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier not allowed"))
+                .build());
         }
         try {
 
             SanityChecker.checkHeadersMap(multipleMap);
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             SanityChecker.checkParameter(idObjectGroup);
+            // Validate version format
+            Integer.parseInt(xVersion);
+            return Optional.empty();
+        } catch (final IllegalStateException | InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Optional.of(Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage()))
+                .build());
+        }
+    }
+
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
+        String idObjectGroup, String idUnit) {
+
+        Optional<Response> errorResponse = checkObjectQualifierAndUsageParams(multipleMap, idObjectGroup);
+        if (errorResponse.isPresent()) {
+            return errorResponse.get();
+        }
+
+        final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
+        final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
+        final int version = Integer.parseInt(xVersion);
+
+        try {
             return accessModule.getOneObjectFromObjectGroup(idObjectGroup, xQualifier,
-                Integer.valueOf(xVersion), idUnit);
+                version, idUnit);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED)
@@ -1035,8 +1058,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
                 exc.getMessage())).build();
+        } catch (AccessInternalUnavailableDataFromAsyncOfferException e) {
+            LOGGER.warn("Object " + xQualifier + "_" + xVersion + " of ObjectGroup: " + idObjectGroup + " / UnitId: " +
+                idUnit + " is not currently available from async offer. Access request required", e);
+            return Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build();
         } catch (StorageNotFoundException | MetaDataNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.warn(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
         }
     }
@@ -1073,7 +1100,127 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     public Response getObjectStreamAsync(@Context HttpHeaders headers,
         @PathParam("id_object_group") String idObjectGroup, @PathParam("id_unit") String idUnit) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-        return asyncObjectStream(multipleMap, idObjectGroup, idUnit, false);
+        return asyncObjectStream(multipleMap, idObjectGroup, idUnit);
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}/accessRequest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createObjectAccessRequestIfRequired(@Context HttpHeaders headers,
+        @PathParam("id_object_group") String idObjectGroup) {
+        MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
+
+        Optional<Response> errorResponse = checkObjectQualifierAndUsageParams(multipleMap, idObjectGroup);
+        if (errorResponse.isPresent()) {
+            return errorResponse.get();
+        }
+
+        try {
+            final String xQualifier = headers.getHeaderString(GlobalDataRest.X_QUALIFIER);
+            final int version = Integer.parseInt(headers.getHeaderString(GlobalDataRest.X_VERSION));
+
+            Optional<AccessRequestReference> objectAccessRequest =
+                accessModule.createObjectAccessRequestIfRequired(idObjectGroup, xQualifier, version);
+
+            RequestResponseOK<AccessRequestReference> requestResponseOK = new RequestResponseOK<>();
+            objectAccessRequest.ifPresent(requestResponseOK::addResult);
+            requestResponseOK.setHttpCode(Status.OK.getStatusCode());
+            return requestResponseOK.toResponse();
+        } catch (final IllegalStateException | InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage())).build();
+        } catch (MetaDataNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
+        } catch (final Exception exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
+                exc.getMessage())).build();
+        }
+    }
+
+    @Override
+    @GET
+    @Path("/accessRequests/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkAccessRequestStatuses(@Context HttpHeaders headers,
+        List<AccessRequestReference> accessRequestReferences) {
+
+        try {
+
+            ParametersChecker.checkParameter("Tenant required", headers.getHeaderString(GlobalDataRest.X_TENANT_ID));
+            if(accessRequestReferences.isEmpty()) {
+                throw new IllegalArgumentException("Empty query");
+            }
+            for (AccessRequestReference accessRequestReference : accessRequestReferences) {
+                ParametersChecker.checkParameter("Access requests required", accessRequestReference);
+                ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+                ParametersChecker.checkParameter("Required storageStrategyId",
+                    accessRequestReference.getStorageStrategyId());
+            }
+
+            List<StatusByAccessRequest> statusByAccessRequests =
+                accessModule.checkAccessRequestStatuses(accessRequestReferences);
+
+            return new RequestResponseOK<StatusByAccessRequest>()
+                .addAllResults(statusByAccessRequests)
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
+
+        } catch (final IllegalStateException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage())).build();
+        } catch (final AccessInternalIllegalOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_ACCEPTABLE)
+                .entity(getErrorStream(Status.NOT_ACCEPTABLE, exc.getMessage())).build();
+        } catch (final Exception exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
+                exc.getMessage())).build();
+        }
+    }
+
+    @Override
+    @DELETE
+    @Path("/accessRequests/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeAccessRequest(@Context HttpHeaders headers,
+        AccessRequestReference accessRequestReference) {
+
+        try {
+
+            ParametersChecker.checkParameter("Tenant required", headers.getHeaderString(GlobalDataRest.X_TENANT_ID));
+            ParametersChecker.checkParameter("Access request required", accessRequestReference);
+            ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+            ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+
+            accessModule.removeAccessRequest(accessRequestReference.getStorageStrategyId(),
+                accessRequestReference.getAccessRequestId());
+
+            return new RequestResponseOK<>()
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
+
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage())).build();
+        } catch (final AccessInternalIllegalOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_ACCEPTABLE)
+                .entity(getErrorStream(Status.NOT_ACCEPTABLE, exc.getMessage())).build();
+        } catch (final Exception exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
+                exc.getMessage())).build();
+        }
     }
 
     @Override
@@ -1283,7 +1430,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
-    
+
     @Override
     @POST
     @Path(UNITS_ATOMIC_BULK_URI)
@@ -1302,7 +1449,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
-            
+
             String operationId = getVitamSession().getRequestId();
 
             // Init logbook operation
@@ -1334,7 +1481,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             workspaceClient
                 .putObject(operationId, ACCESS_CONTRACT_FILE, writeToInpustream(
                         JsonHandler.toJsonNode(getVitamSession().getContract())));
-            
+
             // compress file to backup
             OperationContextMonitor
                 .compressInWorkspace(workspaceClientFactory, operationId,
@@ -1361,8 +1508,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         }
     }
-    
-    
+
+
     @Override
     @POST
     @Path("/revert/units")

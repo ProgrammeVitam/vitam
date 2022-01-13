@@ -28,8 +28,10 @@ package fr.gouv.vitam.access.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -43,11 +45,15 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Access client interface
@@ -173,11 +179,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
+     * @throws AccessInternalClientUnavailableDataFromAsyncOfferException if access to the requested object requires an Access Request.
      */
     Response getObject(String objectGroupId, String usage, int version, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException;
-
+        AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        AccessInternalClientUnavailableDataFromAsyncOfferException;
 
     /**
      * selectOperation
@@ -416,4 +423,14 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
         NoWritingPermissionException, InvalidFormatException;
+
+    Optional<AccessRequestReference> createObjectAccessRequest(String idObjectGroup, String qualifier, int version)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException;
+
+    List<StatusByAccessRequest> checkAccessRequestStatuses(
+        List<AccessRequestReference> accessRequestReferences)
+        throws AccessInternalClientServerException, AccessInternalClientIllegalOperationException;
+
+    void removeAccessRequest(AccessRequestReference accessRequestReference)
+        throws AccessInternalClientServerException, AccessInternalClientIllegalOperationException;
 }

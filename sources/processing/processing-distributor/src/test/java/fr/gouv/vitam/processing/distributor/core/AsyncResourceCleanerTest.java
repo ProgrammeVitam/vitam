@@ -45,6 +45,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -104,7 +105,7 @@ public class AsyncResourceCleanerTest {
     public void givenAccessRequestsWhenCleanupRunThenAccessRequestsRemoved() throws Exception {
 
         // Given
-        doNothing().when(storageClient).removeAccessRequest(any(), any(), any());
+        doNothing().when(storageClient).removeAccessRequest(any(), any(), any(), anyBoolean());
 
         // When
         asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
@@ -117,9 +118,9 @@ public class AsyncResourceCleanerTest {
         simulateBackgroundScheduledTasksRun3xTimes();
 
         // Then
-        verify(storageClient).removeAccessRequest("strategyId1", "offerId1", "accessRequestId1");
-        verify(storageClient).removeAccessRequest("strategyId2", "offerId2", "accessRequestId2");
-        verify(storageClient).removeAccessRequest("strategyId1", null, "accessRequestId3");
+        verify(storageClient).removeAccessRequest("strategyId1", "offerId1", "accessRequestId1", true);
+        verify(storageClient).removeAccessRequest("strategyId2", "offerId2", "accessRequestId2", true);
+        verify(storageClient).removeAccessRequest("strategyId1", null, "accessRequestId3", true);
         verify(storageClient, atLeastOnce()).close();
         verifyZeroInteractions(storageClient);
     }
@@ -129,11 +130,11 @@ public class AsyncResourceCleanerTest {
         throws Exception {
 
         // Given
-        doNothing().when(storageClient).removeAccessRequest(eq("strategyId1"), any(), any());
+        doNothing().when(storageClient).removeAccessRequest(eq("strategyId1"), any(), any(), anyBoolean());
         // 1x failure than 1 success
         doThrow(new StorageServerClientException("error"))
             .doNothing()
-            .when(storageClient).removeAccessRequest("strategyId2", "offerId2", "accessRequestId3");
+            .when(storageClient).removeAccessRequest("strategyId2", "offerId2", "accessRequestId3", true);
 
 
         // When
@@ -145,9 +146,9 @@ public class AsyncResourceCleanerTest {
         simulateBackgroundScheduledTasksRun3xTimes();
 
         // Then
-        verify(storageClient).removeAccessRequest("strategyId1", "offerId1", "accessRequestId1");
-        verify(storageClient).removeAccessRequest("strategyId1", null, "accessRequestId2");
-        verify(storageClient, times(2)).removeAccessRequest("strategyId2", "offerId2", "accessRequestId3");
+        verify(storageClient).removeAccessRequest("strategyId1", "offerId1", "accessRequestId1", true);
+        verify(storageClient).removeAccessRequest("strategyId1", null, "accessRequestId2", true);
+        verify(storageClient, times(2)).removeAccessRequest("strategyId2", "offerId2", "accessRequestId3", true);
         verify(storageClient, atLeastOnce()).close();
         verifyZeroInteractions(storageClient);
     }
@@ -157,7 +158,7 @@ public class AsyncResourceCleanerTest {
         throws Exception {
 
         // Given
-        doNothing().when(storageClient).removeAccessRequest(any(), any(), any());
+        doNothing().when(storageClient).removeAccessRequest(any(), any(), any(), anyBoolean());
 
         asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
             "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),

@@ -44,6 +44,8 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
@@ -55,6 +57,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -102,12 +106,13 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
     }
-    
+
     @Override
-    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries)
+        throws InvalidParseOperationException {
         throw new IllegalStateException("Stop using mocks in production");
     }
-    
+
 
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
@@ -256,7 +261,24 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> deleteGotVersions(DeleteGotVersionsRequest request){
+    public RequestResponse<JsonNode> deleteGotVersions(DeleteGotVersionsRequest request) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public Optional<AccessRequestReference> createObjectAccessRequest(String idObjectGroup, String qualifier,
+        int version) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public List<StatusByAccessRequest> checkAccessRequestStatuses(
+        List<AccessRequestReference> accessRequestReferences) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public void removeAccessRequest(AccessRequestReference accessRequestReference) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 }

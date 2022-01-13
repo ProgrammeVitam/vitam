@@ -28,11 +28,15 @@ package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.VitamClientAccessUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,9 +46,14 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
@@ -160,8 +169,99 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withJsonContentType()
             .withOctetAccept();
         Response response = make(request);
+
+        if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
+            throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
+                "Object unavailable for immediate access. Access Request required");
+        }
+
+        // FIXME : Seams buggy for 404 & 401 error codes
         check(response);
+
         return response;
+    }
+
+    @Override
+    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext,
+        String unitId, String usage, int version) throws VitamClientException, AccessExternalClientNotFoundException {
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
+        ParametersChecker.checkParameter("Missing usage", usage);
+
+        VitamRequestBuilder request = post()
+            .withPath(UNITS + URLEncoder.encode(unitId, StandardCharsets.UTF_8) + AccessExtAPI.OBJECTS +
+                AccessExtAPI.ACCESS_REQUESTS)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(GlobalDataRest.X_QUALIFIER, usage)
+            .withHeader(GlobalDataRest.X_VERSION, version)
+            .withJson();
+        Response response = make(request);
+
+        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+            throw new AccessExternalClientNotFoundException(
+                "No such object matching unitId and object qualifier usage & version");
+        }
+        if (response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()) {
+            throw new AccessUnauthorizedException(
+                "Access forbidden to object with specified qualifier usage & version");
+        }
+        check(response);
+
+        return RequestResponse.parseFromResponse(response, AccessRequestReference.class);
+    }
+
+    @Override
+    public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(
+        VitamContext vitamContext, Collection<AccessRequestReference> accessRequestReferences) throws VitamClientException {
+
+        ParametersChecker.checkParameter("Access requests required", accessRequestReferences);
+        for (AccessRequestReference accessRequestReference : accessRequestReferences) {
+            ParametersChecker.checkParameter("Access requests required", accessRequestReference);
+            ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+            ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+        }
+
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.ACCESS_REQUESTS)
+            .withHeaders(vitamContext.getHeaders())
+            .withJson()
+            .withBody(accessRequestReferences);
+        Response response = make(request);
+
+        if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
+            throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
+                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                    response.getStatus(),
+                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+        }
+        check(response);
+
+        return RequestResponse.parseFromResponse(response, StatusByAccessRequest.class);
+    }
+
+    @Override
+    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext, AccessRequestReference accessRequestReference)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter("Access request required", accessRequestReference);
+        ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+        ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+
+        VitamRequestBuilder request = delete()
+            .withPath(AccessExtAPI.ACCESS_REQUESTS)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonContentType()
+            .withBody(accessRequestReference);
+        Response response = make(request);
+
+        if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
+            throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
+                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                    response.getStatus(),
+                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+        }
+        check(response);
+
+        return RequestResponse.parseFromResponse(response, Void.class);
     }
 
     @Override

@@ -291,6 +291,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
+                .isEqualTo("true");
             assertThat(accessRequestIds).containsExactly("accessRequestId1", "accessRequestId2");
             return mock.get();
         }
@@ -303,6 +305,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             @Context HttpHeaders headers) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
+                .isEqualTo("true");
             assertThat(accessRequestId).isEqualTo("accessRequestId1");
 
             return mock.delete();
@@ -1159,7 +1163,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         // When
         try (Connection connection = driver.connect(offer.getId())) {
             Map<String, AccessRequestStatus> accessRequestStatuses
-                = connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3);
+                = connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3, true);
 
             // Then
             assertThat(accessRequestStatuses).isEqualTo(Map.of(
@@ -1179,7 +1183,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         try (Connection connection = driver.connect(offer.getId())) {
 
             assertThatThrownBy(
-                () -> connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3))
+                () -> connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3, true))
                 .isInstanceOf(StorageDriverException.class);
         }
     }
@@ -1193,7 +1197,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         try (Connection connection = driver.connect(offer.getId())) {
 
             // When / Then
-            assertThatCode(() -> connection.removeAccessRequest("accessRequestId1", 3))
+            assertThatCode(() -> connection.removeAccessRequest("accessRequestId1", 3, true))
                 .doesNotThrowAnyException();
         }
     }
@@ -1207,7 +1211,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {
 
-            assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3))
+            assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3, true))
                 .isInstanceOf(StorageDriverException.class);
         }
     }

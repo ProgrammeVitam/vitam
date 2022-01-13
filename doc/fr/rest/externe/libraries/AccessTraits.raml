@@ -71,13 +71,12 @@ traits:
   AccessUniqueObjectQualifierResponse:
     description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
-      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400, StandardTraits.CustomHeader460,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     headers:
       X-Qualifier?:
         type: string
         enum:
-          - PhysicalMaster
           - BinaryMaster
           - Dissemination
           - Thumbnail
@@ -450,3 +449,141 @@ traits:
           body:
             application/json:
               description: Rapport final de l'opération de suppression des groupes d'objets
+
+  ObjectAccessRequestCreation:
+    description: |
+      Création d'une demandes d'accès à un objet d'archives associé à une unité d'archives.
+
+      Si l'objet est persisté sur une offre de stockage « froide », une demandes d'accès est créée, et renvoyée.
+
+      Si l'objet est persisté sur une offre de stockage « chaude », aucune demandes d'accès n'est renvoyée.
+
+      La création d'une demandes d'accès, permet de pré-commander des données persistées sur une offre « froide », et de le mettre à disposition pour lecture.
+
+      L'appelant doit monitorer périodiquement le statut des demandes d'accès (typiquement toutes les quelques minutes ou heures).
+
+      Une fois une demandes d'accès est devient prête (**READY**), la disponibilité immédiate des données depuis l'offre « froide » est garantie.
+
+      La durée d'expiration d'une demandes d'accès, qui court à partir du moment où cette dernière devient prête, est paramétrée par l'administrateur de Vitam.
+
+      Au bout d'une durée configurée par l'administrateur, une demandes d'accès est purgée de l'offre (**NOT_FOUND**).
+
+      Une fois une demandes d'accès est expirée (**EXPIRED**) ou supprimée, la disponibilité des données n'est alors plus garantie.
+
+      **IMPORTANT:** Les demandes d'accès créées doivent être supprimées au plus vite, dès que la donnée a été récupérée.
+      Un trop grand nombre et/ou volume de demandes d'accès non supprimées risque d'impacter les capacité de stockage du cache de l'offre « froide », ainsi que la stabilité de l'offre.
+
+      Permissions requises:
+        - units:id:objects:accessrequests:create
+
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200,
+     StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader500]
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+      X-Qualifier:
+        required: true
+        type: string
+        description: Le qualifier de l'objet binaire
+        enum:
+          - BinaryMaster
+          - Dissemination
+          - Thumbnail
+          - TextContent
+      X-Version:
+        required: true
+        type: integer
+        description: La version de l'objet (Ex. 1, 2...)
+
+    responses:
+      200:
+        description: |
+          Renvoie le résultat de création de la demande d'accès à l'objet d'archives
+        body:
+          application/json:
+            description: Résultat de création de la demande d'accès à l'objet d'archives
+            type: AccessTypes.ObjectAccessRequestCreationResponse
+            example: !include examples/objectAccessRequestCreationResponse.json
+
+  CheckAccessRequestStatuses:
+    description: |
+      Vérification du statut d'un lot de demandes d'accès.
+
+      Pour chaque demande d'accès, un statut est renvoyé :
+        - **READY** : La demande d'accès est prête.
+        - **NOT_READY** : La demande d'accès est n'est pas encore prête.
+        - **EXPIRED** : La demande d'accès a expiré.
+        - **NOT_FOUND** : La demande d'accès n'est pas trouvée (supprimée, purgée au bout d'un délais après expiration, non existante ou non visible depuis le contexte du tenant d'appel...)
+
+      L'appelant doit monitorer périodiquement le statut des demandes d'accès (typiquement toutes les quelques minutes ou heures). Une fréquence d'appel trop rapide peut avoir un impact sur les performances de l'offres en particulier, et de Vitam en général.
+
+      Une demande d'accès est uniquement visible dans le contexte de son tenant, et sera donc perçue comme NOT_FOUND depuis tout autre tenant.
+
+      Permissions requises:
+        - accessrequests:check
+
+    body:
+      application/json:
+        description: |
+          Liste (non vide, sans doublons) des demandes d'accès à vérifier.
+        type: AccessTypes.CheckAccessRequestStatusesRequest
+        example: !include examples/checkAccessRequestStatusesRequest.json
+
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200,
+     StandardTraits.StandardHeader406, StandardTraits.StandardHeader500]
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    responses:
+      200:
+        description: |
+          Renvoie le statut pour chacune des demandes d'accès.
+        body:
+          application/json:
+            description: Statut des demandes d'accès
+            type: AccessTypes.CheckAccessRequestStatusesResponse
+            example: !include examples/checkAccessRequestStatusesResponse.json
+
+
+  DeleteAccessRequest:
+    description: |
+      Suppression d'une demande d'accès.
+
+      Une fois une demandes d'accès supprimée, la disponibilité des données n'est alors plus garantie.
+
+      La suppression d'une demande d'accès inexistante est sans effet (idempotence). De même, une demande d'accès est uniquement visible dans le contexte de son tenant.
+
+      **IMPORTANT:** Les demandes d'accès créées doivent être supprimées au plus vite, dès que la donnée a été récupérée.
+      Un trop grand nombre et/ou volume de demandes d'accès non supprimées risque d'impacter les capacité de stockage du cache de l'offre « froide », et la stabilité de l'offre.
+
+      Permissions requises:
+        - accessrequests:remove
+
+    body:
+      application/json:
+        description: |
+          La demande d'accès à supprimer.
+        type: AccessTypes.accessRequestReference
+        example: !include examples/RemoveAccessRequest.json
+
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200,
+     StandardTraits.StandardHeader406, StandardTraits.StandardHeader500]
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    responses:
+      200:
+        description: |
+          Succès du traitement de la requête.

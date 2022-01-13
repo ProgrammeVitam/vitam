@@ -30,12 +30,16 @@ package fr.gouv.vitam.access.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -46,6 +50,10 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
@@ -60,6 +68,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -73,9 +82,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -260,6 +273,80 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         }
 
         @Override
+        @POST
+        @Path("/objects/{id_object_group}/accessRequest")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createObjectAccessRequestIfRequired(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup) {
+
+            assertThat(headers.getHeaderString(VitamHttpHeader.QUALIFIER.getName()))
+                .isEqualTo("MyUsage");
+            assertThat(headers.getHeaderString(VitamHttpHeader.VERSION.getName()))
+                .isEqualTo("1");
+
+            switch (idObjectGroup) {
+                case "MyGotId1":
+                    return new RequestResponseOK<AccessRequestReference>()
+                        .addResult(new AccessRequestReference("accessRequestId", "strategyId"))
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "MyGotId2":
+                    return new RequestResponseOK<AccessRequestReference>()
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "NotFound":
+                    return Response.status(Status.NOT_FOUND).build();
+                case "Unauthorized":
+                    return Response.status(Status.UNAUTHORIZED).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @Override
+        @GET
+        @Path("/accessRequests/")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkAccessRequestStatuses(@Context HttpHeaders headers,
+            List<AccessRequestReference> accessRequestReferences) {
+
+            assertThat(accessRequestReferences).isNotEmpty();
+            switch (accessRequestReferences.get(0).getStorageStrategyId()) {
+
+                case "async_strategy1":
+                    return new RequestResponseOK<StatusByAccessRequest>()
+                        .addAllResults(accessRequestReferences.stream().map(accessRequest ->
+                                new StatusByAccessRequest(accessRequest, AccessRequestStatus.READY))
+                            .collect(Collectors.toList()))
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "sync_strategy":
+                    return Response.status(Status.NOT_ACCEPTABLE).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @Override
+        @DELETE
+        @Path("/accessRequests/")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeAccessRequest(@Context HttpHeaders headers,
+            AccessRequestReference accessRequestReference) {
+            switch (accessRequestReference.getStorageStrategyId()) {
+                case "async_strategy1":
+                    return Response.status(Status.ACCEPTED).build();
+                case "sync_strategy":
+                    return Response.status(Status.NOT_ACCEPTABLE).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @Override
         @GET
         @Path("/storageaccesslog")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -299,16 +386,14 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/traceability/check")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkTraceabilityOperation(JsonNode query)
-            throws InvalidParseOperationException {
+        public Response checkTraceabilityOperation(JsonNode query) {
             return expectedResponse.post();
         }
 
         @GET
         @Path("/traceability/{idOperation}/content")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId)
-            throws InvalidParseOperationException {
+        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId) {
             return expectedResponse.get();
         }
 
@@ -479,7 +564,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenQueryNullWhenSelectObjectByIdThenRaiseAnIllegalArgumentException() throws Exception {
+    public void givenQueryNullWhenSelectObjectByIdThenRaiseAnIllegalArgumentException() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         assertThatThrownBy(() -> client.selectObjectbyId(null, ID))
             .isInstanceOf(IllegalArgumentException.class);
@@ -536,7 +621,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
@@ -545,7 +630,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
@@ -554,7 +639,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
@@ -563,11 +648,21 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
             .isInstanceOf(AccessInternalClientNotFoundException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenUnavailableDataFromAsyncOfferException() {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.get()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
+            .isInstanceOf(AccessInternalClientUnavailableDataFromAsyncOfferException.class);
     }
 
     @RunWithCustomExecutor
@@ -789,7 +884,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenSuccessThenOK()
@@ -797,9 +892,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         JsonNode responseNode = JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
+            .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
         RequestResponseOK<ItemStatus> responseOK = RequestResponseOK.getFromJsonNode(responseNode, ItemStatus.class);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
 
@@ -811,11 +906,10 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(requestResponse.isOk()).isTrue();
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void startAtomicBulkUpdateWhenNoBodyThenException()
-        throws Exception {
+    public void startAtomicBulkUpdateWhenNoBodyThenException() {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
@@ -825,15 +919,14 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
             .isInstanceOf(IllegalArgumentException.class);
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void startAtomicBulkUpdateWhenPreconditionFailedThenException()
-        throws Exception {
+    public void startAtomicBulkUpdateWhenPreconditionFailedThenException() {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
 
         JsonNode requestBody = JsonHandler.createObjectNode();
@@ -842,7 +935,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
             .isInstanceOf(AccessInternalClientServerException.class);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenBadRequestFailedThenVitamError()
@@ -850,13 +943,13 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         VitamError responseError = new VitamError("BAD_REQUEST")
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                .setContext("BULK IT")
-                .setState("KO")
-                .setDescription("Bad response")
-                .setMessage("something bad happened here");
+            .setHttpCode(Status.BAD_REQUEST.getStatusCode())
+            .setContext("BULK IT")
+            .setState("KO")
+            .setDescription("Bad response")
+            .setMessage("something bad happened here");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(responseError).build());
 
         JsonNode requestBody = JsonHandler.createObjectNode();
@@ -864,5 +957,146 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // When + then
         RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(requestBody);
         assertThat(requestResponse.isOk()).isFalse();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenAsyncOffer()
+        throws Exception {
+
+        // When
+        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest(
+            "MyGotId1", "MyUsage", 1);
+
+        // Then
+        assertThat(requestResponse).isPresent();
+        assertThat(requestResponse.get().getAccessRequestId()).isEqualTo("accessRequestId");
+        assertThat(requestResponse.get().getStorageStrategyId()).isEqualTo("strategyId");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenSyncOffer()
+        throws Exception {
+        // When
+        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest(
+            "MyGotId2", "MyUsage", 1);
+
+        // Then
+        assertThat(requestResponse).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenNotFound() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequest("NotFound", "MyUsage", 1))
+            .isInstanceOf(AccessInternalClientNotFoundException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenUnauthorized() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequest("Unauthorized", "MyUsage", 1))
+            .isInstanceOf(AccessUnauthorizedException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenInternalServerError() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequest("Error", "MyUsage", 1))
+            .isInstanceOf(AccessInternalClientServerException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenAsyncOffer()
+        throws Exception {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
+        AccessRequestReference accessRequest2 = new AccessRequestReference("accessRequestId2", "async_strategy2");
+
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1, accessRequest2);
+
+        // When
+        List<StatusByAccessRequest> requestResponse = client.checkAccessRequestStatuses(accessRequestReferences);
+
+        // Then
+        assertThat(requestResponse).hasSize(2);
+        assertThat(requestResponse.get(0).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
+            accessRequest1.getAccessRequestId());
+        assertThat(requestResponse.get(0).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
+            accessRequest1.getStorageStrategyId());
+        assertThat(requestResponse.get(0).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
+        assertThat(requestResponse.get(1).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
+            accessRequest2.getAccessRequestId());
+        assertThat(requestResponse.get(1).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
+            accessRequest2.getStorageStrategyId());
+        assertThat(requestResponse.get(1).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenSyncOffer() {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "sync_strategy");
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
+
+        // When / Then
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences))
+            .isInstanceOf(AccessInternalClientIllegalOperationException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenInternalServerError() {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "error");
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
+
+        // When / Then
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences))
+            .isInstanceOf(AccessInternalClientServerException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenAsyncOffer() {
+
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "async_strategy1");
+
+        // When / Then
+        assertThatCode(() -> client.removeAccessRequest(accessRequest))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenSyncOffer() {
+
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "sync_strategy");
+
+        // When / Then
+        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest))
+            .isInstanceOf(AccessInternalClientIllegalOperationException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenInternalServerError() {
+
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "error");
+
+        // When / Then
+        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest))
+            .isInstanceOf(AccessInternalClientServerException.class);
     }
 }

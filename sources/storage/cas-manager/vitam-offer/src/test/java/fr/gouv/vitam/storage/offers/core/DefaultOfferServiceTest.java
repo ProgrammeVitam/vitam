@@ -1173,11 +1173,11 @@ public class DefaultOfferServiceTest {
             "accessRequest1", AccessRequestStatus.EXPIRED,
             "accessRequest2", AccessRequestStatus.READY
         )).when(contentAddressableStorage)
-            .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"));
+            .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
 
         // When
         Map<String, AccessRequestStatus> accessRequestStatuses =
-            offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"));
+            offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
 
         // Then
         assertThat(accessRequestStatuses).isEqualTo(Map.of(
@@ -1200,10 +1200,11 @@ public class DefaultOfferServiceTest {
             "accessRequest1", AccessRequestStatus.EXPIRED,
             "accessRequest2", AccessRequestStatus.READY
         )).when(contentAddressableStorage)
-            .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"));
+            .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
 
         // When / Then
-        assertThatThrownBy(() -> offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2")))
+        assertThatThrownBy(() ->
+            offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true))
             .isInstanceOf(ContentAddressableStorageException.class);
     }
 
@@ -1219,10 +1220,10 @@ public class DefaultOfferServiceTest {
             MAX_BATCH_THREAD_POOL_SIZE, 1);
 
         // When
-        offerService.removeAccessRequest("accessRequest1");
+        offerService.removeAccessRequest("accessRequest1", true);
 
         // Then
-        verify(contentAddressableStorage).removeAccessRequest("accessRequest1");
+        verify(contentAddressableStorage).removeAccessRequest("accessRequest1", true);
     }
 
     @Test
@@ -1236,7 +1237,7 @@ public class DefaultOfferServiceTest {
             MAX_BATCH_THREAD_POOL_SIZE, 1);
 
         // When / Then
-        assertThatThrownBy(() -> offerService.removeAccessRequest("accessRequest1"))
+        assertThatThrownBy(() -> offerService.removeAccessRequest("accessRequest1", true))
             .isInstanceOf(ContentAddressableStorageException.class);
     }
 

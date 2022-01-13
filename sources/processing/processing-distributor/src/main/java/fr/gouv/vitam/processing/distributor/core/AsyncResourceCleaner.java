@@ -37,6 +37,7 @@ import fr.gouv.vitam.processing.common.async.AccessRequestContext;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 import java.util.HashMap;
@@ -109,13 +110,13 @@ public class AsyncResourceCleaner {
                         accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId());
                     try {
                         storageClient.removeAccessRequest(accessRequestContext.getStrategyId(),
-                            accessRequestContext.getOfferId(), accessRequestId);
+                            accessRequestContext.getOfferId(), accessRequestId, true);
 
                         LOGGER.info("Access request {} removed successfully for strategyId: {} / offerId: {}",
                             accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId());
 
                         removedAccessRequestIds.add(accessRequestId);
-                    } catch (StorageServerClientException e) {
+                    } catch (StorageServerClientException | StorageIllegalOperationClientException e) {
                         LOGGER.error("Could not remove access request {} for strategyId: {} / offerId: {}",
                             accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId(),
                             e);

@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -887,28 +888,28 @@ public class StorageDistributionImplTest {
 
     @RunWithCustomExecutor
     @Test
-    public void checkAccessRequestStatusesWithSyncOfferThenKO() throws Exception {
+    public void checkAccessRequestStatusesWithSyncOfferThenKO() {
 
         // Given (cf. configuration in static resources & FakeConnectionImpl driver)
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // When / Then
         assertThatThrownBy(() -> customDistribution.checkAccessRequestStatuses("default", "default",
-            List.of("accessRequestId1", "accessRequestId2")))
-            .isInstanceOf(StorageException.class);
+            List.of("accessRequestId1", "accessRequestId2"), true))
+            .isInstanceOf(StorageIllegalOperationException.class);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void checkAccessRequestStatusesWithDefaultReferentSyncOfferThenKO() throws Exception {
+    public void checkAccessRequestStatusesWithDefaultReferentSyncOfferThenKO() {
 
         // Given (cf. configuration in static resources & FakeConnectionImpl driver)
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // When / Then
         assertThatThrownBy(() -> customDistribution.checkAccessRequestStatuses("sync_and_async_storage", null,
-            List.of("accessRequestId1", "accessRequestId2")))
-            .isInstanceOf(StorageException.class);
+            List.of("accessRequestId1", "accessRequestId2"), true))
+            .isInstanceOf(StorageIllegalOperationException.class);
     }
 
     @RunWithCustomExecutor
@@ -921,7 +922,7 @@ public class StorageDistributionImplTest {
         // When
         Map<String, AccessRequestStatus> accessRequestStatuses =
             customDistribution.checkAccessRequestStatuses("async_and_async_storage", "myTapeOffer2",
-                List.of("accessRequestId1", "accessRequestId2"));
+                List.of("accessRequestId1", "accessRequestId2"), false);
 
         // Then
         assertThat(accessRequestStatuses).isEqualTo(Map.of(
@@ -940,13 +941,65 @@ public class StorageDistributionImplTest {
         // When
         Map<String, AccessRequestStatus> accessRequestStatuses =
             customDistribution.checkAccessRequestStatuses("async_and_async_storage", null,
-                List.of("accessRequestId1", "accessRequestId2"));
+                List.of("accessRequestId1", "accessRequestId2"), true);
 
         // Then
         assertThat(accessRequestStatuses).isEqualTo(Map.of(
             "accessRequestId1", AccessRequestStatus.READY,
             "accessRequestId2", AccessRequestStatus.READY
         ));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkAccessRequestStatusesFromSyncOfferThenKO() {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When / Then
+        assertThatThrownBy(() -> customDistribution.checkAccessRequestStatuses("default", "default",
+            List.of("accessRequestId1", "accessRequestId2"), true))
+            .isInstanceOf(StorageIllegalOperationException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void removeAccessRequestFromDefaultReferentSyncOfferThenKO() {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When / Then
+        assertThatThrownBy(() -> customDistribution.removeAccessRequest("sync_and_async_storage", null,
+            "accessRequestId1", true))
+            .isInstanceOf(StorageIllegalOperationException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void removeAccessRequestFromAsyncOfferThenOK() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When / Then
+        assertThatCode(() -> customDistribution.removeAccessRequest("async_and_async_storage", "myTapeOffer2",
+            "accessRequestId1", true))
+            .doesNotThrowAnyException();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkAccessRequestStatusesFromDefaultReferenceAsyncOfferThenOK() throws Exception {
+
+        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When / Then
+        assertThatCode(() -> customDistribution.checkAccessRequestStatuses("async_and_async_storage", null,
+            List.of("accessRequestId1", "accessRequestId2"), true))
+            .doesNotThrowAnyException();
     }
 
     @RunWithCustomExecutor

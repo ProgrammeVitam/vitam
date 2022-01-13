@@ -392,14 +392,115 @@ types:
         }
 
   DeleteGotVersionsResponse:
-      displayName: Requête DSL multiple pour la suppression des versions des groupes d'objects
-      description: Requête DSL multiple pour la suppression des versions des groupes d'objects
+      displayName: Requête DSL multiple pour la suppression des versions des groupes d'objets
+      description: Requête DSL multiple pour la suppression des versions des groupes d'objets
       type: object
       properties:
         httpCode:
-          description: Http status code la reponse
+          description: Http status code la réponse
           type: integer
       example:
         {
         "httpCode" : 202
         }
+
+  ObjectAccessRequestCreationResponse:
+      displayName: Réponse d'une demande de création d'une demande d'accès pour l'objet
+      description: |
+        Réponse d'une demande de création d'une demande d'accès pour l'objet
+        Si l'objet est persisté sur une offre de stockage « froide », une demande d'accès est créée et renvoyée.
+        Si l'objet est persisté sur une offre de stockage « chaude », aucune demande d'accès n'est renvoyée.
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la réponse
+          type: integer
+        $results:
+          description: |
+            Contient la demande d'accès à l'objet, si celle-ci a bien été créée.
+
+            Si l'objet est persisté sur une offre de stockage « froide », une demande d'accès est renvoyée.
+            Si l'objet est persisté sur une offre de stockage « chaude », aucune demande d'accès n'est renvoyée.
+          type: array
+          items:
+            type: accessRequestReference
+
+  AccessRequestReference:
+      displayName: Les références d'une demande d'accès d'une stratégie stockage « froide »
+      description: Les références d'une demande d'accès d'une stratégie stockage « froide »
+      type: object
+      properties:
+        accessRequestId:
+          description: L'identifiant de la demande d'accès
+          required: true
+          type: string
+        storageStrategyId:
+          description: Stratégie de stockage associée à la demande d'accès
+          required: true
+          type: string
+      example: {
+        "accessRequestId": "aeaaaaaaaag5nq65ag2cgal54k3u7aqaaaaq",
+        "storageStrategyId": "tape"
+      }
+
+  CheckAccessRequestStatusesRequest:
+    displayName: Requête de vérification des statuts d'un lot de demandes d'accès
+    description: |
+      Liste (non vide, sans doublons) des demandes d'accès à vérifier.
+    type: array
+    items:
+      type: AccessRequestReference
+      example: [
+        {
+          "accessRequestId": "aeaaaaaaaag5nq65ag2cgal54mxefmqaaaaq",
+          "storageStrategyId": "tape"
+        },
+        {
+          "accessRequestId": "aeaaaaaaaahjpju4ab4wgal54rrp2vaaaaaq",
+          "storageStrategyId": "tape"
+        }
+      ]
+
+  CheckAccessRequestStatusesResponse:
+      displayName: Résultat de vérification des statuts d'un lot de demandes d'accès
+      description: |
+        Résultat de vérification des statuts d'un lot de demandes d'accès
+
+        À chaque demande d'accès en paramètre, un statut dans l'offre :
+        - **READY** : La demande d'accès est prête.
+        - **NOT_READY** : La demande d'accès est n'est pas encore prête.
+        - **EXPIRED** : La demande d'accès a expiré
+        - **NOT_FOUND** : La demande d'accès n'est pas trouvée (supprimée, purgée au bout d'un délais après expiration, non existante ou non visible depuis le contexte du tenant d'appel...)
+
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la réponse
+          type: integer
+        $results:
+          description: Statuts pour chaque demandes d'accès
+          type: array
+          items:
+            type: StatusByAccessRequestReference
+
+  StatusByAccessRequestReference:
+      displayName: Le statut d'une demande d'accès sur stratégie stockage « froide »
+      description: Le statut d'une demande d'accès sur stratégie stockage « froide »
+      type: object
+      properties:
+        accessRequestReference:
+          description: La demande d'accès concernée
+          required: true
+          type: AccessRequestReference
+        accessRequestStatus:
+          description: Le statut de la demande d'accès
+          required: true
+          type: string
+          enum: ["READY", "NOT_READY", "EXPIRED", "NOT_FOUND"]
+      example: {
+        "accessRequestReference": {
+          "accessRequestId": "aeaaaaaaaag5nq65ag2cgal54mxefmqaaaaq",
+          "storageStrategyId": "tape"
+        },
+        "accessRequestStatus": "NOT_FOUND"
+      }

@@ -111,6 +111,8 @@ public enum VitamCode {
         "Expected admin tenant"),
     STORAGE_INVALID_TENANT_LIST(ServiceName.STORAGE, DomainName.STORAGE, "23", Status.BAD_REQUEST,
         "Missing or invalid tenant list"),
+    STORAGE_ILLEGAL_OPERATION(ServiceName.STORAGE, DomainName.STORAGE, "24", Status.NOT_ACCEPTABLE,
+        "Illegal operation"),
 
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
@@ -411,14 +413,22 @@ public enum VitamCode {
     ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "36",
         Status.BAD_REQUEST, "Access external client error. Ontology not found "),
 
-
     ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "38",
         Status.BAD_REQUEST,
         "Access external client error in selectUnitsWithInheritedRules method."),
-    
+
     ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "53",
         Status.BAD_REQUEST,
         "Access external client error in the bulk atomic update units method."),
+
+    ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "55",
+        Status.BAD_REQUEST, "Access external client error while creating object Access Request."),
+
+    ACCESS_EXTERNAL_CHECK_OBJECT_ACCESS_REQUEST_STATUSES(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "56",
+        Status.BAD_REQUEST, "Access external client error while checking Access Request statuses."),
+
+    ACCESS_EXTERNAL_REMOVE_OBJECT_ACCESS_REQUEST(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "57",
+        Status.BAD_REQUEST, "Access external client error while removing Access Request."),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,

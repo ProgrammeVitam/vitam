@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
@@ -1078,6 +1079,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1101,6 +1103,7 @@ public class StorageResourceTest {
         InputStream inputStream = given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1119,12 +1122,28 @@ public class StorageResourceTest {
     }
 
     @Test
+    public void checkAccessRequestsWithSyncStrategyOffer()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+    }
+
+    @Test
     public void checkAccessRequestsWithInternalServerError()
         throws InvalidParseOperationException {
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1139,6 +1158,7 @@ public class StorageResourceTest {
         given()
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1152,6 +1172,22 @@ public class StorageResourceTest {
         throws InvalidParseOperationException {
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithMissingAdminCrossTenantAccessRequestAllowedHeader()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
             .accept(ContentType.JSON)
@@ -1167,6 +1203,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().get("/access-request/statuses")
@@ -1181,6 +1218,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(emptyList()))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1196,6 +1234,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", null)))
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1211,6 +1250,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().delete("/access-request/accessRequestId")
@@ -1219,15 +1259,29 @@ public class StorageResourceTest {
     }
 
     @Test
-    public void deleteAccessRequestWithDefaultStrategyOffer() {
+    public void removeAccessRequestWithDefaultStrategyOffer() {
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().delete("/access-request/accessRequestId")
             .then()
             .statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void removeAccessRequestWithSyncStrategyOffer() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
     }
 
     @Test
@@ -1236,6 +1290,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().delete("/access-request/accessRequestId")
@@ -1248,6 +1303,7 @@ public class StorageResourceTest {
         given()
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().delete("/access-request/accessRequestId")
@@ -1260,6 +1316,20 @@ public class StorageResourceTest {
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void removeAccessRequestWithMissingAdminCrossTenantAccessRequestAllowedHeader() {
+        given()
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .headers(VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED.getName(), "true")
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .when().delete("/access-request/accessRequestId")
@@ -1740,7 +1810,7 @@ public class StorageResourceTest {
 
         @Override
         public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-            List<String> accessRequestIds) throws StorageException {
+            List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed) throws StorageException {
 
             if ("AsyncStrategy".equals(strategyId) && (offerId == null)) {
                 return accessRequestIds.stream().collect(Collectors.toMap(
@@ -1756,17 +1826,27 @@ public class StorageResourceTest {
                 ));
             }
 
-            throw new StorageException("FATAL");
+            if ("ERROR".equals(strategyId)) {
+                throw new StorageException("FATAL");
+            }
+
+            throw new StorageIllegalOperationException("FATAL");
         }
 
         @Override
-        public void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
+        public void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
+            boolean adminCrossTenantAccessRequestAllowed)
             throws StorageException {
 
             if ("AsyncStrategy".equals(strategyId)) {
                 return;
             }
-            throw new StorageException("FATAL");
+
+            if ("ERROR".equals(strategyId)) {
+                throw new StorageException("FATAL");
+            }
+
+            throw new StorageIllegalOperationException("FATAL");
         }
 
         @Override

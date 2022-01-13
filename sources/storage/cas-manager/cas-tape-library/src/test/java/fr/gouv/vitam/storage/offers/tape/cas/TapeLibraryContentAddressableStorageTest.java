@@ -541,17 +541,17 @@ public class TapeLibraryContentAddressableStorageTest {
         doReturn(
             accessRequestStatuses)
             .when(accessRequestManager)
-            .checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"));
+            .checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), true);
 
         // When
         Map<String, AccessRequestStatus> result =
             tapeLibraryContentAddressableStorage.checkAccessRequestStatuses(
-                List.of("accessRequestId1", "accessRequestId2"));
+                List.of("accessRequestId1", "accessRequestId2"), true);
 
         // Then
         assertThat(result).isEqualTo(accessRequestStatuses);
         verify(accessRequestManager).checkAccessRequestStatuses(
-            List.of("accessRequestId1", "accessRequestId2"));
+            List.of("accessRequestId1", "accessRequestId2"), true);
         verifyNoMoreInteractions(accessRequestManager);
     }
 
@@ -560,10 +560,10 @@ public class TapeLibraryContentAddressableStorageTest {
         // Given
 
         // When
-        tapeLibraryContentAddressableStorage.removeAccessRequest("accessRequestId");
+        tapeLibraryContentAddressableStorage.removeAccessRequest("accessRequestId", true);
 
         // Then
-        verify(accessRequestManager).removeAccessRequest("accessRequestId");
+        verify(accessRequestManager).removeAccessRequest("accessRequestId", true);
         verifyNoMoreInteractions(accessRequestManager);
     }
 

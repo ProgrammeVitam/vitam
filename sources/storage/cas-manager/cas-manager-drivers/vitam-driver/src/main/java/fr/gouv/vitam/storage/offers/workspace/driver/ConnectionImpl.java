@@ -256,7 +256,8 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws StorageDriverException {
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER, accessRequestIds);
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER,
@@ -266,6 +267,7 @@ public class ConnectionImpl extends AbstractConnection {
         VitamRequestBuilder request = get()
             .withPath(ACCESS_REQUEST_STATUSES_PATH)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED, Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJson()
             .withBody(accessRequestIds);
         try (Response response = make(request)) {
@@ -281,13 +283,15 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId, int tenant) throws StorageDriverException {
+    public void removeAccessRequest(String accessRequestId, int tenant, boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageDriverException {
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER, accessRequestId);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
 
         VitamRequestBuilder request = delete()
             .withPath(ACCESS_REQUEST_PATH + "/" + accessRequestId)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED, Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJsonAccept();
 
         try (Response response = make(request)) {
