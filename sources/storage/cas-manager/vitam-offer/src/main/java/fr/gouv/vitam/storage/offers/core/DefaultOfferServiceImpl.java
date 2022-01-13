@@ -165,7 +165,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
@@ -173,14 +174,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-            return defaultStorage.checkAccessRequestStatuses(accessRequestIds);
+            return defaultStorage.checkAccessRequestStatuses(accessRequestIds, adminCrossTenantAccessRequestAllowed);
         } finally {
             log(stopwatch, "CHECK_ACCESS_REQUEST", "CHECK_ACCESS_REQUEST");
         }
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId)
+    public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
 
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
@@ -189,7 +190,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-            defaultStorage.removeAccessRequest(accessRequestId);
+            defaultStorage.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
         } finally {
             log(stopwatch, accessRequestId, "REMOVE_ACCESS_REQUEST");
         }

@@ -150,7 +150,7 @@ public class StorageService {
 
         try (Connection connection = driver.connect(offerId)) {
             Map<String, AccessRequestStatus> accessRequestStatusMap =
-                connection.checkAccessRequestStatuses(List.of(accessRequestId), tenantId);
+                connection.checkAccessRequestStatuses(List.of(accessRequestId), tenantId, false);
 
             return new RequestResponseOK<AccessRequestStatus>()
                 .setHttpCode(Status.OK.getStatusCode())
@@ -167,7 +167,7 @@ public class StorageService {
         Driver driver = getDriver(strategyId, offerId, true);
 
         try (Connection connection = driver.connect(offerId)) {
-            connection.removeAccessRequest(accessRequestId, tenantId);
+            connection.removeAccessRequest(accessRequestId, tenantId, false);
 
             return new RequestResponseOK<AccessRequestStatus>()
                 .setHttpCode(Status.OK.getStatusCode());

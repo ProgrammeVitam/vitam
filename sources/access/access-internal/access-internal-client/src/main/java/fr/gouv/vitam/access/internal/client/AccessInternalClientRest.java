@@ -27,10 +27,12 @@
 package fr.gouv.vitam.access.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -47,10 +49,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -58,6 +63,10 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static fr.gouv.vitam.common.GlobalDataRest.X_QUALIFIER;
@@ -237,7 +246,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public Response getObject(String objectGroupId, String usage, int version, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException {
+        AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        AccessInternalClientUnavailableDataFromAsyncOfferException {
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
         try {
@@ -247,6 +257,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 .withJsonOctet()
                 .withBefore(CHECK_REQUEST_ID);
             Response response = make(request);
+
+            if(response.getStatus() == CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()) {
+                throw new AccessInternalClientUnavailableDataFromAsyncOfferException(
+                    "Access to async offer requires valid access request");
+            }
             check(response);
             return response;
         } catch (PreconditionFailedClientException e) {
@@ -597,7 +612,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
-        NoWritingPermissionException, InvalidFormatException {
+        NoWritingPermissionException {
         Response response = null;
         try  {
             response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/revert/units").withBody(revertUpdateOptions, BLANK_DSL).withJson());
@@ -611,6 +626,82 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             if (response != null) {
                 response.close();
             }
+        }
+    }
+
+    @Override
+    public Optional<AccessRequestReference> createObjectAccessRequest(String objectGroupId, String usage,
+        int version) throws AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException {
+        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
+        ParametersChecker.checkParameter("Missing usage", usage);
+        try {
+            VitamRequestBuilder request = post()
+                .withPath(OBJECTS + URLEncoder.encode(objectGroupId, StandardCharsets.UTF_8) + "/accessRequest")
+                .withHeader(X_QUALIFIER, usage)
+                .withHeader(X_VERSION, version)
+                .withJson();
+            Response response = make(request);
+            check(response);
+            RequestResponseOK<AccessRequestReference> requestResponse = (RequestResponseOK<AccessRequestReference>)
+                RequestResponse.parseFromResponse(response, AccessRequestReference.class);
+            return Optional.ofNullable(requestResponse.getFirstResult());
+
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | BadRequestException | PreconditionFailedClientException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
+    public List<StatusByAccessRequest> checkAccessRequestStatuses(
+        List<AccessRequestReference> accessRequestReferences)
+        throws AccessInternalClientServerException, AccessInternalClientIllegalOperationException {
+
+        ParametersChecker.checkParameter("Required objectAccessRequests", accessRequestReferences);
+        try {
+            VitamRequestBuilder request = get()
+                .withPath("accessRequests/")
+                .withJson()
+                .withBody(accessRequestReferences);
+            Response response = make(request);
+
+            if(response.getStatus() == Status.NOT_ACCEPTABLE.getStatusCode()) {
+                throw new AccessInternalClientIllegalOperationException("Illegal Access Request operation on synchronous offer strategy");
+            }
+            check(response);
+
+            RequestResponseOK<StatusByAccessRequest> requestResponse =
+                (RequestResponseOK<StatusByAccessRequest>)
+                    RequestResponse.parseFromResponse(response, StatusByAccessRequest.class);
+            return requestResponse.getResults();
+
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | BadRequestException | PreconditionFailedClientException | AccessUnauthorizedException | AccessInternalClientNotFoundException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
+    public void removeAccessRequest(AccessRequestReference accessRequestReference)
+        throws AccessInternalClientServerException, AccessInternalClientIllegalOperationException {
+
+        ParametersChecker.checkParameter("Access request required", accessRequestReference);
+        ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+        ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+
+        try {
+            VitamRequestBuilder request = delete()
+                .withPath("accessRequests/")
+                .withJson()
+                .withBody(accessRequestReference);
+            Response response = make(request);
+
+            if(response.getStatus() == Status.NOT_ACCEPTABLE.getStatusCode()) {
+                throw new AccessInternalClientIllegalOperationException("Illegal Access Request operation on synchronous offer strategy");
+            }
+            check(response);
+
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | BadRequestException | PreconditionFailedClientException | AccessInternalClientNotFoundException | AccessUnauthorizedException e) {
+            throw new AccessInternalClientServerException(e);
         }
     }
 

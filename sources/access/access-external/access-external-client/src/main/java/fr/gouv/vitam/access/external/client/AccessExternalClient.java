@@ -28,21 +28,24 @@ package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientAccessUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Collection;
 
 /**
  * Access External Client Interface
@@ -104,22 +107,75 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
-     * getObjectAsInputStream<br>
-     * <br>
-     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * Download the object by parent unit id, qualifier usage & version
+     *
+     * The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * When accessing an object stored on tape storage offer that is not available for immediate access, a {@link VitamClientAccessUnavailableDataFromAsyncOfferException} is thrown. Access to object require creating an Access Request using the {@link #createObjectAccessRequestByUnitId} method.
      *
      * @param vitamContext the vitam context
      * @param unitId the unit id for getting the object
      * @param usage kind of usage
      * @param version the version
      * @return Response including InputStream
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
+     * @throws VitamClientAccessUnavailableDataFromAsyncOfferException thrown when access to object in not currently available from async storage offer. Access request required.
+     * @throws VitamClientException when an error occurs
      */
     Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage,
         int version)
+        throws VitamClientException;
+
+    /**
+     * Create an access request for accessing the object of an archive unit stored on an async storage offer (tape storage offer)
+     * Access requests for objects stored on non-asynchronous storage offers does NOT require Access Request creation.
+     *
+     * The status of returned Access Requests should be monitoring periodically (typically every few minutes) to check the availability of data via the {@link #checkAccessRequestStatuses} method.
+     * Once an Access Request status is {@link AccessRequestStatus#READY}, the data can be downloaded, using the {@link #getObjectStreamByUnitId} method, within the Access Request expiration delay defined in the tape storage offer configuration by the administrator.
+     *
+     * CAUTION : After successful download of object, caller SHOULD remove the Access Request using the {@link #removeAccessRequest} method to free up disk resources on tape storage offer.
+     *
+     * @param vitamContext the vitam context
+     * @param unitId the unit id for getting the object
+     * @param usage kind of usage
+     * @param version the version
+     * @return RequestResponse with an optional {@link AccessRequestReference} entry. An Access request is created and returned only if required (async storage offer). Otherwise, an empty RequestResponse is returned.
+     * @throws AccessExternalClientNotFoundException when unit has no object group with such object qualifier usage and version
+     * @throws VitamClientException when an error occurs
+     */
+    RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext, String unitId,
+        String usage, int version)
+        throws VitamClientException, AccessExternalClientNotFoundException;
+
+    /**
+     * Bulk check of the status of a set of Access Requests.
+     * Once Access Request status is {@link AccessRequestStatus#READY}, the object is guaranteed to be available for download using the {@link #getObjectStreamByUnitId} method within the Access Request expiration delay defined in the tape storage offer configuration by the administrator.
+     *
+     * Access Requests are only visible within their tenant. Attempts to check status of Access Requests of another tenant will return a {@link AccessRequestStatus#NOT_FOUND}.
+     * Attempts to check an Access Request status for a non-asynchronous storage offer (tape storage offer) throws an {@link VitamClientIllegalAccessRequestOperationOnSyncOfferException}.
+     *
+     * @param vitamContext the vitam context
+     * @param accessRequestReferences the set of Access Requests to check
+     * @return RequestResponse with of access request statuses.
+     * @throws VitamClientException when an error occurs
+     */
+    RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(VitamContext vitamContext,
+        Collection<AccessRequestReference> accessRequestReferences)
+        throws VitamClientException;
+
+    /**
+     * Removes an Access Request from an async storage offer (tape storage offer).
+     * After removing an Access Request, object in not more guaranteed to be accessible for download.
+     *
+     * Attempts to remove an Access Request from a non-asynchronous storage offer throws an {@link VitamClientIllegalAccessRequestOperationOnSyncOfferException}.
+     * Attempts to remove an already removed Access Request does NOT throw any error (idempotency).
+     * Access Requests are only visible within their tenant. Attempts to remove an Access Request of another tenant does NOT delete access request.
+     *
+     * @param vitamContext the vitam context
+     * @param accessRequestReference the Access Request to remove
+     * @return RequestResponse.
+     * @throws VitamClientException when an error occurs
+     */
+    RequestResponse<Void> removeAccessRequest(VitamContext vitamContext, AccessRequestReference accessRequestReference)
         throws VitamClientException;
 
     /**
@@ -252,7 +308,7 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateRequest)
             throws VitamClientException;
-    
+
     /**
      * selectObjects /objects
      *

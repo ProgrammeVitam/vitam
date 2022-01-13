@@ -460,15 +460,17 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
-        return this.accessRequestManager.checkAccessRequestStatuses(accessRequestIds);
+        return this.accessRequestManager.checkAccessRequestStatuses(accessRequestIds,
+            adminCrossTenantAccessRequestAllowed);
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId)
+    public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
-        this.accessRequestManager.removeAccessRequest(accessRequestId);
+        this.accessRequestManager.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
     }
 
     @Override

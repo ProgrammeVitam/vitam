@@ -83,9 +83,6 @@ public class AccessRequestManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessRequestManager.class);
     private static final int MAX_ACCESS_REQUEST_SIZE = 100_000;
     private static final int MAX_RETRIES = 3;
-    private static final int GUID_SIZE = 36;
-    private static final char SEPARATOR = '_';
-    private static final int SEPARATOR_SIZE = 1;
 
     private final ObjectReferentialRepository objectReferentialRepository;
     private final ArchiveReferentialRepository archiveReferentialRepository;
@@ -183,7 +180,7 @@ public class AccessRequestManager {
 
             TapeAccessRequestReferentialEntity accessRequest = new TapeAccessRequestReferentialEntity(
                 accessRequestId, containerName, objectNames, creationDate, readyDate, expirationDate, purgeDate,
-                unavailableArchiveIds, 0);
+                unavailableArchiveIds, VitamThreadUtils.getVitamSession().getTenantId(), 0);
             this.accessRequestReferentialRepository.insert(accessRequest);
 
             // Create & schedule read orders
@@ -199,7 +196,8 @@ public class AccessRequestManager {
         }
     }
 
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
 
         for (String accessRequestId : accessRequestIds) {
@@ -219,10 +217,17 @@ public class AccessRequestManager {
                 accessRequestReferentialRepository.findByRequestIds(accessRequestIdSet);
 
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            boolean skipTenantCheck = skipTenantCheck(adminCrossTenantAccessRequestAllowed);
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
             Map<String, AccessRequestStatus> results = new HashMap<>();
             for (TapeAccessRequestReferentialEntity accessRequestEntity : accessRequestEntities) {
-                if (accessRequestEntity.getExpirationDate() != null
+
+                if (accessRequestEntity.getTenant() != tenantId && !skipTenantCheck) {
+                    LOGGER.warn("Illegal access to AccessRequestId " + accessRequestEntity.getRequestId()
+                        + " of tenant " + accessRequestEntity.getTenant() + " from tenant " + tenantId);
+                    results.putIfAbsent(accessRequestEntity.getRequestId(), AccessRequestStatus.NOT_FOUND);
+                } else if (accessRequestEntity.getExpirationDate() != null
                     && accessRequestEntity.getExpirationDate().compareTo(now) < 0) {
                     results.put(accessRequestEntity.getRequestId(), AccessRequestStatus.EXPIRED);
                 } else if (CollectionUtils.isEmpty(accessRequestEntity.getUnavailableArchiveIds())) {
@@ -243,17 +248,39 @@ public class AccessRequestManager {
         }
     }
 
-    public void removeAccessRequest(String accessRequestId)
+    private boolean skipTenantCheck(boolean adminCrossTenantAccessRequestAllowed) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        return adminCrossTenantAccessRequestAllowed && tenantId == VitamConfiguration.getAdminTenant();
+    }
+
+    public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
 
         checkAccessRequestIdFormat(accessRequestId);
 
         try {
-            Optional<TapeAccessRequestReferentialEntity> deletedAccessRequest =
-                accessRequestReferentialRepository.deleteAndGet(accessRequestId);
 
-            if (deletedAccessRequest.isPresent()) {
-                cancelReadOrder(deletedAccessRequest.get());
+            Optional<TapeAccessRequestReferentialEntity> accessRequestEntity =
+                accessRequestReferentialRepository.findByRequestId(accessRequestId);
+
+            if (accessRequestEntity.isEmpty()) {
+                // Log & continue (idempotency)
+                LOGGER.warn("No such access request " + accessRequestId + ". Already deleted ?");
+                return;
+            }
+
+            // Check tenant
+            boolean skipTenantCheck = skipTenantCheck(adminCrossTenantAccessRequestAllowed);
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            if (accessRequestEntity.get().getTenant() != tenantId && !skipTenantCheck) {
+                LOGGER.warn("Illegal access to AccessRequestId " + accessRequestEntity.get().getRequestId()
+                    + " of tenant " + accessRequestEntity.get().getTenant() + " from tenant " + tenantId);
+                return;
+            }
+
+            boolean deleted = accessRequestReferentialRepository.deleteAccessRequestById(accessRequestId);
+            if (deleted) {
+                cancelReadOrder(accessRequestEntity.get());
             }
 
         } catch (AccessRequestReferentialException | QueueException | ArchiveReferentialException e) {
@@ -481,7 +508,8 @@ public class AccessRequestManager {
         TapeAccessRequestReferentialEntity updatedAccessRequestEntity = new TapeAccessRequestReferentialEntity(
             accessRequestEntity.getRequestId(), accessRequestEntity.getContainerName(),
             accessRequestEntity.getObjectNames(), accessRequestEntity.getCreationDate(), updatedReadyDate,
-            updatedExpirationDate, updatedPurgeDate, updatedUnavailableArchiveIds, updatedVersion);
+            updatedExpirationDate, updatedPurgeDate, updatedUnavailableArchiveIds, accessRequestEntity.getTenant(),
+            updatedVersion);
 
         return this.accessRequestReferentialRepository.updateAccessRequest(
             updatedAccessRequestEntity,
@@ -637,53 +665,32 @@ public class AccessRequestManager {
 
     /**
      * Generates a new random Access Request Id
-     * Access Request Id format is {GUID}_{tenant}
+     * Access Request Id format is {GUID}
      *
      * @return the Access Request Id
      */
     public static String generateAccessRequestId() {
-        return GUIDFactory.newGUID().getId() + SEPARATOR + VitamThreadUtils.getVitamSession().getTenantId();
+        return GUIDFactory.newGUID().getId();
     }
 
     /***
      * Validates an Access Request Id format
-     * Expected format is {GUID}_{tenant}
      *
      * @param accessRequestId the Access Request Id to check
      * @throws IllegalArgumentException if Access Request format is invalid
      */
-    public static void checkAccessRequestIdFormat(String accessRequestId)
+    private static void checkAccessRequestIdFormat(String accessRequestId)
         throws IllegalArgumentException {
 
         if (StringUtils.isEmpty(accessRequestId)) {
             throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'. Null or empty.");
         }
-        if (accessRequestId.length() <= GUID_SIZE + SEPARATOR_SIZE) {
-            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'.");
-        }
-        if (accessRequestId.charAt(GUID_SIZE) != SEPARATOR) {
-            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'");
-        }
 
         // Parse / validate GUID format
         try {
-            GUIDReader.getGUID(accessRequestId.substring(0, GUID_SIZE));
+            GUIDReader.getGUID(accessRequestId);
         } catch (InvalidGuidOperationException e) {
             throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'", e);
-        }
-
-        // Parse / validate tenant suffix
-        int accessRequestTenant;
-        try {
-            accessRequestTenant = Integer.parseInt(accessRequestId.substring(GUID_SIZE + SEPARATOR_SIZE));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'", e);
-        }
-
-        // Check access request tenant, except when current session tenant != adminTenant)
-        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        if (tenantId != VitamConfiguration.getAdminTenant() && accessRequestTenant != tenantId) {
-            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'. Illegal tenant.");
         }
     }
 }

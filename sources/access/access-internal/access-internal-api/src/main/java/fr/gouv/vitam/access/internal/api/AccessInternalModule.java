@@ -28,15 +28,21 @@ package fr.gouv.vitam.access.internal.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * AccessModule interface for database operations in select
@@ -115,7 +121,7 @@ public interface AccessInternalModule {
     Response getOneObjectFromObjectGroup(String idObjectGroup,
         String qualifier, int version, String idUnit)
         throws StorageNotFoundException, InvalidParseOperationException, MetaDataNotFoundException,
-        AccessInternalExecutionException;
+        AccessInternalExecutionException, AccessInternalUnavailableDataFromAsyncOfferException;
 
     /**
      * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
@@ -178,4 +184,13 @@ public interface AccessInternalModule {
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     void checkClassificationLevel(JsonNode query) throws IllegalArgumentException, InvalidParseOperationException;
+
+    Optional<AccessRequestReference> createObjectAccessRequestIfRequired(String idObjectGroup, String qualifier, int version)
+        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException;
+
+    List<StatusByAccessRequest> checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences)
+        throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
+
+    void removeAccessRequest(String storageStrategyId, String accessRequestId)
+        throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
 }

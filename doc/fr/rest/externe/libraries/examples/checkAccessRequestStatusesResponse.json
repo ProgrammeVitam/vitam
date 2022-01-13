@@ -1,0 +1,27 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "accessRequestReference": {
+        "accessRequestId": "aeaaaaaaaag5nq65ag2cgal54mxefmqaaaaq",
+        "storageStrategyId": "tape"
+      },
+      "accessRequestStatus": "EXPIRED"
+    },
+    {
+      "accessRequestReference": {
+        "accessRequestId": "aeaaaaaaaahjpju4ab4wgal54rrp2vaaaaaq",
+        "storageStrategyId": "tape"
+      },
+      "accessRequestStatus": "READY"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

@@ -122,21 +122,21 @@ public class ArchiveCacheEvictionControllerTest {
 
         // Non-ready access request
         accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest1", "O_object",
-            List.of("obj1", "obj2", "obj3"), getNowMinusMinutes(20), null, null, null, List.of("tarId2"), 0));
+            List.of("obj1", "obj2", "obj3"), getNowMinusMinutes(20), null, null, null, List.of("tarId2"), 0, 0));
 
         // Ready access request
         accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest2", "O_object",
             List.of("obj1", "obj4"), getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(20),
-            getNowPlusMinutes(50), List.of(), 0));
+            getNowPlusMinutes(50), List.of(), 0, 0));
 
         // Ready access request for same object name of another container
         accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest3", "1_object",
-            List.of("obj1", "obj3"), "creationDate", null, null, null, List.of("tarId3"), 0));
+            List.of("obj1", "obj3"), "creationDate", null, null, null, List.of("tarId3"), 1, 0));
 
         // Expired access request
         accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest4", "O_object",
             List.of("obj5"), getNowMinusMinutes(50), getNowMinusMinutes(40), getNowMinusMinutes(10),
-            getNowPlusMinutes(20), List.of(), 0));
+            getNowPlusMinutes(20), List.of(), 0, 0));
 
         // container1/obj1 : stored on 2 entries of tarId1
         objectReferentialRepository.insertOrUpdate(

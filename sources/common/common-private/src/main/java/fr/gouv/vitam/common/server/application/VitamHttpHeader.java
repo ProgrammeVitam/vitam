@@ -127,8 +127,12 @@ public enum VitamHttpHeader {
      * The X-Cursor-Id
      *
      */
-    X_CURSOR_ID(GlobalDataRest.X_CURSOR_ID, ".+")
-    ;
+    X_CURSOR_ID(GlobalDataRest.X_CURSOR_ID, ".+"),
+
+    /**
+     * Allow cross tenant access request check from Admin Tenant
+     */
+    X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED, "true|false");
 
 
     private String name;

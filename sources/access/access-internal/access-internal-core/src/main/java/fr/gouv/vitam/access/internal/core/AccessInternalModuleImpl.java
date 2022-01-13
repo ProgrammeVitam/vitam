@@ -31,10 +31,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -82,7 +85,10 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
@@ -117,6 +123,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
@@ -131,6 +138,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceAutoCleanableStreamingOutput;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.ws.rs.ProcessingException;
@@ -149,7 +157,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.access.internal.core.DslParserHelper.getValueForUpdateDsl;
 import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.computeEndDate;
@@ -372,10 +382,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECTGROUP);
     }
 
-    @Override
-    public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
-        throws StorageNotFoundException, AccessInternalExecutionException, MetaDataNotFoundException,
-        InvalidParseOperationException {
+    private VersionsModel getObjectVersionsModel(String idObjectGroup, String qualifier, int version)
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -397,7 +405,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         ObjectGroupResponse objectGroupResponse =
             JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
 
-        VersionsModel finalversionsResponse = null;
         // FIXME P1: do not use direct access but POJO
         // #2604 : Filter the given result for not having false positif in the request result
         // && objectGroupResponse.getQualifiers().size() > 1
@@ -412,13 +419,21 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (qualifier.equals(qualifiersResponse.getQualifier())) {
                     for (VersionsModel versionResponse : qualifiersResponse.getVersions()) {
                         if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
-                            finalversionsResponse = versionResponse;
-                            break;
+                            return versionResponse;
                         }
                     }
                 }
             }
         }
+        return null;
+    }
+
+    @Override
+    public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
+        throws StorageNotFoundException, AccessInternalExecutionException, MetaDataNotFoundException,
+        InvalidParseOperationException, AccessInternalUnavailableDataFromAsyncOfferException {
+        VersionsModel finalversionsResponse =
+            getObjectVersionsModel(idObjectGroup, qualifier, version);
 
         String strategyId = null;
         String mimetype = MediaType.APPLICATION_OCTET_STREAM;
@@ -457,7 +472,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             headers.put(GlobalDataRest.X_QUALIFIER, qualifier);
             headers.put(GlobalDataRest.X_VERSION, Integer.toString(version));
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
-        } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageUnavailableDataFromAsyncOfferClientException e) {
+            throw new AccessInternalUnavailableDataFromAsyncOfferException(
+                "Could not download object from async offer. Access request required", e);
+        } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
         }
     }
@@ -583,6 +601,121 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         if (!ClassificationLevelUtil.checkClassificationLevel(classificationLevelValue)) {
             throw new IllegalArgumentException("Classification Level is not in the list of allowed values");
+        }
+    }
+
+    @Override
+    public Optional<AccessRequestReference> createObjectAccessRequestIfRequired(String idObjectGroup, String qualifier,
+        int version)
+        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException {
+
+        VersionsModel objectVersion =
+            getObjectVersionsModel(idObjectGroup, qualifier, version);
+
+        if (objectVersion == null) {
+            throw new MetaDataNotFoundException("No such object with usage '" + qualifier + "' and version " + version);
+        }
+
+        if (objectVersion.getId() == null) {
+            throw new MetaDataNotFoundException(
+                "Physical objects cannot be downloaded (" + objectVersion.getDataObjectVersion() + ")");
+        }
+
+        if (objectVersion.getStorage() == null || objectVersion.getStorage().getStrategyId() == null) {
+            throw new IllegalStateException("Object with usage '" + qualifier + "' and version " + version +
+                " has no storage strategy information.");
+        }
+
+        String objectId = objectVersion.getId();
+        String strategyId = objectVersion.getStorage().getStrategyId();
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            Optional<String> optionalAccessRequest =
+                storageClient.createAccessRequestIfRequired(strategyId, null, DataCategory.OBJECT, List.of(objectId));
+            if (optionalAccessRequest.isPresent()) {
+                // Async strategy ==> Access Request created
+                LOGGER.debug("Access Request Id '" + optionalAccessRequest.get() + "' created for object " + objectId +
+                    " with version " + objectVersion.getDataObjectVersion() + " of object group id " + idObjectGroup);
+                return Optional.of(new AccessRequestReference(optionalAccessRequest.get(), strategyId));
+            } else {
+                // Sync strategy ==> No Access Request required
+                LOGGER.debug("No access Request Id required for accessing object " + objectId + " with version "
+                    + objectVersion.getDataObjectVersion() + " of object group id " + idObjectGroup);
+                return Optional.empty();
+            }
+        } catch (final StorageServerClientException e) {
+            throw new AccessInternalExecutionException(
+                "Could not create access request for strategy " + strategyId + " and object " + objectId, e);
+        }
+    }
+
+    public List<StatusByAccessRequest> checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences)
+        throws AccessInternalExecutionException, AccessInternalIllegalOperationException {
+
+        // Check distinct values
+        int distinctAccessRequestIds = accessRequestReferences.stream()
+            .map(AccessRequestReference::getAccessRequestId)
+            .collect(Collectors.toSet()).size();
+        if (accessRequestReferences.size() != distinctAccessRequestIds) {
+            throw new IllegalArgumentException("Duplicate access request ids " + accessRequestReferences);
+        }
+
+        // Group by strategyId
+        ArrayListValuedHashMap<String, String> accessRequestIdsByStrategyId = new ArrayListValuedHashMap<>();
+        accessRequestReferences.forEach(objectAccessRequest ->
+            accessRequestIdsByStrategyId.put(
+                objectAccessRequest.getStorageStrategyId(),
+                objectAccessRequest.getAccessRequestId())
+        );
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            List<StatusByAccessRequest> results = new ArrayList<>();
+
+            // Process by strategyId
+            for (String strategyId : accessRequestIdsByStrategyId.keySet()) {
+
+                // Process AccessRequestIds of same storage strategyId by bulk
+                for (List<String> accessRequestIdBulk : Lists.partition(
+                    accessRequestIdsByStrategyId.get(strategyId), VitamConfiguration.getBatchSize())) {
+
+                    Map<String, AccessRequestStatus> accessRequestStatuses =
+                        storageClient.checkAccessRequestStatuses(strategyId, null, accessRequestIdBulk, false);
+
+                    for (Map.Entry<String, AccessRequestStatus> entry : accessRequestStatuses.entrySet()) {
+                        results.add(new StatusByAccessRequest(
+                            new AccessRequestReference(entry.getKey(), strategyId),
+                            entry.getValue()
+                        ));
+                    }
+                }
+            }
+
+            return results;
+
+        } catch (final StorageServerClientException e) {
+            throw new AccessInternalExecutionException(
+                "A technical error occurred while checking access request statuses", e);
+        } catch (StorageIllegalOperationClientException e) {
+            throw new AccessInternalIllegalOperationException("Illegal Access Request operation on synchronous offer",
+                e);
+        }
+    }
+
+    @Override
+    public void removeAccessRequest(String strategyId, String accessRequestId)
+        throws AccessInternalExecutionException, AccessInternalIllegalOperationException {
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            storageClient.removeAccessRequest(strategyId, null, accessRequestId, false);
+
+        } catch (final StorageServerClientException e) {
+            throw new AccessInternalExecutionException(
+                "A technical error occurred while removing access request id '" + accessRequestId + "' for strategy '" +
+                    strategyId + "'", e);
+        } catch (StorageIllegalOperationClientException e) {
+            throw new AccessInternalIllegalOperationException("Illegal Access Request operation on synchronous offer",
+                e);
         }
     }
 
@@ -1123,7 +1256,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
 
             if (!stepStorageUpdate) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreUnit").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()), "StoreUnit").inc();
                 LOGGER.error(String.format(
                     "[Consistency Error] : The Archive Unit with guid =%s is not saved in storage, tenant : %s, requestId : %s",
                     idUnit,

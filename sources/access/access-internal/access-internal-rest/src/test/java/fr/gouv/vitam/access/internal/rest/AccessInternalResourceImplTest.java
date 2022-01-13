@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.internal.rest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -36,6 +37,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -52,7 +55,10 @@ import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadata
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -79,12 +85,16 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.apache.shiro.util.Assert;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -97,18 +107,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -405,7 +422,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
+    public void given_getUnits_and_getUnitByID_thenReturn_OK() {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessContractModel contract = new AccessContractModel();
         Set<String> prodServices = new HashSet<>(Arrays.asList("a", "b"));
@@ -498,7 +515,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void getAccessLogFilesBadRequest() throws Exception {
+    public void getAccessLogFilesBadRequest() {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -533,7 +550,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .getContainerAsync(any(), anyString(), any(), any());
         CloseableIterator<ObjectEntry> iterator = mock(CloseableIterator.class);
         when(iterator.hasNext()).thenReturn(true);
-        when(iterator.next()).thenReturn(new ObjectEntry( "guid", 0L));
+        when(iterator.next()).thenReturn(new ObjectEntry("guid", 0L));
 
         when(storageClient.listContainer(anyString(), any())).thenReturn(iterator);
 
@@ -635,7 +652,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void getObjectStreamPostMethodNotAllowed() throws InvalidParseOperationException {
+    public void getObjectStreamPostMethodNotAllowed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
@@ -659,6 +676,23 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getObjectStreamUnavailableFromSyncOfferThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
+            .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
+        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any()))
+            .thenThrow(new StorageUnavailableDataFromAsyncOfferClientException("test"));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
+            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode());
     }
 
     @Test
@@ -795,6 +829,529 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
             .statusCode(Status.FORBIDDEN.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestInAsyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
+            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
+        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
+            .thenReturn(Optional.of("accessRequestId"));
+
+        // When
+        Response response =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+                .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+                .header(GlobalDataRest.X_TENANT_ID, "0")
+                .header(GlobalDataRest.X_VERSION, 1)
+                .when().post("/objects/objectGroupId/accessRequest")
+                .then().extract().response();
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+        RequestResponseOK<AccessRequestReference> requestResponseOK = JsonHandler.getFromInputStreamAsTypeReference(
+            response.asInputStream(), new TypeReference<>() {
+            });
+        assertThat(requestResponseOK.getResults()).hasSize(1);
+        assertThat(requestResponseOK.getResults().get(0).getAccessRequestId()).isEqualTo("accessRequestId");
+        assertThat(requestResponseOK.getResults().get(0).getStorageStrategyId()).isEqualTo("default");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestInSyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
+            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
+        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
+            .thenReturn(Optional.empty());
+
+        // When
+        Response response =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+                .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+                .header(GlobalDataRest.X_TENANT_ID, "0")
+                .header(GlobalDataRest.X_VERSION, 1)
+                .when().post("/objects/objectGroupId/accessRequest")
+                .then().extract().response();
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+        RequestResponseOK<AccessRequestReference> requestResponseOK = JsonHandler.getFromInputStreamAsTypeReference(
+            response.asInputStream(), new TypeReference<>() {
+            });
+        assertThat(requestResponseOK.getResults()).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithStoreEngineErrorThenKO() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
+            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
+        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
+            .thenThrow(new StorageServerClientException("error"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithMissingTenantThenKO() {
+
+        // Given / When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithMissingQualifierThenKO() {
+
+        // Given / When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithEmptyQualifierThenKO() {
+
+        // Given / When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithMissingVersionThenKO() {
+
+        // Given / When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithInvalidVersionThenKO() {
+
+        // Given / When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_VERSION, "INVALID")
+            .when().post("/objects/objectGroupId/accessRequest")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesInAsyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        doReturn(Map.of(
+            "accessRequestId1", AccessRequestStatus.READY,
+            "accessRequestId2", AccessRequestStatus.READY
+        )).when(storageClient).checkAccessRequestStatuses("async_strategy1", null,
+            List.of("accessRequestId1", "accessRequestId2"), false);
+
+        doReturn(Map.of(
+            "accessRequestId3", AccessRequestStatus.NOT_READY
+        )).when(storageClient).checkAccessRequestStatuses("async_strategy2", null,
+            List.of("accessRequestId3"), false);
+
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId1", "async_strategy1"),
+            new AccessRequestReference("accessRequestId2", "async_strategy1"),
+            new AccessRequestReference("accessRequestId3", "async_strategy2")
+        );
+
+        // When
+        Response response =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+                .header(GlobalDataRest.X_TENANT_ID, "0")
+                .body(accessRequests)
+                .when().get("/accessRequests")
+                .then().extract().response();
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+        RequestResponseOK<StatusByAccessRequest> requestResponse = JsonHandler.getFromInputStreamAsTypeReference(
+            response.asInputStream(), new TypeReference<>() {
+            });
+
+        assertThat(requestResponse.getResults()).hasSize(3);
+        assertThat(requestResponse.getResults()).extracting(
+            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getAccessRequestId(),
+            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getStorageStrategyId(),
+            StatusByAccessRequest::getAccessRequestStatus
+        ).containsExactlyInAnyOrder(
+            tuple("accessRequestId1", "async_strategy1", AccessRequestStatus.READY),
+            tuple("accessRequestId2", "async_strategy1", AccessRequestStatus.READY),
+            tuple("accessRequestId3", "async_strategy2", AccessRequestStatus.NOT_READY)
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesInSyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        doThrow(new StorageIllegalOperationClientException("sync offer"))
+            .when(storageClient).checkAccessRequestStatuses("sync_strategy", null,
+                List.of("accessRequestId"), false);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId", "sync_strategy"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithMissingTenantThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId", "async_strategy"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithEmptyQueryThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = Collections.emptyList();
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithNullAccessRequestThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = Arrays.asList(
+            new AccessRequestReference("accessRequestId", "async_strategy"),
+            null);
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithNullAccessRequestIdThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference(null, "async_strategy"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithEmptyAccessRequestIdThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("", "async_strategy"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithNullStrategyIdThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId", null));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithEmptyStrategyIdThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId", ""));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithDuplicateAccessRequestIdThenKO() {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<AccessRequestReference> accessRequests = List.of(
+            new AccessRequestReference("accessRequestId", "async_strategy"),
+            new AccessRequestReference("accessRequestId", "async_strategy"));
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when().get("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestFromAsyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        doNothing()
+            .when(storageClient).removeAccessRequest("sync_strategy", null, "accessRequestId", false);
+
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "async_strategy");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestFromSyncOfferThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        doThrow(new StorageIllegalOperationClientException("sync offer"))
+            .when(storageClient).removeAccessRequest("sync_strategy", null, "accessRequestId", false);
+
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "sync_strategy");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithMissingTenantThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "async_strategy");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithEmptyQueryThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithNullAccessRequestIdThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        AccessRequestReference accessRequest = new AccessRequestReference(null, "async_strategy");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithEmptyAccessRequestIdThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        AccessRequestReference accessRequest = new AccessRequestReference("", "async_strategy");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithNullStrategyIdThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", null);
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWithEmptyStrategyIdThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "");
+
+        // When / Then
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequest)
+            .when().delete("/accessRequests")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 }
 

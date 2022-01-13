@@ -251,14 +251,25 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant) {
+        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant,
+            boolean adminCrossTenantAccessRequestAllowed) {
             if (this.offerId.equals("myTapeOffer1")) {
+
+                if(!adminCrossTenantAccessRequestAllowed) {
+                    throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
+                }
+
                 return accessRequestIds.stream().collect(Collectors.toMap(
                     accessRequestId -> accessRequestId,
                     accessRequestId -> AccessRequestStatus.READY
                 ));
             }
             if (this.offerId.equals("myTapeOffer2")) {
+
+                if(adminCrossTenantAccessRequestAllowed) {
+                    throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to not be set");
+                }
+
                 return accessRequestIds.stream().collect(Collectors.toMap(
                     accessRequestId -> accessRequestId,
                     accessRequestId -> AccessRequestStatus.NOT_READY
@@ -269,7 +280,11 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public void removeAccessRequest(String accessRequestId, int tenant) {
+        public void removeAccessRequest(String accessRequestId, int tenant,
+            boolean adminCrossTenantAccessRequestAllowed) {
+            if(!adminCrossTenantAccessRequestAllowed) {
+                throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
+            }
             if (this.offerId.equals("myTapeOffer1") || this.offerId.equals("myTapeOffer2")) {
                 return;
             }

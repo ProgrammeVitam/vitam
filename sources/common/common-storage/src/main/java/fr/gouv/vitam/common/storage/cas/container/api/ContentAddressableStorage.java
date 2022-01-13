@@ -113,9 +113,11 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * Checks status of access requests by id.
      *
      * @param accessRequestIds the identifiers of the access requests to check
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, access to access requests of other tenants is allowed from Admin tenant
      * @return {@code AccessRequestStatus} representing access request status
      */
-    default Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    default Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
         throw new UnsupportedOperationException("Operation not supported");
     }
@@ -125,8 +127,9 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * Ignored if no access request found (not exists, expired or already canceled).
      *
      * @param accessRequestId the identifier of the access request to cancel.
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, removing access requests of other tenants is allowed from Admin tenant
      */
-    default void removeAccessRequest(String accessRequestId)
+    default void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
         throw new UnsupportedOperationException("Operation not supported");
     }

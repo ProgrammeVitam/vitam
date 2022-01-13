@@ -108,6 +108,11 @@ traits:
       405:
         description: Method Not Allowed, requested resource is not allowed
         headers: *standardheader
+  StandardHeader406:
+    responses:
+      406:
+        description: Not Acceptable, requested action is not allowed
+        headers: *standardheader
   StandardHeader409:
     responses:
       409:
@@ -136,6 +141,11 @@ traits:
     responses:
       503:
         description: Service Unavailable, the requested service is unavailable
+
+  CustomHeader460:
+    responses:
+      460:
+        description: Data is not available for immediate access from tape storage offer. An Access Request is required to access Object.
 
   OverrideGet:
     description: For HTTP clients that do not support GET Request with a body

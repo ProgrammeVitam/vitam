@@ -31,7 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -53,7 +55,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -76,7 +81,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -97,31 +104,42 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class AccessInternalModuleImplTest {
@@ -261,7 +279,6 @@ public class AccessInternalModuleImplTest {
         "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
             "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
-
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -286,14 +303,8 @@ public class AccessInternalModuleImplTest {
     private static final String ID = "aeaqaaaaaaevelkyaa6teak73hlewtiaaabq";
     private static final String REQUEST_ID = "aeaqaaaaaitxll67abarqaktftcfyniaaaaq";
 
-    /**
-     * @param query
-     * @return
-     * @throws InvalidParseOperationException
-     */
     public JsonNode fromStringToJson(String query) throws InvalidParseOperationException {
         return JsonHandler.getFromString(query);
-
     }
 
     @Before
@@ -476,7 +487,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -531,7 +542,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_DESC_ONLY));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -589,7 +600,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -647,7 +658,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -683,7 +694,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -731,7 +742,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -743,7 +754,7 @@ public class AccessInternalModuleImplTest {
             any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        
+
         JsonNode jsonResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
         RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(jsonResult);
         // Mock select unit response
@@ -824,7 +835,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -849,7 +860,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -877,7 +888,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -945,18 +956,18 @@ public class AccessInternalModuleImplTest {
         String idStrategy = VitamConfiguration.getDefaultStrategy();
         String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
         String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyuaaaaaq";
-        
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
-        
+
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
-        
+
         // When
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit);
-        
+
         // Then
         assertNotNull(reponseFinal);
         final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
@@ -969,6 +980,28 @@ public class AccessInternalModuleImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testGetOneObjectFromObjectGroupOfUnavailableObjectFromAsynContainerThenException() throws Exception {
+
+        // Given
+        String idUnit = "unit0";
+        String idStrategy = VitamConfiguration.getDefaultStrategy();
+        String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
+        String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyuaaaaaq";
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
+        when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
+
+        doThrow(new StorageUnavailableDataFromAsyncOfferClientException("unavailable"))
+            .when(storageClient).getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any());
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit))
+            .isInstanceOf(AccessInternalUnavailableDataFromAsyncOfferException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testGetOneObjectOtherStrategyFromObjectGroup_OK() throws Exception {
 
         // Given
@@ -976,18 +1009,18 @@ public class AccessInternalModuleImplTest {
         String idStrategy = "other_strategy";
         String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
         String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyvaaaaaq";
-        
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
-        
+
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
-        
+
         // When
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "Dissemination", 1, idUnit);
-        
+
         // Then
         assertNotNull(reponseFinal);
         final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
@@ -1404,7 +1437,7 @@ public class AccessInternalModuleImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_silently_when_update_request_with_classification_rules_not_allowed() throws Exception {
+    public void should_fail_silently_when_update_request_with_classification_rules_not_allowed() {
         // Given
         List<String> allowedValues = new ArrayList<>();
         allowedValues.add("Secret Défense");
@@ -1424,7 +1457,7 @@ public class AccessInternalModuleImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_accept_values_when_update_request_with_classification_rules_allowed() throws Exception {
+    public void should_accept_values_when_update_request_with_classification_rules_allowed() {
         // Given
         List<String> allowedValues = new ArrayList<>();
         allowedValues.add("Secret Défense");
@@ -1451,7 +1484,7 @@ public class AccessInternalModuleImplTest {
         JsonNode accessContractFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC));
         AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<AccessContractModel>() {
+            new TypeReference<>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
@@ -1488,5 +1521,264 @@ public class AccessInternalModuleImplTest {
         } catch (UpdatePermissionException e) {
             assertEquals("UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithAsyncOfferStrategyThenAccessRequestReturned()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")))
+            .when(metaDataClient).selectObjectGrouptbyId(any(), eq("MyGotId"));
+        doReturn(Optional.of("MyAccessRequestId"))
+            .when(storageClient).createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq"));
+
+        // When
+        Optional<AccessRequestReference> objectAccessRequest =
+            accessModuleImpl.createObjectAccessRequestIfRequired("MyGotId", "BinaryMaster", 1);
+
+        // Then
+        assertThat(objectAccessRequest).isPresent();
+        assertThat(objectAccessRequest.get().getAccessRequestId()).isEqualTo("MyAccessRequestId");
+        assertThat(objectAccessRequest.get().getStorageStrategyId()).isEqualTo("default");
+
+        verify(storageClient).createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq"));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithSyncOfferStrategyThenNoAccessRequestReturned()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")))
+            .when(metaDataClient).selectObjectGrouptbyId(any(), eq("MyGotId"));
+        doReturn(Optional.empty())
+            .when(storageClient).createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq"));
+
+        // When
+        Optional<AccessRequestReference> objectAccessRequest =
+            accessModuleImpl.createObjectAccessRequestIfRequired("MyGotId", "BinaryMaster", 1);
+
+        // Then
+        assertThat(objectAccessRequest).isEmpty();
+
+        verify(storageClient).createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq"));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithNotFoundObjectGroupThenNotFound()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        doThrow(new MetaDataNotFoundException("not found"))
+            .when(metaDataClient).selectObjectGrouptbyId(any(), eq("MyGotId"));
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.createObjectAccessRequestIfRequired("MyGotId", "BinaryMaster", 1))
+            .isInstanceOf(MetaDataNotFoundException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWithStorageEngineErrorThenKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")))
+            .when(metaDataClient).selectObjectGrouptbyId(any(), eq("MyGotId"));
+        doThrow(new StorageServerClientException("prb"))
+            .when(storageClient).createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq"));
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.createObjectAccessRequestIfRequired("MyGotId", "BinaryMaster", 1))
+            .isInstanceOf(AccessInternalExecutionException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithAsyncOfferStrategyThenAccessRequestReturned()
+        throws Exception {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
+        AccessRequestReference accessRequest2 = new AccessRequestReference("accessRequestId2", "async_strategy1");
+        AccessRequestReference accessRequest3 = new AccessRequestReference("accessRequestId3", "async_strategy2");
+
+        doReturn(Map.of(
+            "accessRequestId1", AccessRequestStatus.READY,
+            "accessRequestId2", AccessRequestStatus.READY
+        )).when(storageClient).checkAccessRequestStatuses("async_strategy1", null,
+            List.of("accessRequestId1", "accessRequestId2"), false);
+
+        doReturn(Map.of(
+            "accessRequestId3", AccessRequestStatus.NOT_READY
+        )).when(storageClient).checkAccessRequestStatuses("async_strategy2", null,
+            List.of("accessRequestId3"), false);
+
+        // When
+        List<StatusByAccessRequest> requestResponse = accessModuleImpl.checkAccessRequestStatuses(
+            List.of(accessRequest1, accessRequest2, accessRequest3));
+
+        // Then
+        assertThat(requestResponse).hasSize(3);
+        assertThat(requestResponse).extracting(
+            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getAccessRequestId(),
+            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getStorageStrategyId(),
+            StatusByAccessRequest::getAccessRequestStatus
+        ).containsExactlyInAnyOrder(
+            tuple("accessRequestId1", "async_strategy1", AccessRequestStatus.READY),
+            tuple("accessRequestId2", "async_strategy1", AccessRequestStatus.READY),
+            tuple("accessRequestId3", "async_strategy2", AccessRequestStatus.NOT_READY)
+        );
+
+        verify(storageClient).checkAccessRequestStatuses("async_strategy1", null,
+            List.of("accessRequestId1", "accessRequestId2"), false);
+        verify(storageClient).checkAccessRequestStatuses("async_strategy2", null,
+            List.of("accessRequestId3"), false);
+        verify(storageClient, atLeastOnce()).close();
+        verifyNoMoreInteractions(storageClient);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesBulkChecksByStrategyIdThenAccessRequestReturned()
+        throws Exception {
+
+        // Given
+        List<AccessRequestReference> accessRequestReferences = new ArrayList<>();
+        for (int i = 0; i < 1234; i++) {
+            accessRequestReferences.add(new AccessRequestReference("accessRequestId1-" + i, "async_strategy1"));
+            accessRequestReferences.add(new AccessRequestReference("accessRequestId2-" + i, "async_strategy2"));
+        }
+
+        doAnswer(args -> {
+            List<String> accessRequestIds = args.getArgument(2);
+            assertThat(accessRequestIds.size()).isLessThanOrEqualTo(VitamConfiguration.getBatchSize());
+            return accessRequestIds.stream().collect(Collectors.toMap(
+                accessRequestId -> accessRequestId,
+                accessRequestId -> AccessRequestStatus.READY
+            ));
+        }).when(storageClient).checkAccessRequestStatuses(anyString(), eq(null), anyList(), eq(false));
+
+        // When
+        List<StatusByAccessRequest> requestResponse = accessModuleImpl.checkAccessRequestStatuses(
+            accessRequestReferences);
+
+        // Then
+        assertThat(requestResponse).hasSize(1234 * 2);
+        assertThat(requestResponse).extracting(
+            statusByObjectAccessRequest1 -> statusByObjectAccessRequest1.getObjectAccessRequest().getAccessRequestId(),
+            statusByObjectAccessRequest1 -> statusByObjectAccessRequest1.getObjectAccessRequest()
+                .getStorageStrategyId(),
+            StatusByAccessRequest::getAccessRequestStatus
+        ).containsExactlyInAnyOrderElementsOf(Stream.concat(
+                IntStream.range(0, 1234)
+                    .mapToObj(i -> tuple("accessRequestId1-" + i, "async_strategy1", AccessRequestStatus.READY)),
+                IntStream.range(0, 1234)
+                    .mapToObj(i -> tuple("accessRequestId2-" + i, "async_strategy2", AccessRequestStatus.READY))
+            ).collect(Collectors.toList())
+        );
+
+        verify(storageClient, times((int) Math.ceil(1234.0 / VitamConfiguration.getBatchSize())))
+            .checkAccessRequestStatuses(eq("async_strategy1"), eq(null), anyList(), eq(false));
+        verify(storageClient, times((int) Math.ceil(1234.0 / VitamConfiguration.getBatchSize())))
+            .checkAccessRequestStatuses(eq("async_strategy2"), eq(null), anyList(), eq(false));
+        verify(storageClient, atLeastOnce()).close();
+        verifyNoMoreInteractions(storageClient);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithSyncOfferStrategyThenKO()
+        throws Exception {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
+
+        doThrow(new StorageIllegalOperationClientException("sync offer"))
+            .when(storageClient).checkAccessRequestStatuses("async_strategy1", null,
+                List.of("accessRequestId1"), false);
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.checkAccessRequestStatuses(List.of(accessRequest1)))
+            .isInstanceOf(AccessInternalIllegalOperationException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWithStorageEngineErrorThenKO()
+        throws Exception {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
+
+        doThrow(new StorageServerClientException("error"))
+            .when(storageClient).checkAccessRequestStatuses("async_strategy1", null,
+                List.of("accessRequestId1"), false);
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.checkAccessRequestStatuses(List.of(accessRequest1)))
+            .isInstanceOf(AccessInternalExecutionException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestFromAsyncOfferStrategyThenOK()
+        throws Exception {
+
+        // Given
+        doNothing()
+            .when(storageClient).removeAccessRequest("async_strategy", null, "accessRequestId1", false);
+
+        // When / Then
+        assertThatCode(() -> accessModuleImpl.removeAccessRequest("async_strategy", "accessRequestId1"))
+            .doesNotThrowAnyException();
+        verify(storageClient).removeAccessRequest("async_strategy", null, "accessRequestId1", false);
+        verify(storageClient, atLeastOnce()).close();
+        verifyNoMoreInteractions(storageClient);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestFromSyncOfferStrategyThenKO()
+        throws Exception {
+
+        // Given
+        doThrow(new StorageIllegalOperationClientException("sync offer"))
+            .when(storageClient).removeAccessRequest("async_strategy", null, "accessRequestId1", false);
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.removeAccessRequest("async_strategy", "accessRequestId1"))
+            .isInstanceOf(AccessInternalIllegalOperationException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestStatusesWithStorageEngineErrorThenKO()
+        throws Exception {
+
+        // Given
+        doThrow(new StorageServerClientException("error"))
+            .when(storageClient).removeAccessRequest("async_strategy", null, "accessRequestId1", false);
+
+        // When / Then
+        assertThatThrownBy(() -> accessModuleImpl.removeAccessRequest("async_strategy", "accessRequestId1"))
+            .isInstanceOf(AccessInternalExecutionException.class);
     }
 }

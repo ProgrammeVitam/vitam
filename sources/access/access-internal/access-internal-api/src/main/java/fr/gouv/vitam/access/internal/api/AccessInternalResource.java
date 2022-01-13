@@ -32,18 +32,15 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Access Resource REST API
@@ -173,6 +170,12 @@ public interface AccessInternalResource {
      * @return response
      */
     Response getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, String idUnit);
+
+    Response createObjectAccessRequestIfRequired(HttpHeaders headers, String idObjectGroup);
+
+    Response checkAccessRequestStatuses(HttpHeaders headers, List<AccessRequestReference> accessRequestReferences);
+
+    Response removeAccessRequest(HttpHeaders headers, AccessRequestReference accessRequestReference);
 
     /**
      * gets accesslog file by id as an InputStream

@@ -28,10 +28,13 @@ package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -46,6 +49,8 @@ import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
+import fr.gouv.vitam.common.error.DomainName;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -66,6 +71,9 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -103,8 +111,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESS_REQUESTS_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESS_REQUESTS_REMOVE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.COMPUTEINHERITEDRULES_ACTION;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.COMPUTEINHERITEDRULES_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.DELETE_GOT_VERSIONS;
@@ -122,6 +134,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSFERS_ID_SIP_RE
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSFERS_REPLY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITSWITHINHERITEDRULES_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_BULK_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_ACCESS_REQUESTS_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_READ_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_READ_JSON;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_READ_JSON;
@@ -703,13 +716,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param headers the http header defined parameters of request
+     * @param headers the http header defined parameters of request. Headers X-Qualifier and X-Version must be defined with target object qualifier and version in the object group container associated with the unit.
      * @param unitId  the id of archive unit
-     * @return response
+     * @return object content as response body stream with HTTP 200 when OK, HTTP 404 when object not found, HTTP 460 when object is not available for immediate access and requires Access Request. HTTP 40X / 50X on error.
      */
     @GET
     @Path("/units/{idu}/objects")
@@ -756,6 +768,220 @@ public class AccessExternalResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(getErrorStream(
                     VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        }
+    }
+
+    /**
+     * Create an access request for accessing the object of an archive unit stored on an async storage offer (tape storage offer)
+     * Access requests for objects stored on non-asynchronous storage offers does NOT require Access Request creation.
+     *
+     * The status of returned Access Requests should be monitoring periodically (typically every few minutes) to check the availability of data.
+     * Once an Access Request status is {@link fr.gouv.vitam.common.model.storage.AccessRequestStatus#READY}, the data can be downloaded within the Access Request expiration delay defined in the tape storage offer configuration by the administrator.
+     *
+     * CAUTION : After successful download of object, caller SHOULD remove the Access Request to free up disk resources on tape storage offer.
+     *
+     * @param headers the http header defined parameters of request. Headers X-Qualifier and X-Version must be defined with target object qualifier and version in the object group container associated with the unit.
+     * @param unitId the id of archive unit
+     * @return HTTP 200 with RequestResponse body with an {@link AccessRequestReference} entry when Access Request created, or an RequestResponse when no Access Request required (synchronous storage offer). HTTP 404 when not found. HTTP 40X / 50X on error.
+     */
+    @POST
+    @Path("/units/{idu}/objects/accessRequests")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = UNITS_ID_OBJECTS_ACCESS_REQUESTS_CREATE, description = "Créer une demande d'accès à un objet persisté sur une offre froide (bande magnétique)")
+    public Response createObjectAccessRequestByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId) {
+
+        Status status;
+        try {
+            Optional<Response> errorResponse = checkQualifierAndVersionHeaders(headers.getRequestHeaders(),
+                VitamCode.ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST);
+            if (errorResponse.isPresent()) {
+                return errorResponse.get();
+            }
+
+            String idObjectGroup = idObjectGroup(unitId);
+            if (idObjectGroup == null) {
+                throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
+            }
+
+            final String xQualifier = headers.getHeaderString(GlobalDataRest.X_QUALIFIER);
+            final String xVersion = headers.getHeaderString(GlobalDataRest.X_VERSION);
+            final int version = Integer.parseInt(xVersion);
+
+            try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+                Optional<AccessRequestReference> objectAccessRequest =
+                    client.createObjectAccessRequest(idObjectGroup, xQualifier, version);
+                RequestResponseOK<AccessRequestReference> requestResponseOK = new RequestResponseOK<>();
+                objectAccessRequest.ifPresent(requestResponseOK::addResult);
+                requestResponseOK.setHttpCode(Status.OK.getStatusCode());
+                return requestResponseOK.toResponse();
+            }
+
+        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+
+        } catch (AccessInternalClientNotFoundException e) {
+            LOGGER.warn(REQUEST_RESOURCES_DOES_NOT_EXISTS, e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (Exception e) {
+            LOGGER.error("Internal server error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CREATE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        }
+    }
+
+    /**
+     * Bulk check of the status of a set of Access Requests.
+     * Once Access Request status is {@link AccessRequestStatus#READY}, the object is guaranteed to be available for download within the Access Request expiration delay defined in the tape storage offer configuration by the administrator.
+     *
+     * Access Requests are only visible within their tenant. Attempts to check status of Access Requests of another tenant will return a {@link AccessRequestStatus#NOT_FOUND}.
+     * Attempts to check an Access Request status for a non-asynchronous storage offer (tape storage offer) causes an HTTP 406 Not-Acceptable error code.
+     *
+     * @param accessRequestReferences the Access Requests whose status is to be checked
+     * @return HTTP 200 with a RequestResponse of {@link StatusByAccessRequest} entries, one per {@link AccessRequestReference}. HTTP 40X / 50X on error.
+     */
+    @GET
+    @Path("/accessRequests/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = ACCESS_REQUESTS_CHECK, description = "Vérifier l'état d'un ensemble de demandes d'accès sur une offre froide (bande magnétique)")
+    public Response checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences) {
+
+        Status status;
+        try {
+            ParametersChecker.checkParameter("Access requests required", accessRequestReferences);
+            if (accessRequestReferences.isEmpty()) {
+                throw new IllegalArgumentException("Empty query");
+            }
+            for (AccessRequestReference accessRequestReference : accessRequestReferences) {
+                ParametersChecker.checkParameter("Access requests required", accessRequestReference);
+                ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+                ParametersChecker.checkParameter("Required storageStrategyId",
+                    accessRequestReference.getStorageStrategyId());
+            }
+            int distinctAccessRequestIds = accessRequestReferences.stream()
+                .map(AccessRequestReference::getAccessRequestId)
+                .collect(Collectors.toSet()).size();
+            if (accessRequestReferences.size() != distinctAccessRequestIds) {
+                throw new IllegalArgumentException("Duplicate access request ids " + accessRequestReferences);
+            }
+
+            try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+                List<StatusByAccessRequest> statusByAccessRequests =
+                    client.checkAccessRequestStatuses(accessRequestReferences);
+
+                return new RequestResponseOK<StatusByAccessRequest>()
+                    .setHttpCode(Status.OK.getStatusCode())
+                    .addAllResults(statusByAccessRequests)
+                    .toResponse();
+            }
+
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CHECK_OBJECT_ACCESS_REQUEST_STATUSES,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (AccessInternalClientIllegalOperationException e) {
+            LOGGER.error("Illegal operation on Access Request", e);
+            status = Status.NOT_ACCEPTABLE;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CHECK_OBJECT_ACCESS_REQUEST_STATUSES,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error while checking Access Request statuses", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CHECK_OBJECT_ACCESS_REQUEST_STATUSES,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        }
+    }
+
+    /**
+     * Removes an Access Request from an async storage offer (tape storage offer)
+     * After removing an Access Request, object in not more guaranteed to be accessible for download.
+     *
+     * Attempts to remove an Access Request from a non-asynchronous storage offer causes an HTTP 406 Not-Acceptable error code.
+     * Attempts to remove an already removed Access Request does NOT fail (idempotency).
+     * Access Requests are only visible within their tenant. Attempts to remove an Access Request of another tenant does NOT delete access request.
+     *
+     * @param accessRequestReference the access request to remove
+     * @return HTTP 200 on success or in case of Access Request not found (already removed, purged after timeout, non-visible from current tenant). HTTP 40x / 50x on error.
+     */
+    @DELETE
+    @Path("/accessRequests/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = ACCESS_REQUESTS_REMOVE, description = "Supprimer une demande d'accès à un objet persisté sur une offre froide (bande magnétique)")
+    public Response removeAccessRequest(AccessRequestReference accessRequestReference) {
+
+        Status status;
+        try {
+            ParametersChecker.checkParameter("Required objectAccessRequest", accessRequestReference);
+            ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+            ParametersChecker.checkParameter("Required strategyId", accessRequestReference.getStorageStrategyId());
+
+            try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+                client.removeAccessRequest(accessRequestReference);
+            }
+
+            return new RequestResponseOK<Void>()
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
+
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_REMOVE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (AccessInternalClientIllegalOperationException e) {
+            LOGGER.error("Illegal operation on Access Request", e);
+            status = Status.NOT_ACCEPTABLE;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_REMOVE_OBJECT_ACCESS_REQUEST,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error while removing Access Request " + accessRequestReference, e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_REMOVE_OBJECT_ACCESS_REQUEST,
                         e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
                 .build();
         }
@@ -1118,29 +1344,42 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup,
-        String unitId) {
-
+    private Optional<Response> checkQualifierAndVersionHeaders(MultivaluedMap<String, String> multipleMap,
+        VitamCode vitamCode) {
         try {
             if (!multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
                 !multipleMap.containsKey(GlobalDataRest.X_VERSION)) {
                 LOGGER.error("At least one required header is missing. Required headers: (" +
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-                return Response.status(Status.PRECONDITION_FAILED)
+                return Optional.ofNullable(Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorStream(VitamCodeHelper
-                        .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
-                            "QUALIFIER or VERSION missing")
+                        .toVitamError(vitamCode, "QUALIFIER or VERSION missing")
                         .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
-                    .build();
+                    .build());
             }
+
+            // Check version format
+            Integer.parseInt(multipleMap.getFirst(GlobalDataRest.X_VERSION));
+
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
+            return Optional.ofNullable(Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(VitamCodeHelper
                     .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
                         e.getLocalizedMessage())
                     .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
-                .build();
+                .build());
+        }
+        return Optional.empty();
+    }
+
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup,
+        String unitId) {
+
+        Optional<Response> errorResponse = checkQualifierAndVersionHeaders(multipleMap,
+            VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR);
+        if (errorResponse.isPresent()) {
+            return errorResponse.get();
         }
 
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
@@ -1162,6 +1401,18 @@ public class AccessExternalResource extends ApplicationStatusResource {
                         exc.getLocalizedMessage())
                     .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
                 .build();
+        } catch (AccessInternalClientUnavailableDataFromAsyncOfferException e) {
+            String msg = "Object is not currently available from async offer. Access request required";
+            LOGGER.warn(msg, e);
+            return Response.status(AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE)
+                .entity(getErrorStream(
+                    new VitamError<JsonNode>("UNAVAILABLE_DATA_FROM_ASYNC_OFFER")
+                        .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                        .setHttpCode(AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE)
+                        .setState(DomainName.STORAGE.getName())
+                        .setMessage(msg)
+                        .setDescription(e.getLocalizedMessage())
+                )).build();
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -1171,7 +1422,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())))
                 .build();
         } catch (final AccessInternalClientNotFoundException exc) {
-            LOGGER.error(exc.getMessage(), exc);
+            LOGGER.warn(exc.getMessage(), exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(getErrorStream(VitamCodeHelper
                     .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,

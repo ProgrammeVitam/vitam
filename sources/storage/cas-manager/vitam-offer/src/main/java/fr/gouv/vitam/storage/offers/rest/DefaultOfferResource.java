@@ -359,20 +359,28 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             ParametersChecker.checkParameter("Missing accessRequestId", accessRequestIds);
             ParametersChecker.checkParameter("Missing accessRequestId", accessRequestIds.toArray(String[]::new));
             for (String accessRequestId : accessRequestIds) {
                 SanityChecker.checkParameter(accessRequestId);
             }
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
+            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
+                LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+
+
             Map<String, AccessRequestStatus> accessRequestStatus =
-                defaultOfferService.checkAccessRequestStatuses(accessRequestIds);
+                defaultOfferService.checkAccessRequestStatuses(accessRequestIds, adminCrossTenantAccessRequestAllowed);
 
             return new RequestResponseOK<>()
                 .addResult(accessRequestStatus)
@@ -403,7 +411,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            defaultOfferService.removeAccessRequest(accessRequestId);
+            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
+                LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+
+            defaultOfferService.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
 
             return Response.status(Status.OK).build();
         } catch (IllegalArgumentException e) {

@@ -35,6 +35,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -160,20 +161,20 @@ public class AccessRequestReferentialRepository {
         }
     }
 
-    public Optional<TapeAccessRequestReferentialEntity> deleteAndGet(String accessRequestId)
+    public boolean deleteAccessRequestById(String accessRequestId)
         throws AccessRequestReferentialException {
         try {
-            Document deletedDocument = collection.findOneAndDelete(
+            DeleteResult deleteResult = collection.deleteOne(
                 Filters.eq(TapeAccessRequestReferentialEntity.ID, accessRequestId));
 
-            if (deletedDocument == null) {
+            if (deleteResult.getDeletedCount() == 0) {
                 // LOG & continue (idempotency)
-                LOGGER.warn("No such AccessRequest: " + accessRequestId + ". Already deleted?");
-                return Optional.empty();
+                LOGGER.warn("No such AccessRequest: " + accessRequestId + ". Concurrent delete?");
+                return false;
             }
 
             LOGGER.warn("Access request deleted successfully: " + accessRequestId);
-            return Optional.of(toModel(deletedDocument));
+            return true;
 
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not delete access request for " + accessRequestId, ex);

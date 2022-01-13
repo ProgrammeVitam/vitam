@@ -108,10 +108,13 @@ public interface Connection extends AutoCloseable {
      * Check access request statuses of asynchronous offer.
      *
      * @param accessRequestIds the accessRequestIds whose status is to be checked
-     * @return a Map of of {@code AccessRequestStatus} by access request Id
+     * @param tenant the tenant Id
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, access to access requests of other tenants is allowed from Admin tenant
+     * @return a Map of {@code AccessRequestStatus} by access request Id
      * @throws StorageDriverException if any problem occurs during request
      */
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant)
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws StorageDriverException;
 
     /**
@@ -120,9 +123,11 @@ public interface Connection extends AutoCloseable {
      *
      * @param tenant the tenant Id
      * @param accessRequestId the accessRequestId to remove
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, removing access requests of other tenants is allowed from Admin tenant
      * @throws StorageDriverException if any problem occurs during request
      */
-    void removeAccessRequest(String accessRequestId, int tenant) throws StorageDriverException;
+    void removeAccessRequest(String accessRequestId, int tenant, boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageDriverException;
 
     /**
      * Check immediate availability of objects from asynchronous storage offer.

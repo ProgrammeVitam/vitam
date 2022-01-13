@@ -70,6 +70,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -238,8 +239,8 @@ public class OfferSyncProcessTest {
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file4", "file6", "file2", "file3"));
-        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
-        verify(distribution, never()).removeAccessRequest(any(), any(), any());
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any(), anyBoolean());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -258,7 +259,7 @@ public class OfferSyncProcessTest {
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
-        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
 
         // When
         instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
@@ -275,8 +276,8 @@ public class OfferSyncProcessTest {
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file4", "file6", "file2", "file3"));
-        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
-        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1, false);
     }
 
     @Test
@@ -315,8 +316,8 @@ public class OfferSyncProcessTest {
             List.of("file4", "file5", "file2", "file3"));
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file6"));
-        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
-        verify(distribution, never()).removeAccessRequest(any(), any(), any());
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any(), anyBoolean());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -336,12 +337,12 @@ public class OfferSyncProcessTest {
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
-        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
 
         doReturn(
             Map.of(ACCESS_REQUEST_2, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_2, AccessRequestStatus.READY)
-        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2));
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2), false);
 
         // When
         instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
@@ -366,11 +367,11 @@ public class OfferSyncProcessTest {
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file6"));
 
-        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
-        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1, false);
 
-        verify(distribution, times(2)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2));
-        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_2);
+        verify(distribution, times(2)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2), false);
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_2, false);
     }
 
     @Test
@@ -492,8 +493,8 @@ public class OfferSyncProcessTest {
         assertThat(fileName.getAllValues()).contains("file2", "file6");
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file2", "file6", "file5"));
-        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
-        verify(distribution, never()).removeAccessRequest(any(), any(), any());
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any(), anyBoolean());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -509,7 +510,7 @@ public class OfferSyncProcessTest {
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
             Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
-        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
 
         // When
         List<OfferPartialSyncItem> items = new ArrayList<>();
@@ -552,8 +553,8 @@ public class OfferSyncProcessTest {
         verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
             List.of("file2", "file6", "file5"));
 
-        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
-        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1), false);
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1, false);
     }
 
     @Test

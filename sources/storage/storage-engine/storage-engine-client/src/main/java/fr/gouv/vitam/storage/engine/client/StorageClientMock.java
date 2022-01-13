@@ -313,12 +313,13 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
 
     @Override
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds) {
+        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId) {
+    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 

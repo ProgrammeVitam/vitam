@@ -1,0 +1,38 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 1,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "versions": [
+            {
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "OpenDocument Text",
+                "MimeType": "application/vnd.oasis.opendocument.text",
+                "FormatId": "fmt/291"
+              },
+              "FileInfo": {
+                "LastModified": "2018-10-04T16:35:53.757+02:00"
+              },
+              "Size": 7405,
+              "#id": "aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq",
+              "#storage": {
+                "strategyId": "default"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

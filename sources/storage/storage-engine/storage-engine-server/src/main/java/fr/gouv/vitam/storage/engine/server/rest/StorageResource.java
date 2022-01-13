@@ -69,6 +69,7 @@ import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
@@ -1827,6 +1828,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * HEADER X-Tenant-Id (mandatory) : tenant's identifier
      * HEADER X-Strategy-Id (mandatory) : storage strategy
      * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
+     * HEADER X-Admin-Cross-Tenant-Access-Request-Allowed (mandatory) : when {@code true}, removal of access requests of other tenants is allowed from Admin tenant
      *
      * @param accessRequestIds accessRequestIds whose status is to be checked
      * @param headers http header
@@ -1840,7 +1842,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
-                VitamHttpHeader.STRATEGY_ID);
+                VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
             if (vitamCode != null) {
                 return buildErrorResponse(vitamCode);
             }
@@ -1862,8 +1864,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)
                 .stream().findFirst().orElse(null);
 
+            String adminCrossTenantAccessRequestAllowedStr = HttpHeaderHelper.getHeaderValues(
+                headers, VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED).get(0);
+            boolean adminCrossTenantAccessRequestAllowed =
+                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+
             Map<String, AccessRequestStatus> accessRequestStatuses = distribution.checkAccessRequestStatuses(
-                strategyId, offerId, accessRequestIds);
+                strategyId, offerId, accessRequestIds, adminCrossTenantAccessRequestAllowed);
 
             LOGGER.debug("Access request statuses " + accessRequestStatuses);
             return new RequestResponseOK<Map<String, AccessRequestStatus>>()
@@ -1871,6 +1878,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 .setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
 
+
+        } catch (StorageIllegalOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_ILLEGAL_OPERATION);
         } catch (Exception e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -1883,6 +1894,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * HEADER X-Tenant-Id (mandatory) : tenant's identifier
      * HEADER X-Strategy-Id (mandatory) : storage strategy
      * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
+     * HEADER X-Admin-Cross-Tenant-Access-Request-Allowed (mandatory) : when {@code true}, access to access requests of other tenants is allowed from Admin tenant
      *
      * @param accessRequestId the accessRequestId to be removed
      * @param headers http header
@@ -1897,7 +1909,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
-                VitamHttpHeader.STRATEGY_ID);
+                VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
             if (vitamCode != null) {
                 return buildErrorResponse(vitamCode);
             }
@@ -1912,11 +1924,20 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
             }
 
-            distribution.removeAccessRequest(strategyId, offerId, accessRequestId);
+            String adminCrossTenantAccessRequestAllowedStr = HttpHeaderHelper.getHeaderValues(
+                headers, VitamHttpHeader.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED).get(0);
+            boolean adminCrossTenantAccessRequestAllowed =
+                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+
+            distribution.removeAccessRequest(strategyId, offerId, accessRequestId,
+                adminCrossTenantAccessRequestAllowed);
 
             LOGGER.info("Access request removed successfully " + accessRequestId);
             return Response.accepted().build();
 
+        } catch (StorageIllegalOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_ILLEGAL_OPERATION);
         } catch (Exception e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);

@@ -166,6 +166,14 @@ documentation:
           Accept:
             required: true
             enum: [ "application/octet-stream", "application/json" ]
+
+      /accessRequests:
+        displayName: Demande d'Accès à une Object d'archives
+        description: |
+          Endpoint d'API pour la création de Demandes d'Accès depuis une offre froide à des Objets d'archives.
+        post:
+          is: [AccessTraits.ObjectAccessRequestCreation]
+
   /bulk:
     post:
       description: |
@@ -574,3 +582,11 @@ documentation:
         body:
           application/json:
 
+/accessRequests:
+  displayName: Gestion des demandes d'accès depuis offre froide.
+  description: |
+    APIs de gestion des demandes d'accès à des objets depuis une offre froide.
+  get:
+    is: [AccessTraits.CheckAccessRequestStatuses]
+  delete:
+    is: [AccessTraits.DeleteAccessRequest]

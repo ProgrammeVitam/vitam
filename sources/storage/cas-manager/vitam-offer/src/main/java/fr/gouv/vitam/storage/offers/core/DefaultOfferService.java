@@ -93,10 +93,11 @@ public interface DefaultOfferService {
     String createAccessRequest(String containerName, List<String> objectIds)
         throws ContentAddressableStorageException;
 
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestId)
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException;
 
-    void removeAccessRequest(String accessRequestId)
+    void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException;
 
     boolean checkObjectAvailability(String containerName, List<String> objectsIds)

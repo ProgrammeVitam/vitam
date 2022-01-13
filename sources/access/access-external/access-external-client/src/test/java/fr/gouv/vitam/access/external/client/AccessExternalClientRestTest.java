@@ -29,16 +29,24 @@ package fr.gouv.vitam.access.external.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientAccessUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -50,6 +58,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -62,12 +71,17 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -317,7 +331,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
+    public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThatExceptionOfType(VitamClientException.class)
             .isThrownBy(
@@ -848,7 +862,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
-        
+
         // When
         RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(
             new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.createObjectNode());
@@ -866,10 +880,208 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             .isThrownBy(
                 () -> client
                     .bulkAtomicUpdateUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                            JsonHandler.createObjectNode()))
+                        JsonHandler.createObjectNode()))
             .withMessage(BAD_REQUEST);
     }
 
+    @Test
+    public void getObjectStreamByUnitIdOK()
+        throws Exception {
+
+        // Given
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(
+            new ByteArrayInputStream("data".getBytes())).build());
+
+        // When
+        Response response = client.getObjectStreamByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "MyUnitId1", "MyUsage", 1);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(response.readEntity(InputStream.class))
+            .hasSameContentAs(new ByteArrayInputStream("data".getBytes()));
+    }
+
+    @Test
+    public void getObjectStreamByUnitIdUnavailableFromAsyncOffer()
+        throws Exception {
+
+        // Given
+        when(mock.get())
+            .thenReturn(Response.status(AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE).build());
+
+        // When / Then
+        assertThatThrownBy( () -> client.getObjectStreamByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "MyUnitId1", "MyUsage", 1)
+        ).isInstanceOf(VitamClientAccessUnavailableDataFromAsyncOfferException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenAsyncOffer()
+        throws Exception {
+
+        // When
+        RequestResponse<AccessRequestReference> requestResponse = client.createObjectAccessRequestByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "MyUnitId1", "MyUsage", 1);
+
+        // Then
+        assertThat(requestResponse.isOk()).isTrue();
+        List<AccessRequestReference> accessRequestReferences =
+            ((RequestResponseOK<AccessRequestReference>) requestResponse).getResults();
+        assertThat(accessRequestReferences).hasSize(1);
+        assertThat(accessRequestReferences.get(0).getAccessRequestId()).isEqualTo("accessRequestId");
+        assertThat(accessRequestReferences.get(0).getStorageStrategyId()).isEqualTo("strategyId");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenSyncOffer()
+        throws Exception {
+
+        // When
+        RequestResponse<AccessRequestReference> requestResponse = client.createObjectAccessRequestByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "MyUnitId2", "MyUsage", 1);
+
+        // Then
+        assertThat(requestResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<AccessRequestReference>) requestResponse).getResults()).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenNotFound() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequestByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "NotFound", "MyUsage", 1))
+            .isInstanceOf(AccessExternalClientNotFoundException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenUnauthorized() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequestByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "Unauthorized", "MyUsage", 1))
+            .isInstanceOf(AccessUnauthorizedException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createObjectAccessRequestWhenInternalServerError() {
+        // When / Then
+        assertThatThrownBy(() -> client.createObjectAccessRequestByUnitId(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            "Error", "MyUsage", 1))
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenAsyncOffer()
+        throws Exception {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
+        AccessRequestReference accessRequest2 = new AccessRequestReference("accessRequestId2", "async_strategy2");
+
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1, accessRequest2);
+
+        // When
+        RequestResponse<StatusByAccessRequest> requestResponse = client.checkAccessRequestStatuses(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            accessRequestReferences);
+
+        // Then
+        assertThat(requestResponse.isOk()).isTrue();
+
+        List<StatusByAccessRequest> statusByAccessRequests =
+            ((RequestResponseOK<StatusByAccessRequest>) requestResponse).getResults();
+
+        assertThat(statusByAccessRequests).hasSize(2);
+        assertThat(statusByAccessRequests.get(0).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
+            accessRequest1.getAccessRequestId());
+        assertThat(statusByAccessRequests.get(0).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
+            accessRequest1.getStorageStrategyId());
+        assertThat(statusByAccessRequests.get(0).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
+        assertThat(statusByAccessRequests.get(1).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
+            accessRequest2.getAccessRequestId());
+        assertThat(statusByAccessRequests.get(1).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
+            accessRequest2.getStorageStrategyId());
+        assertThat(statusByAccessRequests.get(1).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenSyncOffer() {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "sync_strategy");
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
+
+        // When / Then
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequestReferences)
+        ).isInstanceOf(VitamClientIllegalAccessRequestOperationOnSyncOfferException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAccessRequestStatusesWhenInternalServerError() {
+
+        // Given
+        AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "error");
+        List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
+
+        // When / Then
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequestReferences)
+        ).isInstanceOf(VitamClientException.class);
+    }
+
+        @Test
+        @RunWithCustomExecutor
+        public void removeAccessRequestWhenAsyncOffer() {
+
+            // Given
+            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "async_strategy1");
+
+            // When / Then
+            assertThatCode(() -> client.removeAccessRequest(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        @RunWithCustomExecutor
+        public void removeAccessRequestWhenSyncOffer() {
+
+            // Given
+            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "sync_strategy");
+
+            // When / Then
+            assertThatThrownBy(() -> client.removeAccessRequest(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+            ).isInstanceOf(VitamClientIllegalAccessRequestOperationOnSyncOfferException.class);
+        }
+
+        @Test
+        @RunWithCustomExecutor
+        public void removeAccessRequestWhenInternalServerError() {
+
+            // Given
+            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "error");
+
+            // When / Then
+            assertThatThrownBy(() -> client.removeAccessRequest(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+            ).isInstanceOf(VitamClientException.class);
+        }
 
 
     @Path("/access-external/v1")
@@ -906,11 +1118,10 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         }
 
         @GET
-        @Path("/units/{id_object_group}/objects")
+        @Path("/units/{idu}/objects")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStream(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
+        public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId) {
             return expectedResponse.get();
         }
 
@@ -964,8 +1175,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationWithPostOverride(@PathParam("id_op") String operationId,
-            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-            throws InvalidParseOperationException {
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
 
@@ -982,8 +1192,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationByPost(@PathParam("id_op") String operationId,
-            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-            throws InvalidParseOperationException {
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
 
@@ -1018,8 +1227,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegisterDetail(@PathParam("id_op") String operationId,
-            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-            throws InvalidParseOperationException {
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
 
@@ -1035,16 +1243,14 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Path(AccessExtAPI.TRACEABILITY_API + "/check")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkTraceabilityOperation(JsonNode query)
-            throws InvalidParseOperationException {
+        public Response checkTraceabilityOperation(JsonNode query) {
             return expectedResponse.post();
         }
 
         @GET
         @Path(AccessExtAPI.TRACEABILITY_API + "/{idOperation}")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId)
-            throws InvalidParseOperationException {
+        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId) {
             return expectedResponse.get();
         }
 
@@ -1086,6 +1292,76 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response bulkAtomicUpdateUnits(String request) {
             return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/units/{idu}/objects/accessRequests")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createObjectAccessRequestByUnitId(@Context HttpHeaders headers,
+            @PathParam("idu") String unitId) {
+
+            assertThat(headers.getHeaderString(VitamHttpHeader.QUALIFIER.getName()))
+                .isEqualTo("MyUsage");
+            assertThat(headers.getHeaderString(VitamHttpHeader.VERSION.getName()))
+                .isEqualTo("1");
+
+            switch (unitId) {
+                case "MyUnitId1":
+                    return new RequestResponseOK<AccessRequestReference>()
+                        .addResult(new AccessRequestReference("accessRequestId", "strategyId"))
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "MyUnitId2":
+                    return new RequestResponseOK<AccessRequestReference>()
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "NotFound":
+                    return Response.status(Status.NOT_FOUND).build();
+                case "Unauthorized":
+                    return Response.status(Status.UNAUTHORIZED).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @GET
+        @Path("/accessRequests/")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences) {
+
+            assertThat(accessRequestReferences).isNotEmpty();
+            switch (accessRequestReferences.get(0).getStorageStrategyId()) {
+
+                case "async_strategy1":
+                    return new RequestResponseOK<StatusByAccessRequest>()
+                        .addAllResults(accessRequestReferences.stream().map(accessRequest ->
+                                new StatusByAccessRequest(accessRequest, AccessRequestStatus.READY))
+                            .collect(Collectors.toList()))
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .toResponse();
+                case "sync_strategy":
+                    return Response.status(Status.NOT_ACCEPTABLE).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @DELETE
+        @Path("/accessRequests/")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeAccessRequest(@Context HttpHeaders headers,
+            AccessRequestReference accessRequestReference) {
+            switch (accessRequestReference.getStorageStrategyId()) {
+                case "async_strategy1":
+                    return Response.status(Status.ACCEPTED).build();
+                case "sync_strategy":
+                    return Response.status(Status.NOT_ACCEPTABLE).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
         }
     }
 }

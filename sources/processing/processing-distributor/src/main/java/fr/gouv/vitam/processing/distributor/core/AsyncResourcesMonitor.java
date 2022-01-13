@@ -44,6 +44,7 @@ import fr.gouv.vitam.processing.common.async.WorkflowInterruptionChecker;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -316,14 +317,15 @@ public class AsyncResourcesMonitor {
                     Map<String, AccessRequestStatus> results = storageClient.checkAccessRequestStatuses(
                         accessRequestGroupKey.getStrategyId(),
                         accessRequestGroupKey.getOfferId(),
-                        accessRequestIdBulk);
+                        accessRequestIdBulk,
+                        true);
                     accessRequestResults.addAll(accessRequestValuesBulk.stream().
                         map(accessRequestValue -> new AccessRequestResult(accessRequestValue, accessRequestGroupKey,
                             results.get(accessRequestValue.getAccessRequestId()))).
                         collect(Collectors.toList()));
                 }
             }
-        } catch (StorageServerClientException e) {
+        } catch (StorageServerClientException | StorageIllegalOperationClientException e) {
             // We will retry later
             LOGGER.error("Exception while retrieving accessRequest statuses", e);
             accessRequestResults = Collections.emptyList();

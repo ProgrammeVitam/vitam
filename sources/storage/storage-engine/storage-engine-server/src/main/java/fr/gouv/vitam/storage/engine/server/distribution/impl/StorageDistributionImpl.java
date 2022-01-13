@@ -86,6 +86,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -572,13 +573,13 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String optionalOfferId,
-        List<String> accessRequestIds) throws StorageException {
+        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed) throws StorageException {
 
         OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
         if (!offer.isAsyncRead()) {
-            throw new StorageInconsistentStateException(
+            throw new StorageIllegalOperationException(
                 "Expected offer " + offerReference.getId() + " to be asynchronous.");
         }
 
@@ -587,7 +588,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         try (Connection connection = driver.connect(offer.getId())) {
 
             Map<String, AccessRequestStatus> accessRequestStatuses = connection.checkAccessRequestStatuses(
-                accessRequestIds, VitamThreadUtils.getVitamSession().getTenantId());
+                accessRequestIds, VitamThreadUtils.getVitamSession().getTenantId(),
+                adminCrossTenantAccessRequestAllowed);
 
             LOGGER.debug("Access request statuses {}", accessRequestStatuses);
             return accessRequestStatuses;
@@ -598,14 +600,15 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public void removeAccessRequest(String strategyId, String optionalOfferId, String accessRequestId)
+    public void removeAccessRequest(String strategyId, String optionalOfferId, String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws StorageException {
 
         OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
         if (!offer.isAsyncRead()) {
-            throw new StorageInconsistentStateException(
+            throw new StorageIllegalOperationException(
                 "Expected offer " + offerReference.getId() + " to be asynchronous.");
         }
 
@@ -613,7 +616,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         try (Connection connection = driver.connect(offer.getId())) {
 
-            connection.removeAccessRequest(accessRequestId, VitamThreadUtils.getVitamSession().getTenantId());
+            connection.removeAccessRequest(accessRequestId, VitamThreadUtils.getVitamSession().getTenantId(),
+                adminCrossTenantAccessRequestAllowed);
 
             LOGGER.debug("Access request removed successfully {}", accessRequestId);
 

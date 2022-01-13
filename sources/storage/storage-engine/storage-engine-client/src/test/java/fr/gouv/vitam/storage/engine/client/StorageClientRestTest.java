@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
@@ -322,6 +323,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
             assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
             assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
+                .isEqualTo("true");
             assertThat(accessRequestIds).containsExactly("accessRequestId1", "accessRequestId2");
 
             return expectedResponse.get();
@@ -336,6 +339,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
             assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
             assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
+                .isEqualTo("true");
             assertThat(accessRequestId).isEqualTo("accessRequestId1");
 
             return expectedResponse.delete();
@@ -977,13 +982,28 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         // When
         Map<String, AccessRequestStatus> accessRequestStatuses =
             client.checkAccessRequestStatuses("myStrategyId", "myOfferId",
-                List.of("accessRequestId1", "accessRequestId2"));
+                List.of("accessRequestId1", "accessRequestId2"), true);
 
         // Then
         assertThat(accessRequestStatuses).isEqualTo(Map.of(
             "accessRequestId1", AccessRequestStatus.NOT_FOUND,
             "accessRequestId2", AccessRequestStatus.READY
         ));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void checkAccessRequestStatusesWithNotAcceptableResponseThenException() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+
+        // When / Then
+        assertThatThrownBy(
+            () -> client.checkAccessRequestStatuses("myStrategyId", "myOfferId",
+                List.of("accessRequestId1", "accessRequestId2"), true))
+            .isInstanceOf(StorageIllegalOperationClientException.class);
     }
 
     @RunWithCustomExecutor
@@ -997,7 +1017,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         // When / Then
         assertThatThrownBy(
             () -> client.checkAccessRequestStatuses("myStrategyId", "myOfferId",
-                List.of("accessRequestId1", "accessRequestId2")))
+                List.of("accessRequestId1", "accessRequestId2"), true))
             .isInstanceOf(StorageServerClientException.class);
     }
 
@@ -1010,20 +1030,33 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.delete()).thenReturn(Response.status(Status.OK).build());
 
         // When / Then
-        assertThatCode(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1"))
+        assertThatCode(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1", true))
             .doesNotThrowAnyException();
     }
 
     @RunWithCustomExecutor
     @Test
-    public void removeAccessRequestOKWithServerErrorThenException() {
+    public void removeAccessRequestWithNotAcceptableResponseThenException() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        when(mock.delete()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+
+        // When / Then
+        assertThatThrownBy(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1", true))
+            .isInstanceOf(StorageIllegalOperationClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void removeAccessRequestWithServerErrorThenException() {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
-        assertThatThrownBy(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1"))
+        assertThatThrownBy(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1", true))
             .isInstanceOf(StorageServerClientException.class);
     }
 

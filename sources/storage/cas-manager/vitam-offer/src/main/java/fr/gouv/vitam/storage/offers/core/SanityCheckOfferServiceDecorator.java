@@ -94,14 +94,16 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
-        return innerService.checkAccessRequestStatuses(accessRequestIds);
+        return innerService.checkAccessRequestStatuses(accessRequestIds, adminCrossTenantAccessRequestAllowed);
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId) throws ContentAddressableStorageException {
-        innerService.removeAccessRequest(accessRequestId);
+    public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
+        throws ContentAddressableStorageException {
+        innerService.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
     }
 
     @Override

@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
@@ -179,8 +180,8 @@ public interface StorageClient extends BasicClient {
      * @param logInfo additional information for accessLog
      * @return the object requested
      * @throws StorageServerClientException if the Server got an internal error
-     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
-     * exist
+     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not exist
+     * @throws StorageUnavailableDataFromAsyncOfferClientException if object is not available for immediate access from async offer
      */
     Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException,
@@ -337,12 +338,13 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the target storage strategy identifier
      * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
      * @param accessRequestIds the accessRequestIds whose status is to be checked
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, access to access requests of other tenants is allowed from Admin tenant
      * @return the statuses of provided access request ids
      * @throws StorageServerClientException if any problem occurs during request
      */
     Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds)
-        throws StorageServerClientException;
+        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageServerClientException, StorageIllegalOperationClientException;
 
     /**
      * Removes (cancel / delete) and access request for an asynchronous offer.
@@ -351,10 +353,12 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the target storage strategy identifier
      * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
      * @param accessRequestId the accessRequestId to remove
+     * @param adminCrossTenantAccessRequestAllowed when {@code true}, removing access requests of other tenants is allowed from Admin tenant
      * @throws StorageServerClientException if any problem occurs during request
      */
-    void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
-        throws StorageServerClientException;
+    void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed)
+        throws StorageServerClientException, StorageIllegalOperationClientException;
 
     /**
      * Checks immediate object availability in storage offer.
