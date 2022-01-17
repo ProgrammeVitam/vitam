@@ -3,12 +3,12 @@
     "hits": 0,
     "description": "",
     "panelsJSON": "[{\"col\":7,\"id\":\"repartition_objets_par_PUID\",\"panelIndex\":1,\"row\":4,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"volumetrie_objets_tenant_0_par_service_producteur\",\"panelIndex\":2,\"row\":7,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"repartition_AU_par_categorie\",\"panelIndex\":4,\"row\":10,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"repartition_AU_par_service_responsable\",\"panelIndex\":5,\"row\":4,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"nb_au_regles_acces_v2\",\"panelIndex\":6,\"row\":7,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"etat_stock\",\"panelIndex\":7,\"row\":1,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"operation_entree_par_contrat_entree\",\"panelIndex\":8,\"row\":1,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"}]",
-    "optionsJSON": "{\"darkTheme\":false}",
+    "optionsJSON": "{\"darkTheme\":false,\"useMargins\": true,\"syncColors\": false,\"hidePanelTitles\": false}",
     "version": 1,
     "timeRestore": true,
     "timeTo": "now",
     "timeFrom": "now-15m",
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
+      "searchSourceJSON": "{\"query\": {\"query\": \"\",\"language\": \"kuery\"},\"filter\": []}"
     }
-  }
+}

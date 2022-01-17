@@ -9,6 +9,6 @@
   "timeTo": "now",
   "timeFrom": "now-15m",
   "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
+    "searchSourceJSON": "{\"query\": {\"query\": \"\",\"language\": \"kuery\"},\"filter\": []}"
   }
 }
