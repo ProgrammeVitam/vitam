@@ -81,8 +81,7 @@ public class BusinessApplication extends ConfigurationApplication {
             CollectService collectService = new CollectService(collectRepository);
             GenerateSipService generateSipService = new GenerateSipService();
             IngestSipService ingestSipService = new IngestSipService();
-            TransactionService
-                transactionService = new TransactionService(collectService, configuration);
+            TransactionService transactionService = new TransactionService(collectService, configuration);
             commonBusinessApplication = new CommonBusinessApplication();
 
             singletons.addAll(commonBusinessApplication.getResources());

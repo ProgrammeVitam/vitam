@@ -117,7 +117,7 @@ public class IdentityService {
             X509PKIUtil.parseX509Certificate(identityModelOptional.get().getCertificate());
         }
 
-        return identityModelOptional;
+            return identityModelOptional;
     }
 
     /**

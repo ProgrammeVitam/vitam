@@ -41,7 +41,6 @@ public class CollectConfiguration extends DbConfigurationImpl {
         return workspaceUrl;
     }
 
-
     /**
      * @param workspaceUrl the workspace Url to set
      * @return this

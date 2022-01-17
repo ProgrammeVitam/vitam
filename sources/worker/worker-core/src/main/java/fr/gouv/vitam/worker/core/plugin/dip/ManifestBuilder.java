@@ -75,11 +75,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.mapping.LogbookMapper;
@@ -146,7 +143,6 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
 /**
@@ -171,8 +167,6 @@ public class ManifestBuilder implements AutoCloseable {
     private final ObjectMapper objectMapper;
     private final ObjectFactory objectFactory;
     private ObjectGroupMapper objectGroupMapper;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        LogbookLifeCyclesClientFactory.getInstance();
 
 
     /**
@@ -227,8 +221,8 @@ public class ManifestBuilder implements AutoCloseable {
     }
 
     Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter,
-        boolean exportWithLogBookLFC)
-        throws JsonProcessingException, JAXBException, ProcessingException {
+                                   Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream)
+        throws JsonProcessingException, JAXBException, ProcessingException, InternalServerException, InvalidParseOperationException {
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         // Usage access control
         AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
@@ -277,49 +271,50 @@ public class ManifestBuilder implements AutoCloseable {
 
         Map<String, JsonNode> maps = new HashMap<>();
 
-        try {
-            final DataObjectPackageType xmlObject = objectGroupMapper.map(objectGroup);
-            List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
+        final DataObjectPackageType xmlObject = objectGroupMapper.map(objectGroup);
+        List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
 
-            if (dataObjectGroupList.isEmpty()) {
-                return maps;
-            }
-            // must be only 1 GOT (vitam seda restriction)
-            DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupList.get(0);
-
-            if (exportWithLogBookLFC) {
-                LogBookOgType logBookOgType = getLogBookOgType(dataObjectGroup.getId());
-                dataObjectGroup.setLogBook(logBookOgType);
-            }
-
-            List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
-                dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
-            for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
-                if (minimalDataObjectType instanceof BinaryDataObjectType) {
-                    BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
-                    String extension = getExtension(binaryDataObjectType).toLowerCase();
-                    String fileName = StoreExports.CONTENT + File.separator + binaryDataObjectType.getId() +
-                        (extension.equals("") ? "" : "." + extension);
-                    binaryDataObjectType.setUri(fileName);
-
-                    String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
-                    String xmlQualifier = dataObjectVersion[0];
-                    Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
-
-                    ObjectNode objectInfo =
-                        (ObjectNode) AccessLogUtils
-                            .getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(),
-                                linkedAU, fileName);
-                    objectInfo
-                        .put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
-                    maps.put(minimalDataObjectType.getId(), objectInfo);
-                }
-            }
-            marshallHackForNonXmlRootObject(dataObjectGroup);
+        if (dataObjectGroupList.isEmpty()) {
             return maps;
-        } catch (InternalServerException | LogbookClientException | InvalidParseOperationException e) {
-            throw new ProcessingException(e);
         }
+        // must be only 1 GOT (vitam seda restriction)
+        DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupList.get(0);
+
+        List<EventLogBookOgType> events = logbookLifeCycleObjectGroupStream
+            .flatMap(lifecycle -> Stream.concat(lifecycle.events().stream(), Stream.of(lifecycle)))
+            .map(LogbookMapper::getEventOGTypeFromDocument)
+            .collect(Collectors.toList());
+
+        LogBookOgType logbookType = new LogBookOgType();
+        logbookType.getEvent().addAll(events);
+
+        dataObjectGroup.setLogBook(logbookType);
+
+        List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
+            dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
+        for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
+            if (minimalDataObjectType instanceof BinaryDataObjectType) {
+                BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
+                String extension = getExtension(binaryDataObjectType).toLowerCase();
+                String fileName = StoreExports.CONTENT + File.separator + binaryDataObjectType.getId() +
+                    (extension.equals("") ? "" : "." + extension);
+                binaryDataObjectType.setUri(fileName);
+
+                String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
+                String xmlQualifier = dataObjectVersion[0];
+                Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
+
+                ObjectNode objectInfo =
+                    (ObjectNode) AccessLogUtils
+                        .getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(),
+                            linkedAU, fileName);
+                objectInfo
+                    .put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
+                maps.put(minimalDataObjectType.getId(), objectInfo);
+            }
+        }
+        marshallHackForNonXmlRootObject(dataObjectGroup);
+        return maps;
     }
 
     @Nonnull
@@ -343,36 +338,27 @@ public class ManifestBuilder implements AutoCloseable {
             dataObjectGroup), writer);
     }
 
-    private LogBookOgType getLogBookOgType(String id)
-        throws LogbookClientException, InvalidParseOperationException {
-        try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
-            JsonNode response = client.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
-
-            List<EventLogBookOgType> events = RequestResponseOK.getFromJsonNode(response)
-                .getResults()
-                .stream()
-                .map(LogbookLifeCycleObjectGroup::new)
-                .flatMap(lifecycle -> Stream.concat(lifecycle.events().stream(), Stream.of(lifecycle)))
-                .map(LogbookMapper::getEventOGTypeFromDocument)
-                .collect(Collectors.toList());
-
-            LogBookOgType logbookType = new LogBookOgType();
-            logbookType.getEvent()
-                .addAll(events);
-
-            return logbookType;
-        }
-    }
-
-    ArchiveUnitModel writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+    public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap, Map<String, String> ogs)
         throws JsonProcessingException, JAXBException, DatatypeConfigurationException, ProcessingException {
-        ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
-        writeArchiveUnit(archiveUnitModel, multimap, ogs, exportWithLogBookLFC);
-        return archiveUnitModel;
+      ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
+      marshaller.marshal(archiveUnitType, writer);
+
+      return archiveUnitModel;
     }
 
-    private void writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
-        throws DatatypeConfigurationException, JAXBException, ProcessingException {
+    public ArchiveUnitModel writeArchiveUnitWithLFC(ListMultimap<String, String> multimap, Map<String, String> ogs,
+                                                    LogbookLifeCycleUnit logbookLFC, ArchiveUnitModel archiveUnitModel)
+        throws DatatypeConfigurationException, JAXBException, JsonProcessingException, ProcessingException {
+        ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
+      LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
+      archiveUnitType.getManagement().setLogBook(logBookType);
+      marshaller.marshal(archiveUnitType, writer);
+      return archiveUnitModel;
+    }
+
+    private ArchiveUnitType mapUnitModelToXML(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
+                                              Map<String, String> ogs)
+        throws DatatypeConfigurationException {
 
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
 
@@ -401,32 +387,16 @@ public class ManifestBuilder implements AutoCloseable {
             xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
         }
 
-        if (exportWithLogBookLFC) {
-            addArchiveUnitLogbookType(xmlUnit);
-        }
-
-        marshaller.marshal(xmlUnit, writer);
-
+      return xmlUnit;
     }
 
-    private void addArchiveUnitLogbookType(ArchiveUnitType xmlUnit) throws ProcessingException {
-        try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
-            Select select = new Select();
-
-            JsonNode response = client.selectUnitLifeCycleById(xmlUnit.getId(), select.getFinalSelect());
-            if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
-                JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
-                LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
-                LogBookType logbookType = new LogBookType();
-                for (Document event : logbookLFC.events()) {
-                    logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(event));
-                }
-                logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(logbookLFC));
-                xmlUnit.getManagement().setLogBook(logbookType);
-            }
-        } catch (LogbookClientException | InvalidParseOperationException e) {
-            throw new ProcessingException(e);
+    private LogBookType addArchiveUnitLogbookType(LogbookLifeCycleUnit logbookLFC) {
+        LogBookType logbookType = new LogBookType();
+        for (Document event : logbookLFC.events()) {
+            logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(event));
         }
+        logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(logbookLFC));
+        return logbookType;
     }
 
     @Override

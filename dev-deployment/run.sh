@@ -49,7 +49,7 @@ fi
 if [ -z "${VITAM_TARGET}" ] ; then
 	VITAM_TARGET=rpm
 fi
-if [ "${VITAM_TARGET}" == "rpm-cots" ] ; then
+if [ "${VITAM_TARGET}" == "rpm-cots" ] || [ "${VITAM_TARGET}" == "deb-cots" ]; then
 	MAPPING_PORTS="-p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9000:9000 -p 27016:27016 -p 27017:27017 -p 19000:19000  -p 8500:8500"
 	VOLUME_INGEST="/vitam/data/ingest-external"
 	VOLUME_WORKER="/vitam/data/worker"
@@ -93,7 +93,7 @@ if [ -z "$(docker ps -a | grep -w vitam-${VITAM_TARGET}-${CONTAINER_NAME})" ]; t
 		-f dev-base/Dockerfile-${VITAM_TARGET} \
 		dev-base
 	echo "Launching docker container as daemon (launching systemd init process...)"
-	if [ "${VITAM_TARGET}" == "rpm-cots" ]; then
+	if [ "${VITAM_TARGET}" == "rpm-cots" ] || [ "${VITAM_TARGET}" == "deb-cots" ]; then
 		sudo mkdir -p ${VOLUME_INGEST}
 		sudo mkdir -p ${VOLUME_WORKER}
 		sudo mkdir -p ${VOLUME_WORKER_TMP}
@@ -116,7 +116,7 @@ if [ -z "$(docker ps -a | grep -w vitam-${VITAM_TARGET}-${CONTAINER_NAME})" ]; t
 		docker exec ${VITAMDEV_CONTAINER} useradd -u ${VITAMDEV_USER_UID} -g ${VITAMDEV_USER_GID} -G wheel \
 			-d /devhome -s /bin/bash -c "Welcome, mister developer !" ${VITAMDEV_USER}
 	fi
-	if [ "${VITAM_TARGET}" == "deb" ]; then
+	if [ "${VITAM_TARGET}" == "deb" ] || [ "${VITAM_TARGET}" == "deb-cots" ]; then
 		docker exec ${VITAMDEV_CONTAINER} useradd -u ${VITAMDEV_USER_UID} -g ${VITAMDEV_USER_GID} -G sudo \
 			-d /devhome -s /bin/bash -c "Welcome, mister developer !" ${VITAMDEV_USER}
 	fi

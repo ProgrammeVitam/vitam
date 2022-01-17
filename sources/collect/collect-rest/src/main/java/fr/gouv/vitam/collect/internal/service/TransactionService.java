@@ -26,20 +26,32 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
-import fr.gouv.vitam.collect.internal.model.ObjectGroupModel;
-import fr.gouv.vitam.collect.internal.model.UnitModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.*;
@@ -48,13 +60,20 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.objectgroup.*;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.metadata.api.exception.*;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -66,7 +85,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceType;
-import org.apache.tika.Tika;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,10 +95,11 @@ import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 
 public class TransactionService {
 
@@ -89,8 +108,8 @@ public class TransactionService {
     private final MetaDataClientFactory metaDataClientFactory;
     private static final String FOLDER_CONTENT = "Content";
     private static final String RESULTS = "$results";
-    private final Tika tika = new Tika();
     private final FormatIdentifierFactory formatIdentifierFactory;
+    private MetaDataClient metaDataClient;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
 
@@ -100,6 +119,7 @@ public class TransactionService {
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
         this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
+        this.metaDataClient = metaDataClientFactory.getClient();
     }
 
     public Optional<CollectModel> verifyAndGetCollectByTransaction(String transactionId)
@@ -107,103 +127,270 @@ public class TransactionService {
         return collectService.findCollect(transactionId);
     }
 
-    public void uploadVerifications(String archiveUnitId, String gotId)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException,
-            MetaDataDocumentSizeException, MetaDataNotFoundException, MetadataInvalidSelectException {
+    public void saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, String qualifier, int version, ObjectGroupDto objectGroupDto)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException, CollectException {
 
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            JsonNode archiveUnitJsonNode =
-                    metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
-
-            RequestResponseOK<UnitModel> archiveUnitResponse =
-                    RequestResponseOK.getFromJsonNode(archiveUnitJsonNode, UnitModel.class);
-            UnitModel unitModel = archiveUnitResponse.getFirstResult();
-
-            //Check archiveUnit contains got
-            if (unitModel == null || unitModel.getGot() == null || !unitModel.getGot().equals(gotId)) {
-                LOGGER.debug("Got with id({}) is not attached to archiveUnit({})", gotId, archiveUnitId);
-                throw new IllegalArgumentException(
-                        "Got with id(" + gotId + ") is not attached to archiveUnit(" + archiveUnitId + ")");
+        try {
+            if (archiveUnitModel.getOg() == null) {
+                checkVersion(version, 1);
+                initializeObjectGroupInMetaData(objectGroupDto, qualifier, version, archiveUnitModel);
+            } else {
+                RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(archiveUnitModel.getOg());
+                if (!requestResponse.isOk()) {
+                    LOGGER.debug("Cannot found got with id({}))", archiveUnitModel.getOg());
+                    throw new IllegalArgumentException("Cannot found got with id(" + archiveUnitModel.getOg() + ")");
+                }
+                JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+                DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
+                Optional<DbQualifiersModel> qualifierModel = findQualifier(dbObjectGroupModel.getQualifiers(), qualifier);
+                if (qualifierModel.isEmpty()) {
+                    checkVersion(version, 1);
+                    addQualifierToObjectGroups(dbObjectGroupModel, qualifier, version, dbObjectGroupModel.getQualifiers(), objectGroupDto);
+                } else {
+                    DbQualifiersModel qualifierModelToUpdate = qualifierModel.get();
+                    DbVersionsModel dbVersionsModel = getObjectVersionsModel(dbObjectGroupModel, qualifier, version);
+                    if (dbVersionsModel != null) {
+                        LOGGER.debug("Qualifier already exist with qualifier {} and version {})", qualifier, version);
+                        throw new IllegalArgumentException("Qualifier already exist with qualifier " + qualifier + " and version " + version + "");
+                    } else {
+                        int lastVersion = getLastVersion(qualifierModelToUpdate) + 1;
+                        checkVersion(version, lastVersion);
+                        addVersionToObjectGroups(qualifierModelToUpdate, dbObjectGroupModel, qualifier, lastVersion, dbObjectGroupModel.getQualifiers(), objectGroupDto);
+                    }
+                }
             }
 
-            JsonNode objectGroupJsonNode =
-                    metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
-            RequestResponseOK<ObjectGroupModel> objectGroupResponse =
-                    RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
-            ObjectGroupModel objectGroupModel = objectGroupResponse.getFirstResult();
-
-            //Check Got exists
-            if (objectGroupModel == null) {
-                LOGGER.debug("Can found got with id({}))", gotId);
-                throw new IllegalArgumentException("Can found got with id(" + gotId + ")");
-            }
+        } catch (VitamClientException | InvalidCreateOperationException e) {
+            LOGGER.debug("Cannot found got with id({}))", archiveUnitModel.getOg());
+            throw new CollectException(e);
         }
     }
 
-    public String pushSipStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName) throws CollectException {
+    private void checkVersion(int version, int lastVersion) {
+        if (version != lastVersion) {
+            LOGGER.error("version number not valid({}))", version);
+            throw new IllegalArgumentException("version number not valid " + version);
+        }
+    }
+
+
+    public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
+            throws InvalidParseOperationException, InvalidCreateOperationException {
+        FileInfoModel fileInfoModel = new FileInfoModel();
+        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
+        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbVersionsModel dbversion = new DbVersionsModel();
+        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
+        dbversion.setFileInfoModel(dbfileInfoModel);
+        dbversion.setDataObjectVersion(qualifier + "_" + version);
+        DbQualifiersModel dbQualifiersModel = new DbQualifiersModel();
+        dbQualifiersModel.setQualifier(qualifier);
+        dbQualifiersModel.setVersions(List.of(dbversion));
+        qualifiers.add(dbQualifiersModel);
+
+        Map<String, JsonNode> action = new HashMap<>();
+        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
+        SetAction setQualifier = new SetAction(action);
+
+        UpdateMultiQuery query = new UpdateMultiQuery();
+        query.addHintFilter(OBJECTGROUPS.exactToken());
+        query.addActions(
+                setQualifier
+        );
+        try {
+            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
+        } catch (final MetaDataException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
+        }
+
+    }
+
+
+    public void addVersionToObjectGroups(DbQualifiersModel qualifierModelToUpdate, DbObjectGroupModel objectGroup, String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
+            throws MetaDataExecutionException, MetaDataClientServerException,
+            InvalidParseOperationException, InvalidCreateOperationException {
+        int index = qualifiers.indexOf(qualifierModelToUpdate);
+        FileInfoModel fileInfoModel = new FileInfoModel();
+        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
+        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbVersionsModel dbversion = new DbVersionsModel();
+        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
+        dbversion.setFileInfoModel(dbfileInfoModel);
+        dbversion.setDataObjectVersion(qualifier + "_" + version);
+        qualifierModelToUpdate.getVersions().add(dbversion);
+        qualifierModelToUpdate.setNbc(qualifierModelToUpdate.getNbc() + 1);
+        qualifiers.set(index, qualifierModelToUpdate);
+
+        Map<String, JsonNode> action = new HashMap<>();
+        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
+        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
+        SetAction setQualifier = new SetAction(action);
+
+        UpdateMultiQuery query = new UpdateMultiQuery();
+        query.addActions(
+                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroup.getNbc() + 1),
+                setQualifier
+        );
+
+        try {
+            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
+        } catch (final MetaDataException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
+        }
+
+    }
+
+
+    public JsonNode initializeObjectGroupInMetaData(ObjectGroupDto objectGroupDto, String usage, int version, ArchiveUnitModel archiveUnitModel) throws InvalidParseOperationException {
+        FileInfoModel fileInfoModel = new FileInfoModel();
+        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
+        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
+        DbVersionsModel dbversion = new DbVersionsModel();
+        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
+        dbversion.setFileInfoModel(dbfileInfoModel);
+        dbversion.setDataObjectVersion(usage + "_" + version);
+        DbQualifiersModel dbQualifiersModel = new DbQualifiersModel();
+        dbQualifiersModel.setQualifier(usage);
+        dbQualifiersModel.setVersions(List.of(dbversion));
+
+        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModel();
+        dbObjectGroupModel.setId(objectGroupDto.getId());
+        dbObjectGroupModel.setFileInfo(fileInfoModel);
+        dbObjectGroupModel.setOpi(archiveUnitModel.getOpi());
+        dbObjectGroupModel.setQualifiers(List.of(dbQualifiersModel));
+
+
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.resetFilter();
+        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+        insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
+        final ObjectNode insertRequest = insert.getFinalInsert();
+
+
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = metaDataClient.insertObjectGroup(insertRequest);
+            if (jsonNode != null) {
+                UpdateMultiQuery multiQuery = new UpdateMultiQuery();
+                multiQuery.addActions(UpdateActionHelper
+                        .set(VitamFieldsHelper.object(), objectGroupDto.getId()));
+                multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
+                metaDataClient.updateUnitBulk(multiQuery.getFinalUpdate());
+            }
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException("Can't save objectGroup by unit ID: ");
+        }
+        return jsonNode;
+    }
+
+    public DbObjectGroupModel getDbObjectGroup(ArchiveUnitModel archiveUnitModel)
+            throws InvalidParseOperationException {
+
+        try {
+
+            if (archiveUnitModel.getOg() == null) {
+                LOGGER.debug("Cannot found any got attached to unit with id({}))", archiveUnitModel.getId());
+                throw new IllegalArgumentException("Cannot found any object attached to unit with id(" + archiveUnitModel.getId() + ")");
+            } else {
+                RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(archiveUnitModel.getOg());
+                if (!requestResponse.isOk()) {
+                    LOGGER.debug("Cannot found object with id({}))", archiveUnitModel.getOg());
+                    throw new IllegalArgumentException("Cannot found object with id(" + archiveUnitModel.getOg() + ")");
+                }
+                JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+                return JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
+            }
+        } catch (VitamClientException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public JsonNode addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel,
+                                             String usage,
+                                             int version,
+                                             String fileName,
+                                             String digest,
+                                             int sizeInputStream,
+                                             DbFormatIdentificationModel formatIdentifierResponse) throws CollectException {
+        Optional<DbQualifiersModel> qualifierModel = findQualifier(dbObjectGroupModel.getQualifiers(), usage);
+        if (qualifierModel.isEmpty()) {
+            LOGGER.debug("Cannot found usage for object  with id({}))", dbObjectGroupModel.getId());
+            throw new IllegalArgumentException("Cannot found usage for object with id(" + dbObjectGroupModel.getId() + ")");
+        } else {
+            DbQualifiersModel qualifierModelToUpdate = qualifierModel.get();
+            DbVersionsModel dbVersionsModel = getObjectVersionsModel(dbObjectGroupModel, usage, version);
+            if (dbVersionsModel == null) {
+                LOGGER.debug("Cannot found version for object  with id({}))", dbObjectGroupModel.getId());
+                throw new IllegalArgumentException("Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
+            } else {
+                int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
+                int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
+                dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
+                dbVersionsModel.setUri("Content/" + fileName);
+                dbVersionsModel.setMessageDigest(digest);
+                dbVersionsModel.setAlgorithm("SHA-512");
+                dbVersionsModel.setSize(sizeInputStream);
+                if (null != formatIdentifierResponse) {
+                    dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
+                }
+                qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
+                dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
+                try {
+                    Map<String, JsonNode> action = new HashMap<>();
+                    action.put(QUALIFIERS.exactToken(), toJsonNode(dbObjectGroupModel.getQualifiers()));
+                    SetAction setQualifier = new SetAction(action);
+                    UpdateMultiQuery query = new UpdateMultiQuery();
+                    query.addHintFilter(OBJECTGROUPS.exactToken());
+                    query.addActions(
+                            setQualifier
+                    );
+                    JsonNode jsonNode = null;
+
+                    metaDataClient.updateObjectGroupById(query.getFinalUpdate(), dbObjectGroupModel.getId());
+                    return jsonNode;
+                } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+                    LOGGER.error(e);
+                    throw new CollectException("Can't save objectGroup " + e.getMessage());
+                }
+
+            }
+        }
+
+
+    }
+
+    public String pushStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName) {
         LOGGER.debug("Try to push stream to workspace...");
         String digest = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            workspaceClient.createContainer(containerName);
-            workspaceClient.createFolder(containerName, FOLDER_CONTENT);
+            if (!workspaceClient.isExistingContainer(containerName)) {
+                workspaceClient.createContainer(containerName);
+                workspaceClient.createFolder(containerName, FOLDER_CONTENT);
+            }
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
             uploadedInputStream = new DigestInputStream(uploadedInputStream, messageDigest);
             workspaceClient.putObject(containerName, FOLDER_CONTENT.concat("/").concat(fileName), uploadedInputStream);
             digest = readMessageDigestReturn(messageDigest.digest());
         } catch (ContentAddressableStorageException | NoSuchAlgorithmException e) {
             LOGGER.error("Error when trying to push stream to workspace {} ", e);
-            throw new CollectException(e.getMessage());
-        } finally {
-            StreamUtils.closeSilently(uploadedInputStream);
+            throw new IllegalArgumentException("Error when trying to push stream to workspace {} " + e.getMessage());
         }
         LOGGER.debug(" -> push stream to workspace finished");
         return digest;
     }
 
-    public void updateGotWithBinaryInfos(String transactionId, String gotId, String usage, String fileName, String digest, int inputStreamSize, FormatIdentificationModel formatIdentifierModel)
-            throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataClientServerException,
-            InvalidParseOperationException, MetaDataDocumentSizeException, MetadataInvalidSelectException {
-
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            JsonNode objectGroupJsonNode =
-                    metaDataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelectById(), gotId);
-            RequestResponseOK<ObjectGroupModel> objectGroupResponse =
-                    RequestResponseOK.getFromJsonNode(objectGroupJsonNode, ObjectGroupModel.class);
-            ObjectGroupModel objectGroupModel = objectGroupResponse.getFirstResult();
-
-            if (objectGroupModel == null) {
-                LOGGER.debug("Can found got with id({}))", gotId);
-                throw new IllegalArgumentException("Can found got with id(" + gotId + ")");
-            }
-
-            VersionsModel version = new VersionsModel();
-            version.setId(collectService.createRequestIdVitamFormat().getId());
-            version.setFileInfoModel(objectGroupModel.getFileInfo());
-            version.setOpi(transactionId);
-            version.setUri("Content/" + fileName);
-            version.setMessageDigest(digest);
-            version.setAlgorithm("SHA-512");
-            version.setSize(inputStreamSize);
-            version.setDataObjectVersion("BinaryMaster_1");
-            if(null != formatIdentifierModel){
-                version.setFormatIdentification(formatIdentifierModel);
-            }
-
-            QualifiersModel qualifier = new QualifiersModel();
-            qualifier.setQualifier(usage);
-            qualifier.setVersions(List.of(version));
-
-            String qualifierToPush = "{\"$action\": [{ \"$push\": {\"_qualifiers\": [" + JsonHandler.writeAsString(qualifier) + "]}}]}";
-
-            metaDataClient.updateObjectGroupById(JsonHandler.getFromString(qualifierToPush), objectGroupModel.getId());
-        }
-
-    }
 
     public JsonNode saveArchiveUnitInMetaData(ArchiveUnitDto archiveUnitDto) {
         Integer tenantId = ParameterHelper.getTenantParameter();
 
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+        try {
             return metaDataClient.insertUnitBulk(
                     new BulkUnitInsertRequest(Collections.singletonList(getBulkUnitInsertEntry(archiveUnitDto, tenantId))));
         } catch (final MetaDataException | InvalidParseOperationException e) {
@@ -213,33 +400,22 @@ public class TransactionService {
     }
 
 
-    public JsonNode saveObjectGroupInMetaData(ObjectGroupDto objectGroupDto, String archiveUnitId) {
-        String gotQuery = "{$query: {}, $projection: {}, $filter: {}, \"$data\": { \"_id\": \"" + objectGroupDto.getId() + "\", \"FileInfo\": {\n" +
-                "        \"Filename\": \"" + objectGroupDto.getFileInfo().getFileName() + "\",\"LastModified\":\"" + objectGroupDto.getFileInfo().getLastModified() + "\"} }}";
-        JsonNode jsonNode = null;
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            jsonNode = metaDataClient.insertObjectGroup(JsonHandler.getFromString(gotQuery));
-            if (jsonNode != null) {
-                String archiveUnitToPush = "{\"$roots\": [ \"" + archiveUnitId + "\" ],$query: {}, $projection: {}, $filter: {}, $action:[ { $set : {\"_id\": \"" + archiveUnitId + "\" , \"_og\" :\"" + objectGroupDto.getId() + "\" , \"_mgt\":{} } } ]}";
-                metaDataClient.updateUnitBulk(JsonHandler.getFromString(archiveUnitToPush));
-
+    public ArchiveUnitModel getArchiveUnitById(String archiveUnitId) {
+        ArchiveUnitModel archiveUnitModel = null;
+        try {
+            JsonNode response = metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
+            if (response == null || response.get(RESULTS) == null) {
+                throw new CollectException("Can't get unit by ID: " + archiveUnitId);
             }
-        } catch (final MetaDataException | InvalidParseOperationException e) {
+            JsonNode results = response.get(RESULTS);
+            if (results.size() != 1) {
+                throw new CollectException("Can't get unit by ID: " + archiveUnitId);
+            }
+            JsonNode jsonUnit = results.get(0);
+            return buildObjectMapper().treeToValue(jsonUnit, ArchiveUnitModel.class);
+        } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | JsonProcessingException | CollectException e) {
             LOGGER.error(e);
-            return jsonNode;
-        }
-        return jsonNode;
-    }
-
-
-    public ArrayNode getArchiveUnitById(String archiveUnitId) {
-        ArrayNode result = null;
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            JsonNode archiveUnitJsonNode = metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
-            return (ArrayNode) archiveUnitJsonNode.get(RESULTS);
-        } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return result;
+            return archiveUnitModel;
         }
     }
 
@@ -249,18 +425,13 @@ public class TransactionService {
                 "{ \"_id\": \"" + archiveUnitDto.getId() + "\",\"DescriptionLevel\": \"RecordGrp\", \"_tenant\": " + tenantId + "," +
                         "\"Title\": \"" + archiveUnitDto.getContent().getTitle() + "\",\"_opi\":\"" + archiveUnitDto.getTransactionId() +
                         "\",\"Description\":\"" + archiveUnitDto.getContent().getDescription() + "\"" +
-                        ", \"_up\": \""+ archiveUnitDto.getParentUnit()+"\"}";
+                        ", \"_up\": \"" + archiveUnitDto.getParentUnit() + "\"}";
 
         if (null == archiveUnitDto.getParentUnit()) {
             return new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(uaData));
         } else {
             return new BulkUnitInsertEntry(Set.of(archiveUnitDto.getParentUnit()), JsonHandler.getFromString(uaData));
         }
-    }
-
-    public String sanitizeFileName(String fileName) {
-        fileName = fileName.replaceAll("[^a-zA-Z0-9.]", "");
-        return fileName;
     }
 
     public String readMessageDigestReturn(byte[] theDigestResult) {
@@ -274,38 +445,27 @@ public class TransactionService {
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
-    public FormatIdentificationModel getFormatIdentification(String transactionId, String ObjectName) {
+    public DbFormatIdentificationModel getFormatIdentification(String transactionId, String objectName) {
         FormatIdentifier formatIdentifier;
-        try {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                if (workspaceClient.isExistingContainer(transactionId)) {
-                    InputStream is = workspaceClient.getObject(transactionId, "Content/" + ObjectName).readEntity(InputStream.class);
-                    Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), ObjectName);
-                    Files.copy(is, path);
-                    File tmpFile = path.toFile();
-                    final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-                    final FormatIdentifierResponse format = getFirstPronomFormat(formats);
-                    FormatIdentificationModel formatIdentificationModel = new FormatIdentificationModel();
-                    formatIdentificationModel.setFormatId(format.getPuid());
-                    formatIdentificationModel.setMimeType(format.getMimetype());
-                    formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
-                    Files.delete(path);
-                    return formatIdentificationModel;
-                }
-            } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException e) {
-                e.printStackTrace();
+            if (workspaceClient.isExistingContainer(transactionId)) {
+                InputStream is = workspaceClient.getObject(transactionId, "Content/" + objectName).readEntity(InputStream.class);
+                Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), objectName);
+                Files.copy(is, path);
+                File tmpFile = path.toFile();
+                final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
+                final FormatIdentifierResponse format = getFirstPronomFormat(formats);
+                DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
+                formatIdentificationModel.setFormatId(format.getPuid());
+                formatIdentificationModel.setMimeType(format.getMimetype());
+                formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
+                Files.delete(path);
+                return formatIdentificationModel;
             }
-        } catch (final FormatIdentifierNotFoundException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
-                    FORMAT_IDENTIFIER_ID), e);
-        } catch (final FormatIdentifierFactoryException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
-                    FORMAT_IDENTIFIER_ID), e);
-            ;
-        } catch (final FormatIdentifierTechnicalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
-                    e);
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException | FormatIdentifierNotFoundException | FormatIdentifierFactoryException | FormatIdentifierTechnicalException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException("Can't detect format for the object : " + e.getMessage());
         }
         return null;
     }
@@ -318,5 +478,62 @@ public class TransactionService {
         }
         return null;
     }
+
+    private DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel, String qualifier, int version) {
+        if (dbObjectGroupModel.getQualifiers() != null) {
+            final String dataObjectVersion = qualifier + "_" + version;
+            for (DbQualifiersModel qualifiersResponse : dbObjectGroupModel.getQualifiers()) {
+                if (qualifiersResponse.getQualifier() != null && qualifiersResponse.getQualifier().contains("_")) {
+                    qualifiersResponse.setQualifier(qualifiersResponse
+                            .getQualifier().split("_")[0]);
+                }
+                if (qualifier.equals(qualifiersResponse.getQualifier())) {
+                    for (DbVersionsModel versionResponse : qualifiersResponse.getVersions()) {
+                        if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
+                            return versionResponse;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+    private ObjectMapper buildObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        SimpleModule module = new SimpleModule();
+
+        module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
+        module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
+        module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
+        module.addDeserializer(OrganizationDescriptiveMetadataType.class,
+                new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
+
+        objectMapper.registerModule(module);
+
+        return objectMapper;
+    }
+
+    private int getLastVersion(DbQualifiersModel qualifierModelToUpdate) {
+        return qualifierModelToUpdate.getVersions()
+                .stream()
+                .map(DbVersionsModel::getDataObjectVersion)
+                .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
+                .map(Integer::parseInt)
+                .max(Comparator.naturalOrder())
+                .orElse(0);
+    }
+
+    private Optional<DbQualifiersModel> findQualifier(List<DbQualifiersModel> qualifiers, String targetQualifier) {
+        return qualifiers.stream()
+                .filter(qualifier -> qualifier.getQualifier().equals(targetQualifier))
+                .findFirst();
+    }
+
 
 }

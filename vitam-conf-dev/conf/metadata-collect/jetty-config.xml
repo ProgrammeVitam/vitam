@@ -118,11 +118,11 @@
     </Set>
 
     <Set name="RequestLog">
-            <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
+            <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.VitamRequestLogImpl">
                 <Set name="fileName">logback-access.xml</Set>
             </New>
     </Set>
-    <Ref id="RequestLogImpl">
+    <Ref refid="RequestLogImpl">
               <Call name="start"/>
     </Ref>
 
@@ -151,7 +151,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">8290</Set>
 	<Set name="name">business</Set>
         <Set name="idleTimeout">
@@ -176,7 +176,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">28290</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">

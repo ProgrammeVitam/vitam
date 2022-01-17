@@ -147,7 +147,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             LOGGER.debug("identify format for " + path);
         }
         try (SiegfriedClient siegfriedClient = siegfriedClientFactory.getClient()) {
-            final RequestResponse<JsonNode> response = siegfriedClient.analysePath(Paths.get("/vitam/tmp/worker/aeeaaaaaaceevqftaa23oal6jdum6wqaaaaq"));
+            final RequestResponse<JsonNode> response = siegfriedClient.analysePath(path);
             return extractFormat(response.toJsonNode().get("$results").get(0), path);
         }
     }

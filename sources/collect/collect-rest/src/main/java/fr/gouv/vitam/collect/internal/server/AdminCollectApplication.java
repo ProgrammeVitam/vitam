@@ -45,8 +45,7 @@ public class AdminCollectApplication extends Application {
 
     /**
      * Constructor
-     *
-     * @param servletConfig
+     * @param servletConfig servletConfig
      */
     public AdminCollectApplication(@Context ServletConfig servletConfig) {
         singletons = new HashSet<>();
