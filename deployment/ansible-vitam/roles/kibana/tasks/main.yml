@@ -39,53 +39,13 @@
   notify:
     - restart kibana
 
-- name: Configure Kibana connection to elasticsearch
-  replace:
+- name: Kibana configuration by templating
+  template:
+    src: kibana.yml.j2
     dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}elasticsearch\.hosts:.*$'
-    replace: "elasticsearch.hosts: [\"http://{{ elasticsearch_host }}:{{ elasticsearch_port }}\"]"
-  notify:
-    - restart kibana
-
-- name: Configure basePath for reverse if one is declared in the inventory
-  replace:
-    dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}server\.basePath:.*$'
-    replace: "server.basePath: \"/{{ composant.baseuri }}\""
-  when: groups['reverse']|length > 0
-  notify:
-    - restart kibana
-
-- name: Configure rewritePath boolean in Kibana when reverse is declared in the inventory
-  replace:
-    dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}server\.rewriteBasePath:.*$'
-    replace: "server.rewriteBasePath: false"
-  when: groups['reverse']|length > 0
-  notify:
-    - restart kibana
-
-- name: Configure Kibana web listening
-  replace:
-    dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}server\.host:.*$'
-    replace: "server.host: \"{{ ip_admin }}\""
-  notify:
-    - restart kibana
-
-- name: Disable data usage collection (telemetry)
-  lineinfile:
-    path: "/etc/kibana/kibana.yml"
-    insertafter: EOF
-    line: "telemetry.enabled: false"
-  notify:
-    - restart kibana
-
-- name: Disable News Feed
-  lineinfile:
-    path: "/etc/kibana/kibana.yml"
-    insertafter: EOF
-    line: "newsfeed.enabled: false"
+    owner: root
+    group: root
+    mode: 0644
   notify:
     - restart kibana
 
@@ -96,14 +56,6 @@
     owner: "kibana"
     group: "kibana"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
-
-- name: Configure Kibana log destination
-  replace:
-    dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}logging\.dest:.*$'
-    replace: "logging.dest: {{ vitam_defaults.folder.root_path }}/log/kibana/kibana.log"
-  notify:
-    - restart kibana
 
 - name: Enable logrotate for Kibana
   template:
