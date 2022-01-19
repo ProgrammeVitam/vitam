@@ -163,7 +163,7 @@
         <metrics.jvm.version>4.1.0-rc3</metrics.jvm.version>
         <prometheus-version>0.8.1</prometheus-version>
         <metrics.elastic.version>2.3.0-VITAM</metrics.elastic.version>
-        <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
+        <jclouds-slf4j.version>1.7.32</jclouds-slf4j.version>
         <skipITs>false</skipITs>
 
         <!-- vitam specific -->
@@ -186,7 +186,7 @@
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>28.2-jre</guava.version>
-        <log4j2.version>2.13.0</log4j2.version>
+        <log4j2.version>2.17.1</log4j2.version>
         <commons-logging.version>1.2</commons-logging.version>
         <commons-io.version>2.6</commons-io.version>
         <commons-lang3>3.9</commons-lang3>
