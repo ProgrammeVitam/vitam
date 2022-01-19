@@ -376,7 +376,7 @@ public class VitamFieldsHelper {
         }
 
         JsonNode hashVersion = objectNode.remove(VitamFieldsHelper.version());
-        if (hashTenant != null) {
+        if (hashVersion != null) {
             objectNode.set("_v", hashVersion);
         }
 
