@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -83,8 +82,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -211,40 +208,35 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size) throws ContentAddressableStorageException {
+    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
+        long size) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Upload object %s in container %s", objectName, containerName));
         ParametersChecker.checkParameter(
-            ErrorMessage.CONTAINER_OBJECT_NAMES_SIZE_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-            objectName, size);
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
         String bucketName = generateBucketName(containerName);
-
-        SizedInputStream sis = new SizedInputStream(stream);
-        Digest digest = new Digest(digestType);
-        InputStream digestInputStream = digest.getDigestInputStream(sis);
-
-        storeObject(containerName, objectName, digestInputStream, size, bucketName);
-
-        String streamDigest = digest.digestHex();
-
-        if (size != sis.getSize()) {
-            throw new ContentAddressableStorageException(
-                "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
-        }
-
-        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-        if (!streamDigest.equals(computedDigest)) {
-            throw new ContentAddressableStorageException(
-                "Illegal state for container " + containerName + " and object " + objectName + ". Stream digest "
-                    + streamDigest + " is not equal to computed digest " + computedDigest);
-        }
-
-        storeDigest(containerName, objectName, digestType, streamDigest, bucketName);
-
-        return streamDigest;
+        storeObject(containerName, objectName, inputStream, size, bucketName);
     }
 
-    private void storeObject(String containerName, String objectName, InputStream stream, Long size, String bucketName)
+    @Override
+    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size)
+        throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
+
+        String bucketName = generateBucketName(containerName);
+
+        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+        if (!objectDigest.equals(computedDigest)) {
+            throw new ContentAddressableStorageException(
+                "Illegal state for container " + containerName + " and object " + objectName + ". Stream digest "
+                    + objectDigest + " is not equal to computed digest " + computedDigest);
+        }
+
+        storeDigest(containerName, objectName, digestType, objectDigest, bucketName);
+    }
+
+    private void storeObject(String containerName, String objectName, InputStream stream, long size, String bucketName)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         Stopwatch times = Stopwatch.createStarted();
         try {

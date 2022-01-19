@@ -29,8 +29,8 @@ package fr.gouv.vitam.common.storage.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 
 import java.io.InputStream;
@@ -56,7 +56,6 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 public class AmazonS3V1MockedClientTest {
@@ -205,18 +204,6 @@ public class AmazonS3V1MockedClientTest {
             amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 0L);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
                 .hasMessage("Error when trying to update metadatas of object");
-    }
-
-    @Test
-    public void upload_object_should_throw_exception_when_size_invalid() throws Exception {
-        FakeInputStream fakeInputStream = new FakeInputStream(3500L);
-        Mockito.when(amazonS3Client.putObject(eq(BUCKET_0), eq(OBJECT_ID_0), any(InputStream.class),
-                any(ObjectMetadata.class))).thenReturn(new PutObjectResult());
-
-        assertThatCode(() -> {
-            amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, fakeInputStream, DigestType.SHA512, 3_500L);
-        }).isInstanceOf(ContentAddressableStorageException.class)
-                .hasMessage("Illegal state. Stream size 0 did not match expected size 3500");
     }
 
     @Test
