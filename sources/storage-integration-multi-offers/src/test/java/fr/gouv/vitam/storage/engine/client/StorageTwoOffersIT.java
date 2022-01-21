@@ -101,12 +101,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -510,7 +510,7 @@ public class StorageTwoOffersIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         // Given
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         int NB_ACTIONS = 200;
         List<String> existingFileNames = new ArrayList<>();
         int cpt = 0;

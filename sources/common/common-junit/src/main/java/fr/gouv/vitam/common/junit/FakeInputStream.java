@@ -27,8 +27,8 @@
 package fr.gouv.vitam.common.junit;
 
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  * Fake InputStream: test class only
@@ -38,7 +38,7 @@ public class FakeInputStream extends InputStream {
     private long limit;
     private long read = 0;
     private final boolean block;
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
     private final boolean useRandom;
 
     /**

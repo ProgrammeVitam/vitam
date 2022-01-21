@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.storage.s3;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -62,6 +63,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+
 /**
  * Integration tests using docker instances with storage s3 API : minio or
  * openio.
@@ -72,21 +75,11 @@ import static org.mockito.Mockito.verify;
 public class AmazonS3V1ITTest {
 
     private static final String PROVIDER = "amazon-s3-v1";
+    private static final String S3_CONF_FILE = "s3/s3-conf.json";
     private StorageConfiguration configurationMinio;
     private StorageConfiguration configurationOpenio;
     private StorageConfiguration configurationMinioSsl;
 
-    private static final String S3_MINIO_ENDPOINT = "http://127.0.0.1:9999";
-    private static final String S3_MINIO_ENDPOINT_SSL= "https://127.0.0.1:9000";
-    private static final String S3_MINIO_ACCESSKEY = "MKU4HW1K9HSST78MDY3T";
-    private static final String S3_MINIO_SECRETKEY = "aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd";
-    private static final String S3_MINIO_TRUSTSTORE = "src/test/resources/s3/tls/s3TrustStore.jks";
-    private static final String S3_MINIO_TRUSTSTORE_PASS = "s3pass";
-
-    private static final String S3_OPENIO_ENDPOINT = "http://127.0.0.1:6007";
-    private static final String S3_OPENIO_ACCESSKEY = "demo:demo";
-    private static final String S3_OPENIO_SECRETKEY = "DEMO_PASS";
-    
     private String containerName;
     private String objectName;
 
@@ -95,12 +88,14 @@ public class AmazonS3V1ITTest {
 
     @Before
     public void setUp() throws Exception {
+
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.findFile(S3_CONF_FILE));
         configurationMinio = new StorageConfiguration();
         configurationMinio.setProvider(PROVIDER);
         configurationMinio.setS3RegionName("");
-        configurationMinio.setS3Endpoint(S3_MINIO_ENDPOINT);
-        configurationMinio.setS3AccessKey(S3_MINIO_ACCESSKEY);
-        configurationMinio.setS3SecretKey(S3_MINIO_SECRETKEY);
+        configurationMinio.setS3Endpoint(jsonNode.findValue("S3_MINIO_ENDPOINT").textValue());
+        configurationMinio.setS3AccessKey(jsonNode.findValue("S3_MINIO_ACCESSKEY").textValue());
+        configurationMinio.setS3SecretKey(jsonNode.findValue("S3_MINIO_SECRETKEY").textValue());
         configurationMinio.setS3PathStyleAccessEnabled(true);
         configurationMinio.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
         configurationMinio.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
@@ -111,12 +106,12 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
         configurationMinioSsl.setS3RegionName("");
-        configurationMinioSsl.setS3Endpoint(S3_MINIO_ENDPOINT_SSL);
-        configurationMinioSsl.setS3AccessKey(S3_MINIO_ACCESSKEY);
-        configurationMinioSsl.setS3SecretKey(S3_MINIO_SECRETKEY);
+        configurationMinioSsl.setS3Endpoint(jsonNode.findValue("S3_MINIO_ENDPOINT_SSL").textValue());
+        configurationMinioSsl.setS3AccessKey(jsonNode.findValue("S3_MINIO_ACCESSKEY").textValue());
+        configurationMinioSsl.setS3SecretKey(jsonNode.findValue("S3_MINIO_SECRETKEY").textValue());
         configurationMinioSsl.setS3PathStyleAccessEnabled(true);
-        configurationMinioSsl.setS3TrustStore(S3_MINIO_TRUSTSTORE);
-        configurationMinioSsl.setS3TrustStorePassword(S3_MINIO_TRUSTSTORE_PASS);
+        configurationMinioSsl.setS3TrustStore(jsonNode.findValue("S3_MINIO_TRUSTSTORE").textValue());
+        configurationMinioSsl.setS3TrustStorePassword(jsonNode.findValue("S3_MINIO_TRUSTSTORE_PASS").textValue());
         configurationMinioSsl.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
         configurationMinioSsl.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
         configurationMinioSsl.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
@@ -126,9 +121,9 @@ public class AmazonS3V1ITTest {
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
         configurationOpenio.setS3RegionName(Regions.US_WEST_1.getName());
-        configurationOpenio.setS3Endpoint(S3_OPENIO_ENDPOINT);
-        configurationOpenio.setS3AccessKey(S3_OPENIO_ACCESSKEY);
-        configurationOpenio.setS3SecretKey(S3_OPENIO_SECRETKEY);
+        configurationOpenio.setS3Endpoint(jsonNode.findValue("S3_OPENIO_ENDPOINT").textValue());
+        configurationOpenio.setS3AccessKey(jsonNode.findValue("S3_OPENIO_ACCESSKEY").textValue());
+        configurationOpenio.setS3SecretKey(jsonNode.findValue("S3_OPENIO_SECRETKEY").textValue());
         configurationOpenio.setS3ConnectionTimeout(200);
         configurationOpenio.setS3PathStyleAccessEnabled(true);
         configurationOpenio.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);

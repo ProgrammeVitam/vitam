@@ -26,11 +26,9 @@
  */
 package fr.gouv.vitam.common.retryable;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -39,7 +37,7 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     private static final Consumer NOOP = r -> {};
 
     private final AtomicInteger counter = new AtomicInteger();
-    private final Random randomSleep = new Random();
+    private final SecureRandom randomSleep = new SecureRandom();
 
     private final Predicate<T> retryOn;
     private final Consumer<T> onResult;

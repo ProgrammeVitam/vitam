@@ -1,0 +1,6 @@
+{
+  "STORAGE_PATH":"/vitam/data/offer",
+  "S3_ENDPOINT":"http://localhost:",
+  "S3_ACCESSKEY":"AccessKey",
+  "S3_SECRETKEY":"SecretKey"
+}

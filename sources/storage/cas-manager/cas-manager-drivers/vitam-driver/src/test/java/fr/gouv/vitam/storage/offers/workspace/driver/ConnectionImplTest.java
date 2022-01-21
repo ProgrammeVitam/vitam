@@ -104,12 +104,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -167,7 +167,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     }
 
     private static void beforeTest() {
-        String offerId = "default" + new Random().nextDouble();
+        String offerId = "default" + new SecureRandom().nextDouble();
         offer.setId(offerId);
         offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
         driver.addOffer(offer, null);
