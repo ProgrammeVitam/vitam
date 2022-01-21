@@ -27,10 +27,14 @@
   run_once: true
 
 - import_tasks: delete_certificates_contexts_security_profile.yml
-  when: securityprofile_check_json.hits.total > 0
+  when: delete_security_profiles is defined and delete_security_profiles|bool == true
 
 - import_tasks: "init_security_profiles.yml"
+  when: (securityprofile_check_json.hits.total == 0) or
+        (delete_security_profiles is defined and delete_security_profiles|bool == true)
 
 - import_tasks: "init_context_and_certificates.yml"
+  when: (securityprofile_check_json.hits.total == 0) or
+        (delete_security_profiles is defined and delete_security_profiles|bool == true)
 
 - import_tasks: "init_ontologies.yml"
