@@ -33,6 +33,7 @@
     owner: root
     group: root
     mode: 0755
+  when: ansible_os_family == "RedHat"
 
 - name: ensure clamav log directory exists
   file:
