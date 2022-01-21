@@ -33,25 +33,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class FileInfoModel {
 
-    @JsonProperty("Filename")
+    public static final String FILENAME = "Filename";
+    public static final String CREATING_APPLICATION_NAME = "CreatingApplicationName";
+    public static final String CREATING_APPLICATION_VERSION = "CreatingApplicationVersion";
+    public static final String CREATING_OS = "CreatingOs";
+    public static final String CREATING_OS_VERSION = "CreatingOsVersion";
+    public static final String LAST_MODIFIED = "LastModified";
+    public static final String DATE_CREATED_BY_APPLICATION = "DateCreatedByApplication";
+
+    @JsonProperty(FILENAME)
     private String filename;
 
-    @JsonProperty("CreatingApplicationName")
+    @JsonProperty(CREATING_APPLICATION_NAME)
     private String creatingApplicationName;
 
-    @JsonProperty("CreatingApplicationVersion")
+    @JsonProperty(CREATING_APPLICATION_VERSION)
     private String creatingApplicationVersion;
 
-    @JsonProperty("CreatingOs")
+    @JsonProperty(CREATING_OS)
     private String creatingOs;
 
-    @JsonProperty("CreatingOsVersion")
+    @JsonProperty(CREATING_OS_VERSION)
     private String creatingOsVersion;
 
-    @JsonProperty("LastModified")
+    @JsonProperty(LAST_MODIFIED)
     private String lastModified;
 
-    @JsonProperty("DateCreatedByApplication")
+    @JsonProperty(DATE_CREATED_BY_APPLICATION)
     private String dateCreatedByApplication;
 
     public String getDateCreatedByApplication() {

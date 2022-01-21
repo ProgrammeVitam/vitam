@@ -28,10 +28,15 @@ package fr.gouv.vitam.access.external.rest;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * AccessConfiguration contains database access informations
  */
 public class AccessExternalConfiguration extends DefaultVitamApplicationConfiguration {
+
+    private Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant;
 
     /**
      * AccessExternalConfiguration empty constructor for YAMLFactory
@@ -40,4 +45,13 @@ public class AccessExternalConfiguration extends DefaultVitamApplicationConfigur
         // Empty constructor
     }
 
+    public Map<Integer, List<String>> getObjectGroupBlackListedFieldsForVisualizationByTenant() {
+        return objectGroupBlackListedFieldsForVisualizationByTenant;
+    }
+
+    public void setObjectGroupBlackListedFieldsForVisualizationByTenant(
+        Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant) {
+        this.objectGroupBlackListedFieldsForVisualizationByTenant =
+            objectGroupBlackListedFieldsForVisualizationByTenant;
+    }
 }

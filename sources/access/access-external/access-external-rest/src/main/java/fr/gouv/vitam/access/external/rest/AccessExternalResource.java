@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -71,8 +72,8 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
@@ -83,6 +84,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -90,6 +92,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -109,6 +112,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,6 +173,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private final AccessInternalClientFactory accessInternalClientFactory;
     private final AccessExternalConfiguration configuration;
 
+    private Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant;
+
     AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry, AccessExternalConfiguration configuration) {
         this(secureEndpointRegistry, AccessInternalClientFactory.getInstance(), configuration);
     }
@@ -180,6 +186,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
         this.configuration= configuration;
+        this.objectGroupBlackListedFieldsForVisualizationByTenant = configuration.getObjectGroupBlackListedFieldsForVisualizationByTenant();
     }
 
     /**
@@ -671,19 +678,24 @@ public class AccessExternalResource extends ApplicationStatusResource {
             if (idObjectGroup == null) {
                 throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
             }
-            RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            RequestResponse<JsonNode> selectedObjectGroupsByUnit = client.selectObjectbyId(queryJson, idObjectGroup);
 
-            if (!result.isOk()) {
-                VitamError<JsonNode> error = (VitamError<JsonNode>) result;
+            if (!((RequestResponseOK) selectedObjectGroupsByUnit).getResults().isEmpty() ) {
+                excludeBlackListedFieldsForGot(((RequestResponseOK) selectedObjectGroupsByUnit).getResults());
+            }
+
+            int st = selectedObjectGroupsByUnit.isOk() ? Status.OK.getStatusCode() : selectedObjectGroupsByUnit.getHttpCode();
+
+            if (!selectedObjectGroupsByUnit.isOk()) {
+                VitamError<JsonNode> error = (VitamError<JsonNode>) selectedObjectGroupsByUnit;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
                     error);
-            } else if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+            } else if (((RequestResponseOK<JsonNode>) selectedObjectGroupsByUnit).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) selectedObjectGroupsByUnit).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
-            return Response.status(st).entity(result).build();
+            return Response.status(st).entity(selectedObjectGroupsByUnit).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
                 BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(e);
@@ -1486,10 +1498,15 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = client.selectObjects(queryJson);
 
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
+            RequestResponse<JsonNode> selectedObjectGroups = client.selectObjects(queryJson);
+
+            if (!((RequestResponseOK) selectedObjectGroups).getResults().isEmpty()) {
+                excludeBlackListedFieldsForGot(((RequestResponseOK) selectedObjectGroups).getResults());
+            }
+
+            int st = selectedObjectGroups.isOk() ? Status.OK.getStatusCode() : selectedObjectGroups.getHttpCode();
+            return Response.status(st).entity(selectedObjectGroups).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -1525,6 +1542,28 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
+        }
+    }
+
+    private void excludeBlackListedFieldsForGot(List<ObjectNode> gotResults) {
+        if (objectGroupBlackListedFieldsForVisualizationByTenant != null &&
+            !objectGroupBlackListedFieldsForVisualizationByTenant.isEmpty()) {
+            List<String> fieldsToExcludeForCurrentTenant = objectGroupBlackListedFieldsForVisualizationByTenant.get(
+                VitamThreadUtils.getVitamSession().getTenantId());
+            if (CollectionUtils.isNotEmpty(fieldsToExcludeForCurrentTenant)) {
+                gotResults.forEach(got -> {
+                    fieldsToExcludeForCurrentTenant.forEach(fieldToExclude -> {
+                        Iterator<Map.Entry<String, JsonNode>> gotFields = got.deepCopy().fields();
+                        while(gotFields.hasNext()){
+                            Map.Entry<String, JsonNode> nextGotField = gotFields.next();
+                            JsonHandler.removeFieldFromNode(got, fieldToExclude, nextGotField.getValue());
+                        }
+                    });
+                });
+            } else {
+                LOGGER.debug("No BlackList Fields of ObjectGroup are declared for tenant " +
+                    VitamThreadUtils.getVitamSession().getTenantId());
+            }
         }
     }
 

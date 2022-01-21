@@ -181,6 +181,9 @@ public class SelectToMongodb extends RequestToMongodb {
         if (incl.isEmpty() && excl.isEmpty() && sliceProjections.isEmpty()) {
             return null;
         }
+
+        // TODO : Mongo do not accept inclusions and exclusions in query projections,
+        //  so please add : !excl.isEmpty() in condition !!
         if (!idFound) {
             incl.add(VitamDocument.ID);
         }

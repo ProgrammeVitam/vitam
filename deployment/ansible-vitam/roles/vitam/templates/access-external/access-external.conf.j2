@@ -2,3 +2,7 @@ authentication: false
 jettyConfig: jetty-config.xml
 tenantFilter : true
 authorizeTrackTotalHits : false
+objectGroupBlackListedFieldsForVisualizationByTenant:
+{% for tenant  in vitam_tenant_ids %}
+   {{ tenant }} : ['Filename']
+{% endfor %}

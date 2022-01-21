@@ -105,6 +105,9 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.model.objectgroup.FileInfoModel.FILENAME;
+import static fr.gouv.vitam.common.model.objectgroup.FileInfoModel.LAST_MODIFIED;
+import static fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse.OPERATIONS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -741,6 +744,7 @@ public class ExternalIT extends VitamRuleRunner {
             select.setQuery(query);
             return select.getFinalSelect();
         }
+
     }
 
     public static class AccessExternal {
@@ -771,10 +775,49 @@ public class ExternalIT extends VitamRuleRunner {
             assertThat(resultsWithoutPrecision.size()).isGreaterThan(0);
         }
 
+
+        @RunWithCustomExecutor
+        @Test
+        public void selectObjectGroupsByDSLWithBlackListedFields() throws Exception {
+            // given
+            VitamContext vitamContext = new VitamContext(tenantId)
+                .setApplicationSessionId(APPLICATION_SESSION_ID)
+                .setAccessContract(ACCESS_CONTRACT);
+
+            final List<String> declaredBlackListedFieldsForGotInMetadatConf =
+                List.of(FILENAME, LAST_MODIFIED, OPERATIONS);
+            final String OBJECTGROUP_RESOURCE_FILE = "database/got.json";
+
+            List<Document> gots = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
+                OBJECTGROUP_RESOURCE_FILE), new TypeReference<>() {
+            });
+            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+                .save(gots);
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                    metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                .save(gots);
+
+            final String queryDsl =
+                "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
+                    " \"$filter\": { }, " +
+                    " \"$projection\" : { } " +
+                    " }";
+
+            RequestResponse<JsonNode> response =
+                accessExternalClient.selectObjects(vitamContext, JsonHandler.getFromString(queryDsl));
+            // THEN
+            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            RequestResponseOK<JsonNode> jsonNode = (RequestResponseOK<JsonNode>) response;
+            jsonNode.getResults().forEach(result -> {
+                declaredBlackListedFieldsForGotInMetadatConf.forEach(
+                    field -> assertFalse(result.toString().contains(field)));
+            });
+        }
+
         private void insertUnitAndLFC(final String unitFile, final String lfcFile)
             throws InvalidParseOperationException, FileNotFoundException,
             DatabaseException {
-//            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            //            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
                     unitFile),
                 TYPE_LIST_UNIT);
@@ -784,7 +827,7 @@ public class ExternalIT extends VitamRuleRunner {
                     metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
                 .save(units);
 
-//            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            //            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
                     lfcFile),
                 new TypeReference<>() {
