@@ -28,7 +28,7 @@ package fr.gouv.vitam.common.stream;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.elasticsearch.common.collect.List;
+import org.elasticsearch.core.List;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

@@ -45,9 +45,9 @@ import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.xcontent.XContentBuilder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -67,8 +67,8 @@ import java.util.Optional;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
 
 public class IndexationHelperTest {
     private static final String INDEX = "index" + GUIDFactory.newGUID().getId();
