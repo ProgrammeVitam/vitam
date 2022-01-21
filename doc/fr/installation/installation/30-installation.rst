@@ -25,7 +25,7 @@ Pour simplifier l'exécution des commandes ``ansible-playbook``, vous pouvez uti
 
 
 Mise en place des repositories VITAM (optionnel)
--------------------------------------------------
+------------------------------------------------
 
 :term:`VITAM` fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à :term:`VITAM` :
 
@@ -56,7 +56,7 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 .. note:: En environnement CentOS, il est recommandé de créer des noms de *repository* commençant par `vitam-` .
 
 Génération des *hostvars*
---------------------------
+-------------------------
 
 Une fois l'étape de :term:`PKI` effectuée avec succès, il convient de procéder à la génération des *hostvars*, qui permettent de définir quelles interfaces réseau utiliser.
 Actuellement la solution logicielle :term:`VITAM` est capable de gérer 2 interfaces réseau :
@@ -95,7 +95,7 @@ A l'issue, vérifier le contenu des fichiers générés sous |repertoire_invento
 
 
 Déploiement
--------------
+-----------
 
 Une fois les étapes précédentes correctement effectuées (en particulier, la section :ref:`pkistores`), le déploiement s'effectue depuis la machine `ansible` et va distribuer la solution :term:`VITAM` selon l'inventaire correctement renseigné.
 
@@ -107,5 +107,7 @@ Une fois l'étape de la génération des hosts effectuée avec succès, le dépl
 
 
 .. note:: Une confirmation est demandée pour lancer ce script. Il est possible de rajouter le paramètre ``-e confirmation=yes`` pour bypasser cette demande de confirmation (cas d'un déploiement automatisé).
+
+.. note:: Il est également possible de forcer la suppression de profils de sécurité et de leurs données associées (contextes applicatifs et certificats) en ajoutant le paramètre ``-e delete_security_profiles=yes``. Cela peut éventuellement être utile dans le cas d'un nouveau lancement de l'installation suite à un échec.
 
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
