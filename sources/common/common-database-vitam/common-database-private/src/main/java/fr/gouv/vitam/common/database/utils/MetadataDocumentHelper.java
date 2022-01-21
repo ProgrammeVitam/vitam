@@ -56,7 +56,9 @@ public class MetadataDocumentHelper {
         MAX("_max"),
         UDS("_uds"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
-        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules");
+        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
+        FUZZY_CREATION_DATE("_fuzzyCD"),
+        FUZZY_UPDATE_DATE("_fuzzyUD");
 
 
         private final String fieldName;

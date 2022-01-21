@@ -71,6 +71,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetad
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
@@ -388,6 +389,8 @@ public class MetadataResourceTest {
         ObjectNode expectedUnitJson = (ObjectNode) JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(expectedContentFileName));
 
+        actualUnitJson.remove(Unit.FUZZY_CREATION_DATE);
+        actualUnitJson.remove(Unit.FUZZY_UPDATE_DATE);
         // Check last persisted date
         LocalDateTime graphLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(
             actualUnitJson.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE).asText());

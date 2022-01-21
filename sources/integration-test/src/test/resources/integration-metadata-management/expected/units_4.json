@@ -18,7 +18,9 @@
     },
     "_min": 1,
     "_max": 3,
-    "_glpd": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#",
+    "_fuzzyCD":"#TIMESTAMP#" ,
+    "_fuzzyUD": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca",
@@ -64,7 +66,9 @@
     },
     "_min": 1,
     "_max": 2,
-    "_glpd": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#",
+    "_fuzzyCD":"#TIMESTAMP#" ,
+    "_fuzzyUD": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahlm6sdabkeoaldc3hq6laaaaaq",
@@ -110,7 +114,9 @@
     },
     "_min": 1,
     "_max": 3,
-    "_glpd": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#",
+    "_fuzzyCD":"#TIMESTAMP#" ,
+    "_fuzzyUD": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq",
@@ -155,6 +161,8 @@
     "_min": 1,
     "_max": 3,
     "_glpd": "#TIMESTAMP#",
+    "_fuzzyCD":"#TIMESTAMP#" ,
+    "_fuzzyUD": "#TIMESTAMP#",
     "_v": 0,
     "_tenant": 0
   },
@@ -201,6 +209,8 @@
     "_min": 1,
     "_max": 3,
     "_glpd": "#TIMESTAMP#",
+    "_fuzzyCD":"#TIMESTAMP#" ,
+    "_fuzzyUD": "#TIMESTAMP#",
     "_v": 0,
     "_tenant": 0
   }
