@@ -29,7 +29,7 @@ package fr.gouv.vitam.common.retryable;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -39,19 +39,19 @@ public interface Retryable<T, E extends Exception> {
 
     void execute(DelegateRetryVoid<E> delegate) throws E;
 
-    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<T> onResult, T type) {
+    default void sleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep, Consumer<T> onResult, T type) {
         onResult.accept(type);
         String resultString = type.toString();
         doSleep(attempt, name, param, randomSleep, resultString);
     }
 
-    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<Exception> onException, Exception exception) {
+    default void sleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep, Consumer<Exception> onException, Exception exception) {
         onException.accept(exception);
         String stackTrace = ExceptionUtils.getStackTrace(exception);
         doSleep(attempt, name, param, randomSleep, stackTrace);
     }
 
-    default void doSleep(int attempt, String name, RetryableParameters param, Random randomSleep, String toPrint) {
+    default void doSleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep, String toPrint) {
         try {
             int randomRangeSleep = param.getRandomRangeSleep() == 0
                 ? 0

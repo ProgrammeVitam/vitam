@@ -28,10 +28,10 @@ package fr.gouv.vitam.storage.offers.tape.cache;
 
 import org.junit.Test;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -327,7 +327,7 @@ public class LRUQueueTest {
     public void testComplexLargeDataSet() {
 
         // Given
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         LRUQueue<String> instance = new LRUQueue<>();
         Map<String, Long> expectedTimestampMap = new HashMap<>();
         int dataSetSize = 10_000;

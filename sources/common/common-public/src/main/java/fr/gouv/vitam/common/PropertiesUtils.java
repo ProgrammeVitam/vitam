@@ -63,6 +63,8 @@ public final class PropertiesUtils {
 
     private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";
     private static final String ARGUMENTS_MUST_BE_NON_NULL = "Arguments must be non null";
+    private static final String TO_REPLACE = "%20";
+    private static final String VIDE_STRING = " ";
 
     private PropertiesUtils() {
         // Empty
@@ -160,7 +162,7 @@ public final class PropertiesUtils {
             file = new File(url.toURI());
         } catch (final URISyntaxException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            file = new File(url.getFile().replaceAll("%20", " "));
+            file = new File(url.getFile().replaceAll(TO_REPLACE, VIDE_STRING));
         }
         if (file.exists()) {
             return file;

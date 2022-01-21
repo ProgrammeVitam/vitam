@@ -44,6 +44,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import org.apache.commons.io.IOUtils;
@@ -66,13 +68,12 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.mockito.ArgumentCaptor;
 
+import javax.crypto.Cipher;
+
 public class AmazonS3V1MockedServerTest {
 
     private static final String PROVIDER = "amazon-s3-v1";
-    private static final String STORAGE_PATH = "/vitam/data/offer";
-    private static final String S3_ENDPOINT = "http://localhost:";
-    private static final String S3_ACCESSKEY = "AccessKey";
-    private static final String S3_SECRETKEY = "SecretKey";
+    private static final String S3_CONF_FILE = "s3/s3-conf-mock.json";
 
     private StorageConfiguration configuration;
     private static JunitHelper junitHelper = JunitHelper.getInstance();
@@ -97,13 +98,14 @@ public class AmazonS3V1MockedServerTest {
 
     @Before
     public void setUp() throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.findFile(S3_CONF_FILE));
         configuration = new StorageConfiguration();
         configuration.setProvider(PROVIDER);
-        configuration.setStoragePath(STORAGE_PATH);
+        configuration.setStoragePath(jsonNode.findValue("STORAGE_PATH").textValue());
         configuration.setS3RegionName(Regions.DEFAULT_REGION.name());
-        configuration.setS3Endpoint(S3_ENDPOINT + s3Port);
-        configuration.setS3AccessKey(S3_ACCESSKEY);
-        configuration.setS3SecretKey(S3_SECRETKEY);
+        configuration.setS3Endpoint(jsonNode.findValue("S3_ENDPOINT").textValue() + s3Port);
+        configuration.setS3AccessKey(jsonNode.findValue("S3_ACCESSKEY").textValue());
+        configuration.setS3SecretKey(jsonNode.findValue("S3_SECRETKEY").textValue());
         configuration.setS3PathStyleAccessEnabled(true);
         configuration.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
         configuration.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);

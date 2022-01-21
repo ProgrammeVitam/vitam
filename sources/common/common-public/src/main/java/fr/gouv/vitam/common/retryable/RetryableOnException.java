@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.retryable;
 
+import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +38,7 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     private static final Predicate<Exception> ALL = e -> true;
 
     private final AtomicInteger counter = new AtomicInteger();
-    private final Random randomSleep = new Random();
+    private final SecureRandom randomSleep = new SecureRandom();
 
     private final Predicate<Exception> retryOn;
     private final Consumer<Exception> onException;
