@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+certificates=$(mongo {{ hostvars[groups['hosts_mongos_data'][0]]['ip_service'] }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet --eval "db = db.getSiblingDB('identity');arr = db.getCollection('{{ collection }}').find({'ExpirationDate': { \$exists : false }}, {'_id': 1, 'Certificate': 1}).toArray();arr = arr.map( e => e._id + ':' + e.Certificate );print(arr)")
+
+certificates=(${certificates//,/ })
+
+for index in "${!certificates[@]}"
+do
+    ID=`echo "${certificates[index]}" | cut -d ":" -f 1`
+    ExpirationDate=""
+    Certificate=`echo "${certificates[index]}" | cut -d ":" -f 2 | base64 -d`
+    Type=$( echo "${certificates[index]}" | cut -d ":" -f 2 | base64 -d | openssl x509 -enddate -noout 2>&1 1>/dev/null ) || true
+
+    if [ ! -z "$Type" ]
+    then
+        ExpirationDate=$(echo "${certificates[index]}" | cut -d ":" -f 2 | base64 -d | openssl x509 -inform DER -enddate -noout | cut -d "=" -f 2)
+        retVal=$?
+    else
+        ExpirationDate=$(echo "${certificates[index]}" | cut -d ":" -f 2 | base64 -d | openssl x509  -enddate -noout | cut -d "=" -f 2)
+        retVal=$?
+    fi
+    if [ $retVal -ne 0 ]; then
+        echo "Error cannot retrieve certificat expiration date"
+        exit $retVal
+    fi
+    ExpirationDate=`date -d "$ExpirationDate" +%Y-%m-%dT%T.%3N`
+    query="db.Certificate.update({_id: \""$ID"\"}, {\$set: {\"ExpirationDate\": \""$ExpirationDate"\"}})"
+    mongo {{ hostvars[groups['hosts_mongos_data'][0]]['ip_service'] }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet --eval "db = db.getSiblingDB('identity');$query"
+done
