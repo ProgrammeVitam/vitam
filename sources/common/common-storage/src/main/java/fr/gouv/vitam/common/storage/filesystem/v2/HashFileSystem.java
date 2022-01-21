@@ -133,8 +133,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This was chosen to be coherent with existing Jclouds implementation of ContentAddressableStorage
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
-    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size)
+    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
+        long size)
         throws ContentAddressableStorageException {
 
         ParametersChecker
@@ -146,30 +146,28 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         fsHelper.createDirectories(parentPath);
         try {
 
-            Digest digest = new Digest(digestType);
-            InputStream digestInputStream = digest.getDigestInputStream(stream);
-
             // Create the file from the InputStream
-            Files.copy(digestInputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            String streamDigest = digest.digestHex();
-
-            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if (!streamDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException("Illegal state for container " + containerName +
-                    " and  object " + objectName + ". Stream digest " + streamDigest
-                    + " is not equal to computed digest " + computedDigest);
-            }
-
-            storeDigest(containerName, objectName, digestType, streamDigest);
-            return streamDigest;
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
         } catch (FileAlreadyExistsException e) {
-            throw new ContentAddressableStorageAlreadyExistException("File " + filePath + " already exists",
-                e);
+            throw new ContentAddressableStorageAlreadyExistException("File " + filePath + " already exists", e);
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException("I/O Error on writing file " + filePath, e);
         }
+    }
+    @Override
+    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size)
+        throws ContentAddressableStorageException {
+
+        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+        if (!objectDigest.equals(computedDigest)) {
+            throw new ContentAddressableStorageException("Illegal state for container " + containerName +
+                " and  object " + objectName + ". Stream digest " + objectDigest
+                + " is not equal to computed digest " + computedDigest);
+        }
+
+        storeDigest(containerName, objectName, digestType, objectDigest);
     }
 
     @Override

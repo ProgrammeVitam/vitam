@@ -148,10 +148,9 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size) throws
+    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
+        long size) throws
         ContentAddressableStorageException {
-
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         // Swift has a limit on the size of a single uploaded object; by default this is 5GB.
@@ -160,41 +159,19 @@ public class Swift extends ContentAddressableStorageAbstract {
         // when downloaded, sends all the segments concatenated as a single object.
         // This also offers much greater upload speed with the possibility of parallel uploads of the segments.
 
-        Digest digest = new Digest(digestType);
-
-        String largeObjectPrefix;
-        try (InputStream digestInputStream = digest.getDigestInputStream(stream);
-            ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(digestInputStream, size)) {
+        try {
             if (size > swiftLimit) {
-                largeObjectPrefix = bigFile(containerName, objectName, exactSizeInputStream, size);
+                bigFile(containerName, objectName, inputStream, size);
             } else {
-                smallFile(containerName, objectName, exactSizeInputStream);
-                largeObjectPrefix = null;
+                smallFile(containerName, objectName, inputStream);
             }
+
         } catch (IOException | ConnectionException e) {
             throw new ContentAddressableStorageException("Could not put object " + containerName + "/" + objectName, e);
         }
-
-        String streamDigest = digest.digestHex();
-
-        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException
-            = new RetryableOnException<>(getRetryableParameters());
-        retryableOnException.exec(() -> {
-            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if (!streamDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException(
-                    "Illegal state for container " + containerName + " and object " + objectName +
-                        ". Stream digest " + streamDigest + " is not equal to computed digest " +
-                        computedDigest);
-            }
-            return null;
-        });
-
-        storeDigest(containerName, objectName, digestType, streamDigest, largeObjectPrefix);
-        return streamDigest;
     }
 
-    private String bigFile(String containerName, String objectName, InputStream stream, Long size)
+    private void bigFile(String containerName, String objectName, InputStream stream, long size)
         throws ContentAddressableStorageException, IOException {
         Stopwatch times = Stopwatch.createStarted();
         Stopwatch segmentTime = Stopwatch.createUnstarted();
@@ -241,7 +218,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
-            String largeObjectPrefix = containerName + "/" + objectName + "/";
+            String largeObjectPrefix = getLargeObjectPrefix(containerName, objectName);
             objectPutOptions.getOptions().put(X_OBJECT_MANIFEST, largeObjectPrefix);
             enrichHeadersRequestWithVitamCookie(objectPutOptions.getOptions());
             getObjectStorageService().put(
@@ -249,7 +226,6 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectName,
                 Payloads.create(new NullInputStream(0L)),
                 objectPutOptions);
-            return largeObjectPrefix;
 
         } finally {
             StreamUtils.closeSilently(stream);
@@ -257,6 +233,10 @@ public class Swift extends ContentAddressableStorageAbstract {
                 "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
+    }
+
+    private String getLargeObjectPrefix(String containerName, String objectName) {
+        return containerName + "/" + objectName + "/";
     }
 
     private void smallFile(String containerName, String objectName, InputStream stream)
@@ -273,6 +253,28 @@ public class Swift extends ContentAddressableStorageAbstract {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
+    }
+
+    @Override
+    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size)
+        throws ContentAddressableStorageException {
+
+        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException
+            = new RetryableOnException<>(getRetryableParameters());
+        retryableOnException.exec(() -> {
+            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+            if (!objectDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException(
+                    "Illegal state for container " + containerName + " and object " + objectName +
+                        ". Stream digest " + objectDigest + " is not equal to computed digest " +
+                        computedDigest);
+            }
+            return null;
+        });
+
+        String largeObjectPrefix = (size > swiftLimit) ? getLargeObjectPrefix(containerName, objectName) : null;
+        storeDigest(containerName, objectName, digestType, objectDigest, largeObjectPrefix);
     }
 
     private void storeDigest(String containerName, String objectName, DigestType digestType, String digest,
@@ -507,7 +509,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
     }
 
-    private void listObjectSegments(String containerName, String objectName, ObjectListingListener objectListingListener)
+    private void listObjectSegments(String containerName, String objectName,
+        ObjectListingListener objectListingListener)
         throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -568,10 +571,11 @@ public class Swift extends ContentAddressableStorageAbstract {
             LOGGER.debug("The vitam enable custom header property used by offers is not filled!");
         } else if (getConfiguration().getEnableCustomHeaders()) {
             LOGGER.debug("The vitam enable custom header used by offers is enabled!");
-            if(getConfiguration().getCustomHeaders()== null || getConfiguration().getCustomHeaders().isEmpty()){
+            if (getConfiguration().getCustomHeaders() == null || getConfiguration().getCustomHeaders().isEmpty()) {
                 LOGGER.warn("No vitam custom headers have been filled!");
             } else {
-                getConfiguration().getCustomHeaders().forEach(cookie ->headers.put(cookie.getKey(), cookie.getValue()));
+                getConfiguration().getCustomHeaders()
+                    .forEach(cookie -> headers.put(cookie.getKey(), cookie.getValue()));
             }
         } else {
             LOGGER.debug("The vitam enable custom header property used by offers is disabled!");

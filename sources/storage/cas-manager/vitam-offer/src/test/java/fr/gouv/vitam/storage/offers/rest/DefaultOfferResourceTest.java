@@ -350,6 +350,34 @@ public class DefaultOfferResourceTest {
     }
 
     @Test
+    public void putObjectWithBodySmallerThanExpectedSizeThenKO() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            given().header(GlobalDataRest.X_TENANT_ID, "2")
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "1000000")
+                .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
+                .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1")
+                .then().statusCode(500);
+        }
+    }
+
+    @Test
+    public void putObjectWithBodyLargerThanExpectedSizeThenKO() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            given().header(GlobalDataRest.X_TENANT_ID, "2")
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "1766")
+                .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
+                .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1")
+                .then().statusCode(500);
+        }
+    }
+
+    @Test
     public void putObjectOverrideExistingInRewritableContainer() throws Exception {
         checkOfferDatabaseEmptiness();
 
@@ -841,8 +869,7 @@ public class DefaultOfferResourceTest {
         checkOfferDatabaseExistingDocument("2_object", "file1", 1);
         checkOfferDatabaseExistingDocument("2_object", "file2", 1);
         checkOfferDatabaseExistingDocument("2_object", "file3", 1);
-        // Fails before
-        checkOfferDatabaseExistingDocument("2_object", "file4", 0);
+        // file4 may have not been logged if file2 digest checks failed concurrently
     }
 
     private void bulkPutObjects(DataCategory dataCategory, List<String> ids, List<File> files, Status expectedStatus)

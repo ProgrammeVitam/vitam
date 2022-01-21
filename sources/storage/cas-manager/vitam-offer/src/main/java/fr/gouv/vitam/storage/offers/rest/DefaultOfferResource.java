@@ -442,9 +442,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         final String containerName = buildContainerName(type, xTenantId);
 
         final String size = headers.getHeaderString(GlobalDataRest.VITAM_CONTENT_LENGTH);
-        Long inputStreamSize;
+        long inputStreamSize;
         try {
-            inputStreamSize = Long.valueOf(size);
+            inputStreamSize = Long.parseLong(size);
         } catch (NumberFormatException e) {
             LOGGER.error("Bad or missing size '" + size + "'");
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -457,7 +457,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         DigestType digestType = DigestType.fromValue(xDigestAlgorithm);
 
-        try (final SizedInputStream sis = new SizedInputStream(input)) {
+        try (final InputStream sis = new ExactSizeInputStream(input, inputStreamSize)) {
             LOGGER.info("Writing object '" + objectId + "' of container " + containerName + " (size: " + size + ")");
 
             SanityChecker.checkParameter(objectId);
@@ -466,7 +466,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 defaultOfferService.createObject(containerName, objectId, sis,
                     type, inputStreamSize, digestType);
             return Response.status(Response.Status.CREATED)
-                .entity("{\"digest\":\"" + digest + "\",\"size\":" + sis.getSize() + "}").build();
+                .entity("{\"digest\":\"" + digest + "\",\"size\":" + inputStreamSize + "}").build();
         } catch (ConnectionException e) {
             LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
             return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode()

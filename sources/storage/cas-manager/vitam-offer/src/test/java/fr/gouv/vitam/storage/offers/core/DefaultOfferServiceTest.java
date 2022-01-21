@@ -51,6 +51,10 @@ import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -71,9 +75,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.assertj.core.api.AbstractThrowableAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -155,6 +157,10 @@ public class DefaultOfferServiceTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private OfferLogDatabaseService offerDatabaseService;
 
@@ -211,7 +217,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createObjectTestNoContainer() throws Exception {
-        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, null,
+        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, 1024L,
             VitamConfiguration.getDefaultDigestType());
     }
 
@@ -237,7 +243,7 @@ public class DefaultOfferServiceTest {
 
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+            computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
                 VitamConfiguration.getDefaultDigestType());
         }
         // check
@@ -260,12 +266,12 @@ public class DefaultOfferServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(1L);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, 8766L,
                 VitamConfiguration.getDefaultDigestType());
         }
         String computedDigestV2;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
-            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, 13L,
                 VitamConfiguration.getDefaultDigestType());
         }
 
@@ -289,12 +295,12 @@ public class DefaultOfferServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(10L);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
                 VitamConfiguration.getDefaultDigestType());
         }
         String computedDigestV2;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
                 VitamConfiguration.getDefaultDigestType());
         }
 
@@ -319,14 +325,14 @@ public class DefaultOfferServiceTest {
             .thenReturn(1L);
         String computedDigestV1;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigestV1 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+            computedDigestV1 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
                 VitamConfiguration.getDefaultDigestType());
         }
 
         // When / Then
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
             assertThatThrownBy(
-                () -> offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                () -> offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 13L,
                     VitamConfiguration.getDefaultDigestType()))
                 .isInstanceOf(NonUpdatableContentAddressableStorageException.class);
         }
@@ -349,7 +355,7 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null,
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, 18L,
             VitamConfiguration.getDefaultDigestType());
 
         final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
@@ -363,7 +369,7 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null,
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, 18L,
             VitamConfiguration.getDefaultDigestType());
 
         // check
@@ -391,9 +397,8 @@ public class DefaultOfferServiceTest {
         // creation of an object
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
 
-        String digest =
-            offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore,
-                DataCategory.UNIT, null, VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore,
+            DataCategory.UNIT, 18L, VitamConfiguration.getDefaultDigestType());
 
         // check if the object has been created
         final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
@@ -421,7 +426,7 @@ public class DefaultOfferServiceTest {
     public void listCursorTest() throws Exception {
         assertNotNull(offerService);
         for (int i = 0; i < 150; i++) {
-            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null,
+            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, 50L,
                 VitamConfiguration.getDefaultDigestType());
         }
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
@@ -479,8 +484,11 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void bulkPutObjectsSingleEntry() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
             .thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -503,8 +511,11 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void bulkPutObjectsMultipleEntries() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
             .thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -530,8 +541,11 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void bulkPutObjectsUpdateNonUpdatableObjectWithSameContent() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
             .thenReturn(1L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -559,8 +573,11 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void bulkPutObjectsUpdateNonUpdatableObjectWithDifferentContent() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
             .thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -589,8 +606,11 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void bulkPutObjectsUpdateUpdatableObjectWithDifferentContent() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
             .thenReturn(1L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);

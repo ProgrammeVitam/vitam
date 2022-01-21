@@ -208,11 +208,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart,
-        DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
+        DataCategory type, long size, DigestType digestType) throws ContentAddressableStorageException {
 
         ensureContainerExists(containerName);
 
-        String digest = writeObject(containerName, objectId, objectPart, type, size, digestType);
+        String digest;
+        if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
+            digest = checkNonRewritableObjects(containerName, objectId, objectPart, digestType);
+        } else {
+            digest = writeObject(containerName, objectId, objectPart, size, digestType, type);
+            this.defaultStorage.checkObjectDigestAndStoreDigest(containerName, objectId, digest, digestType, size);
+        }
 
         // Write offer log even if non updatable object already existed in CAS to ensure offer log is written if not yet
         // logged (idempotency)
@@ -233,14 +239,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    private String writeObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-        Long size, DigestType digestType) throws ContentAddressableStorageException {
-        if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
-            return checkNonRewritableObjects(containerName, objectId, objectPart, digestType);
-        }
-        return putObject(containerName, objectId, objectPart, size, digestType, type);
-    }
-
     private String checkNonRewritableObjects(String containerName, String objectId, InputStream objectPart,
         DigestType digestType) throws ContentAddressableStorageException {
 
@@ -253,21 +251,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             String streamDigest = digest.digestHex();
 
             // Check actual object digest (without cache for full checkup)
-            String actualObjectDigest = defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
-
-            if (streamDigest.equals(actualObjectDigest)) {
-                LOGGER.warn(
-                    "Non rewritable object updated with same content. Ignoring duplicate. Object Id '" + objectId +
-                        "' in " + containerName);
-                return actualObjectDigest;
-            } else {
-                alertService.createAlert(VitamLogLevel.ERROR, String.format(
-                    "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
-                    objectId, containerName, actualObjectDigest, streamDigest));
-                throw new NonUpdatableContentAddressableStorageException(
-                    "Object with id " + objectId + " already exists " +
-                        "and cannot be updated");
-            }
+            return checkObjectDigest(containerName, digestType, objectId, streamDigest);
 
         } catch (IOException e) {
             throw new ContentAddressableStorageException("Could not read input stream", e);
@@ -286,12 +270,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         log(times, containerName, "LOG_CREATE_IN_DB");
     }
 
-    private String putObject(String containerName, String objectId, InputStream objectPart, Long size,
+    private String writeObject(String containerName, String objectId, InputStream objectPart, long size,
         DigestType digestType, DataCategory type) throws ContentAddressableStorageException {
         // Write object
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-            return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
+            Digest digest = new Digest(digestType);
+            InputStream inputStream = digest.getDigestInputStream(objectPart);
+            defaultStorage.writeObject(containerName, objectId, inputStream, digestType, size);
+
+            return digest.digestHex();
+
         } catch (ContentAddressableStorageNotFoundException e) {
             throw e;
         } catch (Exception ex) {
@@ -312,10 +301,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             ensureContainerExists(containerName);
 
-            List<StorageBulkPutResultEntry> entries = new ArrayList<>();
+            BackgroundObjectDigestValidator backgroundObjectDigestValidator =
+                new BackgroundObjectDigestValidator(defaultStorage,
+                    containerName, digestType);
 
             try {
                 for (String objectId : objectIds) {
+
+                    // Ensure no exception thrown by background object validator meanwhile
+                    if (backgroundObjectDigestValidator.hasTechnicalExceptionsReported() ||
+                        backgroundObjectDigestValidator.hasConflictsReported()) {
+                        break;
+                    }
 
                     Optional<ExactSizeInputStream> entryInputStream = multiplexedStreamReader.readNextEntry();
                     if (entryInputStream.isEmpty()) {
@@ -325,19 +322,29 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                     LOGGER.info("Writing object '" + objectId + "' of container " + containerName);
 
                     ExactSizeInputStream inputStream = entryInputStream.get();
+                    long size = inputStream.getSize();
 
-                    String digest;
+                    String objectDigest;
                     if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
-                        digest = checkNonRewritableObjects(containerName, objectId, inputStream, digestType);
+
+                        // Do not override non-rewritable objets, just check digest for idempotency
+                        objectDigest = computeObjectDigest(digestType, inputStream);
+
+                        backgroundObjectDigestValidator.addExistingWormObjectToCheck(objectId, objectDigest, size);
+
                     } else {
-                        digest =
-                            putObject(containerName, objectId, inputStream, inputStream.getSize(), digestType, type);
+
+                        objectDigest = writeObject(containerName, objectId, inputStream, size, digestType, type);
+
+                        backgroundObjectDigestValidator.addWrittenObjectToCheck(objectId, objectDigest, size);
                     }
-                    entries.add(new StorageBulkPutResultEntry(objectId, digest, inputStream.getSize()));
                 }
 
             } finally {
 
+                backgroundObjectDigestValidator.awaitTermination();
+
+                List<StorageBulkPutResultEntry> entries = backgroundObjectDigestValidator.getWrittenObjects();
                 if (!entries.isEmpty()) {
                     // Write offer logs even if non updatable object already existed in CAS to ensure offer log is
                     // written if not yet logged (idempotency)
@@ -347,14 +354,54 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 }
             }
 
+            if (backgroundObjectDigestValidator.hasConflictsReported()) {
+                throw new NonUpdatableContentAddressableStorageException(
+                    "Bulk object write failed. At least one non-rewritable object override rejected");
+            }
+
+            if (backgroundObjectDigestValidator.hasTechnicalExceptionsReported()) {
+                throw new ContentAddressableStorageException(
+                    "Bulk object write failed. At least one object failed");
+            }
+
             if (multiplexedStreamReader.readNextEntry().isPresent()) {
                 throw new IllegalStateException("No more entries expected");
             }
 
-            return new StorageBulkPutResult(entries);
+            return new StorageBulkPutResult(backgroundObjectDigestValidator.getWrittenObjects());
 
         } finally {
             log(stopwatch, containerName, "BULK_PUT_OBJECTS");
+        }
+    }
+
+    private String computeObjectDigest(DigestType digestType, ExactSizeInputStream inputStream) throws IOException {
+        // Compute file digest
+        Digest entryDigest = new Digest(digestType);
+        entryDigest.update(inputStream);
+        return entryDigest.digestHex();
+    }
+
+    private String checkObjectDigest(String containerName, DigestType digestType, String objectId,
+        String entryDigestValue)
+        throws ContentAddressableStorageException {
+        // Check actual object digest (without cache for full checkup)
+        String actualObjectDigest =
+            defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
+
+        if (entryDigestValue.equals(actualObjectDigest)) {
+            LOGGER.warn(
+                "Non rewritable object updated with same content. Ignoring duplicate. Object Id '" +
+                    objectId +
+                    "' in " + containerName);
+            return actualObjectDigest;
+        } else {
+            alertService.createAlert(VitamLogLevel.ERROR, String.format(
+                "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
+                objectId, containerName, actualObjectDigest, entryDigestValue));
+            throw new NonUpdatableContentAddressableStorageException(
+                "Object with id " + objectId + " already exists " +
+                    "and cannot be updated");
         }
     }
 

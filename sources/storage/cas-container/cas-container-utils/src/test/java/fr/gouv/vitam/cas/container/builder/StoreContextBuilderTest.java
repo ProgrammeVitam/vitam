@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
@@ -90,6 +91,7 @@ public class StoreContextBuilderTest {
         contentAddressableStorage
             .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L);
 
+        // Then
         ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
         try(InputStream is = response.getInputStream()) {
 
@@ -101,6 +103,9 @@ public class StoreContextBuilderTest {
             // Then
             assertThat(fileDownloaded.length()).isEqualTo(resourceFile.length());
         }
-    }
 
+        String objectDigest = new Digest(SHA512).update(resourceFile).digestHex();
+        assertThat(contentAddressableStorage.getObjectMetadata("testContainer", uuid, false).getDigest())
+            .isEqualTo(objectDigest);
+    }
 }

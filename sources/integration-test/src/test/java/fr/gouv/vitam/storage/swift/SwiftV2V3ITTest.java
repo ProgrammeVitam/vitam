@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
 import fr.gouv.vitam.common.storage.swift.VitamSwiftObjectStorageService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.RandomStringUtils;
@@ -315,18 +314,6 @@ public class SwiftV2V3ITTest {
         String computedDigest = swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
         assertThat(computedDigest).isEqualTo(
             "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418");
-
-        assertThatThrownBy(() -> {
-            InputStream file2Stream = getInputStream("file2.pdf");
-            swift.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 0L);
-        }, "Try to upload a file on an existing file with an invalid size length (size < filesize)")
-            .isInstanceOf(ContentAddressableStorageException.class);
-
-        assertThatThrownBy(() -> {
-            InputStream file2Stream = getInputStream("file2.pdf");
-            swift.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 1_000_000L);
-        }, "Try to upload a file on an existing file with an invalid size length (size > filesize)")
-            .isInstanceOf(ContentAddressableStorageException.class);
 
         assertThatCode(() -> swift.deleteObject(containerName, objectName)).doesNotThrowAnyException();
 
