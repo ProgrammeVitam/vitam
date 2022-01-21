@@ -40,46 +40,61 @@ import static java.util.Optional.empty;
  */
 public class ObjectGroupResponse {
 
-    @JsonProperty("#qualifiers")
+    public static final String QUALIFIERS = "#qualifiers";
+    public static final String ID = "#id";
+    public static final String TENANT = "#tenant";
+    public static final String FILE_INFO = "FileInfo";
+    public static final String UNIT_UPS = "#unitups";
+    public static final String ALL_UNIT_UPS = "#allunitups";
+    public static final String NB_OBJECTS = "#nbobjects";
+    public static final String OPERATIONS = "#operations";
+    public static final String OPI = "#opi";
+    public static final String ORIGINATING_AGENCY = "#originating_agency";
+    public static final String ORIGINATING_AGENCIES = "#originating_agencies";
+    public static final String VERSION = "#version";
+    public static final String TYPE = "#type";
+    public static final String STORAGE = "#storage";
+
+    @JsonProperty(QUALIFIERS)
     private List<QualifiersModel> qualifiers;
 
-    @JsonProperty("#id")
+    @JsonProperty(ID)
     private String id;
 
-    @JsonProperty("#tenant")
+    @JsonProperty(TENANT)
     private int tenant;
 
-    @JsonProperty("FileInfo")
+    @JsonProperty(FILE_INFO)
     private FileInfoModel fileInfo;
 
-    @JsonProperty("#unitups")
+    @JsonProperty(UNIT_UPS)
     private List<String> up;
 
-    @JsonProperty("#allunitups")
+    @JsonProperty(ALL_UNIT_UPS)
     private List<String> us;
 
-    @JsonProperty("#nbobjects")
+    @JsonProperty(NB_OBJECTS)
     private int nbc;
 
-    @JsonProperty("#operations")
+    @JsonProperty(OPERATIONS)
     private List<String> ops;
 
-    @JsonProperty("#opi")
+    @JsonProperty(OPI)
     private String opi;
 
-    @JsonProperty("#originating_agency")
+    @JsonProperty(ORIGINATING_AGENCY)
     private String originatingAgency;
 
-    @JsonProperty("#originating_agencies")
+    @JsonProperty(ORIGINATING_AGENCIES)
     private List<String> originatingAgencies;
 
-    @JsonProperty("#version")
+    @JsonProperty(VERSION)
     private String version;
 
-    @JsonProperty("#type")
+    @JsonProperty(TYPE)
     private String type;
 
-    @JsonProperty("#storage")
+    @JsonProperty(STORAGE)
     private StorageRacineModel storage;
 
     public StorageRacineModel getStorage() {

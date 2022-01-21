@@ -1107,4 +1107,22 @@ public final class JsonHandler {
             throw new InvalidParseOperationException(e);
         }
     }
+
+    public static void removeFieldFromNode(JsonNode sourceNode, String fieldToExclude, JsonNode nodeValue) {
+        if (nodeValue instanceof ObjectNode) {
+            JsonNode var = sourceNode.findParent(fieldToExclude);
+            if (!JsonHandler.isNullOrEmpty(var)) {
+                ((ObjectNode) var).remove(fieldToExclude);
+            }
+        } else if (nodeValue instanceof ArrayNode) {
+            ArrayNode array = (ArrayNode) nodeValue;
+            for (int i = 0; i < array.size(); i++) {
+                removeFieldFromNode(sourceNode, fieldToExclude, array.get(i));
+            }
+        } else {
+            if (!sourceNode.path(fieldToExclude).isMissingNode()) {
+                ((ObjectNode) sourceNode.findParent(fieldToExclude)).remove(fieldToExclude);
+            }
+        }
+    }
 }
