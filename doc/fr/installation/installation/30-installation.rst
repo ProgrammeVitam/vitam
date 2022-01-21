@@ -129,4 +129,6 @@ Une fois l'étape de la génération des hosts effectuée avec succès, le dépl
 
 .. note:: Il est possible d'effectuer les tests d'infrastructure décrits dans la partie précédente en ajoutant le paramètre ``-e checks_infra=yes``. Un rapport s'affichera à l'issue des tests et il sera donné la possibilité de poursuivre ou non le déploiement.
 
+.. note:: Il est également possible de forcer la suppression de profils de sécurité et de leurs données associées (contextes applicatifs et certificats) en ajoutant le paramètre ``-e delete_security_profiles=yes``. Cela peut éventuellement être utile dans le cas d'un nouveau lancement de l'installation suite à un échec.
+
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
