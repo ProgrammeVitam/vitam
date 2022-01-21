@@ -117,7 +117,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageException if the container does not exist
      */
     String createObject(String containerName, String objectId, InputStream objectPart, DataCategory
-        type, Long size, DigestType digestType) throws ContentAddressableStorageException;
+        type, long size, DigestType digestType) throws ContentAddressableStorageException;
 
     StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
         MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)

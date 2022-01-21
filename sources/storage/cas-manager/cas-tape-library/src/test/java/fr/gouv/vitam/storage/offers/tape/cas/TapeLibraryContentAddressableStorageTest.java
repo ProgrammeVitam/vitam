@@ -188,13 +188,13 @@ public class TapeLibraryContentAddressableStorageTest {
         byte[] data = "test data".getBytes();
 
         // When
-        String digest = tapeLibraryContentAddressableStorage.putObject("containerName", "objectName",
-            new ByteArrayInputStream(data), DigestType.SHA512, (long) data.length);
+        tapeLibraryContentAddressableStorage.writeObject("containerName", "objectName",
+            new ByteArrayInputStream(data), DigestType.SHA512, data.length);
 
         // Then
-        assertThat(digest).isEqualTo(new Digest(DigestType.SHA512).update(data).digestHex());
-
         verify(basicFileStorage).writeFile(eq("containerName"), eq("objectName"), any(), eq((long) data.length));
+
+        String dataDigest = new Digest(DigestType.SHA512).update(data).digestHex();
 
         ArgumentCaptor<TapeObjectReferentialEntity> objectReferentialEntityArgumentCaptor =
             ArgumentCaptor.forClass(TapeObjectReferentialEntity.class);
@@ -205,7 +205,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(objectReferentialEntityArgumentCaptor.getValue().getId().getObjectName()).isEqualTo("objectName");
         assertThat(objectReferentialEntityArgumentCaptor.getValue().getSize()).isEqualTo(data.length);
         assertThat(objectReferentialEntityArgumentCaptor.getValue().getDigestType()).isEqualTo("SHA-512");
-        assertThat(objectReferentialEntityArgumentCaptor.getValue().getDigest()).isEqualTo(digest);
+        assertThat(objectReferentialEntityArgumentCaptor.getValue().getDigest()).isEqualTo(dataDigest);
         assertThat(objectReferentialEntityArgumentCaptor.getValue().getLastUpdateDate()).isNotNull();
         assertThat(objectReferentialEntityArgumentCaptor.getValue().getLastObjectModifiedDate()).isNotNull();
 
@@ -216,7 +216,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getContainerName()).isEqualTo("containerName");
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getObjectName()).isEqualTo("objectName");
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getSize()).isEqualTo(data.length);
-        assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestValue()).isEqualTo(digest);
+        assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestValue()).isEqualTo(dataDigest);
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestAlgorithm()).isEqualTo("SHA-512");
 
         verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,

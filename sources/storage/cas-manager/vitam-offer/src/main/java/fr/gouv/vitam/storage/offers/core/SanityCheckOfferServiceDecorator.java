@@ -118,7 +118,7 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-        Long size, DigestType digestType) throws ContentAddressableStorageException {
+        long size, DigestType digestType) throws ContentAddressableStorageException {
 
         checkSafeObjectPath(containerName, objectId);
         return innerService.createObject(containerName, objectId, objectPart, type, size, digestType);
