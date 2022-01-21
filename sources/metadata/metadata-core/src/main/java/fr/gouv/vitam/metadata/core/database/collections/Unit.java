@@ -31,6 +31,8 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
 import org.bson.Document;
 
+import java.time.LocalDateTime;
+
 /**
  * Unit class:<br>
  *
@@ -69,6 +71,8 @@ public class Unit extends MetadataDocument<Unit> {
      * elimination
      */
     public static final String ELIMINATION = "_elimination";
+    public static final String FUZZY_CREATION_DATE = "_fuzzyCD";
+    public static final String FUZZY_UPDATE_DATE = "_fuzzyUD";
     public static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
     public static final String VALID_COMPUTED_INHERITED_RULES = "_validComputedInheritedRules";
     public static final String OPERATION_TRANSFERS = "_opts";
@@ -119,8 +123,6 @@ public class Unit extends MetadataDocument<Unit> {
     static final String END = ".Rules._end";
 
 
-
-
     @SuppressWarnings("javadoc")
     static final String STORAGERULES = STORAGERULE + RULE;
     @SuppressWarnings("javadoc")
@@ -134,7 +136,7 @@ public class Unit extends MetadataDocument<Unit> {
     @SuppressWarnings("javadoc")
     static final String ACCESSEND = ACCESSRULE + END;
     @SuppressWarnings("javadoc")
-     static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
+    static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
     @SuppressWarnings("javadoc")
     static final String DISSEMINATIONEND = DISSEMINATIONRULE + END;
     @SuppressWarnings("javadoc")
@@ -205,7 +207,18 @@ public class Unit extends MetadataDocument<Unit> {
         put(MINDEPTH, unitGraphModel.minDepth());
         put(MAXDEPTH, unitGraphModel.maxDepth());
 
+
         put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+    }
+
+
+
+    public void setFuzzyCreationDate(LocalDateTime creationDate){
+        put(FUZZY_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
+    }
+
+    public void setFuzzyUpdateDate(LocalDateTime lastUpdate){
+        put(FUZZY_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
     }
 
 }

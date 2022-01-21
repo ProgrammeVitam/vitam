@@ -50,7 +50,7 @@ public class ComputedFieldsTest {
     private static final List<String> expectedUnitComputedFields =
         Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
             MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
-            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
+            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES, Unit.FUZZY_CREATION_DATE, Unit.FUZZY_UPDATE_DATE);
 
     private static final List<String> expectedUnitMainFields = Arrays
         .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,

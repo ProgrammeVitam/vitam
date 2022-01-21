@@ -82,6 +82,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -297,6 +298,8 @@ public class DataMigrationIT extends VitamRuleRunner {
 
 
         List<JsonNode> unitsAfter = getMetadata(MetadataCollections.UNIT);
+        dumpDataSet(unitsAfter, unitsBefore);
+
 
         assertMetadataEquals(unitsBefore, unitsAfter);
 
@@ -325,6 +328,22 @@ public class DataMigrationIT extends VitamRuleRunner {
 
        checkReport(requestId, unitsBefore);
     }
+
+    private void dumpDataSet(List<JsonNode> unitsAfter, List<JsonNode> unitsBefore) {
+        for (int i = 0; i < unitsAfter.size(); i++) {
+            ObjectNode unitBefore = (ObjectNode) unitsBefore.get(i);
+            ObjectNode unitAfter = (ObjectNode) unitsAfter.get(i);
+            replaceDates(unitAfter);
+            replaceDates(unitBefore);
+        }
+    }
+
+    private void replaceDates(ObjectNode unit) {
+        unit.put(Unit.FUZZY_CREATION_DATE, "#TIMESTAMP#");
+        unit.put(Unit.FUZZY_UPDATE_DATE, "#TIMESTAMP#");
+    }
+
+
 
     @Test
     @RunWithCustomExecutor

@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -896,11 +896,13 @@ public class DbRequestTest {
 
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
-        String after =
-            JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        var afterNode = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
+        afterNode.remove(Unit.FUZZY_UPDATE_DATE);
+        String after = JsonHandler.unprettyPrint(afterNode);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.FUZZY_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }
@@ -2521,11 +2523,14 @@ public class DbRequestTest {
 
         String expected = BsonHelper.stringify(expectedUnit);
 
+        var unitDocumentAfterUpdate = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
+        unitDocumentAfterUpdate.remove(Unit.FUZZY_UPDATE_DATE);
         String after =
-            JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(unitDocumentAfterUpdate);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
-            JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+                JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.FUZZY_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }

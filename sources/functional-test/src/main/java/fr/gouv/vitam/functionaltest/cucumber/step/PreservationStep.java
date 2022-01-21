@@ -292,7 +292,7 @@ public class PreservationStep {
 
         String opiPreservation = world.getOperationId();
 
-        Boolean versionExist = objectGroupResponse.getQualifiers()
+        boolean versionExist = objectGroupResponse.getQualifiers()
                 .stream()
                 .filter(qualifier -> qualifierParam.equals(qualifier.getQualifier()))
                 .map(QualifiersModel::getVersions)

@@ -58,6 +58,7 @@ import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -74,6 +75,7 @@ import javax.ws.rs.core.Response.Status;
 
 import java.io.File;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -410,6 +412,7 @@ public class SelectUnitResourceTest {
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getValue()).isEqualTo("str0");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
 
+
         stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -654,6 +657,7 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_twoBulkSearchValid_thenReturn_TwoResults() throws Exception {
 
 
+        LocalDateTime dateBeforeInsert = LocalDateTime.now();
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -685,9 +689,19 @@ public class SelectUnitResourceTest {
         assertThat(responseVitam.getResults()).hasSize(2);
         RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
         assertThat(firstResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
+
+        final LocalDateTime firstFuzzyCD= LocalDateTime.parse(firstResultVitam.getFirstResult().get(Unit.FUZZY_CREATION_DATE).asText());
+        final LocalDateTime firstFuzzyUD= LocalDateTime.parse(firstResultVitam.getFirstResult().get(Unit.FUZZY_CREATION_DATE).asText());
+        assertThat(firstFuzzyCD.isAfter(dateBeforeInsert)).isTrue();
+        assertThat(firstFuzzyUD.isBefore(LocalDateTime.now())).isTrue();
+
         RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
+        final LocalDateTime secondFuzzyCD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(Unit.FUZZY_CREATION_DATE).asText());
+        final LocalDateTime secondFuzzyUD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(Unit.FUZZY_CREATION_DATE).asText());
         assertThat(secondResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_1);
-        
+        assertThat(secondFuzzyCD.isAfter(dateBeforeInsert)).isTrue();
+        assertThat(secondFuzzyUD.isBefore(LocalDateTime.now())).isTrue();
+
     }
     
     @Test

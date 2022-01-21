@@ -57,6 +57,14 @@
       "type": "date",
       "format": "strict_date_optional_time"
     },
+    "_fuzzyCD": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "_fuzzyUD": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
     "Description": {
       "type": "text"
     },

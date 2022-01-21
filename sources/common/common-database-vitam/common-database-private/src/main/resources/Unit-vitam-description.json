@@ -3208,5 +3208,17 @@
     "type": "signed_long",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_fuzzyCD",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_fuzzyUD",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
   }
 ]

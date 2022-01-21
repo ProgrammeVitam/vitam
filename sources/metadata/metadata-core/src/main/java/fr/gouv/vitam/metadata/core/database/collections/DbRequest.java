@@ -40,6 +40,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -106,6 +107,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -259,6 +261,7 @@ public class DbRequest {
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
+            updatedDocument.setFuzzyUpdateDate(LocalDateTime.now());
             LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
@@ -982,12 +985,11 @@ public class DbRequest {
                 if (!forceUpdate && !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
                     return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
                 }
-            }
-
-            if (metadataCollection == MetadataCollections.UNIT) {
                 // Unit validation
                 unitValidator.validateUnit(transformedUpdatedDocument);
+                transformedUpdatedDocument.put(Unit.FUZZY_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
             }
+
 
             // Make Update
             final Bson condition;
@@ -1276,8 +1278,9 @@ public class DbRequest {
             Stopwatch computeAU = Stopwatch.createStarted();
 
             for (BulkUnitInsertEntry entry : request.getUnits()) {
-                final Unit unit = new Unit(entry.getUnit());
 
+
+                final Unit unit = new Unit(entry.getUnit());
                 Set<String> roots = entry.getParentUnitIds();
 
                 UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
@@ -1286,7 +1289,9 @@ public class DbRequest {
                     unitGraphModel.addParent(parentGraphModel);
                 });
 
+
                 unit.mergeWith(unitGraphModel);
+                setDateCreationAndModification(unit);
 
                 // save mongo
                 unitToSave.add(unit);
@@ -1333,6 +1338,12 @@ public class DbRequest {
         } catch (final MongoException e) {
             throw new MetaDataExecutionException("Insert concern", e);
         }
+    }
+
+    private void setDateCreationAndModification(Unit unit) {
+        final LocalDateTime now = LocalDateTime.now();
+        unit.setFuzzyCreationDate(now);
+        unit.setFuzzyUpdateDate(now);
     }
 
     /**
