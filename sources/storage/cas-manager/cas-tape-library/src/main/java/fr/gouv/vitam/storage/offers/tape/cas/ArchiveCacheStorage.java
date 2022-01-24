@@ -402,6 +402,10 @@ public class ArchiveCacheStorage {
         }
     }
 
+    public boolean isCacheEvictionRunning() {
+        return this.lruCache.isCacheEvictionRunning();
+    }
+
     private Instant getCurrentInstant() {
         return LocalDateUtil.now().toInstant(ZoneOffset.UTC);
     }

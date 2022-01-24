@@ -1191,7 +1191,28 @@ public class TapeLibrarySimulatorTest {
     }
 
     @Test
-    public void testMovePositionForwardForEmptyTapeThenKO() throws TapeCommandException {
+    public void testMoveMultiplePositionsForwardForEmptyTapeThenKO() throws TapeCommandException {
+
+        // Given
+        loadTape(1, 0);
+
+
+        // When / Then
+        assertThatThrownBy(() -> moveDrive(0, 2, false))
+            .isInstanceOf(TapeCommandException.class);
+
+        // Check drive status
+        TapeDriveSpec driveStatus = getDriveStatus(0);
+        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getFileNumber()).isEqualTo(0);
+        assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
+            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+
+        assertThatFailuresReported(1);
+    }
+
+    @Test
+    public void testTryMoveTape1PositionForwardToCheckForEmptinessThenNonBlockingError() throws TapeCommandException {
 
         // Given
         loadTape(1, 0);
@@ -1208,7 +1229,7 @@ public class TapeLibrarySimulatorTest {
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
 
-        assertThatFailuresReported(1);
+        assertThatNoFailuresReported();
     }
 
     @Test

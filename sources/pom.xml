@@ -47,6 +47,7 @@
         <module>storage-integration-test</module>
         <module>storage-integration-nossl-test</module>
         <module>storage-integration-multi-offers</module>
+        <module>storage-integration-tape-library-test</module>
         <module>functional-test</module>
         <module>internal-security</module>
         <module>elastic-kibana-interceptor</module>

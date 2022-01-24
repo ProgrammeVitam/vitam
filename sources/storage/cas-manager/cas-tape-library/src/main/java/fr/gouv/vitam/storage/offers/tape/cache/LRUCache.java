@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -74,9 +75,9 @@ public class LRUCache<T> {
     private final Map<T, LRUCacheEntry<T>> pendingEntryQueue;
     private final Map<T, LRUCacheEntry<T>> reservedEntryMap;
     private final Map<T, Long> cacheEntryWeightMap;
+    private final AtomicBoolean isAsyncEvictionRunning = new AtomicBoolean();
 
     private long currentCapacity = 0L;
-    private boolean isAsyncEvictionRunning = false;
 
     /**
      * @param maxCapacity Max cache storage capacity. Once reached, adding new entries fails.
@@ -205,7 +206,7 @@ public class LRUCache<T> {
                 "Mo active reservation for entry " + entryKey + ". Reservation already confirmed or canceled?");
         }
 
-        if (isAsyncEvictionRunning) {
+        if (isAsyncEvictionRunning.get()) {
             // Async eviction still running ==> Do not add entry to queue otherwise, created LRUCacheEvictionJudge in eviction process does not handle new entries.
             // We'll add entry to a pending entry queue
             pendingEntryQueue.put(entryKey, entry);
@@ -346,8 +347,8 @@ public class LRUCache<T> {
     }
 
     private void startAsyncEvictionProcessIfNeeded() {
-        if (this.currentCapacity >= this.evictionCapacity && !isAsyncEvictionRunning) {
-            isAsyncEvictionRunning = true;
+        if (this.currentCapacity >= this.evictionCapacity && !isAsyncEvictionRunning.get()) {
+            isAsyncEvictionRunning.set(true);
             evictionExecutor.execute(this::asyncEvictionProcess);
             LOGGER.info("Cache capacity exceeded. Background eviction process started. Max capacity: {}. " +
                     "Eviction capacity: {}. Safe capacity: {}. Current capacity: {}",
@@ -439,6 +440,10 @@ public class LRUCache<T> {
         this.pendingEntryQueue.clear();
 
         // Report end of eviction process
-        isAsyncEvictionRunning = false;
+        isAsyncEvictionRunning.set(false);
+    }
+
+    public boolean isCacheEvictionRunning() {
+        return isAsyncEvictionRunning.get();
     }
 }

@@ -85,9 +85,9 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 public class TapeLibraryFactory {
 
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
-    private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
     private static final long MB_BYTES = 1_000_000L;
 
+    private final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
     private final TapeServiceCreator defaultTapeServiceCreator = new TapeServiceCreatorImpl();
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
 
@@ -336,7 +336,14 @@ public class TapeLibraryFactory {
     }
 
     @VisibleForTesting
-    public void resetTapeServiceCreatorAfterTesting() {
+    public void resetTapeLibraryFactoryAfterTests() {
+        this.tapeLibraryPool.clear();
+        this.tapeDriveWorkerManagers.clear();
+        this.tapeLibraryContentAddressableStorage = null;
+        this.backupFileStorage = null;
+        this.tapeCatalogService = null;
+        this.accessRequestManager = null;
+        this.archiveCacheStorage = null;
         this.tapeServiceCreator = defaultTapeServiceCreator;
     }
 

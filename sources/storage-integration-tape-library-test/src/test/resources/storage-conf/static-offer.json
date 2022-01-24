@@ -1,0 +1,24 @@
+[
+  {
+    "id" : "offer1",
+    "baseUrl" : "http://localhost:8757",
+    "asyncRead": true,
+    "parameters" : {
+      "keyStore-keyPath": "tls/client/client.p12",
+      "keyStore-keyPassword": "azerty4",
+      "trustStore-keyPath": "tls/client/truststore.jks",
+      "trustStore-keyPassword": "azerty10"
+    }
+  },
+  {
+    "id" : "offer2",
+    "baseUrl" : "http://localhost:8758",
+    "asyncRead": false,
+    "parameters" : {
+      "keyStore-keyPath": "tls/client/client.p12",
+      "keyStore-keyPassword": "azerty4",
+      "trustStore-keyPath": "tls/client/truststore.jks",
+      "trustStore-keyPassword": "azerty10"
+    }
+  }
+]

@@ -50,11 +50,9 @@ import fr.gouv.vitam.common.stream.ExactDigestValidatorInputStream;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.LazySequenceInputStream;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
@@ -279,8 +277,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         if (tarEntries.size() == 1) {
             // Just load / return TAR entry content.
             TarEntryDescription tarEntry = tarEntries.get(0);
-            return loadTarFileInputStream(containerName, objectName, tarEntry,
-                tapeArchiveReferentialEntityMap.get(tarEntry.getTarFileId()));
+            return loadTarFileInputStream(containerName, objectName, tarEntry);
         }
 
         return loadLargeObjectInputStream(containerName, objectName, tarEntries, fileBucketId, tarIds,
@@ -341,8 +338,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             Iterator<InputStream> lazyInputStreamIterator = tarEntries.stream().
                 map(tarEntry -> {
                     try {
-                        return loadTarFileInputStream(containerName, objectName, tarEntry,
-                            tapeArchiveReferentialEntityMap.get(tarEntry.getTarFileId()));
+                        return loadTarFileInputStream(containerName, objectName, tarEntry);
                     } catch (ContentAddressableStorageUnavailableDataFromAsyncOfferException | ContentAddressableStorageServerException e) {
                         throw new RuntimeException("Could not load entry " + fileBucketId + "/"
                             + tarEntry.getTarFileId() + " @" + tarEntry.getEntryName(), e);
@@ -392,12 +388,12 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     private InputStream loadTarFileInputStream(String containerName, String objectName,
-        TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+        TarEntryDescription tarEntry)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException,
         ContentAddressableStorageServerException {
         try {
             FileInputStream fileInputStream =
-                locateAndOpenTarFileInputStream(containerName, objectName, tarEntry, tapeArchiveReferentialEntity);
+                locateAndOpenTarFileInputStream(containerName, objectName, tarEntry);
             return TarHelper.readEntryAtPos(fileInputStream, tarEntry);
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException("Could not load tar file", e);
@@ -405,7 +401,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     private FileInputStream locateAndOpenTarFileInputStream(String containerName, String objectName,
-        TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+        TarEntryDescription tarEntry)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
 
         String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);

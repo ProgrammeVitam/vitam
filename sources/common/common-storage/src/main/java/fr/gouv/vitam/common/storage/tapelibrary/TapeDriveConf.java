@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.tapelibrary;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**

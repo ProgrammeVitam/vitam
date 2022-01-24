@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+<parent>
+    <groupId>fr.gouv.vitam</groupId>
+    <artifactId>parent</artifactId>
+    <version>5.0-SNAPSHOT</version>
+</parent>
+<artifactId>storage-integration-tape-library-test</artifactId>
+<name>Storage Integration Test</name>
+
+<dependencies>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>workspace-rest</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>storage-engine-common</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>storage-engine-client</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>vitam-offer</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>storage-engine-server</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>cas-tape-library-simulator</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>common-junit</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>common-plugin</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>common-private</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.squareup.retrofit2</groupId>
+        <artifactId>retrofit</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.squareup.retrofit2</groupId>
+        <artifactId>converter-jackson</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+
+<build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <runOrder>alphabetical</runOrder>
+                    <parallel>classes</parallel>
+                    <threadCount>1</threadCount>
+                    <perCoreThreadCount>false</perCoreThreadCount>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <systemPropertyVariables>
+                        <log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
+                        <org.owasp.esapi.resources>../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+                    </systemPropertyVariables>
+                    <classpathDependencyExcludes>
+                        <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
+                    </classpathDependencyExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+</project>

@@ -43,6 +43,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 
 import java.io.IOException;
@@ -78,7 +79,8 @@ public class TapeLibrarySimulator {
     private final List<TapeDriveCommandService> tapeDriveCommandServices;
     private final List<Exception> failures;
     private final int maxTapeCapacityInBytes;
-    private final int sleepDelayMillis;
+
+    private volatile int sleepDelayMillis;
 
     public TapeLibrarySimulator(Path inputDirectory, Path tempOutputStorageDirectory, int nbDrives, int nbSlots,
         int nbTapes, int maxTapeCapacityInBytes, int sleepDelayMillis) {
@@ -271,12 +273,16 @@ public class TapeLibrarySimulator {
 
                 sizeToWrite = Math.min(maxTapeCapacityInBytes - currentTape.getUsedCapacity(), fileSize);
 
+                LOGGER.info("Writing file " + sourceFile + " (" + FileUtils.byteCountToDisplaySize(fileSize) +
+                    ") to tape " + currentTape.getVolumeTag() + " at position " +
+                    currentTape.getPersistedFiles().size());
+
                 try (InputStream sourceFileInputStream = Files.newInputStream(sourceFile)) {
                     Files.copy(new BoundedInputStream(sourceFileInputStream, sizeToWrite), destinationPath);
                 }
 
                 if (sizeToWrite < fileSize) {
-                    // Ordinal exception. Do not report it at failure
+                    // Ordinal exception. Do not report it as a failure
                     throw new TapeCommandException(
                         "IOError : No space left on device while writing " + inputPath + " to tape " +
                             currentTape.getVolumeTag());
@@ -344,6 +350,10 @@ public class TapeLibrarySimulator {
                         "IOError while reading file from tape " + currentTape.getVolumeTag()
                             + ". OutputPath '" + outputPath + "'already exists");
                 }
+
+                LOGGER.info("Reading file at position " + filePosition + " of tape " +
+                    currentTape.getVolumeTag() + " into file " + destinationPath + " (" +
+                    FileUtils.byteCountToDisplaySize(Files.size(srcFilePath)) + ")");
 
                 Files.copy(srcFilePath, destinationPath);
 
@@ -502,6 +512,14 @@ public class TapeLibrarySimulator {
                     if (currentPosition + position > fileCount) {
                         drive.setFilePosition(fileCount);
                         drive.setEndOfData(true);
+
+                        if (currentPosition == 0 && drive.getCurrentTape().getPersistedFiles().isEmpty() &&
+                            position == 1) {
+                            // Ordinal exception that occurs when checking drive emptiness.
+                            // Do not report it as a failure
+                            throw new TapeCommandException("Cannot move drive " + position +
+                                " files backward. Tape " + drive.getCurrentTape().getVolumeTag() + " is empty");
+                        }
 
                         throw createAndReportSevereTapeCommandException("Cannot move drive " + position +
                             " files forward. Current tape " + drive.getCurrentTape().getVolumeTag() +
@@ -782,5 +800,10 @@ public class TapeLibrarySimulator {
                 changer.setChangerStatus(VirtualChangerState.READY);
             }
         }
+    }
+
+    public TapeLibrarySimulator setSleepDelayMillis(int sleepDelayMillis) {
+        this.sleepDelayMillis = sleepDelayMillis;
+        return this;
     }
 }
