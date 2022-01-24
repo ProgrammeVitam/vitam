@@ -10,7 +10,7 @@ pushd ${WORKING_FOLDER}/vitam-consul/vitam/bin/consul/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer consul_${CONSUL_VERSION}_linux_amd64.zip"
 if [ ! -f consul_${CONSUL_VERSION}_linux_amd64.zip ]; then
-	curl -k --max-time 120 https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
+	curl -k --max-time 1200 https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
 	if [ ${?} != 0 ]; then
 		echo "Erreur sur le telechargement du fichier zip de consul: https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip"
 		exit 1
