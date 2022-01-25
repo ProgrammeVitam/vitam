@@ -650,6 +650,18 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     }
 
     @RunWithCustomExecutor
+    @Test
+    public void failsGetContainerObjectWithExplicitOfferIdWhenUnavailableDataFromAsyncOffer() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        assertThatThrownBy(() ->
+            client.getContainerAsync("idStrategy", "tape_offer", "guid", DataCategory.OBJECT,
+                AccessLogUtils.getNoLogAccessLog()))
+            .isInstanceOf(StorageUnavailableDataFromAsyncOfferClientException.class);
+    }
+
+    @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
