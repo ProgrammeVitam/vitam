@@ -201,6 +201,10 @@ public class ParserTokens extends BuilderToken {
          */
         COMPUTEDINHERITEDRULES("computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("validComputedInheritedRules"),
+
+        FUZZYCREATIONDATE("fuzzyCD"),
+
+        FUZZYUPDATEDATE("fuzzyUD"),
         /**
          * TRANSFER
          */

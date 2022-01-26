@@ -71,6 +71,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FUZZY_CREATION_DATE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FUZZY_UPDATE_DATE;
 
 
 
@@ -235,6 +237,20 @@ public class VitamFieldsHelper {
      */
     public static String graph() {
         return GRAPH.exactToken();
+    }
+
+    /**
+     * @return #fuzzyCD
+     */
+    public static String fuzzyCD() {
+        return FUZZY_CREATION_DATE.exactToken();
+    }
+
+    /**
+     * @return #fuzzyUD
+     */
+    public static String fuzzyUD() {
+        return FUZZY_UPDATE_DATE.exactToken();
     }
 
     /**
