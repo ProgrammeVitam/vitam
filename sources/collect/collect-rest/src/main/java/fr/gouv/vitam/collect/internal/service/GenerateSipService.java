@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.internal.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -36,6 +37,7 @@ import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -44,15 +46,25 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.manifest.ExportException;
+import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.export.ExportType;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -73,11 +85,14 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 
 public class GenerateSipService {
 
@@ -85,11 +100,18 @@ public class GenerateSipService {
     static final String CONTENT = "Content";
     private final MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
     private final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
+    private final AdminManagementClientFactory adminManagementClientFactory = AdminManagementClientFactory.getInstance();
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenerateSipService.class);
     private static final String MANIFEST_FILE_NAME = "manifest.xml";
+    ObjectMapper objectMapper;
 
-    public String generateSip(CollectModel collectModel) throws InvalidParseOperationException, JAXBException, XMLStreamException, CollectException {
-        String digest = null;
+    public GenerateSipService() {
+        objectMapper = buildObjectMapper();
+    }
+
+    public String generateSip(CollectModel collectModel)
+        throws InvalidParseOperationException, JAXBException, XMLStreamException, CollectException {
 
         File localDirectory = PropertiesUtils.fileFromTmpFolder(collectModel.getId());
 
@@ -149,14 +171,17 @@ public class GenerateSipService {
 
                 select.setQuery(in);
 
+                AccessContractModel accessContractModel = getAccessContractModel();
+
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
                 ArrayNode objects = (ArrayNode) response.get("$results");
                 for (JsonNode object : objects) {
                     List<String> linkedUnits = unitsForObjectGroupId.get(
                             object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
-                    idBinaryWithFileName.putAll(manifestBuilder
-                            .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), Collections.emptySet(),
-                                    false));
+                    idBinaryWithFileName.putAll(manifestBuilder.writeGOT(
+                        object, linkedUnits.get(linkedUnits.size() - 1), Collections.emptySet(),
+                        Stream.empty(), accessContractModel
+                    ));
                 }
             }
             manifestBuilder.startDescriptiveMetadata();
@@ -177,7 +202,8 @@ public class GenerateSipService {
             StreamSupport.stream(scrollRequest, false)
                     .forEach(result -> {
                         try {
-                            manifestBuilder.writeArchiveUnit(result, multimap, ogs, false);
+                            ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
+                            manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                         } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
                             e.printStackTrace();
                         }
@@ -192,9 +218,25 @@ public class GenerateSipService {
                     .writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
             return saveManifestInWorkspace(collectModel, new FileInputStream(manifestFile));
-        } catch (IOException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException | ContentAddressableStorageServerException e) {
+        } catch (IOException | MetaDataExecutionException | MetaDataDocumentSizeException |
+            MetaDataClientServerException | InvalidCreateOperationException
+            | ContentAddressableStorageServerException | ExportException | InternalServerException e) {
             LOGGER.error(e.getMessage());
             throw new CollectException(e.getMessage());
+        }
+    }
+
+    private AccessContractModel getAccessContractModel() throws CollectException {
+        String identifier = "ContratTNR";
+        try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            Select select = new Select();
+            Query query = QueryHelper.eq(AccessContract.IDENTIFIER, identifier);
+            select.setQuery(query);
+            return ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(
+                select.getFinalSelect())
+            ).getResults().get(0);
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+            throw new CollectException(e.getMessage(), e.getCause());
         }
     }
 

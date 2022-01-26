@@ -28,39 +28,37 @@ package fr.gouv.vitam.collect.internal.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ArchiveUnitDto implements Serializable {
+public class CollectUnitDto implements Serializable {
 
-    @JsonProperty("id")
     private String id;
 
-    @JsonProperty("content")
     private ArchiveUnitContent content;
 
-    @JsonProperty("up")
     private String parentUnit;
 
-    @JsonProperty("_opi")
     private String transactionId;
 
-    @JsonProperty("got")
     private String objectGroupDto;
 
-    public ArchiveUnitDto() {
+    private ManagementModel management = new ManagementModel();
+
+    public CollectUnitDto() {
         //Empty constructor for serialization
     }
 
-    public ArchiveUnitDto(String id, ArchiveUnitContent content, String parentUnit, String objectGroupDto, String transactionId) {
+    public CollectUnitDto(String id, ArchiveUnitContent content, String parentUnit, String objectGroupDto,
+        String transactionId, ManagementModel management) {
         this.id = id;
         this.content = content;
         this.parentUnit = parentUnit;
         this.objectGroupDto = objectGroupDto;
         this.transactionId = transactionId;
+        this.management = management;
     }
 
     public ArchiveUnitContent getContent() {
@@ -79,7 +77,7 @@ public class ArchiveUnitDto implements Serializable {
         this.parentUnit = parentUnit;
     }
 
-    public ArchiveUnitDto(String id) {
+    public CollectUnitDto(String id) {
         this.id = id;
     }
 
@@ -107,32 +105,23 @@ public class ArchiveUnitDto implements Serializable {
         this.transactionId = transactionId;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        ArchiveUnitDto that = (ArchiveUnitDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(content, that.content) &&
-            Objects.equals(parentUnit, that.parentUnit) &&
-            Objects.equals(transactionId, that.transactionId) &&
-            Objects.equals(objectGroupDto, that.objectGroupDto);
+    public ManagementModel getManagement() {
+        return management;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, content, parentUnit, transactionId, objectGroupDto);
+    public void setManagement(ManagementModel management) {
+        this.management = management;
     }
 
     @Override
     public String toString() {
-        return "ArchiveUnitDto{" +
+        return "CollectUnitDto{" +
             "id='" + id + '\'' +
             ", content=" + content +
             ", parentUnit='" + parentUnit + '\'' +
             ", transactionId='" + transactionId + '\'' +
             ", objectGroupDto='" + objectGroupDto + '\'' +
+            ", management=" + management +
             '}';
     }
 }

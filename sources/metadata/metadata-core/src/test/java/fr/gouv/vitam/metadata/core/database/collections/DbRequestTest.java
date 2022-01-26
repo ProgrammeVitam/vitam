@@ -711,7 +711,7 @@ public class DbRequestTest {
             // Now execute the request
             executeRequest(dbRequest, requestParser);
 
-            // DELETE
+            // DELhttps://int.env.programmevitam.fr/doc/index.htmlETE
             final JsonNode deleteRequest = createDeleteRequestWithUUID(uuid);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =

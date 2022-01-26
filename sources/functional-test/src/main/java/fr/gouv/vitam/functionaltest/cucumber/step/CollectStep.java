@@ -83,7 +83,7 @@ public class CollectStep {
     @When("^j'envoie une AU$")
     public void uploadArchiveUnit() throws InvalidParseOperationException, JsonProcessingException {
 //        ObjectMapper mapper = new ObjectMapper();
-//        ArchiveUnitDto archiveUnitDto = mapper.readValue(world.getQuery(), ArchiveUnitDto.class);
+//        CollectUnitDto archiveUnitDto = mapper.readValue(world.getQuery(), CollectUnitDto.class);
 //        RequestResponseOK<TransactionDto> response = world.getCollectClient().uploadArchiveUnit(transactionGuuid, archiveUnitDto);
 //        assertThat(response.isOk()).isTrue();
 //        transactionGuuid = response.getFirstResult().getId();

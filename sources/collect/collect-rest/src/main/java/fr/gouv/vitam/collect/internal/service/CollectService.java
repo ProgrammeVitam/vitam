@@ -30,7 +30,6 @@ import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,7 +77,4 @@ public class CollectService {
         return id;
     }
 
-    public GUID createRequestIdVitamFormat(){
-        return GUIDFactory.newRequestIdGUID(0);
-    }
 }

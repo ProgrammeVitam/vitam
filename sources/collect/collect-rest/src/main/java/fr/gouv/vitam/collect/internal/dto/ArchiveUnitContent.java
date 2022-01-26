@@ -26,26 +26,24 @@
  */
 package fr.gouv.vitam.collect.internal.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
-import java.util.Objects;
 
 public class ArchiveUnitContent implements Serializable {
 
-    @JsonProperty("title")
     private String title;
 
-    @JsonProperty("description")
     private String description;
+
+    private String descriptionLevel;
 
     public ArchiveUnitContent() {
         //Empty constructor for serialization
     }
 
-    public ArchiveUnitContent(String title, String description) {
+    public ArchiveUnitContent(String title, String description, String descriptionLevel) {
         this.title = title;
         this.description = description;
+        this.descriptionLevel = descriptionLevel;
     }
 
     public String getTitle() {
@@ -64,19 +62,12 @@ public class ArchiveUnitContent implements Serializable {
         this.description = description;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        ArchiveUnitContent that = (ArchiveUnitContent) o;
-        return Objects.equals(title, that.title) && Objects.equals(description, that.description);
+    public String getDescriptionLevel() {
+        return descriptionLevel;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(title, description);
+    public void setDescriptionLevel(String descriptionLevel) {
+        this.descriptionLevel = descriptionLevel;
     }
 
     @Override
@@ -84,6 +75,7 @@ public class ArchiveUnitContent implements Serializable {
         return "ArchiveUnitContent{" +
             "title='" + title + '\'' +
             ", description='" + description + '\'' +
+            ", descriptionLevel='" + descriptionLevel + '\'' +
             '}';
     }
 }

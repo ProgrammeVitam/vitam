@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
-import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,8 +68,8 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, ArchiveUnitDto archiveUnitDto) throws InvalidParseOperationException {
-//        try (Response response = make(post().withPath("/"+transactionId+"/archiveunits").withBody(archiveUnitDto).withHeader(X_TENANT_ID, TENANT_ID)
+    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException {
+//        try (Response response = make(post().withPath("/"+transactionId+"/archiveunits").withBody(collectUnitDto).withHeader(X_TENANT_ID, TENANT_ID)
 //                .withJson())) {
 //            Response.Status status = response.getStatusInfo().toEnum();
 //            if (SUCCESSFUL.equals(status.getFamily())) {

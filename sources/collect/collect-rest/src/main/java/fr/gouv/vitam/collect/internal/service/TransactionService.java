@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
-import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.helpers.DbObjectGroupModelBuilder;
+import fr.gouv.vitam.collect.internal.helpers.ObjectMapperBuilder;
+import fr.gouv.vitam.collect.internal.helpers.QueryHandler;
+import fr.gouv.vitam.collect.internal.helpers.TransactionHelper;
+import fr.gouv.vitam.collect.internal.mappers.CollectUnitMapper;
+import fr.gouv.vitam.collect.internal.model.UnitModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -48,32 +46,33 @@ import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.format.identification.exception.*;
+import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
-import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.objectgroup.*;
+import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
+import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
+import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -95,21 +94,28 @@ import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 
 public class TransactionService {
 
     private final CollectService collectService;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
-    private static final String FOLDER_CONTENT = "Content";
-    private static final String RESULTS = "$results";
     private final FormatIdentifierFactory formatIdentifierFactory;
-    private MetaDataClient metaDataClient;
+    private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
+
+    private static final String FOLDER_CONTENT = "Content";
+    private static final String TAG_STATUS = "#status";
+    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
 
@@ -119,151 +125,75 @@ public class TransactionService {
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
         this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
-        this.metaDataClient = metaDataClientFactory.getClient();
     }
 
-    public Optional<CollectModel> verifyAndGetCollectByTransaction(String transactionId)
-            throws InvalidParseOperationException {
-        return collectService.findCollect(transactionId);
-    }
-
-    public void saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, String qualifier, int version, ObjectGroupDto objectGroupDto)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException, CollectException {
+    public void saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, String qualifier, int version,
+        ObjectGroupDto objectGroupDto) throws CollectException {
 
         try {
             if (archiveUnitModel.getOg() == null) {
-                checkVersion(version, 1);
-                initializeObjectGroupInMetaData(objectGroupDto, qualifier, version, archiveUnitModel);
+                insertNewObject(archiveUnitModel, qualifier, version, objectGroupDto);
             } else {
-                RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(archiveUnitModel.getOg());
-                if (!requestResponse.isOk()) {
-                    LOGGER.debug("Cannot found got with id({}))", archiveUnitModel.getOg());
-                    throw new IllegalArgumentException("Cannot found got with id(" + archiveUnitModel.getOg() + ")");
-                }
-                JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-                DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
-                Optional<DbQualifiersModel> qualifierModel = findQualifier(dbObjectGroupModel.getQualifiers(), qualifier);
-                if (qualifierModel.isEmpty()) {
-                    checkVersion(version, 1);
-                    addQualifierToObjectGroups(dbObjectGroupModel, qualifier, version, dbObjectGroupModel.getQualifiers(), objectGroupDto);
-                } else {
-                    DbQualifiersModel qualifierModelToUpdate = qualifierModel.get();
-                    DbVersionsModel dbVersionsModel = getObjectVersionsModel(dbObjectGroupModel, qualifier, version);
-                    if (dbVersionsModel != null) {
-                        LOGGER.debug("Qualifier already exist with qualifier {} and version {})", qualifier, version);
-                        throw new IllegalArgumentException("Qualifier already exist with qualifier " + qualifier + " and version " + version + "");
-                    } else {
-                        int lastVersion = getLastVersion(qualifierModelToUpdate) + 1;
-                        checkVersion(version, lastVersion);
-                        addVersionToObjectGroups(qualifierModelToUpdate, dbObjectGroupModel, qualifier, lastVersion, dbObjectGroupModel.getQualifiers(), objectGroupDto);
-                    }
-                }
+                updateExistingObject(archiveUnitModel, qualifier, version, objectGroupDto);
             }
-
-        } catch (VitamClientException | InvalidCreateOperationException e) {
-            LOGGER.debug("Cannot found got with id({}))", archiveUnitModel.getOg());
+        } catch (InvalidParseOperationException | CollectException e) {
+            LOGGER.debug("Error : {}", e);
             throw new CollectException(e);
         }
     }
 
-    private void checkVersion(int version, int lastVersion) {
-        if (version != lastVersion) {
-            LOGGER.error("version number not valid({}))", version);
-            throw new IllegalArgumentException("version number not valid " + version);
+    private void updateExistingObject(ArchiveUnitModel archiveUnitModel, String qualifier, int version,
+        ObjectGroupDto objectGroupDto) throws InvalidParseOperationException, CollectException {
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.getObjectGroupByIdRaw(archiveUnitModel.getOg());
+            if (!requestResponse.isOk()) {
+                LOGGER.debug("Cannot found got with id({}))", archiveUnitModel.getOg());
+                throw new IllegalArgumentException("Cannot found got with id(" + archiveUnitModel.getOg() + ")");
+            }
+            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+            DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
+            DbQualifiersModel qualifierModelToUpdate =
+                TransactionHelper.findQualifier(dbObjectGroupModel.getQualifiers(), qualifier);
+
+            if (qualifierModelToUpdate == null) {
+                TransactionHelper.checkVersion(version, 1);
+                addQualifierToObjectGroups(dbObjectGroupModel, qualifier, version, dbObjectGroupModel.getQualifiers(),
+                    objectGroupDto);
+            } else {
+                DbVersionsModel dbVersionsModel =
+                    TransactionHelper.getObjectVersionsModel(dbObjectGroupModel, qualifier, version);
+
+                if (dbVersionsModel != null) {
+                    LOGGER.debug("Qualifier already exist with qualifier {} and version {})", qualifier, version);
+                    throw new IllegalArgumentException(
+                        "Qualifier already exist with qualifier " + qualifier + " and version " +
+                            version + "");
+                }
+
+                int lastVersion = TransactionHelper.getLastVersion(qualifierModelToUpdate) + 1;
+                TransactionHelper.checkVersion(version, lastVersion);
+                addVersionToObjectGroups(qualifierModelToUpdate, dbObjectGroupModel, qualifier, lastVersion,
+                    dbObjectGroupModel.getQualifiers(),
+                    objectGroupDto);
+            }
+        } catch (VitamClientException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataClientServerException e) {
+            LOGGER.debug("Error : {}", e);
+            throw new CollectException(e);
         }
     }
 
+    private void insertNewObject(ArchiveUnitModel archiveUnitModel, String qualifier, int version,
+        ObjectGroupDto objectGroupDto) throws InvalidParseOperationException, CollectException {
 
-    public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
-            throws InvalidParseOperationException, InvalidCreateOperationException {
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
-        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbVersionsModel dbversion = new DbVersionsModel();
-        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
-        dbversion.setFileInfoModel(dbfileInfoModel);
-        dbversion.setDataObjectVersion(qualifier + "_" + version);
-        DbQualifiersModel dbQualifiersModel = new DbQualifiersModel();
-        dbQualifiersModel.setQualifier(qualifier);
-        dbQualifiersModel.setVersions(List.of(dbversion));
-        qualifiers.add(dbQualifiersModel);
-
-        Map<String, JsonNode> action = new HashMap<>();
-        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
-        SetAction setQualifier = new SetAction(action);
-
-        UpdateMultiQuery query = new UpdateMultiQuery();
-        query.addHintFilter(OBJECTGROUPS.exactToken());
-        query.addActions(
-                setQualifier
-        );
-        try {
-            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
-        }
-
-    }
-
-
-    public void addVersionToObjectGroups(DbQualifiersModel qualifierModelToUpdate, DbObjectGroupModel objectGroup, String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
-            throws MetaDataExecutionException, MetaDataClientServerException,
-            InvalidParseOperationException, InvalidCreateOperationException {
-        int index = qualifiers.indexOf(qualifierModelToUpdate);
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
-        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbVersionsModel dbversion = new DbVersionsModel();
-        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
-        dbversion.setFileInfoModel(dbfileInfoModel);
-        dbversion.setDataObjectVersion(qualifier + "_" + version);
-        qualifierModelToUpdate.getVersions().add(dbversion);
-        qualifierModelToUpdate.setNbc(qualifierModelToUpdate.getNbc() + 1);
-        qualifiers.set(index, qualifierModelToUpdate);
-
-        Map<String, JsonNode> action = new HashMap<>();
-        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
-        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
-        SetAction setQualifier = new SetAction(action);
-
-        UpdateMultiQuery query = new UpdateMultiQuery();
-        query.addActions(
-                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroup.getNbc() + 1),
-                setQualifier
-        );
-
-        try {
-            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
-        }
-
-    }
-
-
-    public JsonNode initializeObjectGroupInMetaData(ObjectGroupDto objectGroupDto, String usage, int version, ArchiveUnitModel archiveUnitModel) throws InvalidParseOperationException {
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        fileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
-        dbfileInfoModel.setFilename(objectGroupDto.getFileInfo().getFileName());
-        DbVersionsModel dbversion = new DbVersionsModel();
-        dbversion.setId(collectService.createRequestIdVitamFormat().getId());
-        dbversion.setFileInfoModel(dbfileInfoModel);
-        dbversion.setDataObjectVersion(usage + "_" + version);
-        DbQualifiersModel dbQualifiersModel = new DbQualifiersModel();
-        dbQualifiersModel.setQualifier(usage);
-        dbQualifiersModel.setVersions(List.of(dbversion));
-
-        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModel();
-        dbObjectGroupModel.setId(objectGroupDto.getId());
-        dbObjectGroupModel.setFileInfo(fileInfoModel);
-        dbObjectGroupModel.setOpi(archiveUnitModel.getOpi());
-        dbObjectGroupModel.setQualifiers(List.of(dbQualifiersModel));
-
+        TransactionHelper.checkVersion(version, 1);
+        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
+            .withId(objectGroupDto.getId())
+            .withOpi(archiveUnitModel.getOpi())
+            .withFileInfoModel(objectGroupDto.getFileInfo().getFileName())
+            .withQualifiers(collectService.createRequestId(), objectGroupDto.getFileInfo().getFileName(), qualifier,
+                version)
+            .build();
 
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.resetFilter();
@@ -271,104 +201,137 @@ public class TransactionService {
         insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
         final ObjectNode insertRequest = insert.getFinalInsert();
 
-
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = metaDataClient.insertObjectGroup(insertRequest);
-            if (jsonNode != null) {
-                UpdateMultiQuery multiQuery = new UpdateMultiQuery();
-                multiQuery.addActions(UpdateActionHelper
-                        .set(VitamFieldsHelper.object(), objectGroupDto.getId()));
-                multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
-                metaDataClient.updateUnitBulk(multiQuery.getFinalUpdate());
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            JsonNode jsonNode = client.insertObjectGroup(insertRequest);
+            if (jsonNode == null) {
+                LOGGER.debug("Error when trying to insert ObjectGroup : {})", insertRequest);
+                throw new CollectException("Error when trying to insert ObjectGroup : : " + insertRequest);
             }
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            throw new IllegalArgumentException("Can't save objectGroup by unit ID: ");
+
+            UpdateMultiQuery multiQuery = new UpdateMultiQuery();
+            multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupDto.getId()));
+            multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
+            RequestResponse<JsonNode> requestResponse = client.updateUnitBulk(multiQuery.getFinalUpdate());
+            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+
+            if (firstResult != null && firstResult.has(TAG_STATUS) && firstResult.get(TAG_STATUS).textValue().equals(KO.name())) {
+                //TODO : Manage Object Group rollback
+                LOGGER.debug("Unit update failed on id : ", archiveUnitModel.getId());
+                throw new CollectException("Unit update failed on id : " + archiveUnitModel.getId());
+            }
+        } catch (final CollectException | MetaDataExecutionException | MetaDataNotFoundException
+            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException e) {
+            LOGGER.error("Can't save objectGroup by unit ID : {}", e);
+            throw new CollectException("Can't save objectGroup by unit ID");
         }
-        return jsonNode;
+    }
+
+    public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, String qualifier, int version,
+        List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto) throws InvalidCreateOperationException {
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            String versionId = collectService.createRequestId();
+            UpdateMultiQuery query =
+                QueryHandler.getQualifiersAddMultiQuery(qualifier, version, qualifiers, objectGroupDto, versionId);
+            client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
+        } catch (final MetaDataException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
+        }
+    }
+
+    public void addVersionToObjectGroups(DbQualifiersModel qualifierModelToUpdate, DbObjectGroupModel objectGroup,
+        String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
+        throws MetaDataExecutionException, MetaDataClientServerException, InvalidCreateOperationException,
+        CollectException {
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            String versionId = collectService.createRequestId();
+            UpdateMultiQuery query = QueryHandler.getQualifiersUpdateMultiQuery(qualifierModelToUpdate, objectGroup,
+                qualifier, version, qualifiers, objectGroupDto, versionId);
+
+            client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
+        } catch (final MetaDataException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new CollectException("Can't save objectGroup by unit ID: {}" + e.getMessage());
+        }
     }
 
     public DbObjectGroupModel getDbObjectGroup(ArchiveUnitModel archiveUnitModel)
-            throws InvalidParseOperationException {
+        throws CollectException {
 
-        try {
-
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
             if (archiveUnitModel.getOg() == null) {
                 LOGGER.debug("Cannot found any got attached to unit with id({}))", archiveUnitModel.getId());
-                throw new IllegalArgumentException("Cannot found any object attached to unit with id(" + archiveUnitModel.getId() + ")");
-            } else {
-                RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(archiveUnitModel.getOg());
-                if (!requestResponse.isOk()) {
-                    LOGGER.debug("Cannot found object with id({}))", archiveUnitModel.getOg());
-                    throw new IllegalArgumentException("Cannot found object with id(" + archiveUnitModel.getOg() + ")");
-                }
-                JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-                return JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
+                throw new IllegalArgumentException(
+                    "Cannot found any object attached to unit with id(" + archiveUnitModel.getId() + ")");
             }
+            RequestResponse<JsonNode> requestResponse = client.getObjectGroupByIdRaw(archiveUnitModel.getOg());
+            if (!requestResponse.isOk()) {
+                LOGGER.debug("Cannot found object with id({}))", archiveUnitModel.getOg());
+                throw new IllegalArgumentException("Cannot found object with id(" + archiveUnitModel.getOg() + ")");
+            }
+            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+            return objectMapper.convertValue(firstResult, DbObjectGroupModel.class);
         } catch (VitamClientException e) {
-            e.printStackTrace();
+            LOGGER.error(e);
+            throw new CollectException("Can't save objectGroup by unit ID: {}" + e.getMessage());
         }
-        return null;
     }
 
-    public JsonNode addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel,
-                                             String usage,
-                                             int version,
-                                             String fileName,
-                                             String digest,
-                                             int sizeInputStream,
-                                             DbFormatIdentificationModel formatIdentifierResponse) throws CollectException {
-        Optional<DbQualifiersModel> qualifierModel = findQualifier(dbObjectGroupModel.getQualifiers(), usage);
-        if (qualifierModel.isEmpty()) {
+    public void addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel, String usage, int version,
+        String fileName, String digest, int sizeInputStream,
+        DbFormatIdentificationModel formatIdentifierResponse) throws CollectException {
+
+        DbQualifiersModel qualifierModelToUpdate =
+            TransactionHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
+
+        if (qualifierModelToUpdate == null) {
             LOGGER.debug("Cannot found usage for object  with id({}))", dbObjectGroupModel.getId());
-            throw new IllegalArgumentException("Cannot found usage for object with id(" + dbObjectGroupModel.getId() + ")");
-        } else {
-            DbQualifiersModel qualifierModelToUpdate = qualifierModel.get();
-            DbVersionsModel dbVersionsModel = getObjectVersionsModel(dbObjectGroupModel, usage, version);
-            if (dbVersionsModel == null) {
-                LOGGER.debug("Cannot found version for object  with id({}))", dbObjectGroupModel.getId());
-                throw new IllegalArgumentException("Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
-            } else {
-                int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
-                int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
-                dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
-                dbVersionsModel.setUri("Content/" + fileName);
-                dbVersionsModel.setMessageDigest(digest);
-                dbVersionsModel.setAlgorithm("SHA-512");
-                dbVersionsModel.setSize(sizeInputStream);
-                if (null != formatIdentifierResponse) {
-                    dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
-                }
-                qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
-                dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
-                try {
-                    Map<String, JsonNode> action = new HashMap<>();
-                    action.put(QUALIFIERS.exactToken(), toJsonNode(dbObjectGroupModel.getQualifiers()));
-                    SetAction setQualifier = new SetAction(action);
-                    UpdateMultiQuery query = new UpdateMultiQuery();
-                    query.addHintFilter(OBJECTGROUPS.exactToken());
-                    query.addActions(
-                            setQualifier
-                    );
-                    JsonNode jsonNode = null;
-
-                    metaDataClient.updateObjectGroupById(query.getFinalUpdate(), dbObjectGroupModel.getId());
-                    return jsonNode;
-                } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-                    LOGGER.error(e);
-                    throw new CollectException("Can't save objectGroup " + e.getMessage());
-                }
-
-            }
+            throw new IllegalArgumentException(
+                "Cannot found usage for object with id(" + dbObjectGroupModel.getId() + ")");
         }
 
+        DbVersionsModel dbVersionsModel = TransactionHelper.getObjectVersionsModel(dbObjectGroupModel, usage, version);
 
+        if (dbVersionsModel == null) {
+            LOGGER.debug("Cannot found version for object  with id({}))", dbObjectGroupModel.getId());
+            throw new IllegalArgumentException(
+                "Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
+        }
+
+        int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
+        int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
+        dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
+        dbVersionsModel.setUri("Content/" + fileName);
+        dbVersionsModel.setMessageDigest(digest);
+        dbVersionsModel.setAlgorithm("SHA-512");
+        dbVersionsModel.setSize(sizeInputStream);
+
+        if (null != formatIdentifierResponse) {
+            dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
+        }
+
+        qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
+        dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(QUALIFIERS.exactToken(), toJsonNode(dbObjectGroupModel.getQualifiers()));
+            SetAction setQualifier = new SetAction(action);
+            UpdateMultiQuery query = new UpdateMultiQuery();
+            query.addHintFilter(OBJECTGROUPS.exactToken());
+            query.addActions(setQualifier);
+
+            client.updateObjectGroupById(query.getFinalUpdate(), dbObjectGroupModel.getId());
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            throw new CollectException("Can't save objectGroup " + e.getMessage());
+        }
     }
 
     public String pushStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName) {
         LOGGER.debug("Try to push stream to workspace...");
-        String digest = null;
+        String digest;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             if (!workspaceClient.isExistingContainer(containerName)) {
                 workspaceClient.createContainer(containerName);
@@ -377,7 +340,7 @@ public class TransactionService {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
             uploadedInputStream = new DigestInputStream(uploadedInputStream, messageDigest);
             workspaceClient.putObject(containerName, FOLDER_CONTENT.concat("/").concat(fileName), uploadedInputStream);
-            digest = readMessageDigestReturn(messageDigest.digest());
+            digest = TransactionHelper.readMessageDigestReturn(messageDigest.digest());
         } catch (ContentAddressableStorageException | NoSuchAlgorithmException e) {
             LOGGER.error("Error when trying to push stream to workspace {} ", e);
             throw new IllegalArgumentException("Error when trying to push stream to workspace {} " + e.getMessage());
@@ -386,76 +349,45 @@ public class TransactionService {
         return digest;
     }
 
-
-    public JsonNode saveArchiveUnitInMetaData(ArchiveUnitDto archiveUnitDto) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-
-        try {
-            return metaDataClient.insertUnitBulk(
-                    new BulkUnitInsertRequest(Collections.singletonList(getBulkUnitInsertEntry(archiveUnitDto, tenantId))));
+    public JsonNode saveArchiveUnitInMetaData(CollectUnitDto collectUnitDto) throws CollectException {
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            UnitModel unitModel = CollectUnitMapper.toModel(collectUnitDto);
+            JsonNode unitJsonNode = objectMapper.convertValue(unitModel, JsonNode.class);
+            List<BulkUnitInsertEntry> units =
+                Collections.singletonList(new BulkUnitInsertEntry(unitModel.getUp(), unitJsonNode));
+            return client.insertUnitBulk(new BulkUnitInsertRequest(units));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error(e);
+            throw new CollectException(e);
         }
-        return null;
     }
 
-
-    public ArchiveUnitModel getArchiveUnitById(String archiveUnitId) {
-        ArchiveUnitModel archiveUnitModel = null;
-        try {
-            JsonNode response = metaDataClient.selectUnitbyId(new SelectMultiQuery().getFinalSelectById(), archiveUnitId);
-            if (response == null || response.get(RESULTS) == null) {
-                throw new CollectException("Can't get unit by ID: " + archiveUnitId);
+    public ArchiveUnitModel getArchiveUnitById(String unitId) throws CollectException {
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            JsonNode jsonNode = client.selectUnitbyId(new Select().getFinalSelect(), unitId);
+            if (jsonNode == null || !jsonNode.has(TAG_RESULTS) || jsonNode.get(TAG_RESULTS).size() == 0) {
+                throw new CollectException("Can't get unit by ID: " + unitId);
             }
-            JsonNode results = response.get(RESULTS);
-            if (results.size() != 1) {
-                throw new CollectException("Can't get unit by ID: " + archiveUnitId);
-            }
-            JsonNode jsonUnit = results.get(0);
-            return buildObjectMapper().treeToValue(jsonUnit, ArchiveUnitModel.class);
-        } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | JsonProcessingException | CollectException e) {
+            return objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
+        } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
+            | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error(e);
-            return archiveUnitModel;
+            throw new CollectException(e);
         }
     }
-
-    private BulkUnitInsertEntry getBulkUnitInsertEntry(ArchiveUnitDto archiveUnitDto, Integer tenantId)
-            throws InvalidParseOperationException {
-        String uaData =
-                "{ \"_id\": \"" + archiveUnitDto.getId() + "\",\"DescriptionLevel\": \"RecordGrp\", \"_tenant\": " + tenantId + "," +
-                        "\"Title\": \"" + archiveUnitDto.getContent().getTitle() + "\",\"_opi\":\"" + archiveUnitDto.getTransactionId() +
-                        "\",\"Description\":\"" + archiveUnitDto.getContent().getDescription() + "\"" +
-                        ", \"_up\": \"" + archiveUnitDto.getParentUnit() + "\"}";
-
-        if (null == archiveUnitDto.getParentUnit()) {
-            return new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(uaData));
-        } else {
-            return new BulkUnitInsertEntry(Set.of(archiveUnitDto.getParentUnit()), JsonHandler.getFromString(uaData));
-        }
-    }
-
-    public String readMessageDigestReturn(byte[] theDigestResult) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : theDigestResult) {
-            sb.append(String.format("%02X", b));
-        }
-        return sb.toString().toLowerCase();
-    }
-
-
-    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
     public DbFormatIdentificationModel getFormatIdentification(String transactionId, String objectName) {
         FormatIdentifier formatIdentifier;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
             if (workspaceClient.isExistingContainer(transactionId)) {
-                InputStream is = workspaceClient.getObject(transactionId, "Content/" + objectName).readEntity(InputStream.class);
+                InputStream is =
+                    workspaceClient.getObject(transactionId, "Content/" + objectName).readEntity(InputStream.class);
                 Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), objectName);
                 Files.copy(is, path);
                 File tmpFile = path.toFile();
                 final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-                final FormatIdentifierResponse format = getFirstPronomFormat(formats);
+                final FormatIdentifierResponse format = TransactionHelper.getFirstPronomFormat(formats);
                 DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
                 formatIdentificationModel.setFormatId(format.getPuid());
                 formatIdentificationModel.setMimeType(format.getMimetype());
@@ -463,77 +395,11 @@ public class TransactionService {
                 Files.delete(path);
                 return formatIdentificationModel;
             }
+            return null;
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException | FormatIdentifierNotFoundException | FormatIdentifierFactoryException | FormatIdentifierTechnicalException e) {
             LOGGER.error(e);
             throw new IllegalArgumentException("Can't detect format for the object : " + e.getMessage());
         }
-        return null;
     }
-
-    private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
-        for (final FormatIdentifierResponse format : formats) {
-            if (FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
-                return format;
-            }
-        }
-        return null;
-    }
-
-    private DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel, String qualifier, int version) {
-        if (dbObjectGroupModel.getQualifiers() != null) {
-            final String dataObjectVersion = qualifier + "_" + version;
-            for (DbQualifiersModel qualifiersResponse : dbObjectGroupModel.getQualifiers()) {
-                if (qualifiersResponse.getQualifier() != null && qualifiersResponse.getQualifier().contains("_")) {
-                    qualifiersResponse.setQualifier(qualifiersResponse
-                            .getQualifier().split("_")[0]);
-                }
-                if (qualifier.equals(qualifiersResponse.getQualifier())) {
-                    for (DbVersionsModel versionResponse : qualifiersResponse.getVersions()) {
-                        if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
-                            return versionResponse;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-
-    private ObjectMapper buildObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        SimpleModule module = new SimpleModule();
-
-        module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
-        module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
-        module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
-        module.addDeserializer(OrganizationDescriptiveMetadataType.class,
-                new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
-
-        objectMapper.registerModule(module);
-
-        return objectMapper;
-    }
-
-    private int getLastVersion(DbQualifiersModel qualifierModelToUpdate) {
-        return qualifierModelToUpdate.getVersions()
-                .stream()
-                .map(DbVersionsModel::getDataObjectVersion)
-                .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
-                .map(Integer::parseInt)
-                .max(Comparator.naturalOrder())
-                .orElse(0);
-    }
-
-    private Optional<DbQualifiersModel> findQualifier(List<DbQualifiersModel> qualifiers, String targetQualifier) {
-        return qualifiers.stream()
-                .filter(qualifier -> qualifier.getQualifier().equals(targetQualifier))
-                .findFirst();
-    }
-
 
 }

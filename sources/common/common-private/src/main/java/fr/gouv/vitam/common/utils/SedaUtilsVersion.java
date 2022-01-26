@@ -24,36 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.client;
+package fr.gouv.vitam.common.utils;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+public class SedaUtilsVersion {
 
-/**
- * Collect Client Interface
- */
-public interface CollectClient extends MockOrRestClient {
+    private SedaUtilsVersion() throws IllegalAccessException {
+        throw new IllegalAccessException("Utility class!");
+    }
 
-    /**
-     * Initialize a collect transaction
-     *
-     * Consume and produce MediaType.APPLICATION_JSON
-     *
-     * @return RequestResponse<TransactionDto> guid created for the transaction
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
-     */
-    RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException;
-
-    /**
-     * Upload Archive Unit
-     *
-     * Consume and produce MediaType.APPLICATION_JSON
-     *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
-     */
-    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException;
+    public static final String SEDA_XSD_VERSION_V2_1 = "seda/seda-2.1-main.xsd";
 }

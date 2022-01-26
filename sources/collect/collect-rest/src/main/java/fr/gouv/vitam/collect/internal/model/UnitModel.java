@@ -28,69 +28,82 @@ package fr.gouv.vitam.collect.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UnitModel {
 
+    @JsonProperty("_id")
+    private String id;
+
+    @JsonProperty("DescriptionLevel")
+    private String descriptionLevel;
+
     @JsonProperty("Title")
     private String title;
 
-    @JsonProperty("data")
-    private String data;
+    @JsonProperty("Description")
+    private String description;
 
-    @JsonProperty("#object")
-    private String got;
+    @JsonProperty("TransactedDate")
+    private String transactedDate;
 
-    @JsonProperty("#id")
-    private String id;
+    @JsonProperty("_og")
+    private String og;
 
-    @JsonProperty("#tenant")
-    private String tenant;
+    @JsonProperty("_mgt")
+    private ManagementModel management;
 
-    @JsonProperty("#unitups")
-    private List<String> unitUps;
+    @JsonProperty("_sedaVersion")
+    private String sedaVersion;
 
-    @JsonProperty("#min")
-    private Integer min;
+    @JsonProperty("_unitType")
+    private String unitType;
 
-    @JsonProperty("#max")
+    @JsonProperty("_opi")
+    private String opi;
+
+    @JsonProperty("_ops")
+    private Set<String> ops;
+
+    // Storage
+
+    @JsonProperty("_sps")
+    private Set<String> sps;
+
+    @JsonProperty("_sp")
+    private String sp;
+
+    @JsonProperty("_up")
+    private Set<String> up;
+
+    @JsonProperty("_us")
+    private Set<String> us;
+
+    @JsonProperty("_graph")
+    private Set<String> graph;
+
+    // uds
+
+    @JsonProperty("_max")
     private Integer max;
 
-    @JsonProperty("#allunitups")
-    private List<String> allUnitUps;
+    @JsonProperty("_min")
+    private Integer min;
 
-    @JsonProperty("#originating_agencies")
-    private List<String> originatingAgencies;
+    @JsonProperty("_glpd")
+    private String glpd;
 
-    @JsonProperty("#version")
-    private Integer version;
+    @JsonProperty("_fuzzyCD")
+    private String fuzzyCD;
 
-    public String getTitle() {
-        return title;
-    }
+    @JsonProperty("_fuzzyUD")
+    private String fuzzyUD;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String getGot() {
-        return got;
-    }
-
-    public void setGot(String got) {
-        this.got = got;
-    }
+    @JsonProperty("_tenant")
+    private String tenant;
 
     public String getId() {
         return id;
@@ -100,28 +113,124 @@ public class UnitModel {
         this.id = id;
     }
 
-    public String getTenant() {
-        return tenant;
+    public String getDescriptionLevel() {
+        return descriptionLevel;
     }
 
-    public void setTenant(String tenant) {
-        this.tenant = tenant;
+    public void setDescriptionLevel(String descriptionLevel) {
+        this.descriptionLevel = descriptionLevel;
     }
 
-    public List<String> getUnitUps() {
-        return unitUps;
+    public String getTitle() {
+        return title;
     }
 
-    public void setUnitUps(List<String> unitUps) {
-        this.unitUps = unitUps;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public Integer getMin() {
-        return min;
+    public String getDescription() {
+        return description;
     }
 
-    public void setMin(Integer min) {
-        this.min = min;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTransactedDate() {
+        return transactedDate;
+    }
+
+    public void setTransactedDate(String transactedDate) {
+        this.transactedDate = transactedDate;
+    }
+
+    public String getOg() {
+        return og;
+    }
+
+    public void setOg(String og) {
+        this.og = og;
+    }
+
+    public ManagementModel getManagement() {
+        return management;
+    }
+
+    public void setManagement(ManagementModel management) {
+        this.management = management;
+    }
+
+    public String getSedaVersion() {
+        return sedaVersion;
+    }
+
+    public void setSedaVersion(String sedaVersion) {
+        this.sedaVersion = sedaVersion;
+    }
+
+    public String getUnitType() {
+        return unitType;
+    }
+
+    public void setUnitType(String unitType) {
+        this.unitType = unitType;
+    }
+
+    public String getOpi() {
+        return opi;
+    }
+
+    public void setOpi(String opi) {
+        this.opi = opi;
+    }
+
+    public Set<String> getOps() {
+        return ops;
+    }
+
+    public void setOps(Set<String> ops) {
+        this.ops = ops;
+    }
+
+    public Set<String> getSps() {
+        return sps;
+    }
+
+    public void setSps(Set<String> sps) {
+        this.sps = sps;
+    }
+
+    public String getSp() {
+        return sp;
+    }
+
+    public void setSp(String sp) {
+        this.sp = sp;
+    }
+
+    public Set<String> getUp() {
+        return up;
+    }
+
+    public void setUp(Set<String> up) {
+        this.up = up;
+    }
+
+    public Set<String> getUs() {
+        return us;
+    }
+
+    public void setUs(Set<String> us) {
+        this.us = us;
+    }
+
+    public Set<String> getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Set<String> graph) {
+        this.graph = graph;
     }
 
     public Integer getMax() {
@@ -132,60 +241,71 @@ public class UnitModel {
         this.max = max;
     }
 
-    public List<String> getAllUnitUps() {
-        return allUnitUps;
+    public Integer getMin() {
+        return min;
     }
 
-    public void setAllUnitUps(List<String> allUnitUps) {
-        this.allUnitUps = allUnitUps;
+    public void setMin(Integer min) {
+        this.min = min;
     }
 
-    public List<String> getOriginatingAgencies() {
-        return originatingAgencies;
+    public String getGlpd() {
+        return glpd;
     }
 
-    public void setOriginatingAgencies(List<String> originatingAgencies) {
-        this.originatingAgencies = originatingAgencies;
+    public void setGlpd(String glpd) {
+        this.glpd = glpd;
     }
 
-    public Integer getVersion() {
-        return version;
+    public String getFuzzyCD() {
+        return fuzzyCD;
     }
 
-    public void setVersion(Integer version) {
-        this.version = version;
+    public void setFuzzyCD(String fuzzyCD) {
+        this.fuzzyCD = fuzzyCD;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        UnitModel that = (UnitModel) o;
-        return Objects.equals(got, that.got) && Objects.equals(id, that.id) &&
-            Objects.equals(tenant, that.tenant) && Objects.equals(version, that.version);
+    public String getFuzzyUD() {
+        return fuzzyUD;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(got, id, tenant, version);
+    public void setFuzzyUD(String fuzzyUD) {
+        this.fuzzyUD = fuzzyUD;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 
     @Override
     public String toString() {
         return "UnitModel{" +
-            "title='" + title + '\'' +
-            ", data='" + data + '\'' +
-            ", got='" + got + '\'' +
-            ", id='" + id + '\'' +
-            ", tenant='" + tenant + '\'' +
-            ", unitUps=" + unitUps +
-            ", min=" + min +
+            "id='" + id + '\'' +
+            ", descriptionLevel='" + descriptionLevel + '\'' +
+            ", title='" + title + '\'' +
+            ", description='" + description + '\'' +
+            ", transactedDate='" + transactedDate + '\'' +
+            ", og='" + og + '\'' +
+            ", management=" + management +
+            ", sedaVersion='" + sedaVersion + '\'' +
+            ", unitType='" + unitType + '\'' +
+            ", opi='" + opi + '\'' +
+            ", ops=" + ops +
+            ", sps=" + sps +
+            ", sp='" + sp + '\'' +
+            ", up=" + up +
+            ", us=" + us +
+            ", graph=" + graph +
             ", max=" + max +
-            ", allUnitUps=" + allUnitUps +
-            ", originatingAgencies=" + originatingAgencies +
-            ", version=" + version +
+            ", min=" + min +
+            ", glpd='" + glpd + '\'' +
+            ", fuzzyCD='" + fuzzyCD + '\'' +
+            ", fuzzyUD='" + fuzzyUD + '\'' +
+            ", tenant='" + tenant + '\'' +
             '}';
     }
 }

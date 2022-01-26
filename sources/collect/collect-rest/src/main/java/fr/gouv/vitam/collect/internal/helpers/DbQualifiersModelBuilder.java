@@ -24,59 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
+package fr.gouv.vitam.collect.internal.helpers;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
+import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ObjectGroupModel {
+public class DbQualifiersModelBuilder {
+    private String usage;
+    private final List<DbVersionsModel> versions = new ArrayList<>();
 
-    @JsonProperty("#id")
-    private String id;
-
-    @JsonProperty("FileInfo")
-    private FileInfoModel fileInfo;
-
-    public String getId() {
-        return id;
+    public DbQualifiersModelBuilder withUsage(String usage) {
+        this.usage = usage;
+        return this;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public DbQualifiersModelBuilder withVersion(String versionId, String fileName, String usage, Integer version) {
+        versions.add(new DbVersionsModelBuilder().build(versionId, fileName, usage, version));
+        return this;
     }
 
-    public FileInfoModel getFileInfo() {
-        return fileInfo;
-    }
+    public DbQualifiersModel build() {
+        Objects.requireNonNull(usage, "usage can't be null");
 
-    public void setFileInfo(FileInfoModel fileInfo) {
-        this.fileInfo = fileInfo;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        ObjectGroupModel that = (ObjectGroupModel) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "ObjectGroupModel{" +
-            "id='" + id + '\'' +
-            ", fileInfo=" + fileInfo +
-            '}';
+        DbQualifiersModel qualifier = new DbQualifiersModel();
+        qualifier.setQualifier(usage);
+        qualifier.setVersions(versions);
+        return qualifier;
     }
 }

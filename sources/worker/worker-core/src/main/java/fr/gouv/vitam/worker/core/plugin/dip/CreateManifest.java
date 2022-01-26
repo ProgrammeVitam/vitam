@@ -50,6 +50,8 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.manifest.ExportException;
+import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -181,7 +183,8 @@ public class CreateManifest extends ActionHandler {
             FileInputStream reportFile = new FileInputStream(report);
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
+            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             ExportRequest exportRequest = JsonHandler
                 .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
@@ -270,13 +273,16 @@ public class CreateManifest extends ActionHandler {
                     String id = object.get(ID.exactToken()).textValue();
                     List<String> linkedUnits = unitsForObjectGroupId.get(id);
                     JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
+
+                    AccessContractModel accessContractModel = getAccessContractModel(adminManagementClient);
+
                     Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
                         .getResults()
                         .stream()
                         .map(LogbookLifeCycleObjectGroup::new);
                     idBinaryWithFileName.putAll(manifestBuilder
                         .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), dataObjectVersions,
-                                  logbookLifeCycleObjectGroupStream));
+                                  logbookLifeCycleObjectGroupStream, accessContractModel));
                     exportSize += computeSize(object, dataObjectVersions);
                 }
             }
@@ -335,7 +341,7 @@ public class CreateManifest extends ActionHandler {
                             buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
                             buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                         }
-                    } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException | InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | LogbookClientException e) {
+                    } catch (JAXBException | DatatypeConfigurationException | IOException | InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | LogbookClientException e) {
                         throw new IllegalArgumentException(e);
                     }
                 });
@@ -404,6 +410,29 @@ public class CreateManifest extends ActionHandler {
             throw new ProcessingException(e);
         }
         return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
+    }
+
+    private AccessContractModel getAccessContractModel(AdminManagementClient adminManagementClient)
+        throws ProcessingException {
+        AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
+
+        if (accessContractModel == null) {
+            Select accessContractSelect = new Select();
+
+            try {
+                Query query =
+                    QueryHelper.eq(AccessContract.IDENTIFIER,
+                        VitamThreadUtils.getVitamSession().getContractId());
+                accessContractSelect.setQuery(query);
+                accessContractModel =
+                    ((RequestResponseOK<AccessContractModel>) adminManagementClient.findAccessContracts(
+                        accessContractSelect.getFinalSelect()))
+                        .getResults().get(0);
+            } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+                throw new ProcessingException(e.getMessage(), e.getCause());
+            }
+        }
+        return accessContractModel;
     }
 
     private void checkSize(ItemStatus itemStatus, long exportSize, long threshold, int tenant) throws ExportException {

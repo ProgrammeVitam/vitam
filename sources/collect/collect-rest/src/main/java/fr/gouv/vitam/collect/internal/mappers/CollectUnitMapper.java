@@ -24,12 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.dip;
+package fr.gouv.vitam.collect.internal.mappers;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
+import fr.gouv.vitam.collect.internal.model.UnitModel;
 
-public class ExportException extends VitamException {
-    public ExportException(String message) {
-        super(message);
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+
+public class CollectUnitMapper {
+
+    private CollectUnitMapper() throws IllegalAccessException {
+        throw new IllegalAccessException("Utility class!");
     }
+
+    public static UnitModel toModel(CollectUnitDto dto) {
+        Objects.requireNonNull(dto.getContent(), "Content field can't be null!");
+        Objects.requireNonNull(dto.getContent().getDescriptionLevel(), "DescriptionLevel nested field can't be null!");
+        Objects.requireNonNull(dto.getManagement(), "Management field can't be null!");
+
+        UnitModel model = new UnitModel();
+        model.setId(dto.getId());
+        model.setOpi(dto.getTransactionId());
+        model.setTitle(dto.getContent().getTitle());
+        model.setDescription(dto.getContent().getDescription());
+        model.setDescriptionLevel(dto.getContent().getDescriptionLevel());
+        model.setManagement(dto.getManagement());
+
+        Set<String> parentUnitIds = Collections.emptySet();
+        if (null != dto.getParentUnit()) {
+            parentUnitIds = Set.of(dto.getParentUnit());
+        }
+        model.setUp(parentUnitIds);
+
+        return model;
+    }
+
 }
+

@@ -27,7 +27,7 @@
 package fr.gouv.vitam.collect.internal.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
@@ -43,13 +43,14 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.metadata.api.exception.*;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -65,7 +66,8 @@ public class TransactionResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id";
 
-    public TransactionResource(CollectService collectService, TransactionService transactionService, GenerateSipService generateSipService, IngestSipService ingestSipService) {
+    public TransactionResource(CollectService collectService, TransactionService transactionService,
+        GenerateSipService generateSipService, IngestSipService ingestSipService) {
         this.collectService = collectService;
         this.transactionService = transactionService;
         this.generateSipService = generateSipService;
@@ -81,7 +83,7 @@ public class TransactionResource {
         TransactionDto transactionDto = new TransactionDto(requestId);
         collectService.createCollect(new CollectModel(requestId));
         return new RequestResponseOK<TransactionDto>()
-                .addResult(transactionDto).setHttpCode(Response.Status.OK.getStatusCode());
+            .addResult(transactionDto).setHttpCode(Response.Status.OK.getStatusCode());
     }
 
 
@@ -89,42 +91,48 @@ public class TransactionResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public RequestResponseOK<ArchiveUnitDto> uploadArchiveUnit(@PathParam("transactionId") String transactionId,
-                                                               ArchiveUnitDto archiveUnitDto) throws InvalidParseOperationException {
+    public RequestResponseOK<CollectUnitDto> uploadArchiveUnit(
+        @PathParam("transactionId") String transactionId,
+        CollectUnitDto collectUnitDto) throws InvalidParseOperationException, CollectException {
 
         Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
-        archiveUnitDto.setId(collectService.createRequestId());
-        archiveUnitDto.setTransactionId(transactionId);
+
         if (collectModel.isEmpty()) {
             LOGGER.debug(TRANSACTION_NOT_FOUND);
-            return new RequestResponseOK<ArchiveUnitDto>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            return new RequestResponseOK<CollectUnitDto>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
-        JsonNode jsonNode = transactionService.saveArchiveUnitInMetaData(archiveUnitDto);
+
+        collectUnitDto.setId(collectService.createRequestId());
+        collectUnitDto.setTransactionId(transactionId);
+        JsonNode jsonNode = transactionService.saveArchiveUnitInMetaData(collectUnitDto);
+
         if (jsonNode != null) {
-            return new RequestResponseOK<ArchiveUnitDto>().addResult(archiveUnitDto)
-                    .setHttpCode(Integer.parseInt(String.valueOf(jsonNode.get("httpCode"))));
+            LOGGER.debug("Error while trying to save units : {}", jsonNode.toPrettyString());
+            return new RequestResponseOK<CollectUnitDto>().addResult(collectUnitDto)
+                .setHttpCode(Integer.parseInt(String.valueOf(jsonNode.get("httpCode"))));
         }
-        return new RequestResponseOK<ArchiveUnitDto>().setHttpCode(
-                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        return new RequestResponseOK<CollectUnitDto>().setHttpCode(
+            Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
 
-    @Path("/units/{archiveUnitId}/objects/{usage}/{version}")
+    @Path("/units/{unitId}/objects/{usage}/{version}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public RequestResponseOK<ObjectGroupDto> uploadObjectGroup(
-            @PathParam("archiveUnitId") String archiveUnitId,
-            @PathParam("usage") String usage,
-            @PathParam("version") Integer version,
-            ObjectGroupDto objectGroupDto) throws InvalidParseOperationException {
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usage,
+        @PathParam("version") Integer version,
+        ObjectGroupDto objectGroupDto) throws CollectException {
 
-        if (usage == null || archiveUnitId == null || version == null) {
-            LOGGER.error("usage({}), archiveUnitId({}) or version({}) can't be null", usage,
-                    archiveUnitId, version);
+        if (usage == null || unitId == null || version == null) {
+            LOGGER.error("usage({}), unitId({}) or version({}) can't be null", usage, unitId, version);
             return new RequestResponseOK<ObjectGroupDto>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
-        ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitById(archiveUnitId);
+
+        ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitById(unitId);
         if (null == archiveUnitModel) {
             LOGGER.debug("Unable to find archiveUnit Id");
             return new RequestResponseOK<ObjectGroupDto>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -134,12 +142,14 @@ public class TransactionResource {
 
         try {
             transactionService.saveObjectGroupInMetaData(archiveUnitModel, usage, version, objectGroupDto);
-        } catch (CollectException | MetaDataExecutionException | MetaDataClientServerException e) {
-            return new RequestResponseOK<ObjectGroupDto>().setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        } catch (CollectException e) {
+            LOGGER.debug("Error while trying to save objects : {}", e);
+            return new RequestResponseOK<ObjectGroupDto>().setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
-        return new RequestResponseOK<ObjectGroupDto>().addResult(objectGroupDto)
-                .setHttpCode(Response.Status.OK.getStatusCode());
 
+        return new RequestResponseOK<ObjectGroupDto>().addResult(objectGroupDto)
+            .setHttpCode(Response.Status.OK.getStatusCode());
     }
 
     @Path("/units/{archiveUnitId}/objects/{usage}/{version}/binary")
@@ -147,35 +157,39 @@ public class TransactionResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public RequestResponseOK<Object> upload(@PathParam("archiveUnitId") String archiveUnitId,
-                                            @PathParam("usage") String usage,
-                                            @PathParam("version") Integer version,
-                                            InputStream uploadedInputStream) throws InvalidParseOperationException {
+        @PathParam("usage") String usage,
+        @PathParam("version") Integer version,
+        InputStream uploadedInputStream) throws CollectException {
 
         if (usage == null || archiveUnitId == null || version == null) {
             LOGGER.error("usage({}), archiveUnitId({}) or version({}) can't be null", usage,
-                    archiveUnitId, version);
-            return new RequestResponseOK<Object>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                archiveUnitId, version);
+            return new RequestResponseOK<>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
 
         ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitById(archiveUnitId);
         if (null == archiveUnitModel) {
             LOGGER.debug("Unable to find archiveUnit Id");
-            return new RequestResponseOK<Object>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            return new RequestResponseOK<>().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
 
         try {
             int sizeInputStream = uploadedInputStream.available();
             String fileName = collectService.createRequestId();
-            String digest = transactionService.pushStreamToWorkspace(archiveUnitModel.getOpi(), uploadedInputStream, fileName);
-            DbFormatIdentificationModel formatIdentifierResponse = transactionService.getFormatIdentification(archiveUnitModel.getOpi(), fileName);
+            String digest =
+                transactionService.pushStreamToWorkspace(archiveUnitModel.getOpi(), uploadedInputStream, fileName);
+            DbFormatIdentificationModel formatIdentifierResponse =
+                transactionService.getFormatIdentification(archiveUnitModel.getOpi(), fileName);
             DbObjectGroupModel dbObjectGroupModel = transactionService.getDbObjectGroup(archiveUnitModel);
-            JsonNode jsonResponse = transactionService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, fileName, digest, sizeInputStream, formatIdentifierResponse);
-            return new RequestResponseOK<Object>().setHttpCode(Response.Status.OK.getStatusCode());
+            transactionService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, fileName, digest,
+                sizeInputStream, formatIdentifierResponse);
 
+            return new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
         } catch (CollectException | IOException e) {
+            // TODO : Manage rollback -> delete file ?
             LOGGER.debug("An error occurs when try to fetch data from database : {}", e);
-            return new RequestResponseOK<Object>().setHttpCode(
-                    Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return new RequestResponseOK<>().setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
     }
@@ -184,9 +198,9 @@ public class TransactionResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public RequestResponseOK<TransactionDto> generateSip(
-            @PathParam("transactionId") String transactionId
-    ) throws XMLStreamException, InvalidParseOperationException, JAXBException {
+    public RequestResponseOK<TransactionDto> generateSip(@PathParam("transactionId") String transactionId)
+        throws InvalidParseOperationException {
+
         Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
         if (collectModel.isEmpty()) {
             LOGGER.debug(TRANSACTION_NOT_FOUND);
@@ -195,19 +209,25 @@ public class TransactionResource {
 
         try {
             String digest = generateSipService.generateSip(collectModel.get());
-            if (digest != null) {
-                final String operationGuiid = ingestSipService.ingest(collectModel.get(), digest);
-                if (operationGuiid != null) {
-                    TransactionDto transactionDto = new TransactionDto(operationGuiid);
-                    return new RequestResponseOK<TransactionDto>()
-                            .addResult(transactionDto).setHttpCode(Response.Status.OK.getStatusCode());
-                }
+            if (digest == null) {
+                return new RequestResponseOK<TransactionDto>().setHttpCode(
+                    Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             }
+
+            final String operationGuiid = ingestSipService.ingest(collectModel.get(), digest);
+            if (operationGuiid != null) {
+                return new RequestResponseOK<TransactionDto>()
+                    .addResult(new TransactionDto(operationGuiid)).setHttpCode(Response.Status.OK.getStatusCode());
+            }
+
+            return new RequestResponseOK<TransactionDto>().setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         } catch (Exception e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
-            return new RequestResponseOK<TransactionDto>().setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return new RequestResponseOK<TransactionDto>().setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
-        return new RequestResponseOK<TransactionDto>().setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
     }
 
 

@@ -24,36 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.client;
+package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.objectgroup.DbFileInfoModel;
+import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 
-/**
- * Collect Client Interface
- */
-public interface CollectClient extends MockOrRestClient {
+import java.util.Objects;
 
-    /**
-     * Initialize a collect transaction
-     *
-     * Consume and produce MediaType.APPLICATION_JSON
-     *
-     * @return RequestResponse<TransactionDto> guid created for the transaction
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
-     */
-    RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException;
+public class DbVersionsModelBuilder {
 
-    /**
-     * Upload Archive Unit
-     *
-     * Consume and produce MediaType.APPLICATION_JSON
-     *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
-     */
-    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException;
+    public DbVersionsModel build(String versionId, String fileName, String usage, Integer version) {
+        Objects.requireNonNull(versionId, "versionId can't be null");
+        Objects.requireNonNull(fileName, "fileName can't be null");
+        Objects.requireNonNull(usage, "usage can't be null");
+        Objects.requireNonNull(version, "version can't be null");
+
+        DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
+        dbfileInfoModel.setFilename(fileName);
+        DbVersionsModel dbversion = new DbVersionsModel();
+        dbversion.setId(versionId);
+        dbversion.setFileInfoModel(dbfileInfoModel);
+        dbversion.setDataObjectVersion(usage + "_" + version);
+        return dbversion;
+    }
 }

@@ -98,6 +98,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-manifest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>net.sf.jsignature.io-tools</groupId>
             <artifactId>easystream</artifactId>
         </dependency>
