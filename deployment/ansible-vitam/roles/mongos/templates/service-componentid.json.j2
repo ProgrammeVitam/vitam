@@ -1,6 +1,7 @@
 {
   "service": {
     "name": "{{ mongo_cluster_name }}-mongos",
+    "address": "{{ ip_service }}",
     "port": {{ mongodb.mongos_port }},
     "enable_tag_override": false,
     "tags": ["bdd","mongo","{{ mongo_cluster_name }}","{{ mongo_cluster_name }}-mongos"],

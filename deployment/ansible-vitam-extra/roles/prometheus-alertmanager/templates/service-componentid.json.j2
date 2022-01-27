@@ -1,6 +1,7 @@
 {
   "service": {
     "name": "prometheus-alertmanager",
+    "address": "{{ ip_admin }}",
     "port": {{ prometheus.alertmanager.api_port | default(9093) }},
     "enable_tag_override": false,
     "tags": ["alertmanager"],
