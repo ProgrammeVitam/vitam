@@ -484,6 +484,9 @@ public class AccessRequestManager {
 
             accessRequestEntity = refreshedAccessRequestEntity.get();
         }
+
+        throw new AccessRequestReferentialException("Could not update accessRequest " +
+            accessRequestEntity.getRequestId() + ". Aborting after " + MAX_RETRIES + " unsuccessful retries");
     }
 
     private boolean tryUpdateAccessRequestWithReadyArchiveId(String readyArchiveId,
