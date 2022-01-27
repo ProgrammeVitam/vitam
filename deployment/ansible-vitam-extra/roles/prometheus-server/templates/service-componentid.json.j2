@@ -1,6 +1,7 @@
 {
   "service": {
     "name": "prometheus-server",
+    "address": "{{ ip_admin }}",
     "port": {{ prometheus.server.port | default(9090) }},
     "enable_tag_override": false,
     "tags": ["prometheus"],
