@@ -137,9 +137,13 @@
         <Set name="sendServerVersion">false</Set>
         <Set name="sendDateHeader">false</Set>
         <Call name="addCustomizer">
-            <Arg>
-                <New class="org.eclipse.jetty.server.SecureRequestCustomizer" />
-            </Arg>
+               <Arg>
+                   <New class="org.eclipse.jetty.server.SecureRequestCustomizer">
+                       <Arg name="sniHostCheck" type="boolean">
+                           <Property name="jetty.ssl.sniHostCheck" default="false" />
+                       </Arg>
+                   </New>
+               </Arg>
         </Call>
     </New>
         <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
