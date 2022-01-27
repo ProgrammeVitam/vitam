@@ -261,7 +261,7 @@ public class DbRequest {
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
-            updatedDocument.setFuzzyUpdateDate(LocalDateTime.now());
+            updatedDocument.setFuzzyUpdateDate(LocalDateUtil.now());
             LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
@@ -985,9 +985,12 @@ public class DbRequest {
                 if (!forceUpdate && !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
                     return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
                 }
+                if(newDocumentVersion != documentVersion){
+                    transformedUpdatedDocument.put(Unit.FUZZY_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                }
                 // Unit validation
                 unitValidator.validateUnit(transformedUpdatedDocument);
-                transformedUpdatedDocument.put(Unit.FUZZY_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+
             }
 
 
@@ -1341,7 +1344,7 @@ public class DbRequest {
     }
 
     private void setDateCreationAndModification(Unit unit) {
-        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime now = LocalDateUtil.now();
         unit.setFuzzyCreationDate(now);
         unit.setFuzzyUpdateDate(now);
     }

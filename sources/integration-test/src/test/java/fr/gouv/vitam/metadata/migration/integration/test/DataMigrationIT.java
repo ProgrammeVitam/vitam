@@ -339,8 +339,8 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void replaceDates(ObjectNode unit) {
-        unit.put(Unit.FUZZY_CREATION_DATE, "#TIMESTAMP#");
-        unit.put(Unit.FUZZY_UPDATE_DATE, "#TIMESTAMP#");
+        unit.put(VitamFieldsHelper.fuzzyCD(), "#TIMESTAMP#");
+        unit.put(VitamFieldsHelper.fuzzyUD(), "#TIMESTAMP#");
     }
 
 

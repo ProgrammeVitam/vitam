@@ -754,6 +754,8 @@ public abstract class BuilderToken {
         COMPUTED_INHERITED_RULES("computedInheritedRules"),
 
         VALID_COMPUTED_INHERITED_RULES("validComputedInheritedRules"),
+        FUZZY_CREATION_DATE("fuzzyCD"),
+        FUZZY_UPDATE_DATE("fuzzyUD"),
 
         OPERATION_TRANSFERS("opts");
 

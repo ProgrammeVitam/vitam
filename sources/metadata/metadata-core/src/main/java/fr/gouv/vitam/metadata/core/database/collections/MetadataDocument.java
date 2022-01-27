@@ -99,6 +99,8 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      */
     public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
 
+
+
     /**
      * Quick projection for ID and ObjectGroup Only
      */
