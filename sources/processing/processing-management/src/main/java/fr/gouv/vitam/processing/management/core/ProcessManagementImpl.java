@@ -236,9 +236,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         if (!workFlow.isPresent()) {
             throw new ProcessingException("Workflow (" + workflowId + ") not found");
         }
+
+        String workflowIdentifier = workFlow.get().getIdentifier();
         final ProcessWorkflow processWorkflow = processDataAccess
             .initProcessWorkflow(workFlow.get(), workerParameters.getContainerName());
-        processWorkflow.setWorkflowId(workflowId);
+        processWorkflow.setWorkflowId(workflowIdentifier);
 
         for (WorkerParameterName workerParameterName : workerParameters.getMapParameters().keySet()) {
             processWorkflow.getParameters()
@@ -253,7 +255,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
 
         workerParameters.setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess());
-        workerParameters.setWorkflowIdentifier(workFlow.get().getIdentifier());
+        workerParameters.setWorkflowIdentifier(workflowIdentifier);
 
         final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);

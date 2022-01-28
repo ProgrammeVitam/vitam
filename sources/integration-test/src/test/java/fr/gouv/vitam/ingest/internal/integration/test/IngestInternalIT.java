@@ -205,6 +205,7 @@ import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.WORKFLOW_IDENTIFIER;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
 import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
@@ -281,6 +282,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE =
             new TypeReference<>() {
             };
+    public static final String RESULTS = "$results";
+
     @ClassRule
     public static VitamServerRunner runner =
             new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
@@ -421,6 +424,15 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         waitOperation(operationId);
         verifyOperation(operationId, OK);
+
+        // Check Logbook Closure Event
+        fr.gouv.vitam.common.model.logbook.LogbookOperation ingestLogbook =
+            JsonHandler.getFromJsonNode(findLogbook(operationId).get(RESULTS),
+                fr.gouv.vitam.common.model.logbook.LogbookOperation.class);
+        assertNotNull(ingestLogbook);
+        assertFalse(ingestLogbook.getEvents().isEmpty());
+        assertEquals(WORKFLOW_IDENTIFIER + "." + OK,
+            ingestLogbook.getEvents().get(ingestLogbook.getEvents().size() - 1).getOutDetail());
     }
 
     @RunWithCustomExecutor
@@ -461,7 +473,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
-            final JsonNode result = node.get("$results");
+            final JsonNode result = node.get(RESULTS);
             assertNotNull(result);
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -605,10 +617,10 @@ public class IngestInternalIT extends VitamRuleRunner {
             JsonNode logbookOperation =
                     accessClient.selectOperationById(operationGuid.getId())
                             .toJsonNode();
-            assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+            assertThat(logbookOperation.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             Set<String> eventIds = new HashSet<>();
-            eventIds.add(logbookOperation.get("$results").get(0).get("evId").asText());
-            logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+            eventIds.add(logbookOperation.get(RESULTS).get(0).get("evId").asText());
+            logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
                 if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
                     assertThat(event.get("outDetail").asText()).contains("STP_UPLOAD_SIP");
                 }
@@ -616,7 +628,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             });
 
             // check evIds
-            assertThat(eventIds.size()).isEqualTo(logbookOperation.get("$results").get(0).get("events").size() + 1);
+            assertThat(eventIds.size()).isEqualTo(logbookOperation.get(RESULTS).get(0).get("events").size() + 1);
 
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
@@ -680,7 +692,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
 
         JsonNode lfcResponse = accessClient.selectUnitLifeCycleById(unitId, queryDsl).toJsonNode();
-        final JsonNode result = lfcResponse.get("$results");
+        final JsonNode result = lfcResponse.get(RESULTS);
         assertNotNull(result);
         final JsonNode lfc = result.get(0);
         assertNotNull(lfc);
@@ -695,7 +707,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
 
         JsonNode lfcResponse = accessClient.selectObjectGroupLifeCycleById(gotId, queryDsl).toJsonNode();
-        final JsonNode result = lfcResponse.get("$results");
+        final JsonNode result = lfcResponse.get(RESULTS);
         assertNotNull(result);
         final JsonNode lfc = result.get(0);
         assertNotNull(lfc);
@@ -719,7 +731,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
-            final JsonNode result = node.get("$results");
+            final JsonNode result = node.get(RESULTS);
             assertNotNull(result);
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -731,7 +743,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
+            final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText("#id");
             final String objectId = valuesAsText.get(0);
             LOGGER.warn("read: " + objectId);
 
@@ -772,8 +784,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
-        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
-        operationId = logbookResult.get("$results").get(0).get("evId").asText();
+        assertThat(logbookResult.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        operationId = logbookResult.get(RESULTS).get(0).get("evId").asText();
 
 
         // When
@@ -832,7 +844,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Root AU ATTACHED", TITLE);
             LOGGER.debug(JsonHandler.prettyPrint(node));
-            final JsonNode result = node.get("$results");
+            final JsonNode result = node.get(RESULTS);
             assertNotNull(result);
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -877,7 +889,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Arbre simple", TITLE);
             LOGGER.debug(JsonHandler.prettyPrint(node));
-            final JsonNode result = node.get("$results");
+            final JsonNode result = node.get(RESULTS);
             assertNotNull(result);
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -989,7 +1001,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkDataObject = true;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS);
@@ -1022,7 +1034,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkUnitSuccess = true;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -1053,7 +1065,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkUnitSuccess = true;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -1104,7 +1116,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Unit with Management META DATA rules", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
         final JsonNode unit = result.get(0);
         assertNotNull(unit);
@@ -1130,7 +1142,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         final JsonNode node = getArchiveUnitWithTitle(metadataClient, "UNIT with both rules", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
         final JsonNode unit = result.get(0);
         assertNotNull(unit);
@@ -1157,7 +1169,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         final JsonNode node = getArchiveUnitWithTitle(metadataClient, "LEVANT", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
         final JsonNode unit = result.get(0);
         assertNotNull(unit);
@@ -1185,7 +1197,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkUnitSuccess = false;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -1217,7 +1229,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkServiceLevel = false;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -1251,7 +1263,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
         boolean checkServiceLevel = false;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -1291,7 +1303,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Get GOT
             LOGGER.warn(response.toString());
-            final JsonNode node = response.toJsonNode().get("$results").get(0);
+            final JsonNode node = response.toJsonNode().get(RESULTS).get(0);
             LOGGER.warn(node.toString());
             final String unitId = node.get("#object").asText();
 
@@ -1371,7 +1383,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
-        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        assertThat(logbookResult.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
 
 
         stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_AU_update));
@@ -1550,15 +1562,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         // management for this unit
         LOGGER.warn(node.toString());
         assertNotNull(node);
-        assertNotNull(node.get("$results"));
-        assertEquals(1, node.get("$results").size());
-        assertNotNull(node.get("$results").get(0).get("Title"));
-        assertNotNull(node.get("$results").get(0).get("#management"));
+        assertNotNull(node.get(RESULTS));
+        assertEquals(1, node.get(RESULTS).size());
+        assertNotNull(node.get(RESULTS).get(0).get("Title"));
+        assertNotNull(node.get(RESULTS).get(0).get("#management"));
         assertEquals("Secret Défense",
-                node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationLevel")
+                node.get(RESULTS).get(0).get("#management").get("ClassificationRule").get("ClassificationLevel")
                         .asText());
         assertEquals("ClassOWn",
-                node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationOwner")
+                node.get(RESULTS).get(0).get("#management").get("ClassificationRule").get("ClassificationOwner")
                         .asText());
 
     }
@@ -2028,7 +2040,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
-            final JsonNode result = node.get("$results");
+            final JsonNode result = node.get(RESULTS);
             assertNotNull(result);
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -2040,7 +2052,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
+            final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText("#id");
             final String objectId = valuesAsText.get(0);
             LOGGER.warn("read: " + objectId);
 
@@ -2156,26 +2168,26 @@ public class IngestInternalIT extends VitamRuleRunner {
                             .selectOperationById(operationGuidForRequestId.getId())
                             .toJsonNode();
             // assert certain parameters in the master are overloaded
-            assertEquals(OK.name(), logbookOperation.get("$results").get(0)
+            assertEquals(OK.name(), logbookOperation.get(RESULTS).get(0)
                     .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.outcome).getDbname()).asText());
 
-            assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+            assertThat(logbookOperation.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
 
             // assert certain parameters in the master are not overloaded
             assertEquals(operationGuid.getId(),
-                    logbookOperation.get("$results").get(0)
+                    logbookOperation.get(RESULTS).get(0)
                             .get(LogbookMongoDbName
                                     .getLogbookMongoDbName(LogbookParameterName.agentIdentifierApplicationSession).getDbname())
                             .asText());
-            assertThat(logbookOperation.get("$results").get(0)
+            assertThat(logbookOperation.get(RESULTS).get(0)
                     .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.agIdExt).getDbname()).asText()
                     .contains(operationGuid.getId()));
             assertEquals(operationGuid.getId(),
-                    logbookOperation.get("$results").get(0).get(
+                    logbookOperation.get(RESULTS).get(0).get(
                             LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
                             .asText());
-            assertEquals(1, logbookOperation.get("$results").get(0).get("events").size());
-            logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+            assertEquals(1, logbookOperation.get(RESULTS).get(0).get("events").size());
+            logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
                 if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
                     assertThat(event.get(LogbookParameterName.eventTypeProcess.name()).asText())
                             .contains(LogbookTypeProcess.EXTERNAL_LOGBOOK.name());
@@ -2214,7 +2226,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
-        final JsonNode element = logbookOperation.get("$results").get(0);
+        final JsonNode element = logbookOperation.get(RESULTS).get(0);
 
         assertEquals(element.get("obIdIn").asText(), "vitam");
         assertThat(element.get("evParentId")).isExactlyInstanceOf(NullNode.class);
@@ -2234,8 +2246,8 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
 
-        assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
-        logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+        assertThat(logbookOperation.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
             if (event.get("evType").asText().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION")) {
                 assertThat(event.get("outDetail").textValue()).
                         contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.INVALIDE_ALGO.KO");
@@ -2258,7 +2270,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode node = getArchiveUnitWithTitle(metadataClient,
                 "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare.", TITLE);
 
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
 
         CustodialHistoryModel model =
@@ -2307,9 +2319,9 @@ public class IngestInternalIT extends VitamRuleRunner {
                     getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au", TITLE);
 
             JsonNode objectGroupLifeCycle = logbookLifeCyclesClient
-                    .getRawObjectGroupLifeCycleById(nodeForLogbookOG.get("$results").get(0).get("#object").asText());
+                    .getRawObjectGroupLifeCycleById(nodeForLogbookOG.get(RESULTS).get(0).get("#object").asText());
             JsonNode unitLifeCycle = logbookLifeCyclesClient
-                    .getRawUnitLifeCycleById(nodeForLogbookAU.get("$results").get(0).get("#id").asText());
+                    .getRawUnitLifeCycleById(nodeForLogbookAU.get(RESULTS).get(0).get("#id").asText());
 
             List<EventTypeModel> eventsOG =
                     JsonHandler.getFromJsonNode(objectGroupLifeCycle.get("events"), LIST_TYPE_REFERENCE);
@@ -2345,7 +2357,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode node = getArchiveUnitWithTitle(metadataClient,
                 "Chemin des Dames - Ce que fut le Monument d'Hurtebise", TITLE_FR);
 
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
 
         String identifierType = result.get(0).get("OriginatingAgency").get("Identifier").asText();
@@ -2368,7 +2380,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode node = getArchiveUnitWithTitle(metadataClient,
                 "Annuaire_projet.pdf", TITLE);
 
-        final JsonNode result = node.get("$results");
+        final JsonNode result = node.get(RESULTS);
         assertNotNull(result);
         final JsonNode unit = result.get(0);
         assertNotNull(unit);
@@ -2400,7 +2412,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 accessClient.selectOperationById(operationGuidAttachement.getId())
                         .toJsonNode();
         boolean checkKOLinkingSuccess = true;
-        final JsonNode elmt = logbookOperation.get("$results").get(0);
+        final JsonNode elmt = logbookOperation.get(RESULTS).get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
@@ -2449,8 +2461,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId())
                         .toJsonNode();
-        assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
-        logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+        assertThat(logbookOperation.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
             if (event.get("evType").asText().contains("CHECK_HEADER.CHECK_ARCHIVEPROFILE")) {
                 assertThat(event.get("outDetail").textValue()).
                         contains("CHECK_HEADER.CHECK_ARCHIVEPROFILE.KO");
