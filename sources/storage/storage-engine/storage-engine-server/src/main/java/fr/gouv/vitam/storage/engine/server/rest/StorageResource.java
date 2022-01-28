@@ -129,6 +129,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -545,11 +546,19 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return buildErrorResponse(vitamCode);
         }
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        List<String> offerIdHeaders =
+            Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)).orElse(Collections.emptyList());
         try {
-            return new VitamAsyncInputStreamResponse(
-                getByCategory(objectId, dataCategory, strategyId, vitamCode,
-                    accessLogInfoModel),
-                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            if (CollectionUtils.isEmpty(offerIdHeaders)) {
+                return new VitamAsyncInputStreamResponse(
+                    getByCategory(objectId, dataCategory, strategyId, vitamCode,
+                        accessLogInfoModel),
+                    Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            } else {
+                return new VitamAsyncInputStreamResponse(
+                    getByCategory(objectId, dataCategory, strategyId, vitamCode, offerIdHeaders.get(0)),
+                    Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            }
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
             vitamCode = VitamCode.STORAGE_NOT_FOUND;
