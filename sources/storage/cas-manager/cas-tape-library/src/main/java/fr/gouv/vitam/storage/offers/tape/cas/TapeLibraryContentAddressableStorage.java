@@ -369,28 +369,26 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         Collection<TapeArchiveReferentialEntity> tapeArchiveReferentialEntities)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
         for (TapeArchiveReferentialEntity tapeArchiveReferentialEntity : tapeArchiveReferentialEntities) {
-            checkTarExistence(fileBucketId, tapeArchiveReferentialEntity);
+            checkTarExistence(fileBucketId, tapeArchiveReferentialEntity.getArchiveId());
         }
     }
 
-    private void checkTarExistence(String fileBucketId, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+    private void checkTarExistence(String fileBucketId, String archiveId)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
-        if (tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryBuildingOnDiskArchiveStorageLocation ||
-            tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {
-            if (this.fileBucketTarCreatorManager.containsTar(fileBucketId,
-                tapeArchiveReferentialEntity.getArchiveId())) {
-                LOGGER.debug("{}/{} found." + fileBucketId);
-                return;
-            }
+
+        if (this.fileBucketTarCreatorManager.containsTar(fileBucketId,
+            archiveId)) {
+            LOGGER.debug("{}/{} found." + fileBucketId);
+            return;
         }
 
-        if (archiveCacheStorage.containsArchive(fileBucketId, tapeArchiveReferentialEntity.getArchiveId())) {
+        if (archiveCacheStorage.containsArchive(fileBucketId, archiveId)) {
             LOGGER.debug("{}/{} found." + fileBucketId);
             return;
         }
 
         throw new ContentAddressableStorageUnavailableDataFromAsyncOfferException(
-            "Could not find archive " + fileBucketId + "/" + tapeArchiveReferentialEntity.getArchiveId());
+            "Could not find archive " + fileBucketId + "/" + archiveId);
     }
 
     private InputStream loadTarFileInputStream(String containerName, String objectName,
@@ -410,32 +408,25 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
 
-        if (tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryBuildingOnDiskArchiveStorageLocation ||
-            tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {
+        String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
 
-            String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+        Optional<FileInputStream> fileInputStream =
+            this.fileBucketTarCreatorManager.tryReadTar(fileBucketId, tarEntry.getTarFileId());
 
-            Optional<FileInputStream> fileInputStream =
-                this.fileBucketTarCreatorManager.tryReadTar(fileBucketId, tarEntry.getTarFileId());
-
-            if (fileInputStream.isPresent())
-                return fileInputStream.get();
-        }
-
-        String fileBucketId =
-            this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+        if (fileInputStream.isPresent())
+            return fileInputStream.get();
 
         try {
-            Optional<FileInputStream> fileInputStream
+            Optional<FileInputStream> cachedFileInputStream
                 = archiveCacheStorage.tryReadArchive(fileBucketId, tarEntry.getTarFileId());
 
-            if (fileInputStream.isEmpty()) {
+            if (cachedFileInputStream.isEmpty()) {
                 throw new ContentAddressableStorageUnavailableDataFromAsyncOfferException(
                     "Could not locate archive " + tarEntry.getTarFileId() + " for object " + containerName + "/" +
                         objectName);
             }
 
-            return fileInputStream.get();
+            return cachedFileInputStream.get();
 
         } catch (IllegalPathException e) {
             throw new IllegalStateException(
@@ -599,7 +590,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 objectListingListener.handleObjectEntry(entryIterator.next());
             }
         } catch (ObjectReferentialException | MongoException e) {
-            throw new ContentAddressableStorageServerException("Could not list objects of container " + containerName, e);
+            throw new ContentAddressableStorageServerException("Could not list objects of container " + containerName,
+                e);
         }
         LOGGER.info("Done listing objects of container {}", containerName);
     }

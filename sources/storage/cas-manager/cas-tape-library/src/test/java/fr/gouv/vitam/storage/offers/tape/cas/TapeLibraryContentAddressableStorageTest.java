@@ -465,7 +465,7 @@ public class TapeLibraryContentAddressableStorageTest {
         ObjectListingListener objectListingListener = entries::add;
 
         // When / Then
-        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
             .isInstanceOf(ContentAddressableStorageServerException.class)
             .hasCauseInstanceOf(MongoCursorNotFoundException.class);
 
@@ -484,7 +484,7 @@ public class TapeLibraryContentAddressableStorageTest {
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         // When / Then
-        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
             .isInstanceOf(ContentAddressableStorageServerException.class)
             .hasCauseInstanceOf(ObjectReferentialException.class);
     }
@@ -507,7 +507,7 @@ public class TapeLibraryContentAddressableStorageTest {
         doThrow(new IOException("error")).when(objectListingListener).handleObjectEntry(objectEntry2);
 
         // When / Then
-        assertThatThrownBy( () -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
+        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
             .isInstanceOf(IOException.class);
 
         verify(objectListingListener).handleObjectEntry(objectEntry1);
@@ -611,6 +611,7 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId);
 
@@ -629,8 +630,66 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 1");
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager, never()).containsTar("test-objects", tarId);
         verify(archiveCacheStorage, never()).containsArchive("test-objects", tarId);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId);
+
+        verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
+            fileBucketTarCreatorManager, archiveCacheEvictionController, archiveCacheStorage);
+    }
+
+    @Test
+    public void getObjectWith1SegmentWhileTarIsBeingMovedToCache() throws Exception {
+
+        // Given
+        int fileSize = 6;
+        String tarId = "20190625115513038-406fceff-2c4f-475c-898f-493331756eda.tar";
+        TapeLibraryObjectReferentialId objectReferentialId =
+            new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq");
+        TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
+            List.of(
+                new TarEntryDescription(
+                    tarId,
+                    "0_object/aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq-aeaaaaaaaaecntv2ab5meallrz6w2eaaaaaq-0",
+                    1024, fileSize,
+                    "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1"
+                )));
+        Optional<TapeObjectReferentialEntity> objectReferentialEntity = Optional.of(new TapeObjectReferentialEntity(
+            objectReferentialId, fileSize, "SHA-512",
+            "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+            "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq-aeaaaaaaaaecntv2ab5meallrz6w2eaaaaaq", tarObjectStorageLocation, null,
+            null));
+
+        TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(tarId,
+            new TapeLibraryOnTapeArchiveStorageLocation("VIT002L6", 248), 5120L,
+            "60566c5d1821190fe9d1df5a7c112ff7b9ff3aec0fbcc6b9934cbebc3f9b33ef1c0aef1c1acd2291c8adb23e6cdcd36b34a2cf9fa564e9f686ea3baf5447e222",
+            null);
+
+        // TAR is reported as "on_tape" in database, but still is available in fileBucketTarCreatorManager (not moved to cache)
+        doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
+            .when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
+
+        when(objectReferentialRepository.find("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq")).thenReturn(
+            objectReferentialEntity);
+        when(archiveReferentialRepository.bulkFind(Set.of(tarId))).thenReturn(
+            List.of(tarReferentialEntity));
+
+        // When
+        ObjectContent response =
+            tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq");
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isEqualTo(fileSize);
+        assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 1");
+
+        verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager, never()).containsTar("test-objects", tarId);
+        verify(archiveCacheStorage, never()).containsArchive("test-objects", tarId);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
+        verify(archiveCacheStorage, never()).tryReadArchive("test-objects", tarId);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
             fileBucketTarCreatorManager, archiveCacheEvictionController, archiveCacheStorage);
@@ -669,8 +728,10 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -699,8 +760,95 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId);
+        verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId);
         verify(archiveCacheStorage, times(2)).tryReadArchive("test-objects", tarId);
+
+        verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
+            fileBucketTarCreatorManager, archiveCacheEvictionController, archiveCacheStorage);
+    }
+
+    @Test
+    public void getObjectWith2SegmentsInSameCachedTarWhileTarIsBeingMovedToCache() throws Exception {
+
+        // Given
+        int fileSize = 6;
+        String tarId = "20190702131434269-84970e20-402d-4a88-b1df-ae05281ec7e6.tar";
+        TapeLibraryObjectReferentialId objectReferentialId =
+            new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+        TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
+            Arrays.asList(
+                new TarEntryDescription(
+                    tarId,
+                    "0_object/aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq-0",
+                    2048, 3,
+                    "b551ea951724d66921f7e4991ee3b86e883921abf6a14552c73a4032cc87fa4900b2faa27d1cca5139d71a12937797cd29b589561fcc7fbb60dca460141afa65"
+                ),
+                new TarEntryDescription(
+                    tarId,
+                    "0_object/aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq-1",
+                    3072, 3,
+                    "2da4d0d9a4a1b2c0a27d10d6d7e92dd3e6db3b1b187e2419a044c21d5b20256cc8d87d438873837063d18ec7b6fe05a3050532611b21071ed3b736f09db905c4"
+                )));
+        Optional<TapeObjectReferentialEntity> objectReferentialEntity = Optional.of(new TapeObjectReferentialEntity(
+            objectReferentialId, fileSize, "SHA-512",
+            "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null,
+            null));
+
+        TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(tarId,
+            new TapeLibraryOnTapeArchiveStorageLocation("VIT002L6", 248), 5120L,
+            "60566c5d1821190fe9d1df5a7c112ff7b9ff3aec0fbcc6b9934cbebc3f9b33ef1c0aef1c1acd2291c8adb23e6cdcd36b34a2cf9fa564e9f686ea3baf5447e222",
+            null);
+
+        doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+
+        // On first invocation (second segment), tar has still not be moved to cache, on second invocation (second segment) tar is in the cache
+        when(fileBucketTarCreatorManager.containsTar("test-objects", tarId))
+            .thenReturn(false);
+        when(archiveCacheStorage.containsArchive("test-objects", tarId))
+            .thenReturn(true);
+
+        when(fileBucketTarCreatorManager.tryReadTar("test-objects", tarId))
+            .thenAnswer(args ->
+                Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
+            .thenReturn(Optional.empty());
+
+        when(archiveCacheStorage.tryReadArchive("test-objects", tarId))
+            .thenAnswer(args ->
+                Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())));
+
+        when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
+            objectReferentialEntity);
+        when(archiveReferentialRepository.bulkFind(Set.of(tarId))).thenReturn(List.of(tarReferentialEntity));
+
+        LockHandle lockHandle = mock(LockHandle.class);
+        doReturn(lockHandle).when(archiveCacheEvictionController)
+            .createLock(Set.of(new ArchiveCacheEntry("test-objects", tarId)));
+
+        // When
+        ObjectContent response =
+            tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isEqualTo(fileSize);
+
+        verify(archiveCacheEvictionController).createLock(Set.of(new ArchiveCacheEntry("test-objects", tarId)));
+
+        verifyNoMoreInteractions(lockHandle);
+
+        assertThat(response.getInputStream()).hasSameContentAs(new ByteArrayInputStream("test 2".getBytes()));
+
+        verify(lockHandle).release();
+        verifyNoMoreInteractions(lockHandle);
+
+        verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId);
+        verify(archiveCacheStorage).containsArchive("test-objects", tarId);
+        verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId);
+        verify(archiveCacheStorage, times(1)).tryReadArchive("test-objects", tarId);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
             fileBucketTarCreatorManager, archiveCacheEvictionController, archiveCacheStorage);
@@ -745,11 +893,16 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId1).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        doReturn(Optional.empty())
+            .when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId2).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId2);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -781,9 +934,13 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
@@ -829,11 +986,15 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId1).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId2).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId2);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -870,9 +1031,13 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager, never()).tryReadTar("test-objects", tarId2);
         verify(archiveCacheStorage, never()).tryReadArchive("test-objects", tarId2);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
@@ -918,11 +1083,15 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId1).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId2).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId2);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -959,9 +1128,13 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
@@ -1007,11 +1180,15 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId1).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId2).toFile())))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId2);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -1045,9 +1222,13 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId2);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
@@ -1302,8 +1483,10 @@ public class TapeLibraryContentAddressableStorageTest {
             new TapeLibraryOnTapeArchiveStorageLocation("tape007", 123), 5632L,
             "ed40c36ed8b37fd01723828f6bd327f0d5cf6ba93026f4e3a670534d1b421807e17bf77644aa9a86d560aaf23bd2941bb6b1c48e6b7df9ed0a2cbd9f36cfc199",
             null);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId1);
         doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourceFile("tar/" + tarId1))))
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId1);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         doReturn(true).when(archiveCacheStorage).containsArchive("test-objects", tarId1);
 
         // 2 segments stored on tarId2 "ready_on_disk"
@@ -1318,8 +1501,10 @@ public class TapeLibraryContentAddressableStorageTest {
             new TapeLibraryReadyOnDiskArchiveStorageLocation(), 3072L,
             "0b50f2aa4483856fb2d56dffa631a6bbe82bf13d1c355f29a244fafbd475fa2b48db650fb0b3d510cd15625a247e7e70892274a5b4ee17797d7106f7b0e935a7",
             null);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
         doAnswer((args) -> Optional.of(new FileInputStream(PropertiesUtils.getResourceFile("tar/" + tarId2))))
             .when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId2);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
         doReturn(true).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
 
         // 2 segments stored on tarId3 "building_on_disk"
@@ -1332,8 +1517,10 @@ public class TapeLibraryContentAddressableStorageTest {
                 "b35a5763fc76acec49aa5c2b04b901f50294d4fdcf3f13494fe7ae684097a17b3486fcb2456261fc5bf58edfcffb9208d24c55328d309a7dfcfe0bb1fc24e7da");
         TapeArchiveReferentialEntity tar3ReferentialEntity = new TapeArchiveReferentialEntity(tarId3,
             new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, null);
+        doReturn(Optional.empty()).when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId3);
         doAnswer((args) -> Optional.of(new FileInputStream(PropertiesUtils.getResourceFile("tar/" + tarId3 + ".tmp"))))
             .when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId3);
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId3);
         doReturn(true).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId3);
 
         TapeLibraryObjectReferentialId objectReferentialId =
@@ -1380,11 +1567,17 @@ public class TapeLibraryContentAddressableStorageTest {
         verifyNoMoreInteractions(lockHandle);
 
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId1);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId1);
+        verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId1);
         verify(archiveCacheStorage, times(2)).tryReadArchive("test-objects", tarId1);
         verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId2);
+        verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId2);
         verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId2);
         verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId3);
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId3);
+        verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId3);
         verify(fileBucketTarCreatorManager, times(2)).tryReadTar("test-objects", tarId3);
 
         verifyNoMoreInteractions(basicFileStorage, bucketTopologyHelper,
@@ -1563,6 +1756,8 @@ public class TapeLibraryContentAddressableStorageTest {
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
         doReturn(Optional.empty())
+            .when(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
+        doReturn(Optional.empty())
             .when(archiveCacheStorage).tryReadArchive("test-objects", tarId);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq")).thenReturn(
@@ -1575,6 +1770,7 @@ public class TapeLibraryContentAddressableStorageTest {
             () -> tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"))
             .isInstanceOf(ContentAddressableStorageUnavailableDataFromAsyncOfferException.class);
 
+        verify(fileBucketTarCreatorManager).tryReadTar("test-objects", tarId);
         verify(archiveCacheStorage).tryReadArchive("test-objects", tarId);
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
 
@@ -1615,6 +1811,7 @@ public class TapeLibraryContentAddressableStorageTest {
             null);
 
         doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(false).when(fileBucketTarCreatorManager).containsTar("test-objects", tarId);
         doReturn(false).when(archiveCacheStorage).containsArchive("test-objects", tarId);
 
         when(objectReferentialRepository.find("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq")).thenReturn(
@@ -1635,6 +1832,7 @@ public class TapeLibraryContentAddressableStorageTest {
         verify(lockHandle).release();
         verifyNoMoreInteractions(lockHandle);
 
+        verify(fileBucketTarCreatorManager).containsTar("test-objects", tarId);
         verify(archiveCacheStorage).containsArchive("test-objects", tarId);
         verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
 
