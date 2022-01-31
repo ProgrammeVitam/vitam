@@ -55,7 +55,7 @@ import java.io.InputStream;
 public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER =
-            VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
+        VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
 
     // FIXME P1: the BlobStoreContext should be build for each call, since it is
     // as a HttpClient. For now (Filesystem),
@@ -90,7 +90,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     public void createContainer(String containerName) {
         LOGGER.info(" create container : " + containerName);
         ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         // TODO: is it thread safe ?
         try {
             if (!context.getBlobStore().createContainerInLocation(null, containerName)) {
@@ -118,32 +118,18 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     }
 
     @Override
-    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-                            Long size)
-            throws ContentAddressableStorageException {
+    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
+        long size)
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         final BlobStore blobStore = context.getBlobStore();
         try {
 
-            Digest digest = new Digest(digestType);
-            InputStream digestInputStream = digest.getDigestInputStream(stream);
-
-            final Blob blob = blobStore.blobBuilder(objectName).payload(digestInputStream).build();
+            final Blob blob = blobStore.blobBuilder(objectName).payload(inputStream).build();
 
             blob.getMetadata().getContentMetadata().setContentLength(size);
             blobStore.putBlob(containerName, blob);
-
-            String streamDigest = digest.digestHex();
-
-            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if(!streamDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException("Illegal state for container " + containerName +
-                    " and object " + objectName + ". Stream digest " + streamDigest +
-                    " is not equal to computed digest " + computedDigest);
-            }
-
-            return streamDigest;
 
         } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -153,39 +139,52 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             throw new ContentAddressableStorageException(e);
         } finally {
             closeContext();
-            StreamUtils.closeSilently(stream);
+            StreamUtils.closeSilently(inputStream);
         }
     }
 
     @Override
+    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size) throws ContentAddressableStorageException {
+        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+        if (!objectDigest.equals(computedDigest)) {
+            throw new ContentAddressableStorageException("Illegal state for container " + containerName +
+                " and object " + objectName + ". Stream digest " + objectDigest +
+                " is not equal to computed digest " + computedDigest);
+        }
+        // Jclouds impl does not support digest persistence as object metadata
+    }
+
+    @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
-            throws
-            ContentAddressableStorageException {
+        throws
+        ContentAddressableStorageException {
         return computeObjectDigest(containerName, objectName, digestType);
     }
 
     @Override
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         try {
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
                 throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
             }
 
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null == blob) {
                 throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
             long size = blob.getMetadata().getSize();
             InputStream is = blob.getPayload().openStream();
             return new ObjectContent(is, size);
         } catch (final ContainerNotFoundException e) {
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
         } catch (final ContentAddressableStorageNotFoundException e) {
             throw e;
         } catch (final Exception e) {
@@ -197,15 +196,15 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public void deleteObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         try {
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingContainer(containerName) || !isExistingObject(containerName, objectName)) {
                 throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
 
             blobStore.removeBlob(containerName, objectName);
@@ -232,7 +231,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public abstract ContainerInformation getContainerInformation(String containerName)
-            throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException;
 
     @Override
     public void listContainer(String containerName, ObjectListingListener objectListingListener)

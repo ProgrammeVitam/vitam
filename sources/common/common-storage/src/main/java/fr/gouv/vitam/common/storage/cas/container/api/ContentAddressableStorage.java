@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -67,16 +69,43 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *
      * @param containerName container to place the object.
      * @param objectName fully qualified object name relative to the container.
-     * @param stream the data
+     * @param inputStream the data
      * @param digestType parameter to compute an hash.
      * @param size size off the input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    String putObject(String containerName, String objectName, InputStream stream,
-        DigestType digestType, Long size)
+    void writeObject(String containerName, String objectName, InputStream inputStream,
+        DigestType digestType, long size)
         throws ContentAddressableStorageException;
+
+    /**
+     * Checks objet digest & update persist its digest in object metadata
+     * @param containerName container to place the object.
+     * @param objectName fully qualified object name relative to the container.
+     * @param objectDigest object digest value
+     * @param digestType object digest type
+     * @param size size off the input stream
+     * @throws ContentAddressableStorageException
+     */
+    void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size)
+        throws ContentAddressableStorageException;
+
+
+    @VisibleForTesting
+    default String putObject(String containerName, String objectName, InputStream inputStream,
+        DigestType digestType, long size)
+        throws ContentAddressableStorageException {
+
+        Digest digest = new Digest(digestType);
+        InputStream digestInputStream = digest.getDigestInputStream(inputStream);
+        writeObject(containerName, objectName, digestInputStream, digestType, size);
+        String objectDigest = digest.digestHex();
+        checkObjectDigestAndStoreDigest(containerName, objectName, objectDigest, digestType, size);
+        return objectDigest;
+    }
 
     /**
      * Retrieves an object representing the data at location containerName/objectName

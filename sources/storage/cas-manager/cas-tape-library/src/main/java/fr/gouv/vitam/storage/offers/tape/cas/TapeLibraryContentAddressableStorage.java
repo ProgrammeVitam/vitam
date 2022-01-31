@@ -138,13 +138,13 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     @Override
-    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size) throws ContentAddressableStorageException {
+    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
+        long size) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Upload object %s in container %s", objectName, containerName));
 
 
         Digest digest = new Digest(digestType);
-        InputStream digestInputStream = digest.getDigestInputStream(stream);
+        InputStream digestInputStream = digest.getDigestInputStream(inputStream);
 
         // Persist to disk
         String storageId;
@@ -175,9 +175,13 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 new InputFileToProcessMessage(containerName, objectName, storageId, size, digestValue,
                     digestType.getName()));
         }
+    }
 
-        // All done
-        return digestValue;
+    @Override
+    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
+        DigestType digestType, long size) {
+        // Digest check is done while copying file into TARs
+        // Object digest already persisted
     }
 
     @Override
