@@ -282,14 +282,14 @@ public class ProcessWorkflow {
     }
 
     /**
-     * @return the workflow ID
+     * @return the workflow IDENTIFIER
      */
     public String getWorkflowId() {
         return workflowId;
     }
 
     /**
-     * @param workflowId the workflow ID
+     * @param workflowId the workflow IDENTIFIER
      * @return current instance
      */
     public ProcessWorkflow setWorkflowId(String workflowId) {
