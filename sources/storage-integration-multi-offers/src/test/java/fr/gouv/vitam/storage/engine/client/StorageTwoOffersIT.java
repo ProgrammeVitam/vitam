@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.digest.Digest;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
@@ -114,6 +116,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,6 +124,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 /**
  * StorageTwoOffersIT class
@@ -383,6 +387,32 @@ public class StorageTwoOffersIT {
         //verify Object1 is  deleted in only offer 2
         assertThat(informationObject1.get(SECOND_OFFER_ID)).isNull();
         assertThat(informationObject1.get(OFFER_ID)).isNotNull();
+
+        // Try to download object & object2 in STRATEGY
+        javax.ws.rs.core.Response objectToGetFromStrategy =
+            storageClient.getContainerAsync(STRATEGY_ID, object, OBJECT,
+                AccessLogUtils.getNoLogAccessLog());
+        assertThat(objectToGetFromStrategy.getStatus()).isEqualTo(OK.getStatusCode());
+
+        assertThrows(StorageNotFoundException.class,
+            () -> storageClient.getContainerAsync(STRATEGY_ID, object2, OBJECT,
+                AccessLogUtils.getNoLogAccessLog()));
+
+        // Try to download object & object2 in EVERY OFFER
+        javax.ws.rs.core.Response objectToGetFromOffer1 =
+            storageClient.getContainerAsync(STRATEGY_ID, OFFER_ID, object, OBJECT,
+                AccessLogUtils.getNoLogAccessLog());
+        assertThat(objectToGetFromOffer1.getStatus()).isEqualTo(OK.getStatusCode());
+        assertThrows(StorageNotFoundException.class,
+            () -> storageClient.getContainerAsync(STRATEGY_ID, SECOND_OFFER_ID, object, OBJECT,
+                AccessLogUtils.getNoLogAccessLog()));
+
+        assertThrows(StorageNotFoundException.class,
+            () -> storageClient.getContainerAsync(STRATEGY_ID, OFFER_ID, object2, OBJECT,
+                AccessLogUtils.getNoLogAccessLog()));
+        assertThrows(StorageNotFoundException.class,
+            () -> storageClient.getContainerAsync(STRATEGY_ID, SECOND_OFFER_ID, object2, OBJECT,
+                AccessLogUtils.getNoLogAccessLog()));
     }
 
     @Test
