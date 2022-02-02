@@ -163,6 +163,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return VitamDocument.SEDAVERSION;
                     case IMPLEMENTATIONVERSION:
                         return VitamDocument.IMPLEMENTATIONVERSION;
+                    case FUZZYCD:
+                        return Unit.FUZZY_CREATION_DATE;
+                    case FUZZYUD:
+                        return Unit.FUZZY_UPDATE_DATE;
                     case ALL:
                     default:
                         break;

@@ -176,10 +176,10 @@ public class MongoDbMetadataResponseFilter {
                 case IMPLEMENTATIONVERSION:
                     replace(document, MetadataDocument.IMPLEMENTATIONVERSION, VitamFieldsHelper.implementationVersion());
                     break;
-                case FUZZYCREATIONDATE:
+                case FUZZYCD:
                     replace(document, Unit.FUZZY_CREATION_DATE, VitamFieldsHelper.fuzzyCD());
                     break;
-                case FUZZYUPDATEDATE:
+                case FUZZYUD:
                     replace(document, Unit.FUZZY_UPDATE_DATE, VitamFieldsHelper.fuzzyUD());
                     break;
                 case DUA:
