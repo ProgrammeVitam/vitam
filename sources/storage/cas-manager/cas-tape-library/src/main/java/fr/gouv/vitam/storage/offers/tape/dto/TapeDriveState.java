@@ -29,9 +29,8 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.StatusCode;
+public class TapeDriveState implements TapeDriveSpec {
 
-public class TapeDriveState extends TapeResponse implements TapeDriveSpec {
     private String description;
     private Integer fileNumber;
     private Integer blockNumber;
@@ -43,15 +42,6 @@ public class TapeDriveState extends TapeResponse implements TapeDriveSpec {
     private String statusBits;
     private List<TapeDriveStatus> driveStatuses = new ArrayList<>();
 
-    public TapeDriveState(StatusCode status) {
-        super(status);
-    }
-
-    public TapeDriveState(Object entity, StatusCode status) {
-        super(entity, status);
-    }
-
-    @Override
     public String getDescription() {
         return description;
     }
@@ -130,31 +120,6 @@ public class TapeDriveState extends TapeResponse implements TapeDriveSpec {
     @Override
     public List<TapeDriveStatus> getDriveStatuses() {
         return driveStatuses;
-    }
-
-    @Override
-    public boolean isOK() {
-        return super.isOK();
-    }
-
-    @Override
-    public boolean isWarn() {
-        return super.isWarn();
-    }
-
-    @Override
-    public Object getEntity() {
-        return super.getEntity();
-    }
-
-    @Override
-    public <T> T getEntity(Class<T> entityType) {
-        return super.getEntity(entityType);
-    }
-
-    @Override
-    public boolean hasEntity() {
-        return super.hasEntity();
     }
 
     public void setDriveStatuses(List<TapeDriveStatus> driveStatuses) {

@@ -26,26 +26,23 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
 public interface TapeReadWriteService {
 
     /**
      * @param inputPath mini-path to file from workingDir
-     * @return TapeResponse
+     *
+     * @throws TapeCommandException on command failure
      */
-    TapeResponse writeToTape(String inputPath);
+    void writeToTape(String inputPath) throws TapeCommandException;
 
     /**
-     * @param outputPath in case dd implementation, outputPath is mini-path to file from workingDir. In case of tar implmentation, outputPath is the file inside tar to extrac
-     * @return TapeResponse
+     * @param outputPath in case dd implementation, outputPath is mini-path to file from workingDir. In case of tar implementation, outputPath is the file inside tar to extract
+     *
+     * @throws TapeCommandException on command failure
      */
-    TapeResponse readFromTape(String outputPath);
-
-    ProcessExecutor getExecutor();
+    void readFromTape(String outputPath) throws TapeCommandException;
 
     String getTmpOutputStorageFolder();
-
-    String getInputDirectory();
 }

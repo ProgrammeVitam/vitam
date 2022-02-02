@@ -1,5 +1,4 @@
 {
-  "Status": "OK",
   "Description": "SCSI 2 tape drive:",
   "FileNumber": -1,
   "BlockNumber": -1,
@@ -14,8 +13,6 @@
     "ONLINE",
     "IM_REP_EN"
   ],
-  "Ok": true,
-  "Warn": false,
   "EndOfTape": true,
   "BeginOfTape": false,
   "EndOfData": false,

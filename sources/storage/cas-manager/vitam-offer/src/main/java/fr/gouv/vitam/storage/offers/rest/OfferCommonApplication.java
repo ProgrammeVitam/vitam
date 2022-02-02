@@ -56,7 +56,6 @@ import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OF
 import static fr.gouv.vitam.storage.offers.core.DefaultOfferService.STORAGE_CONF_FILE_NAME;
 
 public class OfferCommonApplication {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferCommonApplication.class);
 
     private static final OfferCommonApplication instance = new OfferCommonApplication();
 
@@ -126,7 +125,6 @@ public class OfferCommonApplication {
                 new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
 
         } catch (Exception e) {
-            LOGGER.error(e);
             throw new VitamRuntimeException(e);
         }
     }

@@ -84,14 +84,4 @@ public interface TapeDriveSpec {
     default boolean isCacheEnabled() {
         return getDriveStatuses().contains(TapeDriveStatus.IM_REP_EN);
     }
-
-    boolean isOK();
-
-    boolean isWarn();
-
-    Object getEntity();
-
-    <T> T getEntity(Class<T> entityType);
-
-    boolean hasEntity();
 }

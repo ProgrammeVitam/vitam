@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.impl.drive.MtTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.DdTapeLibraryService;
-import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
@@ -50,10 +49,9 @@ public class TapeDriveManager implements TapeDriveService {
         ParametersChecker.checkParameter("inputDirectory param is required", inputDirectory);
         ParametersChecker.checkParameter("tmpTarOutputStorageFolder param is required", tmpTarOutputStorageFolder);
         this.tapeDriveConf = tapeDriveConf;
-        ProcessExecutor processExecutor = ProcessExecutor.getInstance();
         this.ddReadWriteService =
-            new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, tmpTarOutputStorageFolder);
-        this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
+            new DdTapeLibraryService(tapeDriveConf, inputDirectory, tmpTarOutputStorageFolder);
+        this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf);
     }
 
     @VisibleForTesting
@@ -69,15 +67,8 @@ public class TapeDriveManager implements TapeDriveService {
     }
 
     @Override
-    public TapeReadWriteService getReadWriteService(ReadWriteCmd readWriteCmd) {
-        ParametersChecker.checkParameter("ReadWriteCmd is required", readWriteCmd);
-        switch (readWriteCmd) {
-            case DD:
-                return ddReadWriteService;
-            default:
-                throw new IllegalArgumentException(readWriteCmd + " not implemented");
-        }
-
+    public TapeReadWriteService getReadWriteService() {
+        return ddReadWriteService;
     }
 
     @Override

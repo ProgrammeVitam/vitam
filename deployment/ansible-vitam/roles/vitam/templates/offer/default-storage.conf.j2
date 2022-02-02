@@ -55,7 +55,6 @@ tapeLibraryConfiguration:
   cachedTarStorageFolder: "{{ vitam_folder_data }}/cachedTars"
   maxTarEntrySize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarEntrySize"] | default(100000) }}
   maxTarFileSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarFileSize"] | default(1000000) }}
-  useSudo: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["useSudo"] | default('false') }}
   forceOverrideNonEmptyCartridges: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["forceOverrideNonEmptyCartridges"] | default('false') }}
   cachedTarMaxStorageSpaceInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarMaxStorageSpaceInMB"] }}
   cachedTarEvictionStorageSpaceThresholdInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarEvictionStorageSpaceThresholdInMB"] }}
@@ -93,7 +92,6 @@ tapeLibraryConfiguration:
           device: {{ drive.device }}
           mtPath: "{{ drive.mtPath }}"
           ddPath: "{{ drive.ddPath }}"
-          tarPath: "{{ drive.tarPath }}"
           timeoutInMilliseconds: {{ drive.timeoutInMilliseconds }}
 {% endfor %}
 {% endfor %}

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeCartridge;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
@@ -56,7 +55,7 @@ public class TapeLibraryStatusParser {
     public TapeLibraryState parse(String output) {
         ParametersChecker.checkParameter("Output param is required", output);
 
-        final TapeLibraryState tapeLibraryState = new TapeLibraryState(StatusCode.OK);
+        final TapeLibraryState tapeLibraryState = new TapeLibraryState();
         for (String s : output.split("\\|")) {
 
             // Slots

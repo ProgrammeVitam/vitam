@@ -7,7 +7,6 @@ tapeLibraryConfiguration:
   cachedTarStorageFolder: "/vitam/data/offer3/cachedTars"
   maxTarEntrySize: 100000
   maxTarFileSize: 1000000
-  useSudo: False
   forceOverrideNonEmptyCartridges: False
   cachedTarMaxStorageSpaceInMB: 1000
   cachedTarEvictionStorageSpaceThresholdInMB: 800
@@ -45,13 +44,11 @@ tapeLibraryConfiguration:
           device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_$SERIAL_NUMBER_DRIVE1$-nst
           mtPath: "/bin/mt"
           ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
           timeoutInMilliseconds: 600000
         -
           index: 1
           device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_$SERIAL_NUMBER_DRIVE2$-nst
           mtPath: "/bin/mt"
           ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
           timeoutInMilliseconds: 600000
 

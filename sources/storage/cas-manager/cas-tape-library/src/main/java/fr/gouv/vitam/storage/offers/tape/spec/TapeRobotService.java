@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
-
-public interface TapeRobotService extends TapeService {
-    TapeRobotConf getTapeRobotConf();
+public interface TapeRobotService {
     TapeLoadUnloadService getLoadUnloadService();
 }

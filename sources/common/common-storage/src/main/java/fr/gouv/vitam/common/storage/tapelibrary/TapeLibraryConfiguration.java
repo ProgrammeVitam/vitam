@@ -74,11 +74,6 @@ public class TapeLibraryConfiguration {
     private long maxTarFileSize = 10_000_000_000L;
 
     /**
-     * Execute tape library command with sudo if true.
-     */
-    private boolean useSudo = false;
-
-    /**
      * Override non empty cartridges before label creation
      */
     private boolean forceOverrideNonEmptyCartridges = false;
@@ -197,15 +192,6 @@ public class TapeLibraryConfiguration {
 
     public TapeLibraryConfiguration setMaxTarFileSize(long maxTarFileSize) {
         this.maxTarFileSize = maxTarFileSize;
-        return this;
-    }
-
-    public boolean isUseSudo() {
-        return useSudo;
-    }
-
-    public TapeLibraryConfiguration setUseSudo(boolean useSudo) {
-        this.useSudo = useSudo;
         return this;
     }
 

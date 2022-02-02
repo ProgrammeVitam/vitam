@@ -196,9 +196,4 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
     private Document toBson(Object object) {
         return Document.parse(JsonHandler.unprettyPrint(object));
     }
-
-    private <T> T fromBson(Document document, Class<T> clazz)
-        throws InvalidParseOperationException {
-        return BsonHelper.fromDocumentToObject(document, clazz);
-    }
 }

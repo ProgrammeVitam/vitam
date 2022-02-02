@@ -29,9 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.StatusCode;
-
-public class TapeLibraryState extends TapeResponse implements TapeLibrarySpec {
+public class TapeLibraryState implements TapeLibrarySpec {
     private String device;
     private int driveCount;
     private int slotsCount;
@@ -39,14 +37,6 @@ public class TapeLibraryState extends TapeResponse implements TapeLibrarySpec {
 
     private List<TapeDrive> drives;
     private List<TapeSlot> slots;
-
-    public TapeLibraryState(StatusCode status) {
-        super(status);
-    }
-
-    public TapeLibraryState(Object entity, StatusCode status) {
-        super(entity, status);
-    }
 
     @Override
     public String getDevice() {
@@ -111,37 +101,11 @@ public class TapeLibraryState extends TapeResponse implements TapeLibrarySpec {
         return drives;
     }
 
-
     public List<TapeSlot> addToSlots(TapeSlot tapeSlot) {
         if (null == slots) {
             slots = new ArrayList<>();
         }
         slots.add(tapeSlot);
         return slots;
-    }
-
-    @Override
-    public boolean isOK() {
-        return super.isOK();
-    }
-
-    @Override
-    public boolean isWarn() {
-        return super.isWarn();
-    }
-
-    @Override
-    public Object getEntity() {
-        return super.getEntity();
-    }
-
-    @Override
-    public <T> T getEntity(Class<T> entityType) {
-        return super.getEntity(entityType);
-    }
-
-    @Override
-    public boolean hasEntity() {
-        return super.hasEntity();
     }
 }

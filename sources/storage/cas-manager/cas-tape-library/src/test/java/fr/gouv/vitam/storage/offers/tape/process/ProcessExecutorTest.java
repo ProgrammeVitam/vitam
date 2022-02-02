@@ -41,7 +41,7 @@ public class ProcessExecutorTest {
     @Test
     public void testExecute() throws IOException {
         String file = "/tmp/" + GUIDFactory.newGUID().getId() + ".test";
-        Output out = ProcessExecutor.getInstance().execute("/bin/touch", false, 100l, Lists.newArrayList(file));
+        Output out = ProcessExecutor.getInstance().execute("/bin/touch", 100L, Lists.newArrayList(file));
         Assertions.assertThat(out).isNotNull();
         Assertions.assertThat(out.getExitCode()).isEqualTo(0);
 
@@ -58,7 +58,7 @@ public class ProcessExecutorTest {
 
         System.err.println("============================");
 
-        out = ProcessExecutor.getInstance().execute("/bin/cat", false, true, 30000l, Lists.newArrayList(file));
+        out = ProcessExecutor.getInstance().execute("/bin/cat", true, 30000L, Lists.newArrayList(file));
 
         Assertions.assertThat(out.getStdout())
             .contains("fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService");

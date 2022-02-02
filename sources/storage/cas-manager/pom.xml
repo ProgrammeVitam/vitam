@@ -15,5 +15,6 @@
 		<module>cas-manager-drivers</module>
 		<module>vitam-offer</module>
 		<module>cas-tape-library</module>
+		<module>cas-tape-library-simulator</module>
 	</modules>
 </project>

@@ -45,40 +45,18 @@ public class ProcessExecutor {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessExecutor.class);
 
     private final static ProcessExecutor instance = new ProcessExecutor();
-    public static final String SUDO = "sudo";
 
     public static ProcessExecutor getInstance() {
         return instance;
     }
 
-    /**
-     * @param commandPath
-     * @param asSudo
-     * @param timeoutInMilliseconds
-     * @param args
-     * @return
-     */
-    public Output execute(String commandPath, boolean asSudo, long timeoutInMilliseconds, List<String> args) {
-        return execute(commandPath, asSudo, false, timeoutInMilliseconds, args);
+    public Output execute(String commandPath, long timeoutInMilliseconds, List<String> args) {
+        return execute(commandPath, false, timeoutInMilliseconds, args);
     }
 
-    /**
-     * @param commandPath
-     * @param asSudo
-     * @param redirectStreamToFile
-     * @param timeoutInMilliseconds
-     * @param args
-     * @return
-     */
-    public Output execute(String commandPath, boolean asSudo, boolean redirectStreamToFile, long timeoutInMilliseconds,
+    public Output execute(String commandPath, boolean redirectStreamToFile, long timeoutInMilliseconds,
         List<String> args) {
-        List<String> command;
-        if (asSudo) {
-            command = Lists.newArrayList(SUDO, commandPath);
-        } else {
-            command = Lists.newArrayList(commandPath);
-
-        }
+        List<String> command = Lists.newArrayList(commandPath);
 
         if (!CollectionUtils.isEmpty(args)) {
             command.addAll(args);

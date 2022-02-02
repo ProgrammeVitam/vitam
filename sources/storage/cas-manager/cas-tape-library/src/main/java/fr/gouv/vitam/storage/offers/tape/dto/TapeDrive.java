@@ -39,16 +39,18 @@ public class TapeDrive {
         return index;
     }
 
-    public void setIndex(Integer index) {
+    public TapeDrive setIndex(Integer index) {
         ParametersChecker.checkParameter("index param is required", index);
         this.index = index;
+        return this;
     }
 
     public TapeCartridge getTape() {
         return tape;
     }
 
-    public void setTape(TapeCartridge tape) {
+    public TapeDrive setTape(TapeCartridge tape) {
         this.tape = tape;
+        return this;
     }
 }

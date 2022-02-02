@@ -397,9 +397,8 @@ La description "tapeLibraryConfiguration" débute par la définition des répert
 * **tmpTarOutputStorageFolder** Répertoire temporaire où seront rapatriés les `tars` depuis les bandes durant leur écriture.
 * **cachedTarStorageFolder** Répertoire de cache de où seront stockées une copie disque des `tars` archivés sur bandes.
 * **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
-* **maxTarFileSize** Taile maximale des `tars` à constituer, en octets.
+* **maxTarFileSize** Taille maximale des `tars` à constituer, en octets.
 * **forceOverrideNonEmptyCartridge** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
-* **useSudo** Réservé à un usage futur – laisser à *false*.
 
 .. note:: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
 
@@ -415,7 +414,6 @@ Exemple:
         maxTarEntrySize: 10000000
         maxTarFileSize: 10000000000
         ForceOverrideNonEmptyCartridge: False
-        useSudo: false
 ..
 
 Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
@@ -452,7 +450,6 @@ Enfin, la définition des équipements robotiques proprement dite doit être ré
 *   **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
 *   **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
 *   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
-*   **tarPath:** Chemin vers la commande Linux de création d'archives tar.
 *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
 
 Exemple:
@@ -472,28 +469,24 @@ Exemple:
                 device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
-                tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
               -
                 index: 1
                 device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
-                tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
               -
                 index: 2
                 device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
-                tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
               -
                 index: 3
                 device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
-                tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
 ..
 

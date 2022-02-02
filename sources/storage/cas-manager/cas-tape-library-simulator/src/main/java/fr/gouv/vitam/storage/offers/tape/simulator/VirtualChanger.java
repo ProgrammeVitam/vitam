@@ -24,74 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.dto;
+package fr.gouv.vitam.storage.offers.tape.simulator;
 
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
+public class VirtualChanger {
 
-public class TapeResponse {
+    private VirtualChangerState changerState;
 
-    private Object entity;
-    private StatusCode status;
-    private ReadWriteErrorCode errorCode;
-
-    public TapeResponse(StatusCode status) {
-        this.status = status;
+    public VirtualChanger() {
     }
 
-    public TapeResponse(Object entity, StatusCode status) {
-        this.entity = entity;
-        this.status = status;
+    public VirtualChangerState getChangerStatus() {
+        return changerState;
     }
 
-    public TapeResponse(ReadWriteErrorCode errorCode, StatusCode status) {
-        this.errorCode = errorCode;
-        this.status = status;
-    }
-
-    public TapeResponse(Object entity, ReadWriteErrorCode errorCode, StatusCode status) {
-        this.entity = entity;
-        this.errorCode = errorCode;
-        this.status = status;
-    }
-
-    public <T> T getEntity(Class<T> entityType) {
-        if (!(entity instanceof String) && entityType.isAssignableFrom(String.class)) {
-            return entityType.cast(JsonHandler.unprettyPrint(entity));
-        }
-        return entityType.cast(entity);
-    }
-
-    public Object getEntity() {
-        return entity;
-    }
-
-    public void setEntity(Object entity) {
-        this.entity = entity;
-    }
-
-    public boolean hasEntity() {
-        return entity != null;
-    }
-
-    public StatusCode getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusCode status) {
-        this.status = status;
-    }
-
-    public boolean isOK() {
-        return StatusCode.OK.equals(getStatus());
-    }
-
-    public boolean isWarn() {
-        return StatusCode.WARNING.equals(getStatus());
-    }
-
-    public ReadWriteErrorCode getErrorCode() {
-        return errorCode;
+    public VirtualChanger setChangerStatus(VirtualChangerState changerState) {
+        this.changerState = changerState;
+        return this;
     }
 }
