@@ -171,7 +171,6 @@ vitam_offers:
       # Background access request cleanup task interval delay & unit
       accessRequestCleanupTaskIntervalDelay: 15
       accessRequestCleanupTaskIntervalUnit: MINUTES
-      useSudo: false
     topology:
       buckets:
         -
@@ -200,7 +199,6 @@ vitam_offers:
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
             mtPath: "/bin/mt"
             ddPath: "/bin/dd"
-            tarPath: "/bin/tar"
             timeoutInMilliseconds: 3600000
             readWritePriority: BACKUP
           -
@@ -208,7 +206,6 @@ vitam_offers:
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
             mtPath: "/bin/mt"
             ddPath: "/bin/dd"
-            tarPath: "/bin/tar"
             timeoutInMilliseconds: 3600000
             readWritePriority: READ
           -
@@ -216,14 +213,12 @@ vitam_offers:
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
             mtPath: "/bin/mt"
             ddPath: "/bin/dd"
-            tarPath: "/bin/tar"
             timeoutInMilliseconds: 3600000
           -
             index: 3
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
             mtPath: "/bin/mt"
             ddPath: "/bin/dd"
-            tarPath: "/bin/tar"
             readWritePriority: READ
             timeoutInMilliseconds: 3600000
     offer_log_compaction:

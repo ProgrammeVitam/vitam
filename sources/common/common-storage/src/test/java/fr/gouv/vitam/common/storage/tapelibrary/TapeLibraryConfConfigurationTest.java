@@ -63,12 +63,12 @@ public class TapeLibraryConfConfigurationTest {
             .containsExactly("/dev/tape/by-id/scsi-1QUANTUM_B4D282EF285E4365BBA90000");
 
         assertThat(tapeLibraryConf.getDrives())
-            .extracting("device", "mtPath", "ddPath", "tarPath", "timeoutInMilliseconds")
+            .extracting("device", "mtPath", "ddPath", "timeoutInMilliseconds")
             .containsExactly(
-                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800001-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
-                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800002-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
-                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800003-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
-                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800004-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L)
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800001-nst", "/bin/mt", "/bin/dd", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800002-nst", "/bin/mt", "/bin/dd", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800003-nst", "/bin/mt", "/bin/dd", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800004-nst", "/bin/mt", "/bin/dd", 3600000L)
             );
     }
 }

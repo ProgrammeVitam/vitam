@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
-public interface TapeLoadUnloadService extends TapeRobotSafeCommandService {
+public interface TapeLoadUnloadService {
 
-    TapeResponse loadTape(String tapeIndex, String driveIndex);
+    TapeLibrarySpec status() throws TapeCommandException;
 
-    TapeResponse unloadTape(String tapeIndex, String driveIndex);
+    void loadTape(int slotNumber, int driveIndex) throws TapeCommandException;
 
-    TapeResponse loadTape(Integer tapeIndex, Integer driveIndex);
-
-    TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex);
+    void unloadTape(int slotNumber, int driveIndex) throws TapeCommandException;
 
 }

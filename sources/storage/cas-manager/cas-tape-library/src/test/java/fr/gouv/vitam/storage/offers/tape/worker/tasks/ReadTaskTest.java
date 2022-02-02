@@ -39,10 +39,9 @@ import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -129,7 +128,7 @@ public class ReadTaskTest {
 
     @Before
     public void setUp() throws IOException {
-        when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
+        when(tapeDriveService.getReadWriteService())
             .thenAnswer(o -> tapeReadWriteService);
 
         tmpTarOutputDir = temporaryFolder.newFolder("tmpTarOutput");
@@ -202,17 +201,15 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
+        doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
@@ -271,29 +268,25 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeDriveCommandService).eject();
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
@@ -331,8 +324,7 @@ public class ReadTaskTest {
     }
 
     @Test
-    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsBusy()
-        throws InterruptedException, QueueException, TapeCatalogException {
+    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsBusy() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
@@ -353,30 +345,24 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
             .thenReturn(List.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
+        doNothing().when(tapeDriveCommandService).eject();
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -391,7 +377,7 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsUnknown()
-        throws InterruptedException, QueueException, TapeCatalogException {
+        throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
@@ -407,30 +393,24 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
             .thenReturn(Collections.emptyList());
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeDriveCommandService).eject();
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -444,8 +424,7 @@ public class ReadTaskTest {
     }
 
     @Test
-    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTapeCatalogThrownException()
-        throws InterruptedException, QueueException {
+    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTapeCatalogThrownException() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
@@ -461,27 +440,22 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenThrow(QueueException.class);
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeDriveCommandService).eject();
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -495,8 +469,7 @@ public class ReadTaskTest {
     }
 
     @Test
-    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsOutside()
-        throws InterruptedException, QueueException {
+    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsOutside() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
@@ -517,28 +490,23 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
 
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).eject();
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -575,29 +543,23 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doThrow(new TapeCommandException("error")).when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
+        doNothing().when(tapeDriveCommandService).eject();
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
+        when(tapeDriveCommandService.status()).thenReturn(new TapeDriveState());
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -634,31 +596,25 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
-        TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeDriveCommandService).eject();
+        doThrow(new TapeCommandException("error")).when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
+        TapeDriveState tapeDriveState = new TapeDriveState();
         tapeDriveState.setDriveStatuses(List.of(TapeDriveStatus.ONLINE));
-        when(tapeDriveCommandService.status())
-            .thenReturn(tapeDriveState);
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.status()).thenReturn(tapeDriveState);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -694,29 +650,24 @@ public class ReadTaskTest {
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
-        when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-            .thenReturn(new TapeResponse(StatusCode.FATAL));
+        doThrow(new TapeCommandException("error"))
+            .when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState(StatusCode.OK));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        TapeRobotService tapeRobotService = mock(TapeRobotService.class);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
+        doNothing().when(tapeDriveCommandService).eject();
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
+        when(tapeRobotService.getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
+        when(tapeDriveCommandService.status()).thenReturn(new TapeDriveState());
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
@@ -755,28 +706,27 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         when(tapeCatalogService.receive(any(), any()))
             .thenReturn(Optional.of(tapeCatalog));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
             .thenReturn(mock(TapeRobotService.class));
+        TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(mock(TapeLoadUnloadService.class));
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService)
+            .loadTape(anyInt(), anyInt());
 
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
@@ -835,7 +785,7 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 
@@ -876,17 +826,15 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
-        when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+        doNothing().when(tapeDriveCommandService).rewind();
+        doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
+        doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
@@ -905,7 +853,7 @@ public class ReadTaskTest {
         doAnswer(
             invocationOnMock -> {
                 fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return new TapeResponse(StatusCode.OK);
+                return null;
             }
         ).when(tapeReadWriteService).readFromTape(any());
 

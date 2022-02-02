@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.drive;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -55,6 +54,11 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
 
+    public MtTapeLibraryService(TapeDriveConf tapeDriveConf) {
+        this(tapeDriveConf, ProcessExecutor.getInstance());
+    }
+
+    @VisibleForTesting
     public MtTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
         ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
@@ -62,24 +66,22 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeDriveSpec status() {
+    public TapeDriveSpec status() throws TapeCommandException {
 
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), STATUS);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
+            this.processExecutor.execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         return parseTapeDriveState(output);
     }
 
     @Override
-    public TapeResponse move(Integer position, boolean isBackward) {
+    public void move(int position, boolean isBackward) throws TapeCommandException {
         ParametersChecker.checkParameter("Arguments position is required", position);
         if (position < 1) {
-            return new TapeResponse("position sould be a positive integer", StatusCode.KO);
+            throw new TapeCommandException("position should be a positive integer");
         }
 
         List<String> args;
@@ -89,10 +91,13 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
             args = buildMoveForwardArgs(position);
         }
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
-        return parseCommonResponse(output);
+            this.processExecutor.execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not move tape " + position + " entries " + (isBackward ? "backward" : "forward")
+                    + " in device " + tapeDriveConf.getDevice(), output);
+        }
     }
 
     private List<String> buildMoveForwardArgs(int position) {
@@ -116,64 +121,40 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeResponse rewind() {
-
-        return execute(REWIND);
+    public void rewind() throws TapeCommandException {
+        execute(REWIND);
     }
 
     @Override
-    public TapeResponse goToEnd() {
-
-        return execute(EOD);
+    public void goToEnd() throws TapeCommandException {
+        execute(EOD);
     }
 
     @Override
-    public TapeResponse eject() {
-        return execute(OFFLINE);
+    public void eject() throws TapeCommandException {
+        execute(OFFLINE);
     }
 
-    private TapeResponse execute(String option) {
+    private void execute(String option) throws TapeCommandException {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), option);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
-        return parseCommonResponse(output);
-    }
+            this.processExecutor.execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
-
-    @Override
-    public ProcessExecutor getExecutor() {
-        return processExecutor;
-    }
-
-
-    private TapeDriveSpec parseTapeDriveState(Output output) {
-        if (output.getExitCode() == 0) {
-            final TapeDriveStatusParser tapeDriveStatusParser = new TapeDriveStatusParser();
-            TapeDriveState tapeDriveState = tapeDriveStatusParser.parse(output.getStdout());
-            tapeDriveState.setEntity(output);
-            return tapeDriveState;
-        } else {
-            TapeDriveState tapeDriveState =
-                new TapeDriveState(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
-            tapeDriveState.setEntity(output);
-            return tapeDriveState;
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not execute command " + option + " on device " + tapeDriveConf.getDevice(), output);
         }
     }
 
-    private TapeResponse parseCommonResponse(Output output) {
-        TapeResponse response;
-
-        if (output.getExitCode() == 0) {
-            response = new TapeResponse(output, StatusCode.OK);
-        } else {
-            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+    private TapeDriveSpec parseTapeDriveState(Output output) throws TapeCommandException {
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException("Could not retrieve status for drive " + tapeDriveConf.getDevice(), output);
         }
 
-        return response;
+        final TapeDriveStatusParser tapeDriveStatusParser = new TapeDriveStatusParser();
+        return tapeDriveStatusParser.parse(output.getStdout());
     }
 }

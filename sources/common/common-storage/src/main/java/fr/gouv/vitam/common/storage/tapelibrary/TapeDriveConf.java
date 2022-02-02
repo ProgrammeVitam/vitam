@@ -37,10 +37,6 @@ public class TapeDriveConf {
     private String device;
     private String mtPath = "mt";
     private String ddPath = "dd";
-    private String tarPath = "tar";
-
-    @JsonIgnore
-    private boolean useSudo = true;
 
     private ReadWritePriority readWritePriority = ReadWritePriority.WRITE;
 
@@ -80,14 +76,6 @@ public class TapeDriveConf {
         this.ddPath = ddPath;
     }
 
-    public String getTarPath() {
-        return tarPath;
-    }
-
-    public void setTarPath(String tarPath) {
-        this.tarPath = tarPath;
-    }
-
     public ReadWritePriority getReadWritePriority() {
         return readWritePriority;
     }
@@ -102,13 +90,5 @@ public class TapeDriveConf {
 
     public void setTimeoutInMilliseconds(long timeoutInMilliseconds) {
         this.timeoutInMilliseconds = timeoutInMilliseconds;
-    }
-
-    public boolean isUseSudo() {
-        return useSudo;
-    }
-
-    public void setUseSudo(boolean useSudo) {
-        this.useSudo = useSudo;
     }
 }

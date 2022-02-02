@@ -34,10 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeDrivePool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeLibraryPoolImpl implements TapeLibraryPool {

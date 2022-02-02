@@ -129,7 +129,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
     }
 
     @Test
-    public void initializeNonExistingFileBucketDirectories() throws Exception {
+    public void initializeNonExistingFileBucketDirectories() {
 
         // Given
 

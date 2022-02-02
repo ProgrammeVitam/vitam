@@ -24,8 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.offers.tape.simulator;
 
-public interface TapeService {
+public class VirtualSlot {
 
+    private final int slotNumber;
+    private VirtualSlotState state;
+    private VirtualTape currentTape;
+
+    public VirtualSlot(int slotNumber) {
+        this.slotNumber = slotNumber;
+    }
+
+    public int getSlotNumber() {
+        return slotNumber;
+    }
+
+    public VirtualSlotState getState() {
+        return state;
+    }
+
+    public VirtualSlot setState(VirtualSlotState state) {
+        this.state = state;
+        return this;
+    }
+
+    public VirtualTape getCurrentTape() {
+        return currentTape;
+    }
+
+    public VirtualSlot setCurrentTape(VirtualTape currentTape) {
+        this.currentTape = currentTape;
+        return this;
+    }
 }

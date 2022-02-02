@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.storage.offers.tape;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
@@ -55,8 +54,8 @@ import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
@@ -85,18 +84,19 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class TapeLibraryFactory {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
-
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
     private static final long MB_BYTES = 1_000_000L;
 
+    private final TapeServiceCreator defaultTapeServiceCreator = new TapeServiceCreatorImpl();
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
+
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
     private BackupFileStorage backupFileStorage;
     private TapeCatalogService tapeCatalogService;
     private AccessRequestManager accessRequestManager;
     private ArchiveCacheStorage archiveCacheStorage;
+    private TapeServiceCreator tapeServiceCreator = defaultTapeServiceCreator;
 
     private TapeLibraryFactory() {
     }
@@ -202,16 +202,13 @@ public class TapeLibraryFactory {
             ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
 
             for (TapeRobotConf tapeRobotConf : tapeLibraryConf.getRobots()) {
-                tapeRobotConf.setUseSudo(configuration.isUseSudo());
-                final TapeRobotService robotService = new TapeRobotManager(tapeRobotConf);
+                final TapeRobotService robotService = this.tapeServiceCreator.createRobotService(tapeRobotConf);
                 robotServices.add(robotService);
             }
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
-                tapeDriveConf.setUseSudo(configuration.isUseSudo());
-
-                final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
-                    configuration.getInputTarStorageFolder(), configuration.getTmpTarOutputStorageFolder());
+                final TapeDriveService tapeDriveService =
+                    this.tapeServiceCreator.createTapeDriveService(configuration, tapeDriveConf);
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 
@@ -231,18 +228,16 @@ public class TapeLibraryFactory {
                     try {
                         TapeLibrarySpec libraryState = robot.getLoadUnloadService().status();
 
-                        if (!libraryState.isOK()) {
-                            throw new RuntimeException("Robot status command return ko :" +
-                                JsonHandler.unprettyPrint(libraryState.getEntity()));
-                        }
-
                         driveTape = tapeCatalogService.init(tapeLibraryIdentifier, libraryState);
+
+                    } catch (TapeCommandException e) {
+                        throw new RuntimeException("Robot status command return ko :" +
+                            JsonHandler.unprettyPrint(e.getDetails()), e);
                     } finally {
                         libraryPool.pushRobotService(robot);
                     }
                 }
             } catch (InterruptedException | TapeCatalogException e) {
-                LOGGER.error(e);
                 throw new RuntimeException(e);
             }
 
@@ -311,11 +306,10 @@ public class TapeLibraryFactory {
     private void forceRewindOnBootstrap(ConcurrentHashMap<Integer, TapeDriveService> driveServices,
         Map<Integer, TapeCatalog> driveTape) {
         driveTape.keySet().forEach(driveIndex -> {
-            TapeResponse rewindResponse =
+            try {
                 driveServices.get(driveIndex).getDriveCommandService().rewind();
-
-            if (!rewindResponse.isOK()) {
-                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(rewindResponse));
+            } catch (TapeCommandException e) {
+                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(e.getDetails()), e);
             }
         });
     }
@@ -334,5 +328,38 @@ public class TapeLibraryFactory {
 
     public ArchiveCacheStorage getArchiveCacheStorage() {
         return archiveCacheStorage;
+    }
+
+    @VisibleForTesting
+    public void overrideTapeServiceCreatorForTesting(TapeServiceCreator tapeServiceCreator) {
+        this.tapeServiceCreator = tapeServiceCreator;
+    }
+
+    @VisibleForTesting
+    public void resetTapeServiceCreatorAfterTesting() {
+        this.tapeServiceCreator = defaultTapeServiceCreator;
+    }
+
+    public interface TapeServiceCreator {
+
+        TapeRobotService createRobotService(TapeRobotConf tapeRobotConf);
+
+        TapeDriveService createTapeDriveService(TapeLibraryConfiguration configuration, TapeDriveConf tapeDriveConf);
+    }
+
+
+    private final static class TapeServiceCreatorImpl implements TapeServiceCreator {
+
+        @Override
+        public TapeRobotService createRobotService(TapeRobotConf tapeRobotConf) {
+            return new TapeRobotManager(tapeRobotConf);
+        }
+
+        @Override
+        public TapeDriveService createTapeDriveService(TapeLibraryConfiguration configuration,
+            TapeDriveConf tapeDriveConf) {
+            return new TapeDriveManager(tapeDriveConf,
+                configuration.getInputTarStorageFolder(), configuration.getTmpTarOutputStorageFolder());
+        }
     }
 }

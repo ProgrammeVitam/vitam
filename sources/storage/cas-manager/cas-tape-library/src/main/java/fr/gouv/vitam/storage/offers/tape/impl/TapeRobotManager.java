@@ -35,11 +35,10 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeRobotManager implements TapeRobotService {
+
     private final TapeLoadUnloadService tapeLoadUnloadService;
-    private final TapeRobotConf tapeRobotConf;
 
     public TapeRobotManager(TapeRobotConf tapeRobotConf) {
-        this.tapeRobotConf = tapeRobotConf;
         ParametersChecker.checkParameter("All params are required", tapeRobotConf);
         this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRobotConf, ProcessExecutor.getInstance());
     }
@@ -48,13 +47,7 @@ public class TapeRobotManager implements TapeRobotService {
     @VisibleForTesting
     public TapeRobotManager(TapeRobotConf tapeRobotConf, TapeLoadUnloadService tapeLoadUnloadService) {
         ParametersChecker.checkParameter("All params are required", tapeRobotConf, tapeLoadUnloadService);
-        this.tapeRobotConf = tapeRobotConf;
         this.tapeLoadUnloadService = tapeLoadUnloadService;
-    }
-
-    @Override
-    public TapeRobotConf getTapeRobotConf() {
-        return tapeRobotConf;
     }
 
     @Override

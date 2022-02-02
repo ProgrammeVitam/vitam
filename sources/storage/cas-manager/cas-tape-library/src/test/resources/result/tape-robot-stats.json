@@ -1,5 +1,4 @@
 {
-  "Status": "OK",
   "Device" : "/dev/tape/by-id/scsi-1QUANTUM_B4D282EF285E4365BBA90000",
   "DriveCount" : 4,
   "SlotsCount" : 84,
@@ -297,7 +296,5 @@
   }, {
     "Index" : 84,
     "StorageElementType" : "IMPORTEXPORT"
-  } ],
-  "Ok": true,
-  "Warn": false
+  } ]
 }

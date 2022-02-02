@@ -38,9 +38,6 @@ public class TapeRobotConf {
     private String mtxPath = "mtx";
     private long timeoutInMilliseconds = 60000;
 
-    @JsonIgnore
-    private boolean useSudo = false;
-
     public String getDevice() {
         return device;
     }
@@ -64,13 +61,5 @@ public class TapeRobotConf {
 
     public void setTimeoutInMilliseconds(long timeoutInMilliseconds) {
         this.timeoutInMilliseconds = timeoutInMilliseconds;
-    }
-
-    public boolean isUseSudo() {
-        return useSudo;
-    }
-
-    public void setUseSudo(boolean useSudo) {
-        this.useSudo = useSudo;
     }
 }

@@ -386,7 +386,6 @@ public class LRUCacheTest {
         // When / Then
         assertThatThrownBy(() -> instance.reserveEntry(createEntry("key5", 300)))
             .isInstanceOf(IllegalStateException.class);
-        CountDownLatch evictionOracleInitializationCountDownLatch = new CountDownLatch(1);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
 

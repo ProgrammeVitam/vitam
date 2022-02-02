@@ -67,7 +67,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
         "Missing or wrong search criteria";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogResource.class);
 
-    private TapeCatalogService tapeCatalogService;
+    private final TapeCatalogService tapeCatalogService;
 
     /**
      * Constructor
@@ -107,7 +107,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
-            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
 
             TapeCatalog tapeCatalog = tapeCatalogService.findById(tapeId);
             if (tapeCatalog == null) {
@@ -143,7 +143,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
-            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
             responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.find(criteria))));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
@@ -238,7 +238,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     public Response createTape(TapeCatalog tapeCatalog) {
 
         try {
-            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
 
             tapeCatalogService.create(tapeCatalog);
             return Response.status(Status.OK).entity(responseOK).build();

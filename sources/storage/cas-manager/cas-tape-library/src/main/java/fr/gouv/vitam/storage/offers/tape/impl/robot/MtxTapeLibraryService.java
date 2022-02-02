@@ -26,21 +26,19 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.robot;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeLibraryStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
+
+import java.util.List;
 
 public class MtxTapeLibraryService implements TapeLoadUnloadService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtxTapeLibraryService.class);
@@ -59,87 +57,55 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     }
 
     @Override
-    public synchronized TapeLibrarySpec status() {
+    public TapeLibrarySpec status() throws TapeCommandException {
         List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), STATUS);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
             tapeRobotConf.getTimeoutInMilliseconds(),
             args);
-        Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(), true,
-                tapeRobotConf.getTimeoutInMilliseconds(), args);
+        Output output = this.processExecutor
+            .execute(tapeRobotConf.getMtxPath(), true, tapeRobotConf.getTimeoutInMilliseconds(), args);
         return parseTapeLibraryState(output);
     }
 
     @Override
-    public synchronized TapeResponse loadTape(String tapeIndex, String driveIndex) {
-        ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
+    public void loadTape(int slotNumber, int driveIndex) throws TapeCommandException {
 
-        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), LOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
-            tapeRobotConf.getTimeoutInMilliseconds(),
-            args);
-        Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
-                tapeRobotConf.getTimeoutInMilliseconds(), args);
+        Output output = executeCommand(slotNumber, driveIndex, LOAD);
 
-        return parseCommonResponse(output);
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not load tape from slot " + slotNumber + " into drive " + driveIndex, output);
+        }
     }
 
     @Override
-    public synchronized TapeResponse unloadTape(String tapeIndex, String driveIndex) {
-        ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
+    public void unloadTape(int slotNumber, int driveIndex) throws TapeCommandException {
 
-        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), UNLOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
-            tapeRobotConf.getTimeoutInMilliseconds(),
-            args);
+        Output output = executeCommand(slotNumber, driveIndex, UNLOAD);
 
-        Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
-                tapeRobotConf.getTimeoutInMilliseconds(), args);
-
-        return parseCommonResponse(output);
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not unload tape from drive " + driveIndex + " into slot " + slotNumber, output);
+        }
     }
 
-    @Override
-    public synchronized TapeResponse loadTape(Integer tapeIndex, Integer driveIndex) {
-        return loadTape(tapeIndex.toString(), driveIndex.toString());
-    }
+    private TapeLibrarySpec parseTapeLibraryState(Output output) throws TapeCommandException {
 
-    @Override
-    public synchronized TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex) {
-        return unloadTape(tapeIndex.toString(), driveIndex.toString());
-    }
-
-    @Override
-    public ProcessExecutor getExecutor() {
-        return processExecutor;
-    }
-
-    private TapeResponse parseCommonResponse(Output output) {
-        TapeResponse response;
-        if (output.getExitCode() == 0) {
-            response = new TapeResponse(output, StatusCode.OK);
-        } else {
-            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not retrieve tape library status", output);
         }
 
-        return response;
+        final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
+        return tapeLibraryStatusParser.parse(output.getStdout());
     }
 
+    private Output executeCommand(int tapeIndex, int driveIndex, String command) {
+        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), command,
+            Integer.toString(tapeIndex), Integer.toString(driveIndex));
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
+            tapeRobotConf.getTimeoutInMilliseconds(), args);
 
-    private TapeLibrarySpec parseTapeLibraryState(Output output) {
-        if (output.getExitCode() == 0) {
-            final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
-            TapeLibraryState tapeLibraryState = tapeLibraryStatusParser.parse(output.getStdout());
-            tapeLibraryState.setStatus(StatusCode.OK);
-            tapeLibraryState.setEntity(output);
-            return tapeLibraryState;
-        } else {
-            TapeLibraryState tapeLibraryState =
-                new TapeLibraryState(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
-            tapeLibraryState.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
-            return tapeLibraryState;
-        }
+        return this.processExecutor.execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
     }
 }

@@ -40,24 +40,27 @@ public class TapeSlot {
         return index;
     }
 
-    public void setIndex(Integer index) {
+    public TapeSlot setIndex(Integer index) {
         ParametersChecker.checkParameter("index param is required", index);
         this.index = index;
+        return this;
     }
 
     public TapeCartridge getTape() {
         return tape;
     }
 
-    public void setTape(TapeCartridge tape) {
+    public TapeSlot setTape(TapeCartridge tape) {
         this.tape = tape;
+        return this;
     }
 
     public TapeSlotType getStorageElementType() {
         return storageElementType;
     }
 
-    public void setStorageElementType(TapeSlotType storageElementType) {
+    public TapeSlot setStorageElementType(TapeSlotType storageElementType) {
         this.storageElementType = storageElementType;
+        return this;
     }
 }

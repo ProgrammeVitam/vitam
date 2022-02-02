@@ -52,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -63,7 +62,7 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
     private static final String UNIT_CONTAINER = "0_unit";
     private static final String OBJECT_GROUP_CONTAINER = "0_objectGroup";
     private static final String FILE_1 = "file1";
-    private static String DIGEST_TYPE = DigestType.SHA512.getName();
+    private static final String DIGEST_TYPE = DigestType.SHA512.getName();
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();

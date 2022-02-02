@@ -41,14 +41,4 @@ public interface TapeLibrarySpec {
     List<TapeDrive> getDrives();
 
     List<TapeSlot> getSlots();
-
-    boolean isOK();
-
-    boolean isWarn();
-
-    Object getEntity();
-
-    <T> T getEntity(Class<T> entityType);
-
-    boolean hasEntity();
 }

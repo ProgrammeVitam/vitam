@@ -24,15 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.offers.tape.simulator;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
-import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface TapeRobotSafeCommandService {
+public class VirtualTape {
 
-    TapeLibrarySpec status();
+    private final String volumeTag;
+    private final String alternateVolumeTag;
+    private final int maxCapacity;
 
-    ProcessExecutor getExecutor();
+    private final List<Path> persistedFiles;
+    private int usedCapacity;
+
+    public VirtualTape(String volumeTag, String alternateVolumeTag, int maxCapacity) {
+        this.volumeTag = volumeTag;
+        this.alternateVolumeTag = alternateVolumeTag;
+        this.maxCapacity = maxCapacity;
+
+        this.persistedFiles = new ArrayList<>();
+        this.usedCapacity = 0;
+    }
+
+    public String getVolumeTag() {
+        return volumeTag;
+    }
+
+    public String getAlternateVolumeTag() {
+        return alternateVolumeTag;
+    }
+
+    public int getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public List<Path> getPersistedFiles() {
+        return persistedFiles;
+    }
+
+    public int getUsedCapacity() {
+        return usedCapacity;
+    }
+
+    public VirtualTape setUsedCapacity(int usedCapacity) {
+        this.usedCapacity = usedCapacity;
+        return this;
+    }
 }

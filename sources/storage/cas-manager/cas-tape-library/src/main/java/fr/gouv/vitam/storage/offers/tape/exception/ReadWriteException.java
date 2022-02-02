@@ -26,49 +26,31 @@
  */
 package fr.gouv.vitam.storage.offers.tape.exception;
 
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-
 public class ReadWriteException extends Exception {
 
     private final ReadWriteErrorCode readWriteErrorCode;
-    private final TapeResponse tapeResponse;
-
-    public ReadWriteException(Throwable cause) {
-        super(cause);
-        this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
-        this.tapeResponse = new TapeResponse(StatusCode.FATAL);
-    }
 
     public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode) {
         super(message);
         this.readWriteErrorCode = readWriteErrorCode;
-        this.tapeResponse = new TapeResponse(StatusCode.FATAL);
     }
 
-    public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode, TapeResponse tapeResponse) {
-        super(message);
-        this.tapeResponse = tapeResponse;
+    public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode, Throwable cause) {
+        super(message, cause);
         this.readWriteErrorCode = readWriteErrorCode;
     }
 
     public ReadWriteException(String message, Throwable cause) {
         super(message, cause);
         this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
-        this.tapeResponse = new TapeResponse(StatusCode.FATAL);
     }
 
     public ReadWriteException(String message, Throwable cause, ReadWriteErrorCode readWriteErrorCode) {
         super(message, cause);
         this.readWriteErrorCode = readWriteErrorCode;
-        this.tapeResponse = new TapeResponse(StatusCode.FATAL);
     }
 
     public ReadWriteErrorCode getReadWriteErrorCode() {
         return readWriteErrorCode;
-    }
-
-    public TapeResponse getTapeResponse() {
-        return tapeResponse;
     }
 }

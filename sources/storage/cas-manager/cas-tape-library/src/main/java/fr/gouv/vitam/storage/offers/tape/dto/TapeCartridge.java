@@ -38,24 +38,26 @@ public class TapeCartridge {
         return volumeTag;
     }
 
-    public void setVolumeTag(String volumeTag) {
+    public TapeCartridge setVolumeTag(String volumeTag) {
         this.volumeTag = volumeTag;
+        return this;
     }
-
 
     public String getAlternateVolumeTag() {
         return alternateVolumeTag;
     }
 
-    public void setAlternateVolumeTag(String alternateVolumeTag) {
+    public TapeCartridge setAlternateVolumeTag(String alternateVolumeTag) {
         this.alternateVolumeTag = alternateVolumeTag;
+        return this;
     }
 
     public Integer getSlotIndex() {
         return slotIndex;
     }
 
-    public void setSlotIndex(Integer slotIndex) {
+    public TapeCartridge setSlotIndex(Integer slotIndex) {
         this.slotIndex = slotIndex;
+        return this;
     }
 }

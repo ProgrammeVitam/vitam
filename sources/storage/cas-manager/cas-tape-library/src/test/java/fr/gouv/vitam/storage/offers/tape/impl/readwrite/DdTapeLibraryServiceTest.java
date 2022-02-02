@@ -27,7 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import org.junit.Test;
@@ -37,8 +37,8 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,65 +58,50 @@ public class DdTapeLibraryServiceTest {
 
     @Test
     public void test_constructor() {
-        ProcessExecutor processExecutor = mock(ProcessExecutor.class);
+
+        assertThatCode(() ->
+            new DdTapeLibraryService(tapeDriveConf, "/tmp", "/tmp")
+        ).doesNotThrowAnyException();
 
 
-        new DdTapeLibraryService(tapeDriveConf, processExecutor, "/tmp", "/tmp");
+        assertThatThrownBy(() ->
+            new DdTapeLibraryService(tapeDriveConf, "/tmp", null)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-        try {
-            new DdTapeLibraryService(tapeDriveConf, processExecutor, "/tmp", null);
-            fail("Should fail");
-        } catch (Exception e) {
-        }
+        assertThatThrownBy(() ->
+            new DdTapeLibraryService(tapeDriveConf, null, "/tmp")
+        ).isInstanceOf(IllegalArgumentException.class);
 
-        try {
-            new DdTapeLibraryService(tapeDriveConf, processExecutor, null, "/tmp");
-            fail("Should fail");
-        } catch (Exception e) {
-        }
-
-        try {
-            new DdTapeLibraryService(tapeDriveConf, null, "/tmp", "/tmp");
-            fail("Should fail");
-        } catch (Exception e) {
-        }
-
-        try {
-            new DdTapeLibraryService(null, processExecutor, "/tmp", "/tmp");
-            fail("Should fail");
-        } catch (Exception e) {
-        }
+        assertThatThrownBy(() ->
+            new DdTapeLibraryService(null, "/tmp", "/tmp")
+        ).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void test_write_to_tape_OK() {
         when(tapeDriveConf.getDdPath()).thenReturn(COMMAND_DD);
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST_0);
-        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
         DdTapeLibraryService ddTapeLibraryService =
             new DdTapeLibraryService(tapeDriveConf, processExecutor, "/tmp", "/tmp");
 
-
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
-        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
-        TapeResponse response = ddTapeLibraryService.writeToTape(MY_FAKE_FILE_TAR);
-
-        assertThat(response.isOK()).isTrue();
+        assertThatCode(() -> ddTapeLibraryService.writeToTape(MY_FAKE_FILE_TAR))
+            .doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_DD);
-        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("if=/tmp/my_fake_file.tar", "of=/dev/nst0");
     }
 
@@ -124,27 +109,26 @@ public class DdTapeLibraryServiceTest {
     public void test_write_to_tape_KO() {
         when(tapeDriveConf.getDdPath()).thenReturn(COMMAND_DD);
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST_0);
-        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
         DdTapeLibraryService ddTapeLibraryService =
             new DdTapeLibraryService(tapeDriveConf, processExecutor, "fakepath", "fakepath");
 
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
-        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-        TapeResponse response = ddTapeLibraryService.writeToTape(MY_FAKE_FILE_TAR);
-
-        assertThat(response.isOK()).isFalse();
+        assertThatThrownBy(() -> ddTapeLibraryService.writeToTape(MY_FAKE_FILE_TAR))
+            .isInstanceOf(TapeCommandException.class);
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_DD);
-        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("of=/dev/nst0");
     }
 
@@ -152,35 +136,27 @@ public class DdTapeLibraryServiceTest {
     public void test_read_from_tape_KO() {
         when(tapeDriveConf.getDdPath()).thenReturn(COMMAND_DD);
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST_0);
-        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+        when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
         DdTapeLibraryService ddTapeLibraryService =
             new DdTapeLibraryService(tapeDriveConf, processExecutor, "/tmp", "/tmp");
 
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
-        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-        TapeResponse response = ddTapeLibraryService.readFromTape(MY_FAKE_FILE_TAR);
-
-        assertThat(response.isOK()).isTrue();
+        assertThatCode(() -> ddTapeLibraryService.readFromTape(MY_FAKE_FILE_TAR))
+            .doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_DD);
-        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("of=/tmp/my_fake_file.tar", "if=/dev/nst0");
-    }
-
-    @Test
-    public void test_get_executor() {
-        DdTapeLibraryService ddTapeLibraryService =
-            new DdTapeLibraryService(tapeDriveConf, processExecutor, "fakepath", "fakepath");
-        assertThat(ddTapeLibraryService.getExecutor()).isNotNull();
     }
 }

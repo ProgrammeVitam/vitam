@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
@@ -42,14 +42,21 @@ import java.util.List;
 
 public class DdTapeLibraryService implements TapeReadWriteService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DdTapeLibraryService.class);
-    public static final String IF = "if=";
-    public static final String OF = "of=";
+    private static final String IF = "if=";
+    private static final String OF = "of=";
+
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     private final String inputDirectory;
     private final String tmpOutputStorageFolder;
 
-    public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor,
+    public DdTapeLibraryService(TapeDriveConf tapeDriveConf,
+        String inputDirectory, String tmpOutputStorageFolder) {
+        this(tapeDriveConf, ProcessExecutor.getInstance(), inputDirectory, tmpOutputStorageFolder);
+    }
+
+    @VisibleForTesting
+    DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor,
         String inputDirectory, String tmpOutputStorageFolder) {
         ParametersChecker
             .checkParameter("All params are required", tapeDriveConf, processExecutor, inputDirectory,
@@ -63,67 +70,45 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public TapeResponse writeToTape(String inputPath) {
+    public void writeToTape(String inputPath) throws TapeCommandException {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
         List<String> args =
-            Lists.newArrayList(IF + Paths.get(this.getInputDirectory()).resolve(inputPath).toAbsolutePath(),
+            Lists.newArrayList(IF + Paths.get(this.inputDirectory).resolve(inputPath).toAbsolutePath(),
                 OF + tapeDriveConf.getDevice());
 
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getDdPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
+            processExecutor.execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
-        return parseCommonResponse(output);
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not write file content " + inputPath + " to drive " + tapeDriveConf.getDevice(), output);
+        }
     }
 
     @Override
-    public TapeResponse readFromTape(String outputPath) {
+    public void readFromTape(String outputPath) throws TapeCommandException {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
         List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(),
-            OF + Paths.get(this.getTmpOutputStorageFolder()).resolve(outputPath).toAbsolutePath());
+            OF + Paths.get(this.tmpOutputStorageFolder).resolve(outputPath).toAbsolutePath());
 
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+            tapeDriveConf.getTimeoutInMilliseconds(), args);
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getDdPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
+            processExecutor.execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
-        return parseCommonResponse(output);
-
-    }
-
-    private TapeResponse parseCommonResponse(Output output) {
-        TapeResponse response;
-
-        if (output.getExitCode() == 0) {
-            response = new TapeResponse(output, StatusCode.OK);
-        } else {
-            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+        if (output.getExitCode() != 0) {
+            throw new TapeCommandException(
+                "Could not read form drive " + tapeDriveConf.getDevice() + " to file " + outputPath, output);
         }
-
-        return response;
-    }
-
-    @Override
-    public ProcessExecutor getExecutor() {
-        return processExecutor;
     }
 
     @Override
     public String getTmpOutputStorageFolder() {
         return tmpOutputStorageFolder;
-    }
-
-    @Override
-    public String getInputDirectory() {
-        return inputDirectory;
     }
 }

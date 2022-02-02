@@ -24,15 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.offers.tape.simulator;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
-import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
-
-public interface TapeDriveSafeCommandService {
-
-    TapeDriveSpec status();
-
-    ProcessExecutor getExecutor();
+public enum VirtualSlotState {
+    EMPTY,
+    LOADED,
+    BUSY
 }

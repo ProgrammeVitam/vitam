@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -59,7 +58,7 @@ public class AdminTapeResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminTapeResource.class);
 
-    private BackupFileStorage backupFileStorage;
+    private final BackupFileStorage backupFileStorage;
 
     @VisibleForTesting
     AdminTapeResource(BackupFileStorage backupFileStorage) {

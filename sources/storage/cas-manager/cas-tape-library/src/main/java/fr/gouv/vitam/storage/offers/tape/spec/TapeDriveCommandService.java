@@ -26,38 +26,44 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
-public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
+public interface TapeDriveCommandService {
+
+    /**
+     * @return
+     * @throws TapeCommandException on command failure
+     */
+    TapeDriveSpec status() throws TapeCommandException;
 
     /**
      * fsf / bsfm
      *
      * @param position
      * @param isBackward
-     * @return TapeResponse
+     *
+     * @throws TapeCommandException on command failure
      */
-    TapeResponse move(Integer position, boolean isBackward);
+    void move(int position, boolean isBackward) throws TapeCommandException;
 
     /**
      * Go to start
-     *
-     * @return TapeResponse
      */
-    TapeResponse rewind();
+    void rewind() throws TapeCommandException;
 
     /**
      * EOD end of data
      *
-     * @return TapeResponse
+     * @throws TapeCommandException on command failure
      */
-    TapeResponse goToEnd();
+    void goToEnd() throws TapeCommandException;
 
     /**
      * Rewind and eject the tape
      *
-     * @return TapeResponse
+     * @throws TapeCommandException on command failure
      */
-    TapeResponse eject();
+    void eject() throws TapeCommandException;
 
 }

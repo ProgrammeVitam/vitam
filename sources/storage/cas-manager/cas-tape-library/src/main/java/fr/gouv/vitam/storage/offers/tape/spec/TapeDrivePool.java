@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public interface TapeDrivePool {
     /**

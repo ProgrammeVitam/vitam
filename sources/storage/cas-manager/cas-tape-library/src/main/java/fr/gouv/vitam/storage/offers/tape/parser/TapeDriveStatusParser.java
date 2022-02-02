@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +47,7 @@ public class TapeDriveStatusParser {
     public TapeDriveState parse(String output) {
         ParametersChecker.checkParameter("All params is required", output);
 
-        final TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
+        final TapeDriveState tapeDriveState = new TapeDriveState();
         for (String s : output.split("\n")) {
 
             if (s.contains(TAPE_DRIVE)) {

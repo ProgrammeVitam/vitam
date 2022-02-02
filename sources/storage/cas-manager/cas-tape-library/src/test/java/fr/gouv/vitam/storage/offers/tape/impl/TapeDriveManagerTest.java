@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.tape.impl;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -38,7 +37,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 public class TapeDriveManagerTest {
@@ -60,13 +58,7 @@ public class TapeDriveManagerTest {
             inputTarDir.getAbsolutePath(), tmpTarOutputDir.getAbsolutePath());
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
-        Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
-        try {
-            tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR);
-            fail("hould fail");
-        } catch (IllegalArgumentException e) {
-            //NOSONAR
-        }
+        Assertions.assertThat(tapeDriveManager.getReadWriteService()).isNotNull();
     }
 
 
@@ -79,13 +71,8 @@ public class TapeDriveManagerTest {
                 mock(TapeDriveCommandService.class));
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
-        Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
-        try {
-            tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR);
-            fail("hould fail");
-        } catch (IllegalArgumentException e) {
-            //NOSONAR
-        }    }
+        Assertions.assertThat(tapeDriveManager.getReadWriteService()).isNotNull();
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorOneNullTapeDriveConfKO() {

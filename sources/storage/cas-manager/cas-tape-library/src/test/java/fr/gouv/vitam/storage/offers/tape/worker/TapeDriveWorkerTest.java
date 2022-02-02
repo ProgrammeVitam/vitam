@@ -100,7 +100,7 @@ public class TapeDriveWorkerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test

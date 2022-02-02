@@ -242,7 +242,7 @@ public class ArchiveReferentialRepositoryTest {
     }
 
     @Test
-    public void updateLocationToReadyOnDiskNonExisting() throws Exception {
+    public void updateLocationToReadyOnDiskNonExisting() {
 
         // Given
 
@@ -295,7 +295,7 @@ public class ArchiveReferentialRepositoryTest {
     }
 
     @Test
-    public void updateLocationToOnTapeNonExisting() throws Exception {
+    public void updateLocationToOnTapeNonExisting() {
 
         // Given
 
