@@ -163,6 +163,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                     // Drive UP, Order Ready
                 case KO_ON_WRITE_TO_FS:
                 case KO_ON_MOVE_TO_CACHE:
+                case KO_ON_DELETE_ARCHIVED_BACKUP:
                 case TAPE_LOCATION_CONFLICT_ON_LOAD:
                 case TAPE_NOT_FOUND_IN_CATALOG:
                 case KO_TAPE_IS_OUTSIDE:
