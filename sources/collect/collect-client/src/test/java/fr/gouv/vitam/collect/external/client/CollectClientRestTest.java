@@ -19,7 +19,7 @@ public class CollectClientRestTest {
         CollectClient client = collectClientFactory.getClient();
 
         //When
-        RequestResponseOK<TransactionDto> response = client.initTransaction();
+        RequestResponseOK<TransactionDto> response = client.initTransaction(new TransactionDto());
 
         //Then
         //TODO : change when implementation is done

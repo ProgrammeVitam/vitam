@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -52,13 +52,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<TransactionDto> initTransaction()  {
-        try (Response response = make(post().withPath("").withHeader(X_TENANT_ID, TENANT_ID)
+    public RequestResponseOK<TransactionDto> initTransaction(TransactionDto transactionDto)  {
+        try (Response response = make(post().withPath("").withHeader(X_TENANT_ID, TENANT_ID).withBody(transactionDto)
                 .withJson())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
-                RequestResponse<TransactionDto> result =
-                        RequestResponse.parseFromResponse(response, TransactionDto.class);
+                RequestResponse<TransactionDto> result = RequestResponse.parseFromResponse(response, TransactionDto.class);
                 return (RequestResponseOK<TransactionDto>) result;
             }
         } catch (VitamClientInternalException  e) {
@@ -68,18 +67,7 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException {
-//        try (Response response = make(post().withPath("/"+transactionId+"/archiveunits").withBody(collectUnitDto).withHeader(X_TENANT_ID, TENANT_ID)
-//                .withJson())) {
-//            Response.Status status = response.getStatusInfo().toEnum();
-//            if (SUCCESSFUL.equals(status.getFamily())) {
-//                RequestResponse<TransactionDto> result =
-//                        RequestResponse.parseFromResponse(response, TransactionDto.class);
-//                return (RequestResponseOK<TransactionDto>) result;
-//            }
-//        } catch (VitamClientInternalException  e) {
-//            return null;
-//        }
+    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
         return null;
     }
 }

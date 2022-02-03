@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -45,7 +45,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<TransactionDto> guid created for the transaction
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException;
+    RequestResponseOK<TransactionDto> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException;
 
     /**
      * Upload Archive Unit
@@ -55,5 +55,5 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException;
+    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException;
 }

@@ -34,8 +34,23 @@ import java.util.Objects;
 
 public class TransactionDto implements Serializable {
 
-    @JsonProperty("id")
+    @JsonProperty(value = "id")
     private String id;
+
+    @JsonProperty(value = "ArchivalAgencyIdentifier")
+    private String archivalAgencyIdentifier;
+
+    @JsonProperty(value = "TransferingAgencyIdentifier")
+    private String transferingAgencyIdentifier;
+
+    @JsonProperty(value = "OriginatingAgencyIdentifier")
+    private String originatingAgencyIdentifier;
+
+    @JsonProperty(value = "ArchiveProfile")
+    private String archivalProfile;
+
+    @JsonProperty(value = "Comment")
+    private String comment;
 
     public TransactionDto() {
         //Empty constructor for serialization
@@ -53,6 +68,46 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
+    public String getArchivalAgencyIdentifier() {
+        return archivalAgencyIdentifier;
+    }
+
+    public void setArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+    }
+
+    public String getTransferingAgencyIdentifier() {
+        return transferingAgencyIdentifier;
+    }
+
+    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    }
+
+    public String getOriginatingAgencyIdentifier() {
+        return originatingAgencyIdentifier;
+    }
+
+    public void setOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+    }
+
+    public String getArchivalProfile() {
+        return archivalProfile;
+    }
+
+    public void setArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -60,18 +115,17 @@ public class TransactionDto implements Serializable {
         if (o == null || getClass() != o.getClass())
             return false;
         TransactionDto that = (TransactionDto) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(id, that.id) &&
+            Objects.equals(archivalAgencyIdentifier, that.archivalAgencyIdentifier) &&
+            Objects.equals(transferingAgencyIdentifier, that.transferingAgencyIdentifier) &&
+            Objects.equals(originatingAgencyIdentifier, that.originatingAgencyIdentifier) &&
+            Objects.equals(archivalProfile, that.archivalProfile) &&
+            Objects.equals(comment, that.comment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "TransactionDto{" +
-            "id='" + id + '\'' +
-            '}';
+        return Objects.hash(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
+            archivalProfile, comment);
     }
 }

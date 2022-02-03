@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
@@ -41,14 +41,15 @@ import java.util.UUID;
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
     @Override
-    public RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException {
+    public RequestResponseOK<TransactionDto> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException {
+        transactionDto.setId(UUID.randomUUID().toString());
         return new RequestResponseOK<TransactionDto>()
             .setHttpCode(Response.Status.OK.getStatusCode())
-            .addResult(new TransactionDto(UUID.randomUUID().toString()));
+            .addResult(transactionDto);
     }
 
     @Override
-    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, CollectUnitDto collectUnitDto) throws InvalidParseOperationException {
+    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
         return null;
     }
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.assertj.core.api.Assertions;
@@ -39,7 +40,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
@@ -57,7 +57,7 @@ public class CollectServiceTest {
     @Test
     public void createCollectTest() throws InvalidParseOperationException {
         // Given
-        CollectModel collectModel = new CollectModel("XXXX00000111111");
+        CollectModel collectModel = new CollectModel("XXXX00000111111", "archival", null, null, null, null, null);
 
         // When
         collectService.createCollect(collectModel);
@@ -75,7 +75,7 @@ public class CollectServiceTest {
     public void testFindCollect() throws InvalidParseOperationException {
         final String idCollect = "XXXX000002222222";
         // Given
-        CollectModel collectModel = new CollectModel(idCollect);
+        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null);
         doReturn(Optional.of(collectModel)).when(collectRepository).findCollect(any());
 
         // When
@@ -87,7 +87,27 @@ public class CollectServiceTest {
     }
 
     @Test
-    public void sdfsfs() {
-        System.out.println(UUID.randomUUID().toString());
+    public void testCheckStatus_OK() throws InvalidParseOperationException {
+        final String idCollect = "XXXX000002222222";
+        // Given
+        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, TransactionStatus.OPEN);
+        // When
+        boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
+
+        Assertions.assertThat(checkStatus).isTrue();
+
     }
+
+    @Test
+    public void testCheckStatus_KO() throws InvalidParseOperationException {
+        final String idCollect = "XXXX000002222222";
+        // Given
+        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, TransactionStatus.OPEN);
+        // When
+        boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
+
+        Assertions.assertThat(checkStatus).isFalse();
+
+    }
+
 }

@@ -27,13 +27,16 @@
 package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 public class CollectService {
@@ -72,9 +75,16 @@ public class CollectService {
     }
 
     public String createRequestId() {
-        String id = GUIDFactory.newRequestIdGUID(0).getId();
+        String id = GUIDFactory.newRequestIdGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId();
         LOGGER.debug("Generated Request Id : {}", id);
         return id;
+    }
+
+    public boolean checkStatus(CollectModel collectModel, TransactionStatus... transactionStatus){
+        if(Arrays.stream(transactionStatus).anyMatch(tr -> collectModel.getStatus().equals(tr))){
+            return true;
+        }
+        return false;
     }
 
 }

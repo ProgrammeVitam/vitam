@@ -26,33 +26,38 @@
  */
 package fr.gouv.vitam.collect.internal.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Collect model
  */
 public class CollectModel {
 
-    @JsonProperty("Id")
     private String id;
 
-    @JsonProperty(value = "idGots", required = false)
-    private Set<String> idGots;
+    private String archivalAgencyIdentifier;
 
-    public CollectModel() {
-    }
+    private String transferingAgencyIdentifier;
 
-    public CollectModel(String requestId) {
-        this.id = requestId;
-    }
+    private String originatingAgencyIdentifier;
 
-    public CollectModel(String id, Set<String> idGots) {
+    private String archivalProfile;
+
+    private String comment;
+
+    private TransactionStatus status;
+
+    public CollectModel() {}
+
+    public CollectModel(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier,
+        String originatingAgencyIdentifier, String archivalProfile, String comment, TransactionStatus status) {
         this.id = id;
-        this.idGots = idGots;
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        this.archivalProfile = archivalProfile;
+        this.comment = comment;
+        this.status = status;
     }
 
     public String getId() {
@@ -63,15 +68,52 @@ public class CollectModel {
         this.id = id;
     }
 
-    public Set<String> getIdGots() {
-        if (null == idGots){
-            return new HashSet<>();
-        }
-        return idGots;
+    public String getArchivalAgencyIdentifier() {
+        return archivalAgencyIdentifier;
     }
 
-    public void setIdGots(Set<String> idGots) {
-        this.idGots = idGots;
+    public void setArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+    }
+
+    public String getTransferingAgencyIdentifier() {
+        return transferingAgencyIdentifier;
+    }
+
+    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    }
+
+    public String getOriginatingAgencyIdentifier() {
+        return originatingAgencyIdentifier;
+    }
+
+    public void setOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+    }
+
+    public String getArchivalProfile() {
+        return archivalProfile;
+    }
+
+    public void setArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -81,19 +123,18 @@ public class CollectModel {
         if (o == null || getClass() != o.getClass())
             return false;
         CollectModel that = (CollectModel) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(id, that.id) &&
+            Objects.equals(archivalAgencyIdentifier, that.archivalAgencyIdentifier) &&
+            Objects.equals(transferingAgencyIdentifier, that.transferingAgencyIdentifier) &&
+            Objects.equals(originatingAgencyIdentifier, that.originatingAgencyIdentifier) &&
+            Objects.equals(archivalProfile, that.archivalProfile) &&
+            Objects.equals(comment, that.comment) && status == that.status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
+            archivalProfile, comment, status);
     }
 
-    @Override
-    public String toString() {
-        return "CollectModel{" +
-            "id='" + id + '\'' +
-            ", idGots=" + idGots +
-            '}';
-    }
 }

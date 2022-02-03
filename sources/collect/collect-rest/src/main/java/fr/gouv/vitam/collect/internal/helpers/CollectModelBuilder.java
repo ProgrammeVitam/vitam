@@ -26,63 +26,55 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
+import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
-public class DbObjectGroupModelBuilder {
-
+public class CollectModelBuilder {
     private String id;
-    private String opi;
-    private FileInfoModel fileInfoModel;
-    private List<DbQualifiersModel> qualifiers;
+    private String archivalAgencyIdentifier;
+    private String transferingAgencyIdentifier;
+    private String originatingAgencyIdentifier;
+    private String archivalProfile;
+    private String comment;
+    private TransactionStatus status;
 
-    public DbObjectGroupModelBuilder withId(String id) {
+    public CollectModelBuilder withId(String id) {
         this.id = id;
         return this;
     }
 
-    public DbObjectGroupModelBuilder withOpi(String opi) {
-        this.opi = opi;
+    public CollectModelBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         return this;
     }
 
-    public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, String usage, Integer version) {
-        this.qualifiers = Collections.singletonList(new DbQualifiersModelBuilder()
-            .withUsage(usage)
-            .withVersion(versionId, fileName, usage, version)
-                .withNbc(1)
-            .build()
-        );
+    public CollectModelBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         return this;
     }
 
-    public DbObjectGroupModelBuilder withFileInfoModel(String fileName) {
-        Objects.requireNonNull(fileName, "FileName can't be null");
-        fileInfoModel = new FileInfoModel();
-        fileInfoModel.setFilename(fileName);
+    public CollectModelBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         return this;
     }
 
-    public DbObjectGroupModel build() {
-        Objects.requireNonNull(id, "Id can't be null");
-        Objects.requireNonNull(opi, "Opi can't be null");
-        Objects.requireNonNull(fileInfoModel, "FileInfoModel can't be null");
-        Objects.requireNonNull(qualifiers, "QualifiersModel can't be null");
+    public CollectModelBuilder withArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
+        return this;
+    }
 
-        DbObjectGroupModel model = new DbObjectGroupModel();
-        model.setId(this.id);
-        model.setOpi(this.opi);
-        model.setFileInfo(fileInfoModel);
+    public CollectModelBuilder withComment(String comment) {
+        this.comment = comment;
+        return this;
+    }
 
-        int nbc = qualifiers.stream().map(DbQualifiersModel::getNbc).reduce(Integer::sum).orElse(0);
-        model.setNbc(nbc);
-        model.setQualifiers(qualifiers);
+    public CollectModelBuilder withStatus(TransactionStatus status) {
+        this.status = status;
+        return this;
+    }
 
-        return model;
+    public CollectModel build() {
+        return new CollectModel(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
+            archivalProfile, comment, status);
     }
 }

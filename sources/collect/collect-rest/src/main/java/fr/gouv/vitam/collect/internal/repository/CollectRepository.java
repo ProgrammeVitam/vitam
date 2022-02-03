@@ -44,11 +44,12 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
- * repository for identity certificate entities  management in mongo.
+ * repository for collect entities  management in mongo.
  */
 public class CollectRepository {
 
     public static final String COLLECT_COLLECTION = "Collect";
+    public static final String ID = "Id";
 
     private final MongoCollection<Document> collectCollection;
 
@@ -80,7 +81,7 @@ public class CollectRepository {
      */
     public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
         String json = JsonHandler.writeAsString(collectModel);
-        final Bson condition = and(eq("Id", collectModel.getId()));
+        final Bson condition = and(eq(ID, collectModel.getId()));
         collectCollection.replaceOne(condition , Document.parse(json));
     }
 
@@ -92,7 +93,7 @@ public class CollectRepository {
      * @throws InvalidParseOperationException exception thrown in case of error
      */
     public Optional<CollectModel> findCollect(String id) throws InvalidParseOperationException {
-        FindIterable<Document> models = collectCollection.find(Filters.eq("Id", id));
+        FindIterable<Document> models = collectCollection.find(Filters.eq(ID, id));
         Document first = models.first();
         if (first == null) {
             return Optional.empty();

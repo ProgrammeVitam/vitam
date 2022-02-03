@@ -70,7 +70,7 @@ public class CollectStep {
 
     @When("^j'initialise une transaction$")
     public void initTransaction() throws InvalidParseOperationException {
-        RequestResponseOK<TransactionDto> response = world.getCollectClient().initTransaction();
+        RequestResponseOK<TransactionDto> response = world.getCollectClient().initTransaction(new TransactionDto());
         assertThat(response.isOk()).isTrue();
         transactionGuuid = response.getFirstResult().getId();
     }

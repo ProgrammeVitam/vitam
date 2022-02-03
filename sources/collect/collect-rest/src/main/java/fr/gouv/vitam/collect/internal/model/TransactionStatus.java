@@ -24,58 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.dto;
+package fr.gouv.vitam.collect.internal.model;
 
-import java.io.Serializable;
-
-public class ArchiveUnitContent implements Serializable {
-
-    private String title;
-
-    private String description;
-
-    private String descriptionLevel;
-
-    public ArchiveUnitContent() {
-        //Empty constructor for serialization
-    }
-
-    public ArchiveUnitContent(String title, String description, String descriptionLevel) {
-        this.title = title;
-        this.description = description;
-        this.descriptionLevel = descriptionLevel;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getDescriptionLevel() {
-        return descriptionLevel;
-    }
-
-    public void setDescriptionLevel(String descriptionLevel) {
-        this.descriptionLevel = descriptionLevel;
-    }
-
-    @Override
-    public String toString() {
-        return "ArchiveUnitContent{" +
-            "title='" + title + '\'' +
-            ", description='" + description + '\'' +
-            ", descriptionLevel='" + descriptionLevel + '\'' +
-            '}';
-    }
+public enum TransactionStatus {
+    OPEN,
+    CLOSE,
+    SENT,
+    WAITING_ACK,
+    ACK_OK,
+    ACK_ERROR;
 }

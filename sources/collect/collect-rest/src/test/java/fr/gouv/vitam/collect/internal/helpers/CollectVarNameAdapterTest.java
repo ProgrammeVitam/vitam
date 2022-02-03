@@ -24,42 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.mappers;
+package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
-import fr.gouv.vitam.collect.internal.model.UnitModel;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.assertj.core.api.Assertions;
+import org.junit.Test;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
+import java.io.FileNotFoundException;
 
-public class CollectUnitMapper {
+import static org.junit.Assert.*;
 
-    private CollectUnitMapper() throws IllegalAccessException {
-        throw new IllegalAccessException("Utility class!");
-    }
+public class CollectVarNameAdapterTest {
 
-    public static UnitModel toModel(CollectUnitDto dto) {
-        Objects.requireNonNull(dto.getContent(), "Content field can't be null!");
-        Objects.requireNonNull(dto.getContent().getDescriptionLevel(), "DescriptionLevel nested field can't be null!");
-        Objects.requireNonNull(dto.getManagement(), "Management field can't be null!");
+    @Test
+    public void should_filter_jsonvariable_name_beginning_by_dash() throws FileNotFoundException, InvalidParseOperationException {
+        // GIVEN
+        CollectVarNameAdapter collectVarNameAdapter = new CollectVarNameAdapter();
+        ObjectNode result = JsonHandler.createObjectNode();
+        JsonNode actual = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("collect_unit.json"));
 
-        UnitModel model = new UnitModel();
-        model.setId(dto.getId());
-        model.setOpi(dto.getTransactionId());
-        model.setTitle(dto.getContent().getTitle());
-        model.setDescription(dto.getContent().getDescription());
-        model.setDescriptionLevel(dto.getContent().getDescriptionLevel());
-        model.setManagement(dto.getManagement());
+        // WHEN
+        collectVarNameAdapter.setVarsValue(result, actual);
 
-        Set<String> parentUnitIds = Collections.emptySet();
-        if (null != dto.getParentUnit()) {
-            parentUnitIds = Set.of(dto.getParentUnit());
-        }
-        model.setUp(parentUnitIds);
-
-        return model;
+        // THEN
+        Assertions.assertThat(result.has("_mgt")).isTrue();
+        Assertions.assertThat(result.has("_up")).isTrue();
+        Assertions.assertThat(result.has("Title")).isTrue();
+        Assertions.assertThat(result.has("_Title")).isFalse();
+        Assertions.assertThat(result.has("#Title")).isFalse();
     }
 
 }
-

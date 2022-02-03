@@ -26,63 +26,64 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
+import org.junit.Test;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 
-public class DbObjectGroupModelBuilder {
+public class DbQualifiersModelBuilderTest {
 
-    private String id;
-    private String opi;
-    private FileInfoModel fileInfoModel;
-    private List<DbQualifiersModel> qualifiers;
+    @Test
+    public void should_generate_appropriate_DbQualifiersModel_with_correct_inputs() {
+        // GIVEN
+        String fileName = "memoire_nationale.txt";
+        String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
+        String usage = "BinaryMaster";
+        int version = 1;
+        int nbc = 1;
 
-    public DbObjectGroupModelBuilder withId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public DbObjectGroupModelBuilder withOpi(String opi) {
-        this.opi = opi;
-        return this;
-    }
-
-    public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, String usage, Integer version) {
-        this.qualifiers = Collections.singletonList(new DbQualifiersModelBuilder()
+        // WHEN
+        DbQualifiersModel qualifiersModel = new DbQualifiersModelBuilder()
             .withUsage(usage)
             .withVersion(versionId, fileName, usage, version)
-                .withNbc(1)
-            .build()
-        );
-        return this;
+            .withNbc(nbc)
+            .build();
+
+        // THEN
+        assertThat(qualifiersModel).isNotNull();
+        assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(usage+"_"+version);
     }
 
-    public DbObjectGroupModelBuilder withFileInfoModel(String fileName) {
-        Objects.requireNonNull(fileName, "FileName can't be null");
-        fileInfoModel = new FileInfoModel();
-        fileInfoModel.setFilename(fileName);
-        return this;
+    @Test
+    public void should_throws_an_error_when_usage_is_not_provided() {
+        // GIVEN
+        String fileName = "memoire_nationale.txt";
+        String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
+        String usage = "BinaryMaster";
+        int version = 1;
+        int nbc = 1;
+
+        // WHEN // THEN
+        assertThatThrownBy(() -> new DbQualifiersModelBuilder()
+            .withVersion(versionId, fileName, usage, version)
+            .withNbc(nbc)
+            .build())
+            .hasMessage("Usage can't be null");
     }
 
-    public DbObjectGroupModel build() {
-        Objects.requireNonNull(id, "Id can't be null");
-        Objects.requireNonNull(opi, "Opi can't be null");
-        Objects.requireNonNull(fileInfoModel, "FileInfoModel can't be null");
-        Objects.requireNonNull(qualifiers, "QualifiersModel can't be null");
+    @Test
+    public void should_throws_an_error_when_versions_is_not_provided() {
+        // GIVEN
+        String usage = "BinaryMaster";
+        int nbc = 1;
 
-        DbObjectGroupModel model = new DbObjectGroupModel();
-        model.setId(this.id);
-        model.setOpi(this.opi);
-        model.setFileInfo(fileInfoModel);
-
-        int nbc = qualifiers.stream().map(DbQualifiersModel::getNbc).reduce(Integer::sum).orElse(0);
-        model.setNbc(nbc);
-        model.setQualifiers(qualifiers);
-
-        return model;
+        // WHEN // THEN
+        assertThatThrownBy(() -> new DbQualifiersModelBuilder()
+            .withUsage(usage)
+            .withNbc(nbc)
+            .build())
+            .hasMessage("Versions can't be null");
     }
+
 }

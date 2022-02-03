@@ -33,11 +33,10 @@ import java.util.Objects;
 
 public class DbVersionsModelBuilder {
 
-    public DbVersionsModel build(String versionId, String fileName, String usage, Integer version) {
-        Objects.requireNonNull(versionId, "versionId can't be null");
-        Objects.requireNonNull(fileName, "fileName can't be null");
-        Objects.requireNonNull(usage, "usage can't be null");
-        Objects.requireNonNull(version, "version can't be null");
+    public DbVersionsModel build(String versionId, String fileName, String usage, int version) {
+        Objects.requireNonNull(versionId, "VersionId can't be null");
+        Objects.requireNonNull(fileName, "FileName can't be null");
+        Objects.requireNonNull(usage, "Usage can't be null");
 
         DbFileInfoModel dbfileInfoModel = new DbFileInfoModel();
         dbfileInfoModel.setFilename(fileName);

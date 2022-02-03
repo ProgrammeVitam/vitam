@@ -1,0 +1,183 @@
+{
+  "DescriptionLevel": "Item",
+  "Title": "My title",
+  "FilePlanPosition": ["/content"],
+  "SystemIds": ["ID01"],
+  "OriginatingSystemId": ["ID01"],
+  "ArchivalAgencyArchiveUnitIdentifier": ["1 Num 1/204-3"],
+  "OriginatingAgencyArchiveUnitIdentifier": ["CP1"],
+  "TransferringAgencyArchiveUnitIdentifier": ["CP1"],
+  "Description": "Allemant. - Au chemin des Dames : le chateau et la ferme de la Motte totalement detruits.",
+  "Descriptions": {
+    "fr": "La legendes traduites en anglais."
+  },
+  "CustodialHistory": {
+    "CustodialHistoryItem": ["La collection de cartes postales presentee ici provient des nombreux prets qui ont ete proposes\n                            aux Archives de la Vendee lors de la Grande Collecte 1914-1918.", "Ces cartes postales, ecrites pour la plupart, ont ete dans bien des cas numerisees recto verso,\n                            sauf avis contraire des preteurs ou lorsqu'il s'agit d'une serie. La date de la correspondance, ou\n                            plus rarement celle de l'obliteration, est precisee en presentation du contenu, ainsi que le nom\n                            de son auteur si son temoignage apporte un eclairage nouveau (une mention permet de\n                            retrouver ses autres ecrits).", "A noter : les cartes representant des periodes de manoeuvres ou des armes proviennent de\n                            cliches pris avant le conflit.", "Dans le cas present : Collecte 14-18. Pret Herve, 2014"]
+  },
+  "Language": ["french"],
+  "DescriptionLanguage": "french",
+  "Status": "Pret",
+  "Version": "Copie numerique",
+  "Tag": ["Grande Collecte"],
+  "Keyword": [{
+    "KeywordContent": "Aisne (departement)",
+    "KeywordType": "geogname"
+  }, {
+    "KeywordContent": "Guerre 1914-1918",
+    "KeywordType": "subject"
+  }, {
+    "KeywordContent": "Dommages de guerre",
+    "KeywordType": "subject"
+  }, {
+    "KeywordContent": "Carte postale",
+    "KeywordType": "genreform"
+  }],
+  "Coverage": {
+    "Spatial": ["Aisne (France)"],
+    "Temporal": ["Guerre 1914-1918", "XXème siècle"],
+    "Juridictional": ["Aisne (Departement)"]
+  },
+  "OriginatingAgency": {
+    "Identifier": "Famille HERVE"
+  },
+  "SubmissionAgency": {
+    "Identifier": "Famille HERVE"
+  },
+  "Writer": [{
+    "FirstName": "Fils",
+    "BirthName": "HERVE",
+    "GivenName": "HERVE",
+    "Gender": "M",
+    "Identifier": ["Matricule XXXXXX"],
+    "Function": ["Guerre"],
+    "Activity": ["Militaire"],
+    "Position": ["Soldat"],
+    "Role": []
+  }],
+  "Addressee": [{
+    "FirstName": "Papa",
+    "BirthName": "HERVE",
+    "GivenName": "HERVE",
+    "Gender": "M",
+    "Identifier": ["ID02"]
+  }],
+  "Recipient": [{
+    "FirstName": "Maman",
+    "BirthName": "HERVE",
+    "GivenName": "HERVE",
+    "Gender": "F",
+    "Identifier": ["ID03"]
+  }],
+  "Source": "Famille Herve, CP1",
+  "CreatedDate": "2014-06-12T09:31:00",
+  "TransactedDate": "2014-06-12T09:31:00",
+  "AcquiredDate": "2014-06-12T09:31:00",
+  "SentDate": "2014-06-12T09:31:00",
+  "ReceivedDate": "2014-06-12T09:31:00",
+  "RegisteredDate": "2014-06-12T09:31:00",
+  "StartDate": "1914-01-01T09:31:00",
+  "EndDate": "1918-12-31T19:06:44",
+  "Event": [{
+    "evId": "ID01",
+    "evDateTime": "1915-06-12T09:31:00"
+  }],
+  "Signature": [{
+    "Signer": [{
+      "Corpname": "Service d'archives 2",
+      "SigningTime": "2017-11-13T19:28:40"
+    }, {
+      "FirstName": "FirstName just test for AFE SEDA 2.1",
+      "SigningTime": "2017-11-13T19:28:40"
+    }],
+    "Validator": {
+      "FirstName": "Laurent",
+      "BirthName": "Dupois",
+      "ValidationTime": "2016-10-12T16:28:40"
+    },
+    "ReferencedObject": {
+      "SignedObjectDigest": {
+        "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+        "Algorithm": "SHA-512"
+      },
+      "SignedObjectId": "ID123"
+    }
+  }],
+  "Gps": {
+    "GpsLatitude": "49.4769199",
+    "GpsLongitude": "3.4417368"
+  },
+  "AnyOtherField": "AnyOtherValue",
+  "AuthorizedAgent": [{
+    "FirstName": "Ludovic",
+    "GivenName": "BLANCHET",
+    "BirthName": "1990-10-01",
+    "BirthPlace": {
+      "City": "Lagny sur Marne"
+    }
+  }, {
+    "FirstName": "AuthorizedAgentFirstName02",
+    "GivenName": "AuthorizedAgentGivenName02",
+    "BirthName": "1980-01-01",
+    "BirthPlace": {
+      "City": "Gannevilliers"
+    }
+  }],
+  "#unitups": [],
+  "#management": {
+    "StorageRule": {
+      "Rules": [{
+        "Rule": "STR001",
+        "StartDate": "2012-11-15"
+      }],
+      "FinalAction": "Copy"
+    },
+    "AppraisalRule": {
+      "Rules": [{
+        "Rule": "APR001",
+        "StartDate": "2012-11-15"
+      }],
+      "Inheritance": {
+        "PreventRulesId": ["ID42"]
+      },
+      "FinalAction": "Keep"
+    },
+    "ReuseRule": {
+      "Rules": [{
+        "Rule": "ID",
+        "StartDate": "2012-11-15"
+      }],
+      "Inheritance": {
+        "PreventRulesId": ["ID42"]
+      }
+    },
+    "ClassificationRule": {
+      "Rules": [{
+        "Rule": "CLR001",
+        "StartDate": "2012-11-15"
+      }, {
+        "Rule": "CLR001",
+        "StartDate": "2012-11-15"
+      }, {
+        "Rule": "CLR002",
+        "StartDate": "2012-11-15"
+      }],
+      "ClassificationLevel": "ClassificationLevel",
+      "ClassificationOwner": "ClassificationOwner",
+      "Inheritance": {
+        "PreventInheritance": true
+      }
+    },
+    "NeedAuthorization": true,
+    "AnyOtherField": "AnyOtherValue",
+    "UpdateOperation": {
+      "SystemId": "",
+      "ToDelete": {
+        "ArchiveUnitRefId": ["DEL001", "DEL002"],
+        "FullUpdate": false
+      }
+    },
+    "ArchiveUnit": {
+      "ArchiveUnitRefId": "ID_CHILD"
+    }
+  }
+}

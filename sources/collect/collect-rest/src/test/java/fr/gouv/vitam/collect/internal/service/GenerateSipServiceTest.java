@@ -51,7 +51,6 @@ public class GenerateSipServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         //When
-        GenerateSipService generateSipService = new GenerateSipService();
         //generateSipService.generateSip(transactionId);
 
         //Then

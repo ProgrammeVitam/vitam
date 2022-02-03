@@ -29,23 +29,17 @@ package fr.gouv.vitam.collect.internal.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.internal.dto.CollectUnitDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.CollectVarNameAdapter;
 import fr.gouv.vitam.collect.internal.helpers.DbObjectGroupModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.ObjectMapperBuilder;
 import fr.gouv.vitam.collect.internal.helpers.QueryHandler;
-import fr.gouv.vitam.collect.internal.helpers.TransactionHelper;
-import fr.gouv.vitam.collect.internal.mappers.CollectUnitMapper;
-import fr.gouv.vitam.collect.internal.model.UnitModel;
+import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -84,6 +78,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceType;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.CountingInputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,6 +94,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
@@ -108,10 +107,11 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 public class TransactionService {
 
     private final CollectService collectService;
-    private final WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceClientFactory workspaceCollectClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
     private final FormatIdentifierFactory formatIdentifierFactory;
     private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
+    private final CollectVarNameAdapter collectVarNameAdapter;
 
     private static final String FOLDER_CONTENT = "Content";
     private static final String TAG_STATUS = "#status";
@@ -122,9 +122,10 @@ public class TransactionService {
     public TransactionService(CollectService collectService, CollectConfiguration collectConfiguration) {
         this.collectService = collectService;
         WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl());
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
+        this.workspaceCollectClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
         this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
+        this.collectVarNameAdapter = new CollectVarNameAdapter();
     }
 
     public void saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, String qualifier, int version,
@@ -154,15 +155,15 @@ public class TransactionService {
             JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
             DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
             DbQualifiersModel qualifierModelToUpdate =
-                TransactionHelper.findQualifier(dbObjectGroupModel.getQualifiers(), qualifier);
+                CollectHelper.findQualifier(dbObjectGroupModel.getQualifiers(), qualifier);
 
             if (qualifierModelToUpdate == null) {
-                TransactionHelper.checkVersion(version, 1);
+                CollectHelper.checkVersion(version, 1);
                 addQualifierToObjectGroups(dbObjectGroupModel, qualifier, version, dbObjectGroupModel.getQualifiers(),
                     objectGroupDto);
             } else {
                 DbVersionsModel dbVersionsModel =
-                    TransactionHelper.getObjectVersionsModel(dbObjectGroupModel, qualifier, version);
+                    CollectHelper.getObjectVersionsModel(dbObjectGroupModel, qualifier, version);
 
                 if (dbVersionsModel != null) {
                     LOGGER.debug("Qualifier already exist with qualifier {} and version {})", qualifier, version);
@@ -171,48 +172,39 @@ public class TransactionService {
                             version + "");
                 }
 
-                int lastVersion = TransactionHelper.getLastVersion(qualifierModelToUpdate) + 1;
-                TransactionHelper.checkVersion(version, lastVersion);
+                int lastVersion = CollectHelper.getLastVersion(qualifierModelToUpdate) + 1;
+                CollectHelper.checkVersion(version, lastVersion);
                 addVersionToObjectGroups(qualifierModelToUpdate, dbObjectGroupModel, qualifier, lastVersion,
                     dbObjectGroupModel.getQualifiers(),
                     objectGroupDto);
             }
-        } catch (VitamClientException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataClientServerException e) {
+        } catch (VitamClientException e) {
             LOGGER.debug("Error : {}", e);
             throw new CollectException(e);
         }
     }
 
     private void insertNewObject(ArchiveUnitModel archiveUnitModel, String qualifier, int version,
-        ObjectGroupDto objectGroupDto) throws InvalidParseOperationException, CollectException {
-
-        TransactionHelper.checkVersion(version, 1);
-        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
-            .withId(objectGroupDto.getId())
-            .withOpi(archiveUnitModel.getOpi())
-            .withFileInfoModel(objectGroupDto.getFileInfo().getFileName())
-            .withQualifiers(collectService.createRequestId(), objectGroupDto.getFileInfo().getFileName(), qualifier,
-                version)
-            .build();
-
-        final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.resetFilter();
-        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
-        final ObjectNode insertRequest = insert.getFinalInsert();
+        ObjectGroupDto objectGroupDto) throws CollectException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            CollectHelper.checkVersion(version, 1);
+            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
+                .withId(objectGroupDto.getId())
+                .withOpi(archiveUnitModel.getOpi())
+                .withFileInfoModel(objectGroupDto.getFileInfo().getFileName())
+                .withQualifiers(collectService.createRequestId(), objectGroupDto.getFileInfo().getFileName(), qualifier,
+                    version)
+                .build();
+
+            final ObjectNode insertRequest = QueryHandler.insertObjectMultiQuery(dbObjectGroupModel);
             JsonNode jsonNode = client.insertObjectGroup(insertRequest);
             if (jsonNode == null) {
                 LOGGER.debug("Error when trying to insert ObjectGroup : {})", insertRequest);
                 throw new CollectException("Error when trying to insert ObjectGroup : : " + insertRequest);
             }
 
-            UpdateMultiQuery multiQuery = new UpdateMultiQuery();
-            multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupDto.getId()));
-            multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
-            RequestResponse<JsonNode> requestResponse = client.updateUnitBulk(multiQuery.getFinalUpdate());
-            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+            JsonNode firstResult = QueryHandler.updateUnitMultiQuery(archiveUnitModel, objectGroupDto, client);
 
             if (firstResult != null && firstResult.has(TAG_STATUS) && firstResult.get(TAG_STATUS).textValue().equals(KO.name())) {
                 //TODO : Manage Object Group rollback
@@ -220,30 +212,30 @@ public class TransactionService {
                 throw new CollectException("Unit update failed on id : " + archiveUnitModel.getId());
             }
         } catch (final CollectException | MetaDataExecutionException | MetaDataNotFoundException
-            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException e) {
+            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
+            | InvalidParseOperationException e) {
             LOGGER.error("Can't save objectGroup by unit ID : {}", e);
             throw new CollectException("Can't save objectGroup by unit ID");
         }
     }
 
     public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, String qualifier, int version,
-        List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto) throws InvalidCreateOperationException {
+        List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto) throws CollectException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             String versionId = collectService.createRequestId();
             UpdateMultiQuery query =
-                QueryHandler.getQualifiersAddMultiQuery(qualifier, version, qualifiers, objectGroupDto, versionId);
+                QueryHandler.getQualifiersAddMultiQuery(qualifier, version, qualifiers, objectGroupDto, versionId, objectGroup);
             client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException e) {
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
-            throw new IllegalArgumentException("Can't save objectGroup by unit ID: " + e.getMessage());
+            throw new CollectException("Can't save objectGroup by unit ID: " + e.getMessage());
         }
     }
 
     public void addVersionToObjectGroups(DbQualifiersModel qualifierModelToUpdate, DbObjectGroupModel objectGroup,
         String qualifier, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
-        throws MetaDataExecutionException, MetaDataClientServerException, InvalidCreateOperationException,
-        CollectException {
+        throws CollectException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             String versionId = collectService.createRequestId();
@@ -251,15 +243,13 @@ public class TransactionService {
                 qualifier, version, qualifiers, objectGroupDto, versionId);
 
             client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException e) {
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             throw new CollectException("Can't save objectGroup by unit ID: {}" + e.getMessage());
         }
     }
 
-    public DbObjectGroupModel getDbObjectGroup(ArchiveUnitModel archiveUnitModel)
-        throws CollectException {
-
+    public DbObjectGroupModel getDbObjectGroup(ArchiveUnitModel archiveUnitModel) throws CollectException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             if (archiveUnitModel.getOg() == null) {
                 LOGGER.debug("Cannot found any got attached to unit with id({}))", archiveUnitModel.getId());
@@ -280,11 +270,10 @@ public class TransactionService {
     }
 
     public void addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel, String usage, int version,
-        String fileName, String digest, int sizeInputStream,
-        DbFormatIdentificationModel formatIdentifierResponse) throws CollectException {
+        InputStream uploadedInputStream) throws CollectException {
 
         DbQualifiersModel qualifierModelToUpdate =
-            TransactionHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
+            CollectHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
 
         if (qualifierModelToUpdate == null) {
             LOGGER.debug("Cannot found usage for object  with id({}))", dbObjectGroupModel.getId());
@@ -292,7 +281,7 @@ public class TransactionService {
                 "Cannot found usage for object with id(" + dbObjectGroupModel.getId() + ")");
         }
 
-        DbVersionsModel dbVersionsModel = TransactionHelper.getObjectVersionsModel(dbObjectGroupModel, usage, version);
+        DbVersionsModel dbVersionsModel = CollectHelper.getObjectVersionsModel(dbObjectGroupModel, usage, version);
 
         if (dbVersionsModel == null) {
             LOGGER.debug("Cannot found version for object  with id({}))", dbObjectGroupModel.getId());
@@ -300,13 +289,19 @@ public class TransactionService {
                 "Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
         }
 
+        String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
+        String fileName = dbVersionsModel.getId()+ (extension.equals("") ? "" : "." + extension);
+        CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
+        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileName);
+        DbFormatIdentificationModel formatIdentifierResponse = getFormatIdentification(dbObjectGroupModel.getOpi(), fileName);
+
         int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
         int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
         dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
         dbVersionsModel.setUri("Content/" + fileName);
         dbVersionsModel.setMessageDigest(digest);
         dbVersionsModel.setAlgorithm("SHA-512");
-        dbVersionsModel.setSize(sizeInputStream);
+        dbVersionsModel.setSize(countingInputStream.getByteCount());
 
         if (null != formatIdentifierResponse) {
             dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
@@ -332,7 +327,7 @@ public class TransactionService {
     public String pushStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName) {
         LOGGER.debug("Try to push stream to workspace...");
         String digest;
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             if (!workspaceClient.isExistingContainer(containerName)) {
                 workspaceClient.createContainer(containerName);
                 workspaceClient.createFolder(containerName, FOLDER_CONTENT);
@@ -340,7 +335,7 @@ public class TransactionService {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
             uploadedInputStream = new DigestInputStream(uploadedInputStream, messageDigest);
             workspaceClient.putObject(containerName, FOLDER_CONTENT.concat("/").concat(fileName), uploadedInputStream);
-            digest = TransactionHelper.readMessageDigestReturn(messageDigest.digest());
+            digest = CollectHelper.readMessageDigestReturn(messageDigest.digest());
         } catch (ContentAddressableStorageException | NoSuchAlgorithmException e) {
             LOGGER.error("Error when trying to push stream to workspace {} ", e);
             throw new IllegalArgumentException("Error when trying to push stream to workspace {} " + e.getMessage());
@@ -349,12 +344,20 @@ public class TransactionService {
         return digest;
     }
 
-    public JsonNode saveArchiveUnitInMetaData(CollectUnitDto collectUnitDto) throws CollectException {
+    public JsonNode saveArchiveUnitInMetaData(JsonNode unitJsonDto) throws CollectException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            UnitModel unitModel = CollectUnitMapper.toModel(collectUnitDto);
-            JsonNode unitJsonNode = objectMapper.convertValue(unitModel, JsonNode.class);
-            List<BulkUnitInsertEntry> units =
-                Collections.singletonList(new BulkUnitInsertEntry(unitModel.getUp(), unitJsonNode));
+            ObjectNode unitJson = JsonHandler.createObjectNode();
+            this.collectVarNameAdapter.setVarsValue(unitJson, unitJsonDto);
+            List<BulkUnitInsertEntry> units = null;
+            if (null != unitJson.get("_up") && unitJson.get("_up").size() != 0) {
+                Set<String> parentUnitIds = StreamSupport
+                    .stream(unitJson.get("_up").spliterator(), false)
+                    .map(JsonNode::asText)
+                    .collect(Collectors.toSet());
+                units = Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
+            } else {
+                units = Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
+            }
             return client.insertUnitBulk(new BulkUnitInsertRequest(units));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -378,7 +381,7 @@ public class TransactionService {
 
     public DbFormatIdentificationModel getFormatIdentification(String transactionId, String objectName) {
         FormatIdentifier formatIdentifier;
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
             if (workspaceClient.isExistingContainer(transactionId)) {
                 InputStream is =
@@ -387,7 +390,7 @@ public class TransactionService {
                 Files.copy(is, path);
                 File tmpFile = path.toFile();
                 final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-                final FormatIdentifierResponse format = TransactionHelper.getFirstPronomFormat(formats);
+                final FormatIdentifierResponse format = CollectHelper.getFirstPronomFormat(formats);
                 DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
                 formatIdentificationModel.setFormatId(format.getPuid());
                 formatIdentificationModel.setMimeType(format.getMimetype());

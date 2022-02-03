@@ -27,16 +27,22 @@
 package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.KeywordTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.TextTypeDeSerializer;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
 public class ObjectMapperBuilder {
@@ -47,9 +53,11 @@ public class ObjectMapperBuilder {
 
     public static ObjectMapper buildObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         SimpleModule module = new SimpleModule();
 
@@ -58,6 +66,8 @@ public class ObjectMapperBuilder {
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
         module.addDeserializer(OrganizationDescriptiveMetadataType.class,
             new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
+        module.addDeserializer(TextType.class, new TextTypeDeSerializer());
+        module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 
         objectMapper.registerModule(module);
 

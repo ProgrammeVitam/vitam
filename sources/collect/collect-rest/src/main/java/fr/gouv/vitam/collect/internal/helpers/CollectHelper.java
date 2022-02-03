@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ListMultimap;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
@@ -34,9 +38,14 @@ import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-public class TransactionHelper {
-    private TransactionHelper() throws IllegalAccessException {
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+
+public class CollectHelper {
+    private CollectHelper() throws IllegalAccessException {
         throw new IllegalAccessException("Utility class!");
     }
 
@@ -94,6 +103,21 @@ public class TransactionHelper {
     public static void checkVersion(int version, int lastVersion) {
         if (version != lastVersion) {
             throw new IllegalArgumentException("version number not valid " + version);
+        }
+    }
+
+    public static void createGraph(ListMultimap<String, String> multimap, Set<String> originatingAgencies,
+        Map<String, String> ogs, JsonNode result) {
+        String archiveUnitId = result.get(id()).asText();
+        ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.unitups());
+        for (JsonNode node : nodes) {
+            multimap.put(node.asText(), archiveUnitId);
+        }
+        Optional<JsonNode> originatingAgency = Optional.ofNullable(result.get(VitamFieldsHelper.originatingAgency()));
+        originatingAgency.ifPresent(jsonNode -> originatingAgencies.add(jsonNode.asText()));
+        JsonNode objectIdNode = result.get(VitamFieldsHelper.object());
+        if (objectIdNode != null) {
+            ogs.put(archiveUnitId, objectIdNode.asText());
         }
     }
 }

@@ -29,30 +29,38 @@ package fr.gouv.vitam.collect.internal.helpers;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 public class DbQualifiersModelBuilder {
     private String usage;
-    private final List<DbVersionsModel> versions = new ArrayList<>();
+    private int nbc;
+    private List<DbVersionsModel> versions;
 
     public DbQualifiersModelBuilder withUsage(String usage) {
         this.usage = usage;
         return this;
     }
 
-    public DbQualifiersModelBuilder withVersion(String versionId, String fileName, String usage, Integer version) {
-        versions.add(new DbVersionsModelBuilder().build(versionId, fileName, usage, version));
+    public DbQualifiersModelBuilder withNbc(int nbc) {
+        this.nbc = nbc;
+        return this;
+    }
+
+    public DbQualifiersModelBuilder withVersion(String versionId, String fileName, String usage, int version) {
+        versions = Collections.singletonList(new DbVersionsModelBuilder().build(versionId, fileName, usage, version));
         return this;
     }
 
     public DbQualifiersModel build() {
-        Objects.requireNonNull(usage, "usage can't be null");
+        Objects.requireNonNull(usage, "Usage can't be null");
+        Objects.requireNonNull(versions, "Versions can't be null");
 
         DbQualifiersModel qualifier = new DbQualifiersModel();
         qualifier.setQualifier(usage);
         qualifier.setVersions(versions);
+        qualifier.setNbc(this.nbc);
         return qualifier;
     }
 }

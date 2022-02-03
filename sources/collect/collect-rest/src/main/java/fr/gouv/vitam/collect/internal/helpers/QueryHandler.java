@@ -27,16 +27,28 @@
 package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,11 +64,12 @@ public class QueryHandler {
     }
 
     public static UpdateMultiQuery getQualifiersAddMultiQuery(String qualifier, int version, List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String versionId) throws InvalidParseOperationException, InvalidCreateOperationException {
+        ObjectGroupDto objectGroupDto, String versionId, DbObjectGroupModel objectGroup) throws InvalidParseOperationException, InvalidCreateOperationException {
         DbQualifiersModel newQualifier = new DbQualifiersModelBuilder()
             .withUsage(qualifier)
             .withVersion(versionId, objectGroupDto.getFileInfo().getFileName(), qualifier,
                 version)
+            .withNbc(1)
             .build();
 
         qualifiers.add(newQualifier);
@@ -67,7 +80,10 @@ public class QueryHandler {
 
         UpdateMultiQuery query = new UpdateMultiQuery();
         query.addHintFilter(OBJECTGROUPS.exactToken());
-        query.addActions(setQualifier);
+        query.addActions(
+            setQualifier,
+            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroup.getNbc() + 1L)
+        );
         return query;
     }
 
@@ -92,5 +108,24 @@ public class QueryHandler {
             new SetAction(action)
         );
         return query;
+    }
+
+    public static ObjectNode insertObjectMultiQuery(DbObjectGroupModel dbObjectGroupModel) throws InvalidParseOperationException {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.resetFilter();
+        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+        insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
+        return  insert.getFinalInsert();
+    }
+
+    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, ObjectGroupDto objectGroupDto,
+        MetaDataClient client)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        UpdateMultiQuery multiQuery = new UpdateMultiQuery();
+        multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupDto.getId()));
+        multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
+        RequestResponse<JsonNode> requestResponse = client.updateUnitBulk(multiQuery.getFinalUpdate());
+        return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
     }
 }

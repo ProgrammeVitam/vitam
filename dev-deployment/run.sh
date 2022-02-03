@@ -55,6 +55,7 @@ if [ "${VITAM_TARGET}" == "rpm-cots" ] || [ "${VITAM_TARGET}" == "deb-cots" ]; t
 	VOLUME_WORKER="/vitam/data/worker"
 	VOLUME_WORKER_TMP="/vitam/tmp/worker"
 	VOLUME_DATA_TMP="/vitam/data/tmp"
+  VOLUME_COLLECT_TMP="/vitam/tmp/collect"
 
 else
 	MAPPING_PORTS="-p 80:80 -p 443:443 -p 8082:8082 -p 9102:9102 -p 9104:9104 -p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9000:9000 -p 9002:9002 -p 9900:9900 -p 27016:27016 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8015:8015 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 -p 8443-8446:8443-8446"
@@ -98,8 +99,9 @@ if [ -z "$(docker ps -a | grep -w vitam-${VITAM_TARGET}-${CONTAINER_NAME})" ]; t
 		sudo mkdir -p ${VOLUME_WORKER}
 		sudo mkdir -p ${VOLUME_WORKER_TMP}
 		sudo mkdir -p ${VOLUME_DATA_TMP}
+    sudo mkdir -p ${VOLUME_COLLECT_TMP}
 
-		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v ${VOLUME_INGEST}:${VOLUME_INGEST} -v ${VOLUME_WORKER}:${VOLUME_WORKER} -v ${VOLUME_WORKER_TMP}:${VOLUME_WORKER_TMP} -v ${VOLUME_DATA_TMP}:${VOLUME_DATA_TMP} -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 --ulimit memlock=-1 ${VITAMDEV_IMAGE}
+		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v ${VOLUME_INGEST}:${VOLUME_INGEST} -v ${VOLUME_WORKER}:${VOLUME_WORKER} -v ${VOLUME_WORKER_TMP}:${VOLUME_WORKER_TMP} -v  ${VOLUME_COLLECT_TMP}:${VOLUME_COLLECT_TMP} -v ${VOLUME_DATA_TMP}:${VOLUME_DATA_TMP} -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 --ulimit memlock=-1 ${VITAMDEV_IMAGE}
 	else
 		# need to handle properly sysctl vm.max_map_count = 262144 to remove --privileged arg
 		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc" -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 --ulimit memlock=-1 ${VITAMDEV_IMAGE}

@@ -44,7 +44,7 @@ public class CollectClientMockTest  {
         CollectClient client = collectClientFactory.getClient();
 
         //When
-        RequestResponseOK<TransactionDto> response = client.initTransaction();
+        RequestResponseOK<TransactionDto> response = client.initTransaction(new TransactionDto());
 
         //Then
         String result = response.getFirstResult().getId();
