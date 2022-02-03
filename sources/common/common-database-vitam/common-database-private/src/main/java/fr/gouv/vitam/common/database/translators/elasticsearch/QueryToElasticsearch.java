@@ -1108,12 +1108,12 @@ public class QueryToElasticsearch {
      * @return JsonNode as Object
      */
 
-    private static final Object getAsObject(JsonNode value) {
+    private static Object getAsObject(JsonNode value) {
         if (value.isBoolean()) {
             return value.asBoolean();
-        } else if (value.canConvertToLong()) {
+        } else if(value.isInt() || value.isLong()) {
             return value.asLong();
-        } else if (value.isDouble()) {
+        } else if(value.isFloat() || value.isDouble()) {
             return value.asDouble();
         } else {
             return value.asText();
