@@ -52,15 +52,17 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -89,12 +91,12 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
 import fr.gouv.vitam.metadata.core.trigger.History;
-import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
@@ -117,6 +119,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.FileNotFoundException;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
@@ -262,17 +265,37 @@ public class DbRequestTest {
     private static final String REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA =
         "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
             "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
+
+    private static final String MAPPING_FOLDER = "mapping";
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
-    static MongoDbVarNameAdapter mongoDbVarNameAdapter;
-    private static ElasticsearchAccess esClientWithoutVitamBehavior;
-    private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
-    private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+    private static final MongoDbVarNameAdapter mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
+    private static final MappingLoader mappingLoader;
+
+    static {
+        try {
+            List<ElasticsearchExternalMetadataMapping> mappingData = Arrays.asList(
+                new ElasticsearchExternalMetadataMapping(MetadataCollections.UNIT.getName(),
+                    PropertiesUtils.getResourcePath(
+                        MAPPING_FOLDER + ElasticsearchCollections.UNIT.getMapping()).toString()
+                ),
+                new ElasticsearchExternalMetadataMapping(MetadataCollections.OBJECTGROUP.getName(),
+                    ElasticsearchTestHelper.loadObjectGroupMapping()
+                )
+            );
+            mappingLoader = new MappingLoader(mappingData);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static final ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
         .createTestIndexManager(Arrays.asList(TENANT_ID_0, TENANT_ID_1, TENANT_ID_2), emptyMap(), mappingLoader);
+
+    private ElasticsearchAccess esClientWithoutVitamBehavior;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -283,7 +306,7 @@ public class DbRequestTest {
     public static void beforeClass() throws Exception {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        elasticsearchAccessMetadata =
+        ElasticsearchAccessMetadata elasticsearchAccessMetadata =
             new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
                 indexManager);
         MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
@@ -317,8 +340,6 @@ public class DbRequestTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         esClientWithoutVitamBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
-        mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
-
     }
 
     /**
@@ -1188,9 +1209,9 @@ public class DbRequestTest {
         final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE + 2);
         final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE);
         // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
-        final QueryBuilder qb3 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 10);
+        final QueryBuilder qb3 = QueryBuilders.matchPhraseQuery(MY_INT, 10);
         // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
-        final QueryBuilder qb4 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 20);
+        final QueryBuilder qb4 = QueryBuilders.matchPhraseQuery(MY_INT, 20);
         final QueryBuilder qb5 = QueryBuilders.matchPhrasePrefixQuery("underscore", "undersco");
         final QueryBuilder qb6 = QueryBuilders.matchPhrasePrefixQuery("_underscore", "undersco");
 

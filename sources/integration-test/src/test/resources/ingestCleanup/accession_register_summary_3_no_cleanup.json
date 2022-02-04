@@ -2,24 +2,24 @@
   {
     "OriginatingAgency": "RATP",
     "TotalObjects": {
-      "ingested": 5.0,
-      "deleted": 0.0,
-      "remained": 5.0
+      "ingested": 5,
+      "deleted": 0,
+      "remained": 5
     },
     "TotalObjectGroups": {
-      "ingested": 3.0,
-      "deleted": 0.0,
-      "remained": 3.0
+      "ingested": 3,
+      "deleted": 0,
+      "remained": 3
     },
     "TotalUnits": {
-      "ingested": 9.0,
-      "deleted": 0.0,
-      "remained": 9.0
+      "ingested": 9,
+      "deleted": 0,
+      "remained": 9
     },
     "ObjectSize": {
-      "ingested": 9986.0,
-      "deleted": 0.0,
-      "remained": 9986.0
+      "ingested": 9986,
+      "deleted": 0,
+      "remained": 9986
     },
     "_v": 2,
     "_tenant": 0
