@@ -143,6 +143,9 @@ pipeline {
                     tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
+            options {
+                timeout(time: 3, unit: "HOURS")
+            } 
             environment {
                 LANG="fr_FR.UTF-8" // to bypass dateformat problem
             }
