@@ -28,15 +28,16 @@ package fr.gouv.vitam.storage.offers.tape.process;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -76,8 +77,11 @@ public class ProcessExecutor {
 
         try {
             if (redirectStreamToFile) {
-                cmd_stderr = Files.createTempFile("cmd_stderr_", GUIDFactory.newGUID().getId()).toFile();
-                cmd_stdout = Files.createTempFile("cmd_stdout_", GUIDFactory.newGUID().getId()).toFile();
+
+                cmd_stderr = File.createTempFile("cmd_stderr_", GUIDFactory.newGUID().getId(),
+                    new File(VitamConfiguration.getVitamTmpFolder()));
+                cmd_stdout = File.createTempFile("cmd_stdout_", GUIDFactory.newGUID().getId(),
+                    new File(VitamConfiguration.getVitamTmpFolder()));
 
                 processBuilder.redirectError(cmd_stderr);
                 processBuilder.redirectOutput(cmd_stdout);
@@ -93,6 +97,9 @@ public class ProcessExecutor {
             }
         } catch (Exception e) {
             result = new Output(e, process, processBuilder, cmd_stdout, cmd_stderr);
+        } finally {
+            FileUtils.deleteQuietly(cmd_stdout);
+            FileUtils.deleteQuietly(cmd_stderr);
         }
 
         if (LOGGER.isDebugEnabled()) {
