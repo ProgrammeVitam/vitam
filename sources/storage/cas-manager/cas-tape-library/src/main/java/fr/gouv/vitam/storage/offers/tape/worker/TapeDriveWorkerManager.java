@@ -40,6 +40,7 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -79,11 +80,13 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
         ArchiveCacheStorage archiveCacheStorage,
-        TapeCatalogService tapeCatalogService
+        TapeCatalogService tapeCatalogService,
+        CartridgeCapacityHelper cartridgeCapacityHelper
     ) {
 
         ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService);
+            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService,
+            cartridgeCapacityHelper);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
@@ -92,7 +95,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeCatalogService,
                     this, archiveReferentialRepository, accessRequestManager,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, archiveCacheStorage);
+                    forceOverrideNonEmptyCartridges, archiveCacheStorage, cartridgeCapacityHelper);
             workers.add(tapeDriveWorker);
         }
     }

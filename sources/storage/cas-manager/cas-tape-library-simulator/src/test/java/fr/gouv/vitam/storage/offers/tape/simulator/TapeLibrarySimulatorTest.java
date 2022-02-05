@@ -71,7 +71,7 @@ public class TapeLibrarySimulatorTest {
         inputDir = temporaryFolder.newFolder("inputDir").toPath();
         tmpOutputDir = temporaryFolder.newFolder("tmpOutputDir").toPath();
         tapeLibrarySimulator = new TapeLibrarySimulator(
-            inputDir, tmpOutputDir, 4, 10, 8, 100_000, 10);
+            inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 10);
     }
 
     @Test
@@ -210,7 +210,7 @@ public class TapeLibrarySimulatorTest {
 
         // Then
         assertThat(status).isNotNull();
-        assertThat(status.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(status.getCartridge()).isEqualTo("LTO-6");
         assertThat(status.getFileNumber()).isEqualTo(0);
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
@@ -235,7 +235,7 @@ public class TapeLibrarySimulatorTest {
 
         // Then
         assertThat(status).isNotNull();
-        assertThat(status.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(status.getCartridge()).isEqualTo("LTO-6");
         assertThat(status.getFileNumber()).isEqualTo(0);
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
@@ -260,7 +260,7 @@ public class TapeLibrarySimulatorTest {
 
         // Then
         assertThat(status).isNotNull();
-        assertThat(status.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(status.getCartridge()).isEqualTo("LTO-6");
         assertThat(status.getFileNumber()).isEqualTo(1);
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
@@ -286,7 +286,7 @@ public class TapeLibrarySimulatorTest {
 
         // Then
         assertThat(status).isNotNull();
-        assertThat(status.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(status.getCartridge()).isEqualTo("LTO-6");
         assertThat(status.getFileNumber()).isEqualTo(2);
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
@@ -355,7 +355,7 @@ public class TapeLibrarySimulatorTest {
             .doesNotThrowAnyException();
 
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -408,7 +408,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -465,7 +465,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-1");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -525,7 +525,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -752,7 +752,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -775,7 +775,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -798,7 +798,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -820,7 +820,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -843,7 +843,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -937,7 +937,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -960,7 +960,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -983,7 +983,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1005,7 +1005,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1028,7 +1028,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1122,7 +1122,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1142,7 +1142,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1162,7 +1162,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1182,7 +1182,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1203,7 +1203,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1224,7 +1224,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1245,7 +1245,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1267,7 +1267,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
@@ -1289,7 +1289,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1311,7 +1311,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
@@ -1334,7 +1334,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
@@ -1357,7 +1357,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
@@ -1380,7 +1380,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1400,7 +1400,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1422,7 +1422,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1445,7 +1445,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
@@ -1467,7 +1467,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1491,7 +1491,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1575,7 +1575,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1600,7 +1600,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1627,7 +1627,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1660,7 +1660,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(3);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1698,7 +1698,7 @@ public class TapeLibrarySimulatorTest {
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
-        assertThat(driveStatus.getCartridge()).isEqualTo("TAPE-0");
+        assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(34);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
             TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
@@ -1793,7 +1793,7 @@ public class TapeLibrarySimulatorTest {
 
         // Given
         this.tapeLibrarySimulator = new TapeLibrarySimulator(
-            inputDir, tmpOutputDir, 4, 10, 8, 100_000, 500);
+            inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 500);
 
         CountDownLatch tape2UnloadedFromDrive2 = new CountDownLatch(1);
 

@@ -43,6 +43,10 @@ import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import org.junit.After;
 import org.junit.Before;
@@ -63,6 +67,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -114,6 +119,9 @@ public class TapeDriveWorkerManagerTest {
     @Mock
     private TapeDriveCommandService tapeDriveCommandService1;
 
+    @Mock
+    private CartridgeCapacityHelper cartridgeCapacityHelper;
+
     private TapeDriveWorkerManager tapeDriveWorkerManager;
     private File inputTarDir;
 
@@ -138,7 +146,7 @@ public class TapeDriveWorkerManagerTest {
 
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
             queueRepository, archiveReferentialRepository, accessRequestManager, tapeLibraryPool, driveTape,
-            "", false, archiveCacheStorage, tapeCatalogService);
+            "", false, archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper);
 
         inputTarDir = temporaryFolder.newFolder("inputTars");
     }
@@ -153,55 +161,61 @@ public class TapeDriveWorkerManagerTest {
         assertThatCode(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService)
+                false, archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper)
         ).doesNotThrowAnyException();
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), null, inputTarDir.getAbsolutePath(), false,
-                archiveCacheStorage, tapeCatalogService)
+                archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, null, mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService)
+                tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService)
+                tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService)
+                tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService)
+                tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService)
+                tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, null, tapeCatalogService)
+                false, null, tapeCatalogService, cartridgeCapacityHelper)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, null)
+                false, archiveCacheStorage, null, cartridgeCapacityHelper)
+        ).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() ->
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage, tapeCatalogService, null)
         ).isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -171,6 +171,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                 case TAPE_NOT_FOUND_IN_CATALOG:
                 case KO_TAPE_IS_OUTSIDE:
                 case KO_TAPE_CONFLICT_STATE:
+                case KO_DRIVE_STATUS_KO_AFTER_WRITE_ERROR:
                 default:
                     return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
             }

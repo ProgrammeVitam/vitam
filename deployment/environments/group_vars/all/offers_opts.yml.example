@@ -56,7 +56,7 @@ vitam_strategy:
 # WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
 vitam_offers:
   offer-fs-1:
-    # param can be filesystem-hash (recomended) or filesystem (not recomended)
+    # param can be filesystem-hash (recommended) or filesystem (NOT recommended)
     provider: filesystem-hash
     # Offer log compaction
     offer_log_compaction:
@@ -159,76 +159,169 @@ vitam_offers:
   offer-tape-1:
     provider: tape-library
     tapeLibraryConfiguration:
+
+      # Max size (in bytes) of a TAR archive entry.
+      #    Cannot exceed maxTarEntrySize or 8_000_000_000 (TAR format restriction)
+      #    Recommended size: 1_000_000_000 (1 GB)
       maxTarEntrySize: 1_000_000_000
+      # Max TAR file size (in bytes).
+      #    Small TAR files increase IO operations on tapes.
+      #    Big TAR files increase memory usage on disk, and slows down data retrieval
+      #    Recommended size: 10_000_000_000 (10 GB)
       maxTarFileSize: 10_000_000_000
-      # Enable overriding non empty cartridges
+
+      # Enable overriding non-empty cartridges
       # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
       forceOverrideNonEmptyCartridges: false
-      # Archive (Tar) file expire time for retention in local FS
+
+      # Local cache configuration (/vitam/data/offer/cachedTars)
+      # Max disk cache size. Enough disk space must be available to persist :
+      #   - TAR archives containing all persisted metadata to Vitam (about 10 Kb per archival unit or object group, including updates & eliminated objects)
+      #   - TAR archives containing all system objects persisted by Vitam (traceability files, reports...)
+      #   - TAR archives containing all binaries being actively used (being accessed by a workflow requiring access to binaries : DIP, transfer request, preservation & corrective audit)
+      # Disk space usage must be monitored periodically to ensure enough space is available
       cachedTarMaxStorageSpaceInMB: 1_000_000
+      # High disk cache level. When reached, least recently used TAR archives are evicted, until enough space (cachedTarSafeStorageSpaceThresholdInMB) is available
       cachedTarEvictionStorageSpaceThresholdInMB: 800_000
+      # Safe disk cache level. TAR archive eviction stops when disk space usage is bellow this threshold
       cachedTarSafeStorageSpaceThresholdInMB: 700_000
+
       # Maximum objects to fetch by access request. Cannot exceed 100_000.
       maxAccessRequestSize: 10_000
-      # Expiration delay & unit of ready access requests (access request whose all objects are available on disk). After expiration, objects are no more guaranteed to be available on disk.
+      # Expiration delay & unit of ready access requests (access requests whose all objects are available on disk). After expiration, objects are no more guaranteed to be available on disk.
       readyAccessRequestExpirationDelay: 30
       readyAccessRequestExpirationUnit: DAYS
-      # Purge delay & unit of ready access requests (access request whose all objects are available on disk). After timeout, the access request is deleted.
+      # Purge delay & unit of ready access requests (access requests whose all objects are available on disk). After timeout, the access request is deleted.
       readyAccessRequestPurgeDelay: 60
       readyAccessRequestPurgeUnit: DAYS
       # Background access request cleanup task interval delay & unit
       accessRequestCleanupTaskIntervalDelay: 15
       accessRequestCleanupTaskIntervalUnit: MINUTES
-    topology:
-      buckets:
+
+      # Bucket configuration
+      # ====================
+      # Bucket allows physical separation of data written to the tapes by tenant(s).
+      # Data of tenants of the same bucket can be written on the same tape.
+      # Data of tenants of different buckets cannot be written to the same tape.
+      #
+      # "name": the name of the bucket
+      #    Should be unique
+      #    Can only contain alphanumerical only characters (a-z, A-Z, 0-9)
+      #    Do not use "backup" as a bucket name (reserved internally for DB backup)
+      # "tenants": The list of tenants of the bucket.
+      #    Every bucket contins 1 or multiple tenants.
+      #    Every tenant should belong to exactly 1 bucket (no duplicates, no missing tenants)
+      #    The affectation of a tenant to a bucket is definitive and CANNOT be changed later
+      #    When adding new tenants to Vitam, they can be added to an existing bucket OR to a new bucket
+      # "tarBufferingTimeoutInMinutes":
+      #    Max buffering delay before a TAR archive is sealed and scheduled for archival on tape.
+      #    A TAR archive is sealed once it reaches a critical size ("maxTarFileSize") OR buffering delay expired, whatever occurs first
+      topology:
+        buckets:
+          -
+            name: test
+            tenants: [0]
+            tarBufferingTimeoutInMinutes: 60
+          -
+            name: admin
+            tenants: [1]
+            tarBufferingTimeoutInMinutes: 60
+          -
+            name: prod
+            tenants: [2,3,4,5,6,7,8,9]
+            tarBufferingTimeoutInMinutes: 60
+
+      # Tape library configuration :
+      # ============================
+      # /!\ Only a single tape library is supported per offer instance. Do NOT configure multiple tape libraries.
+
+      tapeLibraries:
         -
-          name: test
-          tenants: [0]
-          tarBufferingTimeoutInMinutes: 60
-        -
-          name: admin
-          tenants: [1]
-          tarBufferingTimeoutInMinutes: 60
-        -
-          name: prod
-          tenants: [2,3,4,5,6,7,8,9]
-          tarBufferingTimeoutInMinutes: 60
-    tapeLibraries:
-      -
-        name: TAPE_LIB_1
-        robots:
-          -
-            device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
-            mtxPath: "/usr/sbin/mtx"
-            timeoutInMilliseconds: 3600000
-        drives:
-          -
-            index: 0
-            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
-            mtPath: "/bin/mt"
-            ddPath: "/bin/dd"
-            timeoutInMilliseconds: 3600000
-            readWritePriority: BACKUP
-          -
-            index: 1
-            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
-            mtPath: "/bin/mt"
-            ddPath: "/bin/dd"
-            timeoutInMilliseconds: 3600000
-            readWritePriority: READ
-          -
-            index: 2
-            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
-            mtPath: "/bin/mt"
-            ddPath: "/bin/dd"
-            timeoutInMilliseconds: 3600000
-          -
-            index: 3
-            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
-            mtPath: "/bin/mt"
-            ddPath: "/bin/dd"
-            readWritePriority: READ
-            timeoutInMilliseconds: 3600000
+          name: TAPE_LIB_1
+
+          # Tape changer configuration
+          # ==========================
+          # "device": changer device path.
+          #    Device path should be referenced using /dev/tape/by-id/{device} alias. Do NOT use /dev/sg* devices.
+          #    Only a single changer is supported. Do NOT configure multiple changers.
+          # "mtxPath": path to mtx linux utility (usually /usr/sbin/mtx)
+          # "timeoutInMilliseconds": Timeout (in MS) for mtx command execution.
+          #    Timeout should be large enough to handle all long-running operations (full tape library status, tape loading & unloading...).
+          #
+          robots:
+            -
+              device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
+              mtxPath: "/usr/sbin/mtx"
+              timeoutInMilliseconds: 3600000
+
+          # Drive configuration
+          # ===================
+          # Multiple devices can be defined.
+          #
+          # index: 0-based drive index is the same order as reported in "mtx status"
+          # device: drive device path
+          #    Only use "nst" devices. Do NOT use "st" devices.
+          #    Device path should be referenced using /dev/tape/by-id/{device}-nst alias. Do NOT use /dev/nst* devices.
+          # mtPath: path to mt linux utility (usually /bin/mt)
+          # ddPath: path to dd linux utility (usually /bin/dd)
+          # timeoutInMilliseconds: Timeout (in MS) for mt & dd command execution.
+          #    Should be large enough to handle all long-running operations on drives (status, move, rewind, ejection, read & write...).
+          # readWritePriority: Defined the processing priority of read, write and backup orders. Should be one of
+          #    - "BACKUP" : Drive executes DB backup write orders, then regular data write orders, then read orders.
+          #    - "WRITE" : Drive executes regular data write orders, then read orders.
+          #    - "READ" : Drive executes data read orders, then regular data write orders.
+          #    /!\ At least one drive with BACKUP priority is required to handle DB backups.
+
+          drives:
+            -
+              index: 0
+              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+              mtPath: "/bin/mt"
+              ddPath: "/bin/dd"
+              timeoutInMilliseconds: 3600000
+              readWritePriority: BACKUP
+            -
+              index: 1
+              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+              mtPath: "/bin/mt"
+              ddPath: "/bin/dd"
+              timeoutInMilliseconds: 3600000
+              readWritePriority: READ
+            -
+              index: 2
+              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+              mtPath: "/bin/mt"
+              ddPath: "/bin/dd"
+              timeoutInMilliseconds: 3600000
+              readWritePriority: READ
+            -
+              index: 3
+              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+              mtPath: "/bin/mt"
+              ddPath: "/bin/dd"
+              readWritePriority: WRITE
+              timeoutInMilliseconds: 3600000
+
+          # Tape library cartridge configuration
+          # ====================================
+          # Storage capacity (in MB, without compression) of cartridge formats supported by the tape library
+          cartridgeCapacities:
+            # "type": Cartridge type (as reported by "mt status" command)
+            # "capacityInMB": Raw storage capacity (in MB) of the cartridges
+            - type: LTO-6
+              capacityInMB: 2_500_000
+            - type: LTO-7
+              capacityInMB: 6_000_000
+            - type: LTO-8
+              capacityInMB: 12_000_000
+            - type: LTO-9
+              capacityInMB: 18_000_000
+          # Full cartridge detection threshold. Default is 90%.
+          # Vitam uses an optimistic heuristic to "detect" full tapes based of current capacity usage of the tape
+          #   When a write error occurs on a tape whose capacity usage exceeds this threshold, the tape is considered as "FULL", and data is written to another tape
+          #   When a write error occurs on a tape whose capacity usage is bellow this threshold, the tape is considered as corrupted, and its status is set to "CONFLICT"
+          fullCartridgeDetectionThresholdInPercentage: 90
+
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted
       expiration_value: 21

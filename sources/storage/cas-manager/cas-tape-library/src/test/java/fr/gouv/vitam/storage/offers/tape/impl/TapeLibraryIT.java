@@ -461,14 +461,14 @@ public class TapeLibraryIT {
                 new ReadTask(
                     new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, null), tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             ReadTask readTask2 =
                 new ReadTask(
                     new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, null), tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             // Classical read

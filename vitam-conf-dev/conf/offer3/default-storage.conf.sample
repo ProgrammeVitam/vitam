@@ -52,3 +52,8 @@ tapeLibraryConfiguration:
           ddPath: "/bin/dd"
           timeoutInMilliseconds: 600000
 
+      fullCartridgeDetectionThresholdInPercentage: 90
+      cartridgeCapacities:
+        - type: LTO-6
+          capacityInMB: 2_500_000
+

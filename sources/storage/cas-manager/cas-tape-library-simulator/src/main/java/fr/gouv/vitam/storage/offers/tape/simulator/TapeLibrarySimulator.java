@@ -79,11 +79,12 @@ public class TapeLibrarySimulator {
     private final List<TapeDriveCommandService> tapeDriveCommandServices;
     private final List<Exception> failures;
     private final int maxTapeCapacityInBytes;
+    private final String cartridgeType;
 
     private volatile int sleepDelayMillis;
 
     public TapeLibrarySimulator(Path inputDirectory, Path tempOutputStorageDirectory, int nbDrives, int nbSlots,
-        int nbTapes, int maxTapeCapacityInBytes, int sleepDelayMillis) {
+        int nbTapes, int maxTapeCapacityInBytes, String cartridgeType, int sleepDelayMillis) {
         ParametersChecker.checkParameter("Missing inputDirectory", inputDirectory);
         ParametersChecker.checkParameter("Missing tempOutputStorageDirectory", tempOutputStorageDirectory);
         ParametersChecker.checkValue("Invalid nbDrives", nbDrives, 1);
@@ -91,6 +92,7 @@ public class TapeLibrarySimulator {
         ParametersChecker.checkValue("Invalid nbTapes", nbTapes, 1);
         ParametersChecker.checkValue("Invalid maxTapeCapacityInBytes", maxTapeCapacityInBytes, 1);
         ParametersChecker.checkValue("nbTapes must be <= nbSlots", nbSlots, nbTapes);
+        ParametersChecker.checkParameter("Missing cartridgeType", cartridgeType);
 
         failures = Collections.synchronizedList(new ArrayList<>());
 
@@ -121,6 +123,7 @@ public class TapeLibrarySimulator {
             tapeDriveCommandServices.add(new TestTapeDriveCommandService(driveIndex));
         }
         this.maxTapeCapacityInBytes = maxTapeCapacityInBytes;
+        this.cartridgeType = cartridgeType;
         this.sleepDelayMillis = sleepDelayMillis;
     }
 
@@ -432,7 +435,7 @@ public class TapeLibrarySimulator {
                         break;
                     case LOADED:
 
-                        result.setCartridge(drive.getCurrentTape().getVolumeTag());
+                        result.setCartridge(cartridgeType);
                         List<TapeDriveStatus> driveStatuses = new ArrayList<>();
                         driveStatuses.add(TapeDriveStatus.ONLINE);
                         driveStatuses.add(TapeDriveStatus.IM_REP_EN);
@@ -451,7 +454,6 @@ public class TapeLibrarySimulator {
 
                         result.setBlockNumber(0);
                         result.setTapeBlockSize(0L);
-                        result.setDensityCode("LTO-6");
                         result.setFileNumber(drive.getFilePosition());
                         break;
                     case BUSY:

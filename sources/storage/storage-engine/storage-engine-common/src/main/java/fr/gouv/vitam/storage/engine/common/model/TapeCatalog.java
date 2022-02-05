@@ -149,8 +149,9 @@ public class TapeCatalog extends QueueMessageEntity {
         return writtenBytes;
     }
 
-    public void setWrittenBytes(Long writtenBytes) {
+    public TapeCatalog setWrittenBytes(Long writtenBytes) {
         this.writtenBytes = writtenBytes;
+        return this;
     }
 
     public TapeState getTapeState() {

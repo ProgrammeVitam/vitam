@@ -164,6 +164,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             LOGGER.error("Write task failed", e);
             readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
+
                 case KO_LABEL_DISCORDING:
                 case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_UNKNOWN_CURRENT_POSITION:
@@ -237,6 +238,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case KO_ON_MOVE_TO_CACHE:
                 case KO_ON_DELETE_ARCHIVED_BACKUP:
                 case INTERNAL_ERROR_SERVER:
+                case KO_DRIVE_STATUS_KO_AFTER_WRITE_ERROR:
                 default:
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.ERROR);

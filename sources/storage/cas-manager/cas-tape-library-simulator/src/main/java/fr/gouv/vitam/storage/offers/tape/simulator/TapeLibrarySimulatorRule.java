@@ -54,10 +54,10 @@ public class TapeLibrarySimulatorRule extends ExternalResource {
     private final TapeLibrarySimulator tapeLibrarySimulator;
 
     public TapeLibrarySimulatorRule(Path inputDirectory, Path tempOutputStorageDirectory, int nbDrives, int nbSlots,
-        int nbTapes, int maxTapeCapacityInBytes, int sleepDelayMillis) {
+        int nbTapes, int maxTapeCapacityInBytes, String cartridgeType, int sleepDelayMillis) {
 
         this.tapeLibrarySimulator = new TapeLibrarySimulator(inputDirectory, tempOutputStorageDirectory,
-            nbDrives, nbSlots, nbTapes, maxTapeCapacityInBytes, sleepDelayMillis);
+            nbDrives, nbSlots, nbTapes, maxTapeCapacityInBytes, cartridgeType, sleepDelayMillis);
 
         TapeLibraryFactory.TapeServiceCreator tapeServiceCreator = new TapeLibraryFactory.TapeServiceCreator() {
 
