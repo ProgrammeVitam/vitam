@@ -1,0 +1,24 @@
+# ENVIRONMENT VARIABLES FOR RESTIC
+
+export RESTIC_PASSWORD={{ restic.password | default('vitam') }}
+
+{% if vitam_offers[offer_conf]["provider"] in ["filesystem", "filesystem-hash", "tape-library"] %}
+# PARAMETERS FOR FILESYSTEM & TAPE OFFERS
+export RESTIC_CONTAINER=/vitam/data/offer/container/{{ vitam_prefix_offer | default(vitam_site_name) }}_restic
+{% endif %}
+{% if vitam_offers[offer_conf]["provider"] in ["openstack-swift", "openstack-swift-v2", "openstack-swift-v3"] %}
+# PARAMETERS FOR SWIFT OFFERS
+export RESTIC_CONTAINER=swift:{{ vitam_prefix_offer|default(vitam_site_name) }}_restic:
+export OS_AUTH_URL={{ vitam_offers[offer_conf]["swiftKeystoneAuthUrl"] }}
+export OS_USER_DOMAIN_NAME={{ vitam_offers[offer_conf]["swiftDomain"] | default('Default') }}
+export OS_PROJECT_NAME={{ vitam_offers[offer_conf]["swiftProjectName"] | default('') }}
+export OS_USERNAME={{ vitam_offers[offer_conf]["swiftUser"] }}
+export OS_PASSWORD={{ vitam_offers[offer_conf]["swiftPassword"] }}
+{% endif %}
+{% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v1" %}
+# PARAMETERS FOR S3 OFFERS
+export RESTIC_CONTAINER=s3:{{ vitam_offers[offer_conf]["s3Endpoint"] }}/{{ vitam_prefix_offer | default(vitam_site_name) }}.restic
+export AWS_ACCESS_KEY_ID={{ vitam_offers[offer_conf]["s3AccessKey"] }}
+export AWS_SECRET_ACCESS_KEY={{ vitam_offers[offer_conf]["s3SecretKey"] }}
+export AWS_DEFAULT_REGION={{ vitam_offers[offer_conf]["s3RegionName"] }}
+{% endif %}

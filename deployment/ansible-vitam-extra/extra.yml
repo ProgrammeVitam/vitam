@@ -18,6 +18,8 @@
 
 - import_playbook: grafana.yml
 
+- import_playbook: restic.yml
+
 - import_playbook: curator_jobs.yml
   when: external_siem is undefined
 

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# source global parameters
+source /vitam/conf/restic/restic.conf
+
+CONFIG_BACKUP_DIR=/vitam/conf/restic/conf.d/
+
+echo "Available backups:"
+for FILE in ${CONFIG_BACKUP_DIR}*; do
+  source $FILE
+  echo "  * $name"
+done
+
+echo -n "=> Please select the backup to restore: "
+read CURRENT_BACKUP
+
+if [[ -f ${CONFIG_BACKUP_DIR}/${CURRENT_BACKUP}.conf ]]; then
+
+  RESTIC_TMP_RESTORE_DIR=/vitam/tmp/restic/restore
+  RESTIC_RESTORE_DIR=${RESTIC_TMP_RESTORE_DIR}/${CURRENT_BACKUP}
+
+  export RESTIC_REPOSITORY=${RESTIC_CONTAINER}/${CURRENT_BACKUP}
+
+  restic snapshots
+
+  echo -n "=> Please select the ID to restore under ${RESTIC_RESTORE_DIR}: "
+  read restore_id
+
+  restic restore ${restore_id} --target ${RESTIC_RESTORE_DIR}
+
+else
+
+  echo "ERROR: Could not find the selected file."
+  exit 1
+
+fi

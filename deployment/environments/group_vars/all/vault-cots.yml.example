@@ -10,3 +10,7 @@ cerebro:
 grafana:
   admin_user: vitam_admin
   admin_password: change_it-aadmin1234
+
+restic:
+  # Remembering your password is important! Backups are encrypted with it. If you lose it, you won’t be able to access data stored in the repository.
+  password: vitam

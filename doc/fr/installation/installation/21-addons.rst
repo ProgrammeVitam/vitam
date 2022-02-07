@@ -593,7 +593,7 @@ Pour se faire, il suffit d'exécuter le playbook associée :
 Configuration
 -------------
 
-Les paramères de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_var.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+Les paramères de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_vars.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
 
 Configuration spécifique derrière un proxy
 ------------------------------------------
@@ -614,3 +614,23 @@ Voici les variables modifiées par la solution :term:`VITAM` pour permettre le f
 ..
 
 .. warning:: Lors de la première connexion, vous devrez changer le mot de passe par défaut (login: admin; password: aadmin1234), configurer le datasource et créer/importer les dashboards manuellement.
+
+
+Installation de restic
+======================
+
+restic est un addon de la solution :term:`VITAM`.
+
+restic sera déployé sur l'ensemble des machines renseignées dans le groupe ``[hosts_storage_offer_default]`` de votre fichier d'inventaire qui possèdent le paramètre ``restic_enabled=true``.
+
+Pour se faire, il suffit d'exécuter le playbook associé :
+
+.. code-block:: bash
+
+    ansible-playbook --vault-password-file vault_pass.txt ansible-vitam-extra/restic.yml -i environments/hosts.<environnement>
+..
+
+Configuration
+-------------
+
+Les paramères de configuration de ce composant se trouvent dans les fichiers ``environments/group_vars/all/cots_vars.yml`` et ``environments/group_vars/all/vault-cots.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
