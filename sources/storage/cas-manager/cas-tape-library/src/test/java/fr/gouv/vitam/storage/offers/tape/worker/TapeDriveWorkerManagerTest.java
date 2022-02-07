@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker;
 
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
@@ -39,6 +37,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -55,11 +54,10 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -90,6 +88,9 @@ public class TapeDriveWorkerManagerTest {
     @Mock
     private ArchiveCacheStorage archiveCacheStorage;
 
+    @Mock
+    private TapeCatalogService tapeCatalogService;
+
     private TapeDriveWorkerManager tapeDriveWorkerManager;
     private File inputTarDir;
 
@@ -97,7 +98,7 @@ public class TapeDriveWorkerManagerTest {
     public void setUp() throws Exception {
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
             queueRepository, archiveReferentialRepository, accessRequestManager, tapeLibraryPool, driveTape,
-            "", false, archiveCacheStorage);
+            "", false, archiveCacheStorage, tapeCatalogService);
 
         inputTarDir = temporaryFolder.newFolder("inputTars");
     }
@@ -108,93 +109,60 @@ public class TapeDriveWorkerManagerTest {
 
     @Test
     public void test_constructor() {
-        new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-            accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class),
-            inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
 
-        try {
+        assertThatCode(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager,
-                mock(TapeLibraryPool.class), null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail driveTape map is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage, tapeCatalogService)
+        ).doesNotThrowAnyException();
 
-
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, null,
-                mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail tape library pool is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                accessRequestManager, mock(TapeLibraryPool.class), null, inputTarDir.getAbsolutePath(), false,
+                archiveCacheStorage, tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
+        assertThatThrownBy(() ->
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                accessRequestManager, null, mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
-                mock(TapeLibraryPool.class), mock(Map.class),
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail tar referential repository is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), accessRequestManager,
-                mock(TapeLibraryPool.class),
-                mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail read write queue is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null,
-                mock(TapeLibraryPool.class),
-                mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail read request repository is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
-                mock(TapeLibraryPool.class),
-                mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
-            fail("should fail access request manager is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
+                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-
-        try {
+        assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class),
-                mock(Map.class), inputTarDir.getAbsolutePath(), false, null);
-            fail("should fail read request archiveStorageCache is required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-    }
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, null, tapeCatalogService)
+        ).isInstanceOf(IllegalArgumentException.class);
 
-    @Test
-    public void enqueue_ok() throws QueueException {
-        QueueMessageEntity queueMessageEntity = mock(QueueMessageEntity.class);
-        doAnswer(o -> true).when(queueRepository).add(any());
-        tapeDriveWorkerManager.enqueue(queueMessageEntity);
-
-        Assertions.assertThat(tapeDriveWorkerManager.getQueue()).isNotNull();
-    }
-
-
-    @Test(expected = QueueException.class)
-    public void enqueue_ko() throws QueueException {
-        QueueMessageEntity queueMessageEntity = mock(QueueMessageEntity.class);
-        doThrow(new QueueException("")).when(queueRepository).add(any());
-        tapeDriveWorkerManager.enqueue(queueMessageEntity);
+        assertThatThrownBy(() ->
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage, null)
+        ).isInstanceOf(IllegalArgumentException.class);
     }
 
     // ===================================

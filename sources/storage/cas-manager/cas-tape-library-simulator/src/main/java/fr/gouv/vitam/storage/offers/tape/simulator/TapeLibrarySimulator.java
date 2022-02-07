@@ -145,7 +145,8 @@ public class TapeLibrarySimulator {
             case EMPTY:
                 throw createAndReportSevereTapeCommandException("No loaded tape in drive " + drive.getDriveIndex());
             case LOADED:
-                LOGGER.info("OK, tape " + drive.getCurrentTape().getVolumeTag() + " is loaded into drive " + drive.getDriveIndex());
+                LOGGER.info("OK, tape " + drive.getCurrentTape().getVolumeTag() + " is loaded into drive " +
+                    drive.getDriveIndex());
                 break;
             case EJECTED:
                 throw createAndReportSevereTapeCommandException("Tape " + drive.getCurrentTape().getVolumeTag() +
@@ -764,7 +765,7 @@ public class TapeLibrarySimulator {
                             " into slot " + slotNumber + ". Tape " + virtualDrive.getCurrentTape().getVolumeTag()
                             + " has not yet been ejected");
                     case EJECTED:
-                        LOGGER.info("OK. Drive " + driveIndex + " has ejected tape "
+                        LOGGER.info("OK. Drive " + driveIndex + " has an ejected tape "
                             + virtualDrive.getCurrentTape().getVolumeTag());
                         break;
                     case BUSY:

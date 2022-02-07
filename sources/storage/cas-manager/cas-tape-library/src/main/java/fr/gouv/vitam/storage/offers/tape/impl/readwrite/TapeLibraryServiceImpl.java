@@ -120,7 +120,6 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
         }
 
-        // FIXME : Can we write when tape.getFileCount() > tape.getCurrentPosition()?!!
         if (tape.getFileCount() < tape.getCurrentPosition()) {
             throw new ReadWriteException(
                 MSG_PREFIX + ", Error: current position must be <= to fileCount.",

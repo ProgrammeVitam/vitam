@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
@@ -43,6 +42,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 
@@ -76,17 +76,18 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         AccessRequestManager accessRequestManager,
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage) {
+        ArchiveCacheStorage archiveCacheStorage,
+        TapeCatalogService tapeCatalogService
+    ) {
 
-        ParametersChecker
-            .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-                archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage);
+        ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
+            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
-                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
+                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeCatalogService,
                     this, archiveReferentialRepository, accessRequestManager,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
                     forceOverrideNonEmptyCartridges, archiveCacheStorage);
@@ -103,12 +104,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             LOGGER.debug("Start worker :" + thread.getName());
         }
     }
-
-    public void enqueue(QueueMessageEntity entity) throws QueueException {
-        // FIXME : Unused
-        this.readWriteQueue.add(entity);
-    }
-
 
     public void shutdown() {
         List<CompletableFuture> completableFutures = new ArrayList<>();

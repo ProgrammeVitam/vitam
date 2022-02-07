@@ -215,8 +215,7 @@ public class TapeLibraryFactory {
             if (robotServices.size() > 0 && driveServices.size() > 0) {
                 tapeLibraryPool
                     .putIfAbsent(tapeLibraryIdentifier,
-                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices,
-                            tapeCatalogService));
+                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices));
             }
 
             // init tape catalog
@@ -252,7 +251,7 @@ public class TapeLibraryFactory {
                     new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository,
                         accessRequestManager, libraryPool, driveTape,
                         configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges(),
-                        archiveCacheStorage));
+                        archiveCacheStorage, tapeCatalogService));
         }
 
         // Everything's alright. Start tar creation listeners

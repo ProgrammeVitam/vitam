@@ -484,7 +484,7 @@ public class TarFileRapairerTest {
 
                 TarArchiveEntry nextTarEntry = tarArchiveInputStream.getNextTarEntry();
                 assertThat(nextTarEntry.getName()).isEqualTo(entryName);
-                assertThat(new CloseShieldInputStream(tarArchiveInputStream)).hasSameContentAs(expectedContent);
+                assertThat(CloseShieldInputStream.wrap(tarArchiveInputStream)).hasSameContentAs(expectedContent);
             }
 
             assertThat(tarArchiveInputStream.getNextTarEntry()).isNull();

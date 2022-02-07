@@ -60,6 +60,4 @@ public interface TapeRobotPool {
 
 
     String getLibraryIdentifier();
-
-    TapeCatalogService getTapeCatalogService();
 }

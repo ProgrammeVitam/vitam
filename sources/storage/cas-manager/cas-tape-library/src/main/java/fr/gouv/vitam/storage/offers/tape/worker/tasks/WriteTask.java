@@ -305,11 +305,10 @@ public class WriteTask implements Future<ReadWriteResult> {
         // If tape not found WARN (return TAR to queue and continue)
         // If tape ok load tape to drive
         // Do status to get tape TYPE and some other information (update catalog)
-        if (tryFindTapeCatalogAndLoadIntoDrive()) {
-            // Check if new tape then doWrite(label)
-            // doWrite(TAR)
-            doWrite(file);
-        }
+        tryFindTapeCatalogAndLoadIntoDrive();
+        // Check if new tape then doWrite(label)
+        // doWrite(TAR)
+        doWrite(file);
     }
 
     /**
@@ -330,11 +329,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         return file;
     }
 
-    /**
-     * @return true if tape loaded into drive, false else
-     * @throws ReadWriteException
-     */
-    private boolean tryFindTapeCatalogAndLoadIntoDrive()
+    private void tryFindTapeCatalogAndLoadIntoDrive()
         throws ReadWriteException {
         // Find tape
         // If tape not found WARN (return TAR to queue and continue)
@@ -348,8 +343,6 @@ public class WriteTask implements Future<ReadWriteResult> {
         retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
 
         doCheckTapeLabel();
-
-        return true;
     }
 
     /**
