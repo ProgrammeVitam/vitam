@@ -73,47 +73,53 @@ public class TapeCatalogLabel {
         return id;
     }
 
-    public void setId(String id) {
+    public TapeCatalogLabel setId(String id) {
         this.id = id;
+        return this;
     }
 
     public String getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public TapeCatalogLabel setCode(String code) {
         this.code = code;
+        return this;
     }
 
     public String getAlternativeCode() {
         return alternativeCode;
     }
 
-    public void setAlternativeCode(String alternativeCode) {
+    public TapeCatalogLabel setAlternativeCode(String alternativeCode) {
         this.alternativeCode = alternativeCode;
+        return this;
     }
 
     public String getBucket() {
         return bucket;
     }
 
-    public void setBucket(String bucket) {
+    public TapeCatalogLabel setBucket(String bucket) {
         this.bucket = bucket;
+        return this;
     }
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public TapeCatalogLabel setType(String type) {
         this.type = type;
+        return this;
     }
 
     public String getCreated() {
         return created;
     }
 
-    public void setCreated(String created) {
+    public TapeCatalogLabel setCreated(String created) {
         this.created = created;
+        return this;
     }
 }

@@ -55,12 +55,8 @@ public interface TapeLibraryService {
 
     String getTmpOutputDirectory();
 
-    /**
-     * @param tape
-     * @param forceOverrideNonEmptyCartridges
-     * @return true to inform that update tape catalog is needed, false else
-     * @throws ReadWriteException
-     */
-    boolean checkTapeLabel(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException;
+    void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
+        throws ReadWriteException;
 
+    void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException;
 }

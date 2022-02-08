@@ -398,12 +398,18 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private void doCheckTapeLabel() throws ReadWriteException {
-        boolean updateTapeCatalog =
-            tapeLibraryService.checkTapeLabel(workerCurrentTape, this.forceOverrideNonEmptyCartridges);
 
-        if (updateTapeCatalog) {
+        // If no label then cartridge is unknown
+        if (null == workerCurrentTape.getLabel()) {
+
+            tapeLibraryService.ensureTapeIsEmpty(workerCurrentTape, forceOverrideNonEmptyCartridges);
+
             workerCurrentTape.setBucket(writeOrder.getBucket());
             retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
+
+        } else {
+
+            tapeLibraryService.checkNonEmptyTapeLabel(workerCurrentTape);
         }
     }
 

@@ -131,6 +131,9 @@ public class ReadTask implements Future<ReadWriteResult> {
 
                 workerCurrentTape = catalogResponse.getCurrentTape();
                 loadTape();
+
+                // Check label
+                this.tapeLibraryService.checkNonEmptyTapeLabel(workerCurrentTape);
             }
 
             readFromTape();

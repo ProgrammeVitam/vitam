@@ -354,27 +354,7 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     }
 
     @Override
-    /**
-     * Check if label of tape catalog match label of loaded tape
-     *
-     * @throws ReadWriteException
-     */
-    public boolean checkTapeLabel(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException {
-
-        // If no label then cartridge is unknown
-        if (null == tape.getLabel()) {
-
-            ensureTapeIsEmpty(tape, forceOverrideNonEmptyCartridges);
-            return true;
-
-        } else {
-
-            checkNonEmptyTapeLabel(tape);
-            return false;
-        }
-    }
-
-    private void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
+    public void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
         throws ReadWriteException {
 
         // Check empty tape
@@ -418,7 +398,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         tape.setWorm(driveStatus.getDriveStatuses().contains(TapeDriveStatus.WR_PROT));
     }
 
-    private void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException {
+    @Override
+    public void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException {
         // Read Label from tape
         File labelFile = null;
         try {
