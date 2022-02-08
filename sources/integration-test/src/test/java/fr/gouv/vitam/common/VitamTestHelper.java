@@ -29,6 +29,9 @@ package fr.gouv.vitam.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -59,6 +62,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -93,11 +98,17 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
+import static fr.gouv.vitam.common.model.MetadataStorageHelper.GOT_KEY;
+import static fr.gouv.vitam.common.model.MetadataStorageHelper.LFC_KEY;
+import static fr.gouv.vitam.common.model.MetadataStorageHelper.UNIT_KEY;
 import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OB_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -364,4 +375,78 @@ public class VitamTestHelper {
         assertEquals(status, processWorkflow.getStatus());
     }
 
+
+    public static JsonNode getObjectfromOffer(String obId, DataCategory dataCategory)
+        throws StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            Response object = storageClient
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), obId + JSON_EXTENSION,
+                    dataCategory, AccessLogUtils.getNoLogAccessLog());
+            InputStream inputStream = object.readEntity(InputStream.class);
+            JsonNode resultOffer = JsonHandler.getFromInputStream(inputStream);
+            assertNotNull(resultOffer);
+            return resultOffer;
+        }
+    }
+
+    public static JsonNode getUnitLFCfromOffer(String obId)
+        throws StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
+        assertTrue(resultOffer.has(LFC_KEY));
+        return resultOffer.get(LFC_KEY);
+    }
+
+    public static JsonNode getObjectGroupLFCfromOffer(String obId)
+        throws StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
+        assertTrue(resultOffer.has(LFC_KEY));
+        return resultOffer.get(LFC_KEY);
+    }
+
+    public static JsonNode getUnitfromOffer(String obId)
+        throws StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
+        assertTrue(resultOffer.has(UNIT_KEY));
+        return resultOffer.get(UNIT_KEY);
+    }
+
+    public static JsonNode getObjectGroupfromOffer(String obId)
+        throws StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
+        assertTrue(resultOffer.has(GOT_KEY));
+        return resultOffer.get(GOT_KEY);
+    }
+
+    public static JsonNode getUnitLFC(String obId)
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
+        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
+            .getClient()) {
+            final Select select = new Select();
+            select.setQuery(QueryHelper.eq(OB_ID, obId));
+            JsonNode unitLFCresponse = logbookLifeCyclesClient.selectUnitLifeCycle(select.getFinalSelect());
+            JsonNode results = unitLFCresponse.get(RequestResponseOK.TAG_RESULTS);
+            assertNotNull(results);
+            assertFalse(results.isEmpty());
+            return results.get(0);
+        }
+    }
+
+    public static JsonNode getObjectGroupLFC(String obId)
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
+        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
+            .getClient()) {
+            final Select select = new Select();
+            select.setQuery(QueryHelper.eq(OB_ID, obId));
+            JsonNode ogLFCresponse = logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect());
+            JsonNode results = ogLFCresponse.get(RequestResponseOK.TAG_RESULTS);
+            assertNotNull(results);
+            assertFalse(results.isEmpty());
+            return results.get(0);
+        }
+    }
 }

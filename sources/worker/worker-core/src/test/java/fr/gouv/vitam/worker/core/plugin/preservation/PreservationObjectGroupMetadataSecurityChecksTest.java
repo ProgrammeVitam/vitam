@@ -39,6 +39,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -55,7 +56,10 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PreservationObjectGroupMetadataSecurityChecksTest {
     @Rule
@@ -67,28 +71,8 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
     @Mock
     private InternalActionKeysRetriever internalActionKeysRetriever;
 
-    private final HandlerIO handler = new TestHandlerIO();
-
-    @Test
-    public void should_disable_lfc_when_not_GENERATE_action() throws Exception {
-        // Given
-        OutputPreservation output = new OutputPreservation();
-        output.setStatus(PreservationStatus.OK);
-        output.setAction(ActionTypePreservation.ANALYSE);
-        List<OutputExtra> outputExtras = Collections.singletonList(OutputExtra.of(output));
-        WorkflowBatchResult batchResult = WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
-        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
-
-        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
-
-        // When
-        List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
-
-        // Then
-        assertThat(itemStatuses).extracting(ItemStatus::isLifecycleEnable).containsOnly(false);
-    }
+    @Mock
+    private HandlerIO handler;
 
     @Test
     public void should_check_extracted_metadata_and_fill_output_extra() throws Exception {
@@ -109,7 +93,7 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
+        when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
 
@@ -118,7 +102,10 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
 
         // Then
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
-        assertThat(getWorkflowBatchResults())
+        ArgumentCaptor<WorkflowBatchResults> results = ArgumentCaptor.forClass(WorkflowBatchResults.class);
+        verify(handler).addOutputResult(eq(0), results.capture());
+        assertThat(results.getValue()).isNotNull();
+        assertThat(results.getValue().getWorkflowBatchResults())
             .extracting(w -> w.getOutputExtras().get(0).getExtractedMetadataGOT())
             .extracting(Optional::get)
             .containsOnly(extractedMetadata);
@@ -134,7 +121,7 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
+        when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
 
@@ -156,7 +143,7 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
+        when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
 
@@ -177,7 +164,7 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
+        when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Arrays.asList("_forbidden_item", "$another$forbidden$item"));
 
@@ -199,7 +186,7 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
+        when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList())
             .willReturn(Arrays.asList("_forbidden_item", "$another$forbidden$item"));
@@ -223,9 +210,5 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         output2.setAction(ActionTypePreservation.EXTRACT);
         output2.setExtractedMetadata(extractedMetadata2);
         return output2;
-    }
-
-    private List<WorkflowBatchResult> getWorkflowBatchResults() {
-        return ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults();
     }
 }

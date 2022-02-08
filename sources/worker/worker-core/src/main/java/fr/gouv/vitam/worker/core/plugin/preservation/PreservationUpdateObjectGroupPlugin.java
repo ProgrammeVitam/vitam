@@ -83,6 +83,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.UNKNOWN;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -136,7 +137,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .collect(Collectors.toList());
 
         if (generateOkActions.isEmpty() && identifyOkActions.isEmpty() && extractedOkActions.isEmpty()) {
-            return new ItemStatus(PLUGIN_NAME).disableLfc();
+            return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("No changes")).disableLfc();
         }
 
         Stream<String> subItemIds = Stream.of(
