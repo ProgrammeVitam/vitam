@@ -90,7 +90,6 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
                 ItemStatus itemStatus = new ItemStatus(ITEM_ID);
-                itemStatus.disableLfc();
                 itemStatuses.add(itemStatus);
                 continue;
             }
@@ -124,8 +123,7 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
                 .map(o -> o.getError().get())
                 .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error))
-                    .disableLfc();
+            return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error));
         }
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, EventDetails.of("All metadata are OK."));

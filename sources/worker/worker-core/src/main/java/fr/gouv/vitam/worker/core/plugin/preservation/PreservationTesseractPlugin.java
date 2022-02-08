@@ -80,7 +80,6 @@ public class PreservationTesseractPlugin extends ActionHandler {
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
                 ItemStatus itemStatus = new ItemStatus(ITEM_ID);
-                itemStatus.disableLfc();
                 itemStatuses.add(itemStatus);
                 continue;
             }

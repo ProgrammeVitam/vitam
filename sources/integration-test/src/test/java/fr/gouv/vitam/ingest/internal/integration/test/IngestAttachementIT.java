@@ -33,42 +33,26 @@ import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -96,7 +80,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -114,11 +97,9 @@ import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -328,41 +309,11 @@ public class IngestAttachementIT extends VitamRuleRunner {
         String ingestOperationGuid = doIngest(tenantId, streamSip);
         verifyOperation(ingestOperationGuid, WARNING);
 
-        JsonNode lfc = getLFC(idGot);
+        JsonNode lfc = VitamTestHelper.getObjectGroupLFC(idGot);
 
-        JsonNode lfCfromOffer = getLFCfromOffer(idGot);
+        JsonNode lfCfromOffer = VitamTestHelper.getObjectGroupLFCfromOffer(idGot);
 
         assertEquals(lfc, lfCfromOffer);
-    }
-
-    private JsonNode getLFC(String obId)
-        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
-            .getClient()) {
-            final Select select = new Select();
-            select.setQuery(QueryHelper.eq("obId", obId));
-            JsonNode ogLFCresponse = logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect());
-            JsonNode results = ogLFCresponse.get(RequestResponseOK.TAG_RESULTS);
-            assertNotNull(results);
-            assertFalse(results.isEmpty());
-            return results.get(0);
-        }
-    }
-
-    private JsonNode getLFCfromOffer(String obId)
-        throws StorageNotFoundClientException, StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
-            Response object = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), offers.get(0), obId + JSON_EXTENSION,
-                    DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog());
-            InputStream inputStream = object.readEntity(InputStream.class);
-            JsonNode resultOffer = JsonHandler.getFromInputStream(inputStream);
-            assertNotNull(resultOffer);
-            assertTrue(resultOffer.has("lfc"));
-            return resultOffer.get("lfc");
-        }
     }
 
     private void verifyLogbook(String operationId) {

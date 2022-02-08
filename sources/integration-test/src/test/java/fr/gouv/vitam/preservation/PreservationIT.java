@@ -43,9 +43,11 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -58,6 +60,7 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -68,7 +71,6 @@ import fr.gouv.vitam.common.model.administration.preservation.PreservationScenar
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -127,7 +129,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -155,42 +156,39 @@ import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
 
 public class PreservationIT extends VitamRuleRunner {
-    private static final HashSet<Class> SERVERS = Sets.newHashSet(
-        AccessInternalMain.class,
-        AdminManagementMain.class,
-        ProcessManagementMain.class,
-        LogbookMain.class,
-        WorkspaceMain.class,
-        MetadataMain.class,
-        WorkerMain.class,
-        IngestInternalMain.class,
-        StorageMain.class,
-        DefaultOfferMain.class,
-        BatchReportMain.class
-    );
-
     private static final int TENANT_ID = 0;
     private static final int TENANT_ADMIN = 1;
     private static final String CONTRACT_ID = "contract";
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+    private static final String CONTEXT_ID = "Context_IT";
     private static final String MONGO_NAME = mongoRule.getMongoDatabase().getName();
     private static final String ES_NAME = ElasticsearchRule.getClusterName();
     private static final String GRIFFIN_LIBREOFFICE = "griffin-libreoffice";
-    private static final WorkFlow WORKFLOW = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
     private static final TypeReference<List<PreservationScenarioModel>> PRESERVATION_SCENARIO_MODELS = new TypeReference<>() {};
     private static final TypeReference<List<GriffinModel>> GRIFFIN_MODELS_TYPE = new TypeReference<>() {};
     private static final TypeReference<List<ObjectGroupResponse>> OBJECT_GROUP_RESPONSES_TYPE = new TypeReference<>() {};
     private static final TypeReference<OperationSummary> OPERATION_SUMMARY_TYPE = new TypeReference<>() {};
 
     @ClassRule
-    public static VitamServerRunner runner = new VitamServerRunner(PreservationIT.class, MONGO_NAME, ES_NAME, SERVERS);
+    public static VitamServerRunner runner =
+        new VitamServerRunner(PreservationIT.class, MONGO_NAME, ES_NAME, Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            ProcessManagementMain.class,
+            BatchReportMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class
+        ));
 
     private static final String DESCRIPTION_KEY = "Description";
     private static final String DESCRIPTION_VALUE = "This is an awesome description ! Thx Captain.";
@@ -256,8 +254,7 @@ public class PreservationIT extends VitamRuleRunner {
             FunctionalAdminCollections.PRESERVATION_SCENARIO.getName(),
             FunctionalAdminCollections.GRIFFIN.getName(),
             MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName(),
-            "ExtractedMetadata"
+            MetadataCollections.OBJECTGROUP.getName()
         ));
 
         runAfterEs(
@@ -433,8 +430,7 @@ public class PreservationIT extends VitamRuleRunner {
         // Given
         Response storageResponse = null;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
-             AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
 
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -470,7 +466,7 @@ public class PreservationIT extends VitamRuleRunner {
             ObjectNode selectChangeByOperationFinalSelect = selectChangeByOperation.getFinalSelect();
 
             RequestResponse<JsonNode> response = accessClient.selectUnits(selectChangeByOperationFinalSelect);
-            List<JsonNode> units = ((RequestResponseOK) response).getResults();
+            List<JsonNode> units = ((RequestResponseOK<JsonNode>) response).getResults();
 
             assertThat(units).isNotEmpty();
 
@@ -480,22 +476,31 @@ public class PreservationIT extends VitamRuleRunner {
                 List<String> foo = JsonHandler.getFromJsonNode(unitFromMetadata.get(FOO_KEY), TYPE_LIST_STRING);
                 assertThat(foo).isEqualTo(FOO_VALUE);
 
-                storageResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), unitFromMetadata.get("#id").asText() + ".json", UNIT, AccessLogUtils.getNoLogAccessLog());
-                JsonNode unitFromStorage = getFromIS(storageResponse);
-                String descriptionFromStorage = unitFromStorage.get("unit").get(DESCRIPTION_KEY).asText();
-                List<String> fooFromStorage = JsonHandler.getFromJsonNode(unitFromStorage.get("unit").get(FOO_KEY), TYPE_LIST_STRING);
+                final JsonNode unitFromStorage = VitamTestHelper
+                    .getObjectfromOffer(unitFromMetadata.get(VitamFieldsHelper.id()).asText(), DataCategory.UNIT);
+                String descriptionFromStorage =
+                    unitFromStorage.get(MetadataStorageHelper.UNIT_KEY).get(DESCRIPTION_KEY).asText();
+                List<String> fooFromStorage = JsonHandler
+                    .getFromJsonNode(unitFromStorage.get(MetadataStorageHelper.UNIT_KEY).get(FOO_KEY),
+                        TYPE_LIST_STRING);
                 assertThat(descriptionFromStorage).isEqualTo(DESCRIPTION_VALUE);
                 assertThat(fooFromStorage).isEqualTo(FOO_VALUE);
+
+                JsonNode unitLFC = VitamTestHelper.getUnitLFC(unitFromMetadata.get(VitamFieldsHelper.id()).asText());
+                JsonNode unitLFCfromOffer = unitFromStorage.get(MetadataStorageHelper.LFC_KEY);
+                assertEquals(unitLFC, unitLFCfromOffer);
+
+                if (unitFromMetadata.has(VitamFieldsHelper.objectgroups())) {
+                    JsonNode ogLFC = VitamTestHelper
+                        .getObjectGroupLFC(unitFromMetadata.get(VitamFieldsHelper.objectgroups()).asText());
+                    JsonNode ogLFCfromOffer = VitamTestHelper
+                        .getObjectGroupLFCfromOffer(unitFromMetadata.get(VitamFieldsHelper.objectgroups()).asText());
+                    assertEquals(ogLFC, ogLFCfromOffer);
+                }
             }
 
         } finally {
             consumeAnyEntityAndClose(storageResponse);
-        }
-    }
-
-    private JsonNode getFromIS(Response reportResponse) throws IOException, InvalidParseOperationException {
-        try (InputStream is = reportResponse.readEntity(InputStream.class)) {
-            return JsonHandler.getFromInputStream(is);
         }
     }
 

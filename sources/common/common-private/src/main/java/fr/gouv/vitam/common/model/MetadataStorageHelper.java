@@ -35,15 +35,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class MetadataStorageHelper {
 
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
+    public static final String UNIT_KEY = "unit";
+    public static final String GOT_KEY = "got";
+    public static final String LFC_KEY = "lfc";
 
     /**
      * Create a jsonNode with the unit document and its lfc
      *
      * @param document the unit node
-     * @param lfc      the lfc node
+     * @param lfc the lfc node
      * @return a new JsonNode with document and lfc inside
      */
     public static JsonNode getUnitWithLFC(JsonNode document, JsonNode lfc) {

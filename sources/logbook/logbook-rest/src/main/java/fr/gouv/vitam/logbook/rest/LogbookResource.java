@@ -1158,7 +1158,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
             final List<LogbookLifeCycle<?>> result =
                 logbookLifeCycle
-                    .selectLifeCycles(queryDsl, true, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
+                    .selectLifeCycles(queryDsl, false, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle<?>>(queryDsl)
                     .addAllResults(result)
