@@ -42,25 +42,6 @@ public class PreservationUnitMetadataSecurityChecksTest {
     private HandlerIO handler = new TestHandlerIO();
 
     @Test
-    public void should_disable_lfc_when_not_GENERATE_action() throws Exception {
-        // Given
-        OutputPreservation output = new OutputPreservation();
-        output.setStatus(PreservationStatus.OK);
-        output.setAction(ActionTypePreservation.ANALYSE);
-        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        WorkflowBatchResult batchResult = WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
-        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
-        handler.addOutputResult(0, batchResults);
-
-        // When
-        List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
-
-        // Then
-        assertThat(itemStatuses).extracting(ItemStatus::isLifecycleEnable).containsOnly(false);
-    }
-
-    @Test
     public void should_check_extracted_metadata_and_fill_output_extra() throws Exception {
         // Given
         ExtractedMetadataForAu extractedMetadata = new ExtractedMetadataForAu();

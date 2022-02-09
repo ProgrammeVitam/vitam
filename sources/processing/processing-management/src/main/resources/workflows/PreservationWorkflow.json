@@ -72,7 +72,7 @@
           "action": {
             "actionKey": "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS",
             "behavior": "NOBLOCKING",
-            "lifecycleLog": "FINAL",
+            "lifecycleLog": "DISABLED",
             "in": [
               {
                 "name": "workflowBatchResults",
@@ -91,7 +91,7 @@
           "action": {
             "actionKey": "PRESERVATION_UNIT_METADATA_SECURITY_CHECKS",
             "behavior": "NOBLOCKING",
-            "lifecycleLog": "FINAL",
+            "lifecycleLog": "DISABLED",
             "in": [
               {
                 "name": "workflowBatchResults",
@@ -110,7 +110,7 @@
           "action": {
             "actionKey": "PRESERVATION_TESSERACT_SPLIT_TEXT_CONTENT",
             "behavior": "NOBLOCKING",
-            "lifecycleLog": "FINAL",
+            "lifecycleLog": "DISABLED",
             "in": [
               {
                 "name": "workflowBatchResults",

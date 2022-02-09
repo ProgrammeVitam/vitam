@@ -73,7 +73,8 @@ public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupA
             List<String> objectGroupIdList = Collections.singletonList(result.getGotId());
             try {
                 List<WorkflowBatchResult.OutputExtra> outputExtras = result.getOutputExtras().stream()
-                    .filter(WorkflowBatchResult.OutputExtra::isOkAndGenerated)
+                    .filter(o -> o.isOkAndGenerated() || o.isOkAndExtractedGot() || o.isOkAndIdentify() ||
+                        o.isOkAndExtractedAu())
                     .collect(Collectors.toList());
 
                 if (outputExtras.isEmpty()) {

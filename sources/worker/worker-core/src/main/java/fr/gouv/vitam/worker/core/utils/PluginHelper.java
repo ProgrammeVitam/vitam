@@ -118,7 +118,7 @@ public class PluginHelper {
         final ItemStatus itemStatus = new ItemStatus(itemId);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
-        Map<String, ItemStatus> obIds = subItemIds.collect(Collectors.toMap(id -> id, id -> itemStatus));
+        Map<String, ItemStatus> obIds = subItemIds.collect(Collectors.toMap(id -> id, id -> new ItemStatus(itemId)));
         itemStatus.setSubTasksStatus(obIds);
         return new ItemStatus(itemId).setItemsStatus(itemId, itemStatus);
     }
