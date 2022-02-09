@@ -100,7 +100,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         tape.setCurrentPosition(position);
     }
 
-    private void rewindTape(TapeCatalog tape) throws ReadWriteException {
+    @Override
+    public void rewindTape(TapeCatalog tape) throws ReadWriteException {
         try {
             tapeDriveService.getDriveCommandService().rewind();
         } catch (TapeCommandException e) {

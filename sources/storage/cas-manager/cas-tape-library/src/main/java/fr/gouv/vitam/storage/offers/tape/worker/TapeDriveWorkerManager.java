@@ -54,6 +54,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -303,6 +305,28 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             nin(ReadOrder.TAPE_CODE, activeTapeCodes),
             QueueMessageType.ReadOrder
         );
+    }
+
+    public void initializeOnBootstrap() {
+        // Initialize drives concurrently
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(workers.size(), VitamThreadFactory.getInstance());
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        for (TapeDriveWorker worker : workers) {
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.currentThread().setName("BootstrapThreadDrive" + worker.getIndex());
+                    LOGGER.info("Initializing drive " + worker.getIndex());
+                    worker.initializeOnBootstrap();
+                } catch (Exception e) {
+                    LOGGER.error("Could not initialize worker " + worker.getIndex(), e);
+                    throw new RuntimeException("Could not initialize worker " + worker.getIndex(), e);
+                }
+            }, executorService);
+            completableFutures.add(completableFuture);
+        }
+        CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).join();
+        executorService.shutdown();
     }
 
     private static class OptimisticDriveResourceStatus {

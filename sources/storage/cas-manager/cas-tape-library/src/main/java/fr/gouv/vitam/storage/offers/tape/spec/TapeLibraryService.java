@@ -39,6 +39,8 @@ public interface TapeLibraryService {
     void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode)
         throws ReadWriteException;
 
+    void rewindTape(TapeCatalog tape) throws ReadWriteException;
+
     void write(String filePath, long writtenBytes, TapeCatalog tape) throws ReadWriteException;
 
     void read(TapeCatalog tape, Integer position, String outputPath) throws ReadWriteException;

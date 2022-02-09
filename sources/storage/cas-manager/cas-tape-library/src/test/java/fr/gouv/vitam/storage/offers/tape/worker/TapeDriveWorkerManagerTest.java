@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.worker;
 
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
@@ -35,11 +36,14 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,11 +57,18 @@ import org.mockito.junit.MockitoRule;
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -91,11 +102,40 @@ public class TapeDriveWorkerManagerTest {
     @Mock
     private TapeCatalogService tapeCatalogService;
 
+    @Mock
+    private TapeDriveService driveService0;
+
+    @Mock
+    private TapeDriveCommandService tapeDriveCommandService0;
+
+    @Mock
+    private TapeDriveService driveService1;
+
+    @Mock
+    private TapeDriveCommandService tapeDriveCommandService1;
+
     private TapeDriveWorkerManager tapeDriveWorkerManager;
     private File inputTarDir;
 
     @Before
     public void setUp() throws Exception {
+
+        Set<Map.Entry<Integer, TapeDriveService>> drives = Set.of(
+            Map.entry(0, driveService0),
+            Map.entry(1, driveService1)
+        );
+        doReturn(drives).when(tapeLibraryPool).drives();
+
+        TapeDriveConf tapeDriveConf0 = new TapeDriveConf();
+        tapeDriveConf0.setIndex(0);
+        doReturn(tapeDriveConf0).when(driveService0).getTapeDriveConf();
+        doReturn(tapeDriveCommandService0).when(driveService0).getDriveCommandService();
+
+        TapeDriveConf tapeDriveConf1 = new TapeDriveConf();
+        tapeDriveConf1.setIndex(1);
+        doReturn(tapeDriveConf1).when(driveService1).getTapeDriveConf();
+        doReturn(tapeDriveCommandService1).when(driveService1).getDriveCommandService();
+
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
             queueRepository, archiveReferentialRepository, accessRequestManager, tapeLibraryPool, driveTape,
             "", false, archiveCacheStorage, tapeCatalogService);
@@ -190,8 +230,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
     @Test
@@ -217,8 +257,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isFalse();
     }
 
 
@@ -248,8 +288,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
     @Test
@@ -281,8 +321,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
 
@@ -316,8 +356,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isFalse();
     }
 
     @Test
@@ -354,7 +394,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isNotPresent();
+        assertThat(order).isNotPresent();
     }
 
 
@@ -390,7 +430,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isNotPresent();
+        assertThat(order).isNotPresent();
     }
 
 
@@ -420,8 +460,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isFalse();
     }
 
     @Test
@@ -447,8 +487,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
 
@@ -478,8 +518,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isFalse();
     }
 
     @Test
@@ -512,7 +552,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isNotPresent();
+        assertThat(order).isNotPresent();
     }
 
 
@@ -548,8 +588,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
 
@@ -587,8 +627,8 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isTrue();
+        assertThat(order).isPresent();
+        assertThat(order.get().isWriteOrder()).isTrue();
     }
 
 
@@ -624,7 +664,42 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isNotPresent();
+        assertThat(order).isNotPresent();
+    }
+
+    @Test
+    public void test_drive_initialization_on_bootstrap() throws Exception {
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        doAnswer(args -> {
+            countDownLatch.await();
+            TapeDriveState tapeDriveState = new TapeDriveState();
+            tapeDriveState.addToDriveStatuses(TapeDriveStatus.DR_OPEN);
+            return tapeDriveState;
+        }).when(tapeDriveCommandService0).status();
+
+        doAnswer(args -> {
+            countDownLatch.await();
+            TapeDriveState tapeDriveState = new TapeDriveState();
+            tapeDriveState.addToDriveStatuses(TapeDriveStatus.DR_OPEN);
+            return tapeDriveState;
+        }).when(tapeDriveCommandService1).status();
+
+        CompletableFuture<Void> initializationCompletableFuture =
+            CompletableFuture.runAsync(() -> tapeDriveWorkerManager.initializeOnBootstrap());
+
+        Thread.sleep(2000);
+        assertThat(initializationCompletableFuture).isNotCompleted();
+
+        countDownLatch.countDown();
+        countDownLatch.countDown();
+
+        assertThatCode(() -> initializationCompletableFuture.get(5, TimeUnit.SECONDS))
+            .doesNotThrowAnyException();
+
+        verify(tapeDriveCommandService0).status();
+        verify(tapeDriveCommandService1).status();
     }
 
     // TODO: 28/03/19 test shutdown

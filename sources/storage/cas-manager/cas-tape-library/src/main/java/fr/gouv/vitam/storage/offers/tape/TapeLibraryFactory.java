@@ -240,18 +240,16 @@ public class TapeLibraryFactory {
                 throw new RuntimeException(e);
             }
 
-            // force rewind
-            forceRewindOnBootstrap(driveServices, driveTape);
-
-            // FIXME #8760 : Check labels of loaded tapes in drives
-
             // Start all workers
-            tapeDriveWorkerManagers
-                .put(tapeLibraryIdentifier,
-                    new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository,
-                        accessRequestManager, libraryPool, driveTape,
-                        configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges(),
-                        archiveCacheStorage, tapeCatalogService));
+            TapeDriveWorkerManager tapeDriveWorkerManager =
+                new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, accessRequestManager,
+                    libraryPool, driveTape, configuration.getInputTarStorageFolder(),
+                    configuration.isForceOverrideNonEmptyCartridges(), archiveCacheStorage, tapeCatalogService);
+
+            // Initialize drives on bootstrap
+            tapeDriveWorkerManager.initializeOnBootstrap();
+
+            tapeDriveWorkerManagers.put(tapeLibraryIdentifier, tapeDriveWorkerManager);
         }
 
         // Everything's alright. Start tar creation listeners
@@ -300,17 +298,6 @@ public class TapeLibraryFactory {
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
-    }
-
-    private void forceRewindOnBootstrap(ConcurrentHashMap<Integer, TapeDriveService> driveServices,
-        Map<Integer, TapeCatalog> driveTape) {
-        driveTape.keySet().forEach(driveIndex -> {
-            try {
-                driveServices.get(driveIndex).getDriveCommandService().rewind();
-            } catch (TapeCommandException e) {
-                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(e.getDetails()), e);
-            }
-        });
     }
 
     public BackupFileStorage getBackupFileStorage() {
