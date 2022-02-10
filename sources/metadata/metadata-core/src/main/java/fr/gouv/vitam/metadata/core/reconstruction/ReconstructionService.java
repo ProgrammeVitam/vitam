@@ -106,6 +106,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -708,21 +709,29 @@ public class ReconstructionService {
      * @throws DatabaseException databaseException
      */
     private void reconstructCollectionMetadata(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer)
-        throws DatabaseException {
+            throws DatabaseException {
         LOGGER.info("[Reconstruction]: Back up of metadata bulk");
 
         // Do not erase graph data
         preventAlreadyExistingGraphData(collection, dataFromOffer);
+        Supplier<Stream<Document>> documentStream = null;
+
+
+        if (MetadataCollections.UNIT.equals(collection)) {
+            documentStream = () -> dataFromOffer.stream().map(MetadataBackupModel::getMetadatasWithApproximativesDates);
+        } else {
+            documentStream = () -> dataFromOffer.stream().map(MetadataBackupModel::getMetadatas);
+        }
 
         // Create bulk of ReplaceOneModel
         List<WriteModel<Document>> metadata =
-            dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).map(this::createReplaceOneModel)
-                .collect(Collectors.toList());
+                documentStream.get().map(this::createReplaceOneModel)
+                        .collect(Collectors.toList());
 
         this.bulkMongo(collection, metadata);
 
         List<Document> documents =
-            dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
+                documentStream.get().collect(Collectors.toList());
         bulkElasticSearch(collection, documents);
     }
 

@@ -26,9 +26,14 @@
  */
 package fr.gouv.vitam.metadata.core.reconstruction;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Description of metadata collection Backup model. <br/>
@@ -54,6 +59,25 @@ public class MetadataBackupModel {
     private Long offset;
 
     public Document getMetadatas() {
+        return metadatas;
+    }
+
+
+    public Document getMetadatasWithApproximativesDates() {
+
+        List<JsonNode> events = (List<JsonNode>) lifecycle.get("events");
+
+
+        if (events != null && !events.isEmpty()) {
+
+            Map<?,?> test = (Map<?, ?>) events.get(events.size() - 1);
+            var approximateDateTime = test.get("evDateTime");
+
+            this.metadatas.put(Unit.APPROXIMATE_CREATION_DATE, lifecycle.get("evDateTime"));
+            this.metadatas.put(Unit.APPROXIMATE_UPDATE_DATE, approximateDateTime);
+        }
+
+
         return metadatas;
     }
 

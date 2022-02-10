@@ -82,7 +82,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -339,8 +338,8 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void replaceDates(ObjectNode unit) {
-        unit.put(VitamFieldsHelper.fuzzyCD(), "#TIMESTAMP#");
-        unit.put(VitamFieldsHelper.fuzzyUD(), "#TIMESTAMP#");
+        unit.put(VitamFieldsHelper.approximateCreationDate(), "#TIMESTAMP#");
+        unit.put(VitamFieldsHelper.approximateUpdateDate(), "#TIMESTAMP#");
     }
 
 

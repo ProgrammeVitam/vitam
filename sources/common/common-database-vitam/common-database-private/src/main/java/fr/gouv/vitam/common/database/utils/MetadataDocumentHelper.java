@@ -57,8 +57,8 @@ public class MetadataDocumentHelper {
         UDS("_uds"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
-        FUZZY_CREATION_DATE("_fuzzyCD"),
-        FUZZY_UPDATE_DATE("_fuzzyUD");
+        APPROXIMATE_CREATION_DATE("_acd"),
+        APPROXIMATE_UPDATE_DATE("_aud");
 
 
         private final String fieldName;

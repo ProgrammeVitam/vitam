@@ -61,7 +61,7 @@ Cette migration de données consiste à :
 
    -Supprimer le champ ``us_sp`` et rendre inactive l'indexation des champs dynamiques, créés au niveau des régles de gestion héritées au niveau de la propriété ``endDates``.
 
-   -Ajouter les champs ``_fuzzyCD`` (date de création approximative) et ``_fuzzyUD`` (date de modification approximative) dans la collection Unit.
+   -Ajouter les champs ``_acd`` (date de création approximative) et ``_aud`` (date de modification approximative) dans la collection Unit.
 
 
 ELle est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :

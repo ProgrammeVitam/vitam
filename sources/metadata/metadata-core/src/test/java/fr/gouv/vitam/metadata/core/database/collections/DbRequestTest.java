@@ -897,12 +897,12 @@ public class DbRequestTest {
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
         var afterNode = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
-        afterNode.remove(Unit.FUZZY_UPDATE_DATE);
+        afterNode.remove(Unit.APPROXIMATE_UPDATE_DATE);
         String after = JsonHandler.unprettyPrint(afterNode);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
-        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.FUZZY_UPDATE_DATE);
+        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.APPROXIMATE_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }
@@ -2524,13 +2524,13 @@ public class DbRequestTest {
         String expected = BsonHelper.stringify(expectedUnit);
 
         var unitDocumentAfterUpdate = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
-        unitDocumentAfterUpdate.remove(Unit.FUZZY_UPDATE_DATE);
+        unitDocumentAfterUpdate.remove(Unit.APPROXIMATE_UPDATE_DATE);
         String after =
                 JsonHandler.unprettyPrint(unitDocumentAfterUpdate);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
                 JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
-        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.FUZZY_UPDATE_DATE);
+        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.APPROXIMATE_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }

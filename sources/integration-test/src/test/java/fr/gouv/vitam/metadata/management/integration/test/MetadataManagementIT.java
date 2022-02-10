@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import com.mongodb.DBCursor;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
@@ -112,7 +111,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.OkHttpClient;
-import org.apache.commons.collections4.IterableUtils;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
@@ -1369,12 +1367,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
         for (T document : documents) {
             ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JsonHandler.unprettyPrint(document));
 
-            // Replace _glpd, _fuzzyCD and _fuzzyUD with marker
+            // Replace _glpd, _acd and _aud with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
             jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
             if(mongoCollection.equals( MetadataCollections.UNIT.getCollection())){
-                jsonUnit.put(Unit.FUZZY_CREATION_DATE,"#TIMESTAMP#");
-                jsonUnit.put(Unit.FUZZY_UPDATE_DATE,"#TIMESTAMP#");
+                jsonUnit.put(Unit.APPROXIMATE_CREATION_DATE,"#TIMESTAMP#");
+                jsonUnit.put(Unit.APPROXIMATE_UPDATE_DATE,"#TIMESTAMP#");
             }
 
 

@@ -71,8 +71,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FUZZY_CREATION_DATE;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FUZZY_UPDATE_DATE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_CREATION_DATE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_UPDATE_DATE;
 
 
 
@@ -240,17 +240,17 @@ public class VitamFieldsHelper {
     }
 
     /**
-     * @return #fuzzyCD
+     * @return #approximate_creation_date
      */
-    public static String fuzzyCD() {
-        return FUZZY_CREATION_DATE.exactToken();
+    public static String approximateCreationDate() {
+        return APPROXIMATE_CREATION_DATE.exactToken();
     }
 
     /**
-     * @return #fuzzyUD
+     * @return #approximate_update_date
      */
-    public static String fuzzyUD() {
-        return FUZZY_UPDATE_DATE.exactToken();
+    public static String approximateUpdateDate() {
+        return APPROXIMATE_UPDATE_DATE.exactToken();
     }
 
     /**

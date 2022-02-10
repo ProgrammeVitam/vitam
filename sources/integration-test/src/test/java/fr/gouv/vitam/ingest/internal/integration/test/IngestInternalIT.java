@@ -139,7 +139,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -479,14 +478,14 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
 
-            final LocalDateTime fuzzyCD = LocalDateTime.parse(unit.get(VitamFieldsHelper.fuzzyCD()).asText());
-            final LocalDateTime fuzzyUD = LocalDateTime.parse(unit.get(VitamFieldsHelper.fuzzyUD()).asText());
+            final LocalDateTime approximateCD = LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateCreationDate()).asText());
+            final LocalDateTime approximateUD = LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateUpdateDate()).asText());
 
-            assertThat(fuzzyCD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(fuzzyCD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(fuzzyUD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(fuzzyUD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(fuzzyCD.isEqual(fuzzyUD)).isTrue();
+            assertThat(approximateCD.isAfter(dateBeforeIngest)).isTrue();
+            assertThat(approximateCD.isBefore(LocalDateUtil.now())).isTrue();
+            assertThat(approximateUD.isAfter(dateBeforeIngest)).isTrue();
+            assertThat(approximateUD.isBefore(LocalDateUtil.now())).isTrue();
+            assertThat(approximateCD.isEqual(approximateUD)).isTrue();
 
 
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
@@ -600,11 +599,11 @@ public class IngestInternalIT extends VitamRuleRunner {
                             .get("Inheritance").get("PreventRulesId").size());
 
 
-            final LocalDateTime fuzzyCDAfterUpdate = LocalDateTime.parse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get(VitamFieldsHelper.fuzzyCD()).asText());
-            final LocalDateTime fuzzyUDAfterUpdate = LocalDateTime.parse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get(VitamFieldsHelper.fuzzyUD()).asText());
+            final LocalDateTime approximateCDAfterUpdate = LocalDateTime.parse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get(VitamFieldsHelper.approximateCreationDate()).asText());
+            final LocalDateTime approximateUDAfterUpdate = LocalDateTime.parse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
 
-            assertThat(fuzzyUDAfterUpdate.isAfter(fuzzyCDAfterUpdate)).isTrue();
-            assertThat(fuzzyUDAfterUpdate.isBefore(LocalDateUtil.now())).isTrue();
+            assertThat(approximateUDAfterUpdate.isAfter(approximateCDAfterUpdate)).isTrue();
+            assertThat(approximateUDAfterUpdate.isBefore(LocalDateUtil.now())).isTrue();
 
             assertFalse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
                     .get("Inheritance").get("PreventInheritance").asBoolean());
