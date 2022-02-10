@@ -60,7 +60,6 @@ import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -692,19 +691,19 @@ public class SelectUnitResourceTest {
         RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
         assertThat(firstResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
 
-        final LocalDateTime firstFuzzyCD=
+        final LocalDateTime firstApproximateCD=
                 LocalDateTime.parse(firstResultVitam.getFirstResult()
-                        .get(VitamFieldsHelper.fuzzyCD()).asText());
-        final LocalDateTime firstFuzzyUD= LocalDateTime.parse(firstResultVitam.getFirstResult().get(VitamFieldsHelper.fuzzyUD()).asText());
-        assertThat(firstFuzzyCD.isAfter(dateBeforeInsert)).isTrue();
+                        .get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime firstFuzzyUD= LocalDateTime.parse(firstResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
+        assertThat(firstApproximateCD.isAfter(dateBeforeInsert)).isTrue();
         assertThat(firstFuzzyUD.isBefore(LocalDateUtil.now())).isTrue();
 
         RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
-        final LocalDateTime secondFuzzyCD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.fuzzyCD()).asText());
-        final LocalDateTime secondFuzzyUD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.fuzzyUD()).asText());
+        final LocalDateTime secondApproximateCD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime secondApproximateUD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
         assertThat(secondResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_1);
-        assertThat(secondFuzzyCD.isAfter(dateBeforeInsert)).isTrue();
-        assertThat(secondFuzzyUD.isBefore(LocalDateUtil.now())).isTrue();
+        assertThat(secondApproximateCD.isAfter(dateBeforeInsert)).isTrue();
+        assertThat(secondApproximateUD.isBefore(LocalDateUtil.now())).isTrue();
 
     }
     

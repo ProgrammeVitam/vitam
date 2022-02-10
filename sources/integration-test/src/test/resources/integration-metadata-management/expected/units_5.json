@@ -6,8 +6,8 @@
     "_up": [],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA1",
     "_sps": [
       "OA1"
@@ -72,8 +72,8 @@
       "AU_10/AU_8"
     ],
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#"
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#"
   },
   {
     "_id": "AU_2",
@@ -82,8 +82,8 @@
     "_up": [],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA2",
     "_sps": [
       "OA2"
@@ -115,8 +115,8 @@
       "AU_3/AU_1"
     ],
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#"
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#"
   },
   {
     "_id": "AU_4",
@@ -129,8 +129,8 @@
     ],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA4",
     "_sps": [
       "OA4",
@@ -147,8 +147,8 @@
     ],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA2",
     "_sps": [
       "OA2"
@@ -188,8 +188,8 @@
       "AU_5/AU_2"
     ],
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#"
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#"
   },
   {
     "_id": "AU_7",
@@ -227,8 +227,8 @@
       "AU_7/AU_4"
     ],
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#"
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#"
   },
   {
     "_id": "AU_8",
@@ -241,8 +241,8 @@
     ],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA2",
     "_sps": [
       "OA4",
@@ -261,8 +261,8 @@
     ],
     "fakefake": "fakefake",
     "_glpd": "#TIMESTAMP#",
-    "_fuzzyCD":"#TIMESTAMP#" ,
-    "_fuzzyUD": "#TIMESTAMP#",
+    "_acd":"#TIMESTAMP#" ,
+    "_aud": "#TIMESTAMP#",
     "_sp": "OA2",
     "_sps": [
       "OA2"

@@ -389,8 +389,8 @@ public class MetadataResourceTest {
         ObjectNode expectedUnitJson = (ObjectNode) JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(expectedContentFileName));
 
-        actualUnitJson.remove(Unit.FUZZY_CREATION_DATE);
-        actualUnitJson.remove(Unit.FUZZY_UPDATE_DATE);
+        actualUnitJson.remove(Unit.APPROXIMATE_CREATION_DATE);
+        actualUnitJson.remove(Unit.APPROXIMATE_UPDATE_DATE);
         // Check last persisted date
         LocalDateTime graphLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(
             actualUnitJson.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE).asText());

@@ -986,7 +986,7 @@ public class DbRequest {
                     return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
                 }
                 if(newDocumentVersion != documentVersion){
-                    transformedUpdatedDocument.put(Unit.FUZZY_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                    transformedUpdatedDocument.put(Unit.APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
                 }
                 // Unit validation
                 unitValidator.validateUnit(transformedUpdatedDocument);

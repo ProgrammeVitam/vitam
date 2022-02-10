@@ -3210,13 +3210,13 @@
     "cardinality": "one"
   },
   {
-    "path": "_fuzzyCD",
+    "path": "_acd",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "_fuzzyUD",
+    "path": "_aud",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"

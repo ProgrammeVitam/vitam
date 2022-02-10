@@ -1713,23 +1713,23 @@
     ]
   },
   {
-    "Identifier": "_fuzzyUD",
-    "ApiField": "#fuzzyUD",
+    "Identifier": "_aud",
+    "ApiField": "#approximate_update_date",
     "Description": "Approximative updated date, Mapping : unit-es-mapping.json",
     "Type": "DATE",
     "Origin": "INTERNAL",
-    "ShortName": "_fuzzyUD",
+    "ShortName": "_aud",
     "Collections": [
       "Unit"
     ]
   },
   {
-    "Identifier": "_fuzzyCD",
-    "ApiField": "#fuzzyCD",
+    "Identifier": "_acd",
+    "ApiField": "#approximate_creation_date",
     "Description": "Approximative created date, Mapping : unit-es-mapping.json",
     "Type": "DATE",
     "Origin": "INTERNAL",
-    "ShortName": "_fuzzyCD",
+    "ShortName": "_acd",
     "Collections": [
       "Unit"
     ]

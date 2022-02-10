@@ -2054,10 +2054,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             ObjectNode initialUnit = (ObjectNode) initialUnits.get(i);
             ObjectNode transferedUnit = (ObjectNode) initialUnits.get(i);
 
-            initialUnit.put(Unit.FUZZY_CREATION_DATE, TIMESTAMP);
-            initialUnit.put(Unit.FUZZY_UPDATE_DATE, TIMESTAMP);
-            transferedUnit.put(Unit.FUZZY_CREATION_DATE, TIMESTAMP);
-            transferedUnit.put(Unit.FUZZY_UPDATE_DATE, TIMESTAMP);
+            initialUnit.put(Unit.APPROXIMATE_CREATION_DATE, TIMESTAMP);
+            initialUnit.put(Unit.APPROXIMATE_UPDATE_DATE, TIMESTAMP);
+            transferedUnit.put(Unit.APPROXIMATE_CREATION_DATE, TIMESTAMP);
+            transferedUnit.put(Unit.APPROXIMATE_UPDATE_DATE, TIMESTAMP);
 
             JsonAssert.assertJsonEquals(initialUnit ,transferedUnit,
                     JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
