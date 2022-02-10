@@ -1,0 +1,81 @@
+---
+
+- name: Install restic & mandatory packages on RedHat
+  package:
+    name:
+      - restic
+      - mongodb-org-tools
+      - bind-utils
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Install restic & mandatory packages on Debian
+  package:
+    name:
+      - restic
+      - mongodb-org-tools
+      - dnsutils
+  when: ansible_os_family == "Debian"
+
+- name: Check that the restic directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/restic"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  loop:
+    - conf
+    - data
+    - log
+    - script
+    - tmp
+
+- name: Deploy restic config
+  template:
+    src: "restic.conf.j2"
+    dest: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/restic/restic.conf"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0440') }}"
+  no_log: "{{ hide_passwords_during_deploy }}"
+
+- name: Check that the restic backup directory exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/restic/conf.d"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
+- name: Deploy restic backup configs
+  template:
+    src: "conf.d/backup.conf.j2"
+    dest: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/restic/conf.d/{{ item.name }}.conf"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0440') }}"
+  loop: "{{ restic.backup }}"
+  no_log: "{{ hide_passwords_during_deploy }}"
+
+- name: Deploy restic scripts
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/script/restic/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.script_permission | default('0750') }}"
+  loop:
+    - restic_restore
+    - restic_backup
+
+- name: "Crontab for restic_backup"
+  cron:
+    name: "restic_backup"
+    user: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    minute: "{{ restic.cron.minute | default('00') }}"
+    hour: "{{ restic.cron.hour | default('23') }}"
+    day: "{{ restic.cron.day | default('*') }}"
+    month: "{{ restic.cron.month | default('*') }}"
+    weekday: "{{ restic.cron.weekday | default('*') }}"
+    job: /vitam/script/restic/restic_backup

@@ -336,3 +336,36 @@ ldap_authentification:
 java_prerequisites:
     debian: "openjdk-11-jre-headless"
     redhat: "java-11-openjdk-headless"
+
+# Backup tool on storage-offer
+restic:
+    snapshot_retention: 30 # number of snapshots to keep
+    # default run backup at 23:00 everydays
+    cron:
+        minute: '00'
+        hour: '23'
+        day: '*'
+        month: '*'
+        weekday: '*'
+    # [hosts_storage_offer_default] must be able to connect to the listed databases below to properly backup.
+    backup:
+        # mongo-offer
+        - name: "{{ offer_conf }}"
+          type: mongodb
+          host: "{{ offer_conf }}-mongos.service.consul:{{ mongodb.mongos_port }}"
+          user: "{{ mongodb[offer_conf].admin.user }}"
+          password: "{{ mongodb[offer_conf].admin.password }}"
+        # # mongo-data (only if mono-sharded cluster)
+        # - name: mongo-data
+        #   type: mongodb
+        #   host: "mongo-data-mongos.service.consul:{{ mongodb.mongos_port }}"
+        #   user: "{{ mongodb['mongo-data'].admin.user }}"
+        #   password: "{{ mongodb['mongo-data'].admin.password }}"
+        # # mongo-vitamui (only if vitamui is deployed)
+        # - name: mongo-vitamui
+        #   type: mongodb
+        #   host: mongo-vitamui-mongod.service.consul:{{ mongodb.mongod_port }}
+        #   # Add the following params on environments/group_vars/all/vault-vitam.yml
+        #   # They can be found under vitamui's deployment sources on environments/group_vars/all/vault-mongodb.yml
+        #   user: "{{ mongodb['mongo-vitamui'].admin.user }}"
+        #   password: "{{ mongodb['mongo-vitamui'].admin.password }}"

@@ -150,13 +150,14 @@ hosts_mongodb_offer
 # LIMIT and 1 machine per offer when filesystem or filesystem-hash provider
 # Possibility to declare multiple machines with same provider only when provider is s3 or swift.
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
+# Optionnal parameter: restic_enabled=true (only 1 per offer_conf)
 # for swift
-# hostname-offre-1.vitam offer_conf=offer-swift-1
+# hostname-offre-1.vitam offer_conf=offer-swift-1 restic_enabled=true
 # hostname-offre-2.vitam offer_conf=offer-swift-1
 # for filesystem
-# hostname-offre-2.vitam offer_conf=offer-fs-1
+# hostname-offre-2.vitam offer_conf=offer-fs-1 restic_enabled=true
 # for s3
-# hostname-offre-3.vitam offer_conf=offer-s3-1
+# hostname-offre-3.vitam offer_conf=offer-s3-1 restic_enabled=true
 # hostname-offre-4.vitam offer_conf=offer-s3-1
 
 

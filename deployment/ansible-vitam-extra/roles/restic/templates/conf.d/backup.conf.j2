@@ -1,0 +1,7 @@
+name={{ item.name }}
+type={{ item.type }}
+{% if item.type == "mongodb" %}
+host={{ item.host }}
+user={{ item.user }}
+password={{ item.password }}
+{% endif %}
