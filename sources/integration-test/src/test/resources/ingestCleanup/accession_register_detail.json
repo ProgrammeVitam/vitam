@@ -2,9 +2,9 @@
   {
     "_id": "aehaaaaaaaageu3maatasaln7zdbxmaaaaaq",
     "ObjectSize": {
-      "ingested": 18.0,
-      "deleted": 18.0,
-      "remained": 0.0
+      "ingested": 18,
+      "deleted": 18,
+      "remained": 0
     },
     "AcquisitionInformation": "Versement",
     "LegalStatus": "Public Archive",
@@ -16,19 +16,19 @@
     "LastUpdate": "2019-10-24T16:57:59.207",
     "Status": "STORED_AND_UPDATED",
     "TotalObjectGroups": {
-      "ingested": 3.0,
-      "deleted": 3.0,
-      "remained": 0.0
+      "ingested": 3,
+      "deleted": 3,
+      "remained": 0
     },
     "TotalUnits": {
-      "ingested": 8.0,
-      "deleted": 8.0,
-      "remained": 0.0
+      "ingested": 8,
+      "deleted": 8,
+      "remained": 0
     },
     "TotalObjects": {
-      "ingested": 4.0,
-      "deleted": 4.0,
-      "remained": 0.0
+      "ingested": 4,
+      "deleted": 4,
+      "remained": 0
     },
     "Opc": "aecaaaaaacageu3maatasaln7zdalgaaaaba",
     "Opi": "aecaaaaaacageu3maatasaln7zdalgaaaaba",
