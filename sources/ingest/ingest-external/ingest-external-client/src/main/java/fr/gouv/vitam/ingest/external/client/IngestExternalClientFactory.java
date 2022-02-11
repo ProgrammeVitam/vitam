@@ -56,7 +56,7 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
      *
      * @param configurationPath the path to the configuration file
      */
-    static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
+    static SecureClientConfiguration changeConfigurationFile(String configurationPath) {
         SecureClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
@@ -81,7 +81,7 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
      */
     @Override
     public IngestExternalClient getClient() {
-        IngestExternalClient client = null;
+        IngestExternalClient client;
         switch (getVitamClientType()) {
             case MOCK:
                 client = new IngestExternalClientMock();
@@ -100,18 +100,18 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
      *
      * @return the instance
      */
-    public static final IngestExternalClientFactory getInstance() {
+    public static IngestExternalClientFactory getInstance() {
         return INGEST_EXTERNAL_CLIENT_FACTORY;
     }
 
     /**
      * @param configuration null for MOCK
      */
-    public static final void changeMode(SecureClientConfiguration configuration) {
+    public static void changeMode(SecureClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
-    public static final void changeMode(String configurationFile) {
+    public static void changeMode(String configurationFile) {
         SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }

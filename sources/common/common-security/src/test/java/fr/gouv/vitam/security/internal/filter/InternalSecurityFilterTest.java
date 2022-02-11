@@ -61,7 +61,6 @@ import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +68,6 @@ import org.junit.Test;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -112,9 +110,6 @@ public class InternalSecurityFilterTest {
     private InternalSecurityClient internalSecurityClient;
     private AdminManagementClient adminManagementClient;
 
-    private InternalSecurityClientFactory internalSecurityClientFactory;
-    private AdminManagementClientFactory adminManagementClientFactory;
-
     private UriInfo uriInfo;
 
     @Rule
@@ -128,8 +123,8 @@ public class InternalSecurityFilterTest {
 
         x509CertificateToPem();
 
-        internalSecurityClientFactory = mock(InternalSecurityClientFactory.class);
-        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        InternalSecurityClientFactory internalSecurityClientFactory = mock(InternalSecurityClientFactory.class);
+        AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
 
         httpServletRequest = mock(HttpServletRequest.class);
         containerRequestContext = mock(ContainerRequestContext.class);
@@ -145,10 +140,6 @@ public class InternalSecurityFilterTest {
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
 
         doThrow(new VitamSecurityException("")).when(containerRequestContext).abortWith(any());
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     private void x509CertificateToPem() throws CertificateEncodingException {
@@ -193,20 +184,16 @@ public class InternalSecurityFilterTest {
             builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
         Certificate certificate = holder.toASN1Structure();
 
-        InputStream is = new ByteArrayInputStream(certificate.getEncoded());
-        try {
+        try (InputStream is = new ByteArrayInputStream(certificate.getEncoded())) {
             cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(is);
-        } finally {
-            is.close();
         }
     }
 
     /**
      * When not certificate in the request attribute
-     * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
-    public void filterNotCertificateShouldThrowException() throws Exception {
+    public void filterNotCertificateShouldThrowException() {
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -244,7 +231,8 @@ public class InternalSecurityFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
-
+        when(uriInfo.getPath()).thenReturn("/otherUri");
+        
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.INACTIVE, true, null, null));
         internalSecurityFilter.filter(containerRequestContext);
@@ -459,7 +447,7 @@ public class InternalSecurityFilterTest {
      * @param ingestContract
      * @return
      */
-    private RequestResponse getTestContext(ContextStatus status, boolean enableControl, String accessContract,
+    private RequestResponse<ContextModel> getTestContext(ContextStatus status, boolean enableControl, String accessContract,
         String ingestContract) {
         ContextModel contextModel = new ContextModel();
         contextModel.setId("fakeId");
@@ -467,21 +455,21 @@ public class InternalSecurityFilterTest {
         contextModel.setStatus(status);
         contextModel.setEnablecontrol(enableControl);
 
-        if (null != accessContract || null != ingestContract) {
-            if (null != accessContract && null == ingestContract) {
+        if (null != accessContract) {
+            if(null == ingestContract) {
                 contextModel.setPermissions(
                     Lists.newArrayList(new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract), null)));
-            } else if (null == accessContract && null != ingestContract) {
-                contextModel.setPermissions(
-                    Lists.newArrayList(new PermissionModel(TENANT_ID, null, Sets.newHashSet(ingestContract))));
-            } else {
+            }else {
                 contextModel.setPermissions(
                     Lists.newArrayList(new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract),
                         Sets.newHashSet(ingestContract))));
             }
+        } else if (null != ingestContract) {
+            contextModel.setPermissions(
+                Lists.newArrayList(new PermissionModel(TENANT_ID, null, Sets.newHashSet(ingestContract))));
         }
-        RequestResponse<ContextModel> requestResponse = new RequestResponseOK<ContextModel>().addResult(contextModel);
-        return requestResponse;
+
+        return new RequestResponseOK<ContextModel>().addResult(contextModel);
 
     }
 

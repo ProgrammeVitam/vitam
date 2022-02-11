@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -112,7 +111,7 @@ public class PurgeIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(PurgeIT.class, mongoRule.getMongoDatabase().getName(),
             elasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,

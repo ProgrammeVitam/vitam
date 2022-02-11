@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.internal.integration.test;
+package fr.gouv.vitam.ingest.internal;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -195,7 +195,14 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static fr.gouv.vitam.common.VitamServerRunner.ACCESS_INTERNAL_PATH;
+import static fr.gouv.vitam.common.VitamServerRunner.INGEST_INTERNAL_PATH;
+import static fr.gouv.vitam.common.VitamServerRunner.LOGBOOK_PATH;
+import static fr.gouv.vitam.common.VitamServerRunner.METADATA_PATH;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
+import static fr.gouv.vitam.common.VitamServerRunner.PROCESSING_PATH;
+import static fr.gouv.vitam.common.VitamServerRunner.WORKER_PATH;
+import static fr.gouv.vitam.common.VitamServerRunner.WORKSPACE_PATH;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
 import static fr.gouv.vitam.common.VitamTestHelper.findLogbook;
 import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
@@ -237,13 +244,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String TITLE_FR = "Title_.fr";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-    private static final String METADATA_PATH = "/metadata/v1";
-    private static final String PROCESSING_PATH = "/processing/v1";
-    private static final String WORKER_PATH = "/worker/v1";
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String LOGBOOK_PATH = "/logbook/v1";
-    private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
-    private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_AGENCIES_OK = "functional-admin/agencies/agencies.csv";
     private static final String FILE_AGENCIES_AU_update = "functional-admin/agencies/agencies_update.csv";
@@ -372,13 +372,13 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @Before
-    public void setUpBefore() throws Exception {
+    public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
     }
 
     @RunWithCustomExecutor
     @Test
-    public void testServersStatus() throws Exception {
+    public void testServersStatus() {
         RestAssured.port = VitamServerRunner.PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());

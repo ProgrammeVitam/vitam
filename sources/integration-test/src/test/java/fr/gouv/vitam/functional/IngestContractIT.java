@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -88,7 +87,7 @@ public class IngestContractIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(IngestContractIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 WorkspaceMain.class,

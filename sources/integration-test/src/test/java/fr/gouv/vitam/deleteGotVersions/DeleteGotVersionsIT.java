@@ -159,7 +159,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DeleteGotVersionsIT extends VitamRuleRunner {
-    private static final HashSet<Class> SERVERS = Sets.newHashSet(
+    private static final HashSet<Class<?>> SERVERS = Sets.newHashSet(
         AccessInternalMain.class,
         AdminManagementMain.class,
         ProcessManagementMain.class,
