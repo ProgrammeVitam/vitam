@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 
 import java.util.List;
 import java.util.Optional;

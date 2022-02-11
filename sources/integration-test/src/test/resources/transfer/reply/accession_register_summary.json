@@ -3,24 +3,24 @@
     "_id": "aefaaaaaaaageu3maayxaaln7ze42myaaaaq",
     "OriginatingAgency": "RATP",
     "TotalObjects": {
-      "ingested": 8.0,
-      "deleted": 4.0,
-      "remained": 4.0
+      "ingested": 8,
+      "deleted": 4,
+      "remained": 4
     },
     "TotalObjectGroups": {
-      "ingested": 6.0,
-      "deleted": 3.0,
-      "remained": 3.0
+      "ingested": 6,
+      "deleted": 3,
+      "remained": 3
     },
     "TotalUnits": {
-      "ingested": 16.0,
-      "deleted": 8.0,
-      "remained": 8.0
+      "ingested": 16,
+      "deleted": 8,
+      "remained": 8
     },
     "ObjectSize": {
-      "ingested": 36.0,
-      "deleted": 18.0,
-      "remained": 18.0
+      "ingested": 36,
+      "deleted": 18,
+      "remained": 18
     },
     "CreationDate": "2019-10-24T15:01:52.563",
     "_v": 3,
