@@ -114,6 +114,10 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new VitamSecurityException("Request do not contain any X509Certificate ");
         }
+        if (requestContext.getUriInfo().getPath().endsWith(VitamConfiguration.STATUS_URL)) {
+            // There is no need to check security profile to retrieve status
+            return;
+        }
 
         int tenantId = Integer.parseInt(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID));
 

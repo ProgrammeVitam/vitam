@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
@@ -41,7 +42,10 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -50,7 +54,10 @@ import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
@@ -71,7 +78,6 @@ import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
@@ -98,7 +104,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
@@ -110,7 +119,7 @@ public class VitamServerRunner extends ExternalResource {
 
     // Constants
 
-    public static final long SLEEP_TIME = 20l;
+    public static final long SLEEP_TIME = 20L;
     public static final long NB_TRY = 18000;
 
 
@@ -167,6 +176,16 @@ public class VitamServerRunner extends ExternalResource {
         "/deployment/environments/antivirus/scan-dev.sh";
 
 
+    public static final String METADATA_PATH = "/metadata/v1";
+    public static final String PROCESSING_PATH = "/processing/v1";
+    public static final String WORKER_PATH = "/worker/v1";
+    public static final String WORKSPACE_PATH = "/workspace/v1";
+    public static final String LOGBOOK_PATH = "/logbook/v1";
+    public static final String INGEST_INTERNAL_PATH = "/ingest/v1";
+    public static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
+    public static final String INGEST_EXTERNAL_PATH = "/ingest-external/v1";
+    public static final String ACCESS_EXTERNAL_PATH = "/access-external/v1";
+
 
     private static IdentityMain identityMain;
     private static MetadataMain metadataMain;
@@ -196,12 +215,12 @@ public class VitamServerRunner extends ExternalResource {
     Class<?> clazz;
     String dbname;
     String cluster;
-    Set<Class> servers;
+    Set<Class<?>> servers;
     private MetadataIndexationConfiguration customMetadataIndexationConfiguration;
     private LogbookIndexationConfiguration customLogbookIndexationConfiguration;
 
     public VitamServerRunner(Class<?> clazz, String dbname, String cluster,
-        Set<Class> servers) {
+        Set<Class<?>> servers) {
         ParametersChecker.checkParameter("Params required ..", clazz, dbname, cluster, servers);
         this.clazz = clazz;
         this.dbname = dbname;
@@ -370,8 +389,8 @@ public class VitamServerRunner extends ExternalResource {
                 AdminExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
-            waitServerStartOrStop(true);
-        } catch (IOException | VitamApplicationServerException | PluginException e) {
+            waitServerStart();
+        } catch (IOException | VitamApplicationServerException e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
             throw new RuntimeException(e);
         }
@@ -394,7 +413,8 @@ public class VitamServerRunner extends ExternalResource {
 
     private void startIngestExternalServer() throws VitamApplicationServerException, IOException {
         if (null != ingestExternalMain) {
-            IngestExternalClientFactory.getInstance().changeMode(INGEST_EXTERNAL_CLIENT_CONF);
+            IngestExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
             return;
         }
 
@@ -436,7 +456,7 @@ public class VitamServerRunner extends ExternalResource {
         ingestExternalMain = new IngestExternalMain(INGEST_EXTERNAL_CONF);
 
         ingestExternalMain.start();
-        IngestExternalClientFactory.getInstance().changeMode(INGEST_EXTERNAL_CLIENT_CONF);
+        IngestExternalClientFactory.changeMode(INGEST_EXTERNAL_CLIENT_CONF);
         SystemPropertyUtil.clear(IngestExternalMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
@@ -541,18 +561,19 @@ public class VitamServerRunner extends ExternalResource {
 
     private void startAccessExternalServer() throws VitamApplicationServerException {
         if (null != accessExternalMain) {
-            AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
-            AdminExternalClientFactory.getInstance().changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
+            AccessExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+            AdminExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
             return;
         }
         SystemPropertyUtil
             .set(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT,
                 Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
         LOGGER.warn("=== VitamServerRunner start  AccessExternalMain");
-        AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
-        AdminExternalClientFactory.getInstance().changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
-        accessExternalMain =
-            new AccessExternalMain(ACCESS_EXTERNAL_CONF);
+        AccessExternalClientFactory.changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+        AdminExternalClientFactory.changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
+        accessExternalMain = new AccessExternalMain(ACCESS_EXTERNAL_CONF);
         accessExternalMain.start();
         SystemPropertyUtil.clear(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT);
 
@@ -827,8 +848,7 @@ public class VitamServerRunner extends ExternalResource {
 
     public void startIdentityServer() throws IOException, VitamApplicationServerException {
         if (null != identityMain) {
-            InternalSecurityClientFactory.getInstance()
-                .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+            InternalSecurityClientFactory.getInstance().changeServerPort(PORT_SERVICE_IDENTITY);
             return;
         }
         SystemPropertyUtil.set(IdentityMain.PARAMETER_JETTY_SERVER_PORT,
@@ -841,8 +861,7 @@ public class VitamServerRunner extends ExternalResource {
         writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
         LOGGER.warn("=== VitamServerRunner start  Identity");
-        InternalSecurityClientFactory.getInstance()
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+        InternalSecurityClientFactory.getInstance().changeServerPort(PORT_SERVICE_IDENTITY);
         identityMain = new IdentityMain(IDENTITY_CONF);
         identityMain.start();
         SystemPropertyUtil.clear(IdentityMain.PARAMETER_JETTY_SERVER_PORT);
@@ -859,7 +878,7 @@ public class VitamServerRunner extends ExternalResource {
         identityMain.stop();
         identityMain = null;
         InternalSecurityClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
-        waitServer(false, InternalSecurityClientFactory.getInstance().getClient());
+        waitServerStop(InternalSecurityClientFactory.getInstance().getClient());
         if (mockWhenStop) {
             InternalSecurityClientFactory.changeMode(null);
         }
@@ -903,11 +922,11 @@ public class VitamServerRunner extends ExternalResource {
         writeYaml(metadataConfig, realMetadataConfig);
 
         LOGGER.warn("=== VitamServerRunner start  MetadataMain");
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
+        MetaDataClientFactory.getInstance().changeServerPort(PORT_SERVICE_METADATA);
         metadataMain = new MetadataMain(metadataConfig.getAbsolutePath());
         metadataMain.start();
         SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
-        waitServer(true, MetaDataClientFactory.getInstance().getClient());
+        waitServerStart(MetaDataClientFactory.getInstance().getClient());
     }
 
     public void stopMetadataServer(boolean mockWhenStop) throws VitamApplicationServerException {
@@ -920,8 +939,8 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start  MetadataMain");
         metadataMain.stop();
         metadataMain = null;
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
-        waitServer(false, MetaDataClientFactory.getInstance().getClient());
+        MetaDataClientFactory.getInstance().changeServerPort(PORT_SERVICE_METADATA);
+        waitServerStop(MetaDataClientFactory.getInstance().getClient());
         if (mockWhenStop) {
             MetaDataClientFactory.changeMode(null);
         }
@@ -932,20 +951,18 @@ public class VitamServerRunner extends ExternalResource {
 
     public void startProcessManagementServer() throws VitamApplicationServerException {
         if (null != processManagementMain) {
-            ProcessingManagementClientFactory
-                .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_PROCESSING));
+            ProcessingManagementClientFactory.getInstance().changeServerPort(PORT_SERVICE_PROCESSING);
             return;
         }
         SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
         LOGGER.warn("=== VitamServerRunner start  ProcessManagementMain");
-        ProcessingManagementClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_PROCESSING));
+        ProcessingManagementClientFactory.getInstance().changeServerPort(PORT_SERVICE_PROCESSING);
         processManagementMain = new ProcessManagementMain(PROCESSING_CONF);
         processManagementMain.start();
         SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
-        waitServer(true, ProcessingManagementClientFactory.getInstance().getClient());
+        waitServerStart(ProcessingManagementClientFactory.getInstance().getClient());
     }
 
     public void stopProcessManagementServer(boolean mockWhenStop) throws VitamApplicationServerException {
@@ -958,15 +975,14 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner stop ProcessManagementMain");
         processManagementMain.stop();
         processManagementMain = null;
-        ProcessingManagementClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_PROCESSING));
-        waitServer(false, ProcessingManagementClientFactory.getInstance().getClient());
+        ProcessingManagementClientFactory.getInstance().changeServerPort(PORT_SERVICE_PROCESSING);
+        waitServerStop(ProcessingManagementClientFactory.getInstance().getClient());
         if (mockWhenStop) {
             ProcessingManagementClientFactory.changeMode(null);
         }
     }
 
-    public void startWorkerServer(String conf) throws PluginException, IOException, VitamApplicationServerException {
+    public void startWorkerServer(String conf) throws IOException, VitamApplicationServerException {
         if (null != workerMain) {
             return;
         }
@@ -977,7 +993,7 @@ public class VitamServerRunner extends ExternalResource {
         workerMain = new WorkerMain(conf);
         workerMain.start();
         SystemPropertyUtil.clear(WorkerMain.PARAMETER_JETTY_SERVER_PORT);
-        waitServer(true,
+        waitServerStart(
             WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER))
                 .getClient());
 
@@ -990,9 +1006,8 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start  WorkerMain");
         workerMain.stop();
         workerMain = null;
-        waitServer(false,
-            WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER))
-                .getClient());
+        waitServerStop(WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER))
+            .getClient());
     }
 
     @Override
@@ -1009,97 +1024,97 @@ public class VitamServerRunner extends ExternalResource {
     }
 
 
-    void waitServerStartOrStop(boolean start) {
+    void waitServerStart() {
         if (null != workspaceMain) {
-            waitServer(start, WorkspaceClientFactory.getInstance().getClient());
+            waitServerStart(WorkspaceClientFactory.getInstance().getClient());
         }
         if (null != metadataMain) {
-            waitServer(start, MetaDataClientFactory.getInstance().getClient());
+            waitServerStart(MetaDataClientFactory.getInstance().getClient());
         }
         if (null != processManagementMain) {
-            waitServer(start, ProcessingManagementClientFactory.getInstance().getClient());
+            waitServerStart(ProcessingManagementClientFactory.getInstance().getClient());
         }
         if (null != workerMain) {
-            waitServer(start, ProcessingManagementClientFactory.getInstance().getClient());
+            waitServerStart(ProcessingManagementClientFactory.getInstance().getClient());
         }
         if (null != defaultOfferMain) {
-            waitServer(start, ProcessingManagementClientFactory.getInstance().getClient());
+            waitServerStart(ProcessingManagementClientFactory.getInstance().getClient());
         }
         if (null != storageMain) {
-            waitServer(start, StorageClientFactory.getInstance().getClient());
+            waitServerStart(StorageClientFactory.getInstance().getClient());
         }
         if (null != adminManagementMain) {
-            waitServer(start, AdminManagementClientFactory.getInstance().getClient());
+            waitServerStart(AdminManagementClientFactory.getInstance().getClient());
         }
         if (null != logbookMain) {
-            waitServer(start, LogbookOperationsClientFactory.getInstance().getClient());
+            waitServerStart(LogbookOperationsClientFactory.getInstance().getClient());
         }
 
         if (null != ingestInternalMain) {
-            waitServer(start, IngestInternalClientFactory.getInstance().getClient());
+            waitServerStart(IngestInternalClientFactory.getInstance().getClient());
         }
 
         if (null != ingestExternalMain) {
-            // status should be done only on admin connector
-            // Else InternalSecurityFilter will reject request by doing some business control
-            try {
-                TimeUnit.MILLISECONDS.sleep(100l);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            waitServerStart(IngestExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
         }
         if (null != batchReportMain) {
-            waitServer(start, BatchReportClientFactory.getInstance().getClient());
+            waitServerStart(BatchReportClientFactory.getInstance().getClient());
         }
 
         if (null != accessInternalMain) {
-            waitServer(start, AccessInternalClientFactory.getInstance().getClient());
+            waitServerStart(AccessInternalClientFactory.getInstance().getClient());
         }
 
         if (null != accessExternalMain) {
-            // status should be done only on admin connector
-            // Else InternalSecurityFilter will reject request by doing some business control
-            try {
-                TimeUnit.MILLISECONDS.sleep(100l);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            waitServerStart(AccessExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
+            waitServerStart(AdminExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
         }
     }
 
-    private void waitServer(boolean start, MockOrRestClient mockOrRestClient) {
-        waitServer(start, mockOrRestClient, null);
+    private void waitServerStart(MockOrRestClient mockOrRestClient) {
+        waitServerStart(mockOrRestClient, null);
     }
 
-    private void waitServer(boolean start, MockOrRestClient mockOrRestClient,
-        MultivaluedHashMap<String, Object> headers) {
+    private void waitServerStart(MockOrRestClient mockOrRestClient, MultivaluedHashMap<String, Object> headers) {
         int nbTry = 500;
-        if (start) {
-            while (!checkStatus(mockOrRestClient, headers)) {
-                try {
-                    Thread.sleep(60);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-                nbTry--;
-
-                if (nbTry < 0) {
-                    break;
-                }
+        boolean isStarted;
+        while (!(isStarted = checkStatus(mockOrRestClient, headers))) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(60);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-        } else {
-            while (checkStatus(mockOrRestClient, headers)) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-                nbTry--;
+            nbTry--;
 
-                if (nbTry < 0) {
-                    break;
-                }
+            if (nbTry < 0) {
+                break;
             }
+        }
+        if (!isStarted) {
+            throw new VitamRuntimeException("Cannot check service status on "+ mockOrRestClient.getServiceUrl());
+        }
+    }
+
+    private void waitServerStop(MockOrRestClient mockOrRestClient) {
+        int nbTry = 500;
+        boolean isStarted;
+        while ((isStarted = checkStatus(mockOrRestClient, null))) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(60);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            nbTry--;
+
+            if (nbTry < 0) {
+                break;
+            }
+        }
+        if (isStarted) {
+            throw new VitamRuntimeException("Server is always listening on "+ mockOrRestClient.getServiceUrl());
         }
     }
 
@@ -1158,7 +1173,7 @@ public class VitamServerRunner extends ExternalResource {
         return customLogbookIndexationConfiguration;
     }
 
-    public static final String getOfferPath() {
+    public static String getOfferPath() {
         return VitamConfiguration.getVitamDataFolder() + "/offer/";
     }
 

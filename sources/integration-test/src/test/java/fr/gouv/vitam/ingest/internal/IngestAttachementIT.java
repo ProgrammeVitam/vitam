@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.internal.integration.test;
+package fr.gouv.vitam.ingest.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
@@ -124,7 +124,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(fr.gouv.vitam.ingest.internal.IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
