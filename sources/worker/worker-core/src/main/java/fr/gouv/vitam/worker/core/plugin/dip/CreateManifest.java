@@ -110,6 +110,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -274,15 +275,31 @@ public class CreateManifest extends ActionHandler {
                     List<String> linkedUnits = unitsForObjectGroupId.get(id);
                     JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
 
-                    AccessContractModel accessContractModel = getAccessContractModel(adminManagementClient);
+                    AccessContractModel accessContract = getAccessContractModel(adminManagementClient);
+
+                    ObjectGroupResponse objectGroup = objectMapper.treeToValue(object, ObjectGroupResponse.class);
+
+                    List<QualifiersModel> qualifiersToRemove;
+                    if (Boolean.FALSE.equals(accessContract.isEveryDataObjectVersion())) {
+                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                            .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                            .collect(Collectors.toList());
+                        objectGroup.getQualifiers().removeAll(qualifiersToRemove);
+                    }
+
+                    if (!dataObjectVersions.isEmpty()) {
+                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                            .filter(qualifier -> !dataObjectVersions.contains(qualifier.getQualifier()))
+                            .collect(Collectors.toList());
+                        objectGroup.getQualifiers().removeAll(qualifiersToRemove);
+                    }
 
                     Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
                         .getResults()
                         .stream()
                         .map(LogbookLifeCycleObjectGroup::new);
                     idBinaryWithFileName.putAll(manifestBuilder
-                        .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), dataObjectVersions,
-                                  logbookLifeCycleObjectGroupStream, accessContractModel));
+                        .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), logbookLifeCycleObjectGroupStream));
                     exportSize += computeSize(object, dataObjectVersions);
                 }
             }

@@ -1,0 +1,20 @@
+{
+	"#unitups": [],
+	"#min": 1,
+	"#max": 1,
+	"#allunitups": [],
+	"DescriptionLevel": "Item",
+	"Title": "My title3",
+	"Description": "Allemant. - Au chemin des Dames : le chateau et la ferme de la Motte totalement detruits.",
+	"Descriptions": {
+		"fr": "La legendes traduites en anglais."
+	},
+	"Status": "Pret",
+	"Tag": ["Grande Collecte"],
+	"Source": "Famille Herve, CP1",
+	"CreatedDate": "2014-06-12T09:31:00",
+	"TransactedDate": "2014-06-12T09:31:00",
+	"#management": {
+	},
+	"#originating_agencies": []
+}

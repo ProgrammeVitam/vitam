@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
@@ -55,7 +56,7 @@ public class CollectServiceTest {
     private CollectRepository collectRepository;
 
     @Test
-    public void createCollectTest() throws InvalidParseOperationException {
+    public void createCollectTest() throws CollectException {
         // Given
         CollectModel collectModel = new CollectModel("XXXX00000111111", "archival", null, null, null, null, null);
 
@@ -72,7 +73,7 @@ public class CollectServiceTest {
     }
 
     @Test
-    public void testFindCollect() throws InvalidParseOperationException {
+    public void testFindCollect() throws CollectException {
         final String idCollect = "XXXX000002222222";
         // Given
         CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null);
@@ -87,7 +88,7 @@ public class CollectServiceTest {
     }
 
     @Test
-    public void testCheckStatus_OK() throws InvalidParseOperationException {
+    public void testCheckStatus_OK() throws CollectException {
         final String idCollect = "XXXX000002222222";
         // Given
         CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, TransactionStatus.OPEN);

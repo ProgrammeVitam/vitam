@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
  * GUID Reader (Global Unique Identifier Reader) <br>
  *
  */
-public class GUIDImpl extends GUIDAbstract {
+class GUIDImpl extends GUIDAbstract {
     private static final String ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID = "Attempted to parse malformed ARK GUID: ";
     /**
      * Native size of the GUID

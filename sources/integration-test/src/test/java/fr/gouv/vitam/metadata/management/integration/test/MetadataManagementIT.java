@@ -225,7 +225,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 1;
 
-    private static final int PORT_SERVICE_METADATA = 8098;
+    private static final int PORT_SERVICE_METADATA = 8020;
 
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
     public static final String JSON_EXTENTION = ".json";

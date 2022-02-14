@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
+import fr.gouv.vitam.collect.internal.helpers.builders.DbVersionsModelBuilder;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import org.junit.Test;
 
@@ -39,7 +41,7 @@ public class DbVersionsModelBuilderTest {
         // GIVEN
         String fileName = "memoire_nationale.txt";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN
@@ -66,7 +68,7 @@ public class DbVersionsModelBuilderTest {
     public void should_throws_an_error_when_fileName_is_not_provided() {
         // GIVEN
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN // THEN
@@ -78,7 +80,7 @@ public class DbVersionsModelBuilderTest {
     public void should_throws_an_error_when_versionId_is_not_provided() {
         // GIVEN
         String fileName = "memoire_nationale.txt";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN // THEN

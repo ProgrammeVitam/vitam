@@ -30,11 +30,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -50,6 +53,7 @@ public class CollectRepository {
 
     public static final String COLLECT_COLLECTION = "Collect";
     public static final String ID = "Id";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectRepository.class);
 
     private final MongoCollection<Document> collectCollection;
 
@@ -66,23 +70,35 @@ public class CollectRepository {
      * create a collect model
      *
      * @param collectModel collect model to create
-     * @throws InvalidParseOperationException exception thrown in case of error
+     * @throws CollectException exception thrown in case of error
      */
-    public void createCollect(CollectModel collectModel) throws InvalidParseOperationException {
-        String json = JsonHandler.writeAsString(collectModel);
-        collectCollection.insertOne(Document.parse(json));
+    public void createCollect(CollectModel collectModel) throws CollectException {
+        LOGGER.debug("Collect to create: {}", collectModel);
+        try {
+            String json = JsonHandler.writeAsString(collectModel);
+            collectCollection.insertOne(Document.parse(json));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when creating collect: ", e);
+            throw new CollectException("Error when creating collect: " + e);
+        }
     }
 
     /**
      * replace a collect model
      *
      * @param collectModel collect model to replace
-     * @throws InvalidParseOperationException exception thrown in case of error
+     * @throws CollectException exception thrown in case of error
      */
-    public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
-        String json = JsonHandler.writeAsString(collectModel);
-        final Bson condition = and(eq(ID, collectModel.getId()));
-        collectCollection.replaceOne(condition , Document.parse(json));
+    public void replaceCollect(CollectModel collectModel) throws CollectException {
+        LOGGER.debug("Collect to replace: {}", collectModel);
+        try {
+            String json = JsonHandler.writeAsString(collectModel);
+            final Bson condition = and(eq(ID, collectModel.getId()));
+            collectCollection.replaceOne(condition , Document.parse(json));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when replacing collect: ", e);
+            throw new CollectException("Error when replacing collect: " + e);
+        }
     }
 
     /**
@@ -90,14 +106,20 @@ public class CollectRepository {
      *
      * @param id collect id to find
      * @return Optional<CollectModel>
-     * @throws InvalidParseOperationException exception thrown in case of error
+     * @throws CollectException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id) throws InvalidParseOperationException {
-        FindIterable<Document> models = collectCollection.find(Filters.eq(ID, id));
-        Document first = models.first();
-        if (first == null) {
-            return Optional.empty();
+    public Optional<CollectModel> findCollect(String id) throws CollectException {
+        LOGGER.debug("Collect id to find : {}", id);
+        try {
+            FindIterable<Document> models = collectCollection.find(Filters.eq(ID, id));
+            Document first = models.first();
+            if (first == null) {
+                return Optional.empty();
+            }
+            return Optional.of(BsonHelper.fromDocumentToObject(first, CollectModel.class));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when searching collect by id: ", e);
+            throw new CollectException("Error when searching collect by id: " + e);
         }
-        return Optional.of(BsonHelper.fromDocumentToObject(first, CollectModel.class));
     }
 }

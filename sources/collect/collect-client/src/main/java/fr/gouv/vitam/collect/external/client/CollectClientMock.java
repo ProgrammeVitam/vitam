@@ -27,12 +27,16 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.UUID;
 
 /**
@@ -40,16 +44,37 @@ import java.util.UUID;
  */
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
+    ObjectMapper mapper = new ObjectMapper();
     @Override
-    public RequestResponseOK<TransactionDto> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException {
         transactionDto.setId(UUID.randomUUID().toString());
-        return new RequestResponseOK<TransactionDto>()
-            .setHttpCode(Response.Status.OK.getStatusCode())
-            .addResult(transactionDto);
+        return new RequestResponseOK<JsonNode>()
+                .setHttpCode(Response.Status.OK.getStatusCode())
+                .addResult(mapper.valueToTree(transactionDto));
     }
 
     @Override
-    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, DataObjectVersionType usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException {
+        return null;
+    }
+
+    @Override
+    public Response addBinary(String unitId, DataObjectVersionType usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException {
+        return null;
+    }
+
+    @Override
+    public Response closeTransaction(String transactionId) throws InvalidParseOperationException {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> ingest(String transactionId) throws InvalidParseOperationException {
         return null;
     }
 }

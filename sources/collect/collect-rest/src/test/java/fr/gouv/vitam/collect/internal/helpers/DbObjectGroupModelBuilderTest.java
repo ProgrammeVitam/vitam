@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
+import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import org.junit.Test;
 
@@ -41,7 +43,7 @@ public class DbObjectGroupModelBuilderTest {
         String opi = "aeeaaaaaacaltpovaewckal62ukh4myaaaaq";
         String id = "aeedaaaaacaltpovaewckal62ukh4myaa67q";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN
@@ -65,7 +67,7 @@ public class DbObjectGroupModelBuilderTest {
         String opi = "aeeaaaaaacaltpovaewckal62ukh4myaaaaq";
         String id = "aeedaaaaacaltpovaewckal62ukh4myaa67q";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN // THEN
@@ -83,7 +85,7 @@ public class DbObjectGroupModelBuilderTest {
         String fileName = "memoire_nationale.txt";
         String id = "aeedaaaaacaltpovaewckal62ukh4myaa67q";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN // THEN
@@ -101,7 +103,7 @@ public class DbObjectGroupModelBuilderTest {
         String fileName = "memoire_nationale.txt";
         String opi = "aeeaaaaaacaltpovaewckal62ukh4myaaaaq";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
 
         // WHEN // THEN

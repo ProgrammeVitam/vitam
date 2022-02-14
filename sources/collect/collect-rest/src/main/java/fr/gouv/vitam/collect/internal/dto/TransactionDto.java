@@ -27,24 +27,35 @@
 package fr.gouv.vitam.collect.internal.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransactionDto implements Serializable {
 
     @JsonProperty(value = "id")
     private String id;
 
-    @JsonProperty(value = "ArchivalAgencyIdentifier")
+    @JsonProperty(value = "ArchivalAgreement", required = true)
+    private String archivalAgreement;
+
+    @JsonProperty(value = "MessageIdentifier", required = true)
+    private String messageIdentifier;
+
+    @JsonProperty(value = "ArchivalAgencyIdentifier", required = true)
     private String archivalAgencyIdentifier;
 
-    @JsonProperty(value = "TransferingAgencyIdentifier")
+    @JsonProperty(value = "TransferingAgencyIdentifier", required = true)
     private String transferingAgencyIdentifier;
 
-    @JsonProperty(value = "OriginatingAgencyIdentifier")
+    @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
     private String originatingAgencyIdentifier;
+
+    @JsonProperty(value = "SubmissionAgencyIdentifier")
+    private String submissionAgencyIdentifier;
 
     @JsonProperty(value = "ArchiveProfile")
     private String archivalProfile;
@@ -60,12 +71,37 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
+    public TransactionDto(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier, String originatingAgencyIdentifier, String archivalProfile, String comment) {
+        this.id = id;
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        this.archivalProfile = archivalProfile;
+        this.comment = comment;
+    }
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getArchivalAgreement() {
+        return archivalAgreement;
+    }
+
+    public void setArchivalAgreement(String archivalAgreement) {
+        this.archivalAgreement = archivalAgreement;
+    }
+
+    public String getMessageIdentifier() {
+        return messageIdentifier;
+    }
+
+    public void setMessageIdentifier(String messageIdentifier) {
+        this.messageIdentifier = messageIdentifier;
     }
 
     public String getArchivalAgencyIdentifier() {
@@ -92,6 +128,14 @@ public class TransactionDto implements Serializable {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
     }
 
+    public String getSubmissionAgencyIdentifier() {
+        return submissionAgencyIdentifier;
+    }
+
+    public void setSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
+    }
+
     public String getArchivalProfile() {
         return archivalProfile;
     }
@@ -115,17 +159,11 @@ public class TransactionDto implements Serializable {
         if (o == null || getClass() != o.getClass())
             return false;
         TransactionDto that = (TransactionDto) o;
-        return Objects.equals(id, that.id) &&
-            Objects.equals(archivalAgencyIdentifier, that.archivalAgencyIdentifier) &&
-            Objects.equals(transferingAgencyIdentifier, that.transferingAgencyIdentifier) &&
-            Objects.equals(originatingAgencyIdentifier, that.originatingAgencyIdentifier) &&
-            Objects.equals(archivalProfile, that.archivalProfile) &&
-            Objects.equals(comment, that.comment);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
-            archivalProfile, comment);
+        return Objects.hash(id);
     }
 }

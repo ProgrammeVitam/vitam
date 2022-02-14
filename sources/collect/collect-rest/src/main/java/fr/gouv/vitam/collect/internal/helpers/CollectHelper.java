@@ -29,9 +29,11 @@ package fr.gouv.vitam.collect.internal.helpers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ListMultimap;
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
@@ -57,19 +59,27 @@ public class CollectHelper {
         return sb.toString().toLowerCase();
     }
 
+    public static DataObjectVersionType fetchUsage(String usageString) throws CollectException {
+        DataObjectVersionType usage = DataObjectVersionType.fromName(usageString);
+        if(usage == null) {
+            throw new CollectException("This usage is not permit");
+        }
+        return usage;
+    }
+
     public static FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
         return formats.stream()
             .filter(format -> FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace()))
             .findFirst().orElse(null);
     }
 
-    public static DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel, String qualifier, int version) {
+    public static DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel, DataObjectVersionType usage, int version) {
 
         if (dbObjectGroupModel.getQualifiers() == null) {
             return null;
         }
 
-        final String dataObjectVersion = qualifier + "_" + version;
+        final String dataObjectVersion = usage.getName() + "_" + version;
 
         return dbObjectGroupModel.getQualifiers().stream()
             .peek(dbQualifiersModel -> {
@@ -77,7 +87,7 @@ public class CollectHelper {
                     dbQualifiersModel.setQualifier(dbQualifiersModel.getQualifier().split("_")[0]);
                 }
             })
-            .filter(dbQualifiersModel -> qualifier.equals(dbQualifiersModel.getQualifier()))
+            .filter(dbQualifiersModel -> usage.getName().equals(dbQualifiersModel.getQualifier()))
             .flatMap(dbQualifiersModel -> dbQualifiersModel.getVersions().stream())
             .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion()))
             .findFirst().orElse(null);
@@ -93,9 +103,9 @@ public class CollectHelper {
             .orElse(0);
     }
 
-    public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, String targetQualifier) {
+    public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, DataObjectVersionType usager) {
         return qualifiers.stream()
-            .filter(qualifier -> qualifier.getQualifier().equals(targetQualifier))
+            .filter(qualifier -> qualifier.getQualifier().equals(usager.getName()))
             .findFirst()
             .orElse(null);
     }

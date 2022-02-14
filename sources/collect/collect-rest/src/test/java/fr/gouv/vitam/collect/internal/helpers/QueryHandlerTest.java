@@ -29,10 +29,14 @@ package fr.gouv.vitam.collect.internal.helpers;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.FileInfoDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
+import fr.gouv.vitam.collect.internal.helpers.builders.DbQualifiersModelBuilder;
+import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import org.junit.Test;
@@ -87,7 +91,7 @@ public class QueryHandlerTest {
     }
 
     static class TestDummyData {
-        static String USAGE = "BinaryMaster";
+        static DataObjectVersionType USAGE = DataObjectVersionType.BINARY_MASTER;
         static String FILE_NAME = "memoire_nationale.txt";
         static String VERSION_ID = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
         static String OPI = "aeeaaaaaacaltpovaewckal62ukh4myaaaaq";

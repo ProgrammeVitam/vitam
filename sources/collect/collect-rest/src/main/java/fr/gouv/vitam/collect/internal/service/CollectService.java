@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
-import fr.gouv.vitam.collect.internal.resource.TransactionResource;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,7 +41,7 @@ import java.util.Optional;
 public class CollectService {
     private final CollectRepository collectRepository;
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectService.class);
 
     public CollectService(CollectRepository collectRepository) {
         this.collectRepository = collectRepository;
@@ -52,10 +51,10 @@ public class CollectService {
      * create a collect model
      *
      * @param collectModel collection model to create
-     * @throws InvalidParseOperationException exception thrown in case of error
+     * @throws CollectException exception thrown in case of error
      */
-    public void createCollect(CollectModel collectModel) throws InvalidParseOperationException {
-      collectRepository.createCollect(collectModel);
+    public void createCollect(CollectModel collectModel) throws CollectException {
+        collectRepository.createCollect(collectModel);
     }
 
     /**
@@ -63,14 +62,13 @@ public class CollectService {
      *
      * @param id model id to find
      * @return Optional<CollectModel>
-     * @throws InvalidParseOperationException exception thrown in case of error
+     * @throws CollectException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id) throws InvalidParseOperationException {
-        LOGGER.debug("Collect id to find : {}", id);
+    public Optional<CollectModel> findCollect(String id) throws CollectException {
         return collectRepository.findCollect(id);
     }
 
-    public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
+    public void replaceCollect(CollectModel collectModel) throws CollectException {
         collectRepository.replaceCollect(collectModel);
     }
 
@@ -80,11 +78,8 @@ public class CollectService {
         return id;
     }
 
-    public boolean checkStatus(CollectModel collectModel, TransactionStatus... transactionStatus){
-        if(Arrays.stream(transactionStatus).anyMatch(tr -> collectModel.getStatus().equals(tr))){
-            return true;
-        }
-        return false;
+    public boolean checkStatus(CollectModel collectModel, TransactionStatus... transactionStatus) {
+        return Arrays.stream(transactionStatus).anyMatch(tr -> collectModel.getStatus().equals(tr));
     }
 
 }

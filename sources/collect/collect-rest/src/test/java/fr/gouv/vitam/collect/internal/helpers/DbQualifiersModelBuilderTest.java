@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
+import fr.gouv.vitam.collect.internal.helpers.builders.DbQualifiersModelBuilder;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import org.junit.Test;
 
@@ -39,7 +41,7 @@ public class DbQualifiersModelBuilderTest {
         // GIVEN
         String fileName = "memoire_nationale.txt";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
         int nbc = 1;
 
@@ -60,7 +62,7 @@ public class DbQualifiersModelBuilderTest {
         // GIVEN
         String fileName = "memoire_nationale.txt";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int version = 1;
         int nbc = 1;
 
@@ -75,7 +77,7 @@ public class DbQualifiersModelBuilderTest {
     @Test
     public void should_throws_an_error_when_versions_is_not_provided() {
         // GIVEN
-        String usage = "BinaryMaster";
+        DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
         int nbc = 1;
 
         // WHEN // THEN

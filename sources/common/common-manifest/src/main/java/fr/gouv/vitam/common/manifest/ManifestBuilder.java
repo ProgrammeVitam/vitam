@@ -209,25 +209,10 @@ public class ManifestBuilder implements AutoCloseable {
         }
     }
 
-    public Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter,
-        Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream, AccessContractModel accessContract)
+    public Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU,
+        Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream)
         throws JsonProcessingException, JAXBException, InternalServerException {
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
-
-        List<QualifiersModel> qualifiersToRemove;
-        if (!accessContract.isEveryDataObjectVersion()) {
-            qualifiersToRemove = objectGroup.getQualifiers().stream()
-                .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
-                .collect(Collectors.toList());
-            objectGroup.getQualifiers().removeAll(qualifiersToRemove);
-        }
-
-        if (!dataObjectVersionFilter.isEmpty()) {
-            qualifiersToRemove = objectGroup.getQualifiers().stream()
-                .filter(qualifier -> !dataObjectVersionFilter.contains(qualifier.getQualifier()))
-                .collect(Collectors.toList());
-            objectGroup.getQualifiers().removeAll(qualifiersToRemove);
-        }
 
         if (objectGroup.getQualifiers().isEmpty()) {
             return Collections.emptyMap();

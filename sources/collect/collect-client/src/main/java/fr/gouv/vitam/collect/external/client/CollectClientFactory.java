@@ -43,10 +43,10 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
     private static final CollectClientFactory COLLECT_CLIENT_FACTORY = new CollectClientFactory();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "collect-client.conf";
-    private static final String RESOURCE_PATH = "/v1/transactions";
+    private static final String RESOURCE_PATH = "/collect/v1";
 
     protected CollectClientFactory() {
-        super(changeConfigurationFile(), RESOURCE_PATH);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**
@@ -74,19 +74,35 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
         return client;
     }
 
-    static SecureClientConfiguration changeConfigurationFile() {
+    /**
+     * Change client configuration from a Yaml files
+     *
+     * @param configurationPath the path to the configuration file
+     */
+    static SecureClientConfiguration changeConfigurationFile(String configurationPath) {
         SecureClientConfiguration configuration = null;
-
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(CONFIGURATION_FILENAME), SecureClientConfigurationImpl.class);
-        } catch (final IOException ioe) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, ioe);
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                    SecureClientConfigurationImpl.class);
+        } catch (final IOException fnf) {
+            //LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
-
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
+            //LOGGER.error("Error when retrieving configuration file {}, using mock",CONFIGURATION_FILENAME);
         }
-
         return configuration;
+    }
+
+    /**
+     * @param configuration null for MOCK
+     */
+    public static void changeMode(SecureClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+
+    public static void changeMode(String configurationFile) {
+        SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

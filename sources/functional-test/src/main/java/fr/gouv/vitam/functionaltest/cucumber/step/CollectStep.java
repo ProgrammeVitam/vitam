@@ -27,12 +27,15 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.internal.helpers.TransactionDtoBuilder;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
 import java.nio.file.Path;
@@ -70,7 +73,15 @@ public class CollectStep {
 
     @When("^j'initialise une transaction$")
     public void initTransaction() throws InvalidParseOperationException {
-        RequestResponseOK<TransactionDto> response = world.getCollectClient().initTransaction(new TransactionDto());
+        TransactionDto transactionDto = new TransactionDtoBuilder()
+                .withArchivalAgencyIdentifier("ArchivalAgencyIdentifier")
+                .withTransferingAgencyIdentifier("TransferingAgencyIdentifier")
+                .withOriginatingAgencyIdentifier("FRAN_NP_009913")
+                .withArchivalProfile("ArchiveProfile")
+                .withComment("Comments")
+                .build();
+
+        RequestResponseOK<TransactionDto> response = world.getCollectClient().initTransaction(transactionDto);
         assertThat(response.isOk()).isTrue();
         transactionGuuid = response.getFirstResult().getId();
     }
@@ -82,11 +93,10 @@ public class CollectStep {
 
     @When("^j'envoie une AU$")
     public void uploadArchiveUnit() throws InvalidParseOperationException, JsonProcessingException {
-//        ObjectMapper mapper = new ObjectMapper();
-//        CollectUnitDto archiveUnitDto = mapper.readValue(world.getQuery(), CollectUnitDto.class);
-//        RequestResponseOK<TransactionDto> response = world.getCollectClient().uploadArchiveUnit(transactionGuuid, archiveUnitDto);
-//        assertThat(response.isOk()).isTrue();
-//        transactionGuuid = response.getFirstResult().getId();
+         JsonNode archiveUnitJson =  JsonHandler.getFromString(world.getQuery());
+         RequestResponseOK<JsonNode> response = world.getCollectClient().uploadArchiveUnit(transactionGuuid, archiveUnitJson);
+         assertThat(response.isOk()).isTrue();
+         assertThat(response.getFirstResult()).isNotNull();
     }
 
 }

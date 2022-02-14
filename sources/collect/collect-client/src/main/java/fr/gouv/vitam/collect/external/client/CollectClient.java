@@ -30,7 +30,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Collect Client Interface
@@ -45,15 +50,57 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<TransactionDto> guid created for the transaction
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<TransactionDto> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException;
+    RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException;
 
     /**
-     * Upload Archive Unit
+     * ADD Archive Unit
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException;
+    RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException;
+
+    /**
+     * ADD Object Group
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<CollectUnitDto> Archive Unit saved
+     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> addObjectGroup(String unitId, DataObjectVersionType usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException;
+
+    /**
+     * ADD Binary
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<CollectUnitDto> Archive Unit saved
+     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     */
+    Response addBinary(String unitId, DataObjectVersionType usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException;
+
+    /**
+     * Close Transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<CollectUnitDto> Archive Unit saved
+     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     */
+    Response closeTransaction(String transactionId) throws InvalidParseOperationException;
+
+
+    /**
+     * Generate SIP + Send to Vitam
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<CollectUnitDto> Archive Unit saved
+     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> ingest(String transactionId) throws InvalidParseOperationException;
+
 }

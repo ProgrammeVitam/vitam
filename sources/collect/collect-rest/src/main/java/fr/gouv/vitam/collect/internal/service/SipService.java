@@ -34,6 +34,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
+import fr.gouv.vitam.collect.internal.helpers.SipHelper;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
-import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -51,8 +51,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.manifest.ExportException;
@@ -60,16 +58,11 @@ import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -92,15 +85,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -118,59 +110,46 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 public class SipService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SipService.class);
-
-    private final IngestExternalClientFactory ingestExternalClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final AdminManagementClientFactory adminManagementClientFactory;
-    private final ObjectMapper objectMapper;
-
+    public static final String RESULTS = "$results";
     private static final String SHA_512 = "SHA-512";
     private static final String SIP_EXTENSION = ".zip";
     private static final String MANIFEST_FILE_NAME = "manifest.xml";
     private static final String CONTENT = "Content";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
+    private final IngestExternalClientFactory ingestExternalClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final ObjectMapper objectMapper;
+
     public SipService(CollectConfiguration collectConfiguration) {
-        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl());
+        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl(), WorkspaceType.COLLECT);
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
-        this.adminManagementClientFactory = AdminManagementClientFactory.getInstance();
         this.ingestExternalClientFactory = IngestExternalClientFactory.getInstance();
         this.objectMapper = buildObjectMapper();
     }
 
-    /********************* GENERATE *********************/
-    public String generateSip(CollectModel collectModel)
-        throws InvalidParseOperationException, JAXBException, XMLStreamException, CollectException {
+    public String generateSip(CollectModel collectModel) throws CollectException {
 
         File localDirectory = PropertiesUtils.fileFromTmpFolder(collectModel.getId());
 
         File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(MANIFEST_FILE_NAME));
-        manifestFile.getParentFile().mkdirs();
+        boolean isCreated = manifestFile.getParentFile().mkdirs();
+        if (!isCreated) {
+            LOGGER.debug("An error occurs when trying to create manifest parent directory");
+            throw new CollectException("An error occurs when trying to create manifest parent directory");
+        }
 
         try (MetaDataClient client = metaDataClientFactory.getClient();
             OutputStream outputStream = new FileOutputStream(manifestFile);
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
-            // got
-            ExportRequest exportRequest = new ExportRequest();
-            exportRequest.setDslRequest(
-                JsonHandler.getFromString("{  \"$roots\": [],  \"$query\": [ { \"$eq\": { \"#opi\": \"" + collectModel.getId() + "\" } } ],\"filter\": {\"$scrollId\":\"START\",\"$scrollTimeout\":300000,\"$limit\":10000} , \"$projection\": {}}"));
-            exportRequest.setExportWithLogBookLFC(false);
-            exportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
-            ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
-            exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
-            exportRequestParameters.setArchivalAgencyIdentifier("Identifier4");
-            exportRequestParameters.setRequesterIdentifier("Vitam-Bis");
-            exportRequestParameters.setComment("Comments");
-            exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
-            exportRequestParameters.setRelatedTransferReference(List.of("RelatedTransferReference"));
-            exportRequestParameters.setTransferRequestReplyIdentifier("TransferRequestReplyIdentifier");
-            exportRequestParameters.setTransferringAgency("Identifier5");
 
+            ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(collectModel);
+            ExportRequest exportRequest = SipHelper.buildExportRequest(collectModel, exportRequestParameters);
 
-            exportRequest.setExportRequestParameters(exportRequestParameters);
-            manifestBuilder.startDocument("containerName", ExportType.ArchiveTransfer, exportRequestParameters);
+            manifestBuilder.startDocument(collectModel.getMessageIdentifier(), ExportType.ArchiveTransfer,
+                exportRequestParameters);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -181,39 +160,31 @@ public class SipService {
             parser.parse(exportRequest.getDslRequest());
             SelectMultiQuery request = parser.getRequest();
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, request);
+            ScrollSpliterator<JsonNode> scrollRequest =
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(client, request);
 
             StreamSupport.stream(scrollRequest, false)
                 .forEach(item -> CollectHelper.createGraph(multimap, originatingAgencies, ogs, item));
 
             manifestBuilder.startDataObjectPackage();
             Select select = new Select();
-            Map<String, JsonNode> idBinaryWithFileName = new HashMap<>();
             Iterable<List<Map.Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
             for (List<Map.Entry<String, String>> partition : partitions) {
 
                 ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
-                    .collect(
-                        ArrayListMultimap::create,
-                        (map, entry) -> map.put(entry.getValue(), entry.getKey()),
+                    .collect(ArrayListMultimap::create, (map, entry) -> map.put(entry.getValue(), entry.getKey()),
                         (list1, list2) -> list1.putAll(list2)
                     );
                 InQuery in = QueryHelper.in(id(), partition.stream().map(Map.Entry::getValue).toArray(String[]::new));
 
                 select.setQuery(in);
 
-                AccessContractModel accessContractModel = getAccessContractModel();
-
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
-                ArrayNode objects = (ArrayNode) response.get("$results");
+                ArrayNode objects = (ArrayNode) response.get(RESULTS);
                 for (JsonNode object : objects) {
-                    List<String> linkedUnits = unitsForObjectGroupId.get(
-                        object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
-                    idBinaryWithFileName.putAll(manifestBuilder.writeGOT(
-                        object, linkedUnits.get(linkedUnits.size() - 1), Collections.emptySet(),
-                        Stream.empty(), accessContractModel
-                    ));
+                    List<String> linkedUnits =
+                        unitsForObjectGroupId.get(object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
+                    manifestBuilder.writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), Stream.empty());
                 }
             }
             manifestBuilder.startDescriptiveMetadata();
@@ -225,10 +196,12 @@ public class SipService {
                     try {
                         JsonNode node = client.selectUnits(query.getFinalSelect());
                         return RequestResponseOK.getFromJsonNode(node);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException
+                        | InvalidParseOperationException e) {
                         throw new IllegalStateException(e);
                     }
-                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit());
 
 
             StreamSupport.stream(scrollRequest, false)
@@ -242,37 +215,35 @@ public class SipService {
                 });
             manifestBuilder.endDescriptiveMetadata();
 
-            manifestBuilder
-                .writeManagementMetadata("FRAN_NP_009913", "FRAN_NP_009913");
+            String submissionAgencyIdentifier = collectModel.getSubmissionAgencyIdentifier();
+            if (submissionAgencyIdentifier == null) {
+                submissionAgencyIdentifier = collectModel.getOriginatingAgencyIdentifier();
+            }
+
+            manifestBuilder.writeManagementMetadata(collectModel.getOriginatingAgencyIdentifier(),
+                submissionAgencyIdentifier);
             manifestBuilder.endDataObjectPackage();
 
-            manifestBuilder
-                .writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
+            manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
-            return saveManifestInWorkspace(collectModel, new FileInputStream(manifestFile));
-        } catch (IOException | MetaDataExecutionException | MetaDataDocumentSizeException |
-            MetaDataClientServerException | InvalidCreateOperationException
-            | ContentAddressableStorageServerException | ExportException | InternalServerException e) {
-            LOGGER.error(e.getMessage());
-            throw new CollectException(e.getMessage());
+
+        } catch (IOException | InvalidCreateOperationException | ExportException | MetaDataExecutionException
+            | InternalServerException | MetaDataClientServerException | MetaDataDocumentSizeException
+            | InvalidParseOperationException | JAXBException | XMLStreamException e) {
+            LOGGER.error(e.getLocalizedMessage());
+            throw new CollectException(e);
         }
+
+        try (InputStream inputStream = Files.newInputStream(manifestFile.toPath())) {
+            return saveManifestInWorkspace(collectModel, inputStream);
+        } catch (IOException e) {
+            LOGGER.error(e.getLocalizedMessage());
+            throw new CollectException(e);
+        }
+
     }
 
-    private AccessContractModel getAccessContractModel() throws CollectException {
-        String identifier = "ContratTNR";
-        try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Select select = new Select();
-            Query query = QueryHelper.eq(AccessContract.IDENTIFIER, identifier);
-            select.setQuery(query);
-            return ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(
-                select.getFinalSelect())
-            ).getResults().get(0);
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
-            throw new CollectException(e.getMessage(), e.getCause());
-        }
-    }
-
-    private String saveManifestInWorkspace(CollectModel collectModel, InputStream inputStream) throws ContentAddressableStorageServerException {
+    private String saveManifestInWorkspace(CollectModel collectModel, InputStream inputStream) throws CollectException {
         LOGGER.debug("Try to push manifest to workspace...");
         String digest = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -289,14 +260,14 @@ public class SipService {
                 compressInformation.setOutputContainer(collectModel.getId());
                 workspaceClient.compress(collectModel.getId(), compressInformation);
             }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        } catch (NoSuchAlgorithmException | ContentAddressableStorageServerException e) {
+            LOGGER.error(e.getLocalizedMessage());
+            throw new CollectException(e);
         }
         LOGGER.debug(" -> push manifest to workspace finished");
         return digest;
     }
 
-    /********************* INGEST *********************/
     public String ingest(CollectModel collectModel, String digest) throws CollectException {
 
         try (IngestExternalClient client = ingestExternalClientFactory.getClient()) {
@@ -309,20 +280,21 @@ public class SipService {
                 new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name())
                     .setManifestDigestAlgo(SHA_512)
                     .setManifestDigestValue(digest);
-//            VitamContext vitamContext = new VitamContext(tenantId).setApplicationSessionId("APPLICATION_SESSION_ID")
-//                .setAccessContract("ContratTNR");
 
-            RequestResponse<Void> response = client.ingest(new VitamContext(tenantId), sipInputStream, ingestRequestParameters);
-            if (!response.isOk()) { return null; }
+            RequestResponse<Void> response =
+                client.ingest(new VitamContext(tenantId), sipInputStream, ingestRequestParameters);
+            if (!response.isOk()) {
+                LOGGER.error("Error from ingest client: {}", response.toString());
+                throw new CollectException("Error from ingest client: " + response);
+            }
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        } catch (IngestExternalException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            LOGGER.debug("Error when processing ingest: {}", e);
+        } catch (IngestExternalException e) {
+            LOGGER.error("Error when processing ingest: {}", e);
             throw new CollectException(e);
         }
     }
 
-    private InputStream getFileFromWorkspace(CollectModel collectModel)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+    private InputStream getFileFromWorkspace(CollectModel collectModel) throws CollectException {
         LOGGER.debug("Try to get Zip from workspace...");
         InputStream sipInputStream = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -333,13 +305,13 @@ public class SipService {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 sipInputStream = (InputStream) response.getEntity();
             }
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
+            LOGGER.error("Error when processing ingest: {}", e);
+            throw new CollectException(e);
         }
 
-        LOGGER.debug(" -> get zip from workspace finished");
+        LOGGER.debug(" zip from workspace finished");
         return sipInputStream;
     }
-
-
-
 
 }

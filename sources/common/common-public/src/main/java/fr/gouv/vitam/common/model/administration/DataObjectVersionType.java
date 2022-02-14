@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.Arrays;
+
 public enum DataObjectVersionType {
 
     BINARY_MASTER("BinaryMaster"),
@@ -34,13 +39,22 @@ public enum DataObjectVersionType {
     TEXT_CONTENT("TextContent"),
     PHYSICAL_MASTER("PhysicalMaster");
 
-    private String name;
+    private final String name;
 
     DataObjectVersionType(String dataObjectVersion) {
         this.name = dataObjectVersion;
     }
 
+    @JsonValue
     public String getName() {
         return name;
+    }
+
+    @JsonCreator
+    public static DataObjectVersionType fromName(String name) {
+        return Arrays.stream(DataObjectVersionType.values())
+            .filter(dataObjectVersionType -> dataObjectVersionType.getName().equals(name))
+            .findFirst()
+            .orElse(null);
     }
 }

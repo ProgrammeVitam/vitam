@@ -119,7 +119,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
-@Path("/metadata/v1")
+@Path("/v1")
 @Tag(name="Metadata")
 public class MetadataManagementResource {
 

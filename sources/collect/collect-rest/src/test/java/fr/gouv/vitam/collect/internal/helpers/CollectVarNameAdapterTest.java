@@ -28,16 +28,14 @@ package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.internal.helpers.adapters.CollectVarNameAdapter;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.yaml.snakeyaml.introspector.PropertyUtils;
 
 import java.io.FileNotFoundException;
-
-import static org.junit.Assert.*;
 
 public class CollectVarNameAdapterTest {
 

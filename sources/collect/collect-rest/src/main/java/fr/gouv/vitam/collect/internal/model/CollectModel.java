@@ -35,11 +35,17 @@ public class CollectModel {
 
     private String id;
 
+    private String archivalAgreement;
+
+    private String messageIdentifier;
+
     private String archivalAgencyIdentifier;
 
     private String transferingAgencyIdentifier;
 
     private String originatingAgencyIdentifier;
+
+    private String submissionAgencyIdentifier;
 
     private String archivalProfile;
 
@@ -49,14 +55,14 @@ public class CollectModel {
 
     public CollectModel() {}
 
-    public CollectModel(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier,
-        String originatingAgencyIdentifier, String archivalProfile, String comment, TransactionStatus status) {
+    public CollectModel(String id, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+        String transferingAgencyIdentifier, String originatingAgencyIdentifier, TransactionStatus status) {
         this.id = id;
+        this.archivalAgreement = archivalAgreement;
+        this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-        this.archivalProfile = archivalProfile;
-        this.comment = comment;
         this.status = status;
     }
 
@@ -66,6 +72,22 @@ public class CollectModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getArchivalAgreement() {
+        return archivalAgreement;
+    }
+
+    public void setArchivalAgreement(String archivalAgreement) {
+        this.archivalAgreement = archivalAgreement;
+    }
+
+    public String getMessageIdentifier() {
+        return messageIdentifier;
+    }
+
+    public void setMessageIdentifier(String messageIdentifier) {
+        this.messageIdentifier = messageIdentifier;
     }
 
     public String getArchivalAgencyIdentifier() {
@@ -90,6 +112,14 @@ public class CollectModel {
 
     public void setOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+    }
+
+    public String getSubmissionAgencyIdentifier() {
+        return submissionAgencyIdentifier;
+    }
+
+    public void setSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
     }
 
     public String getArchivalProfile() {
@@ -123,18 +153,12 @@ public class CollectModel {
         if (o == null || getClass() != o.getClass())
             return false;
         CollectModel that = (CollectModel) o;
-        return Objects.equals(id, that.id) &&
-            Objects.equals(archivalAgencyIdentifier, that.archivalAgencyIdentifier) &&
-            Objects.equals(transferingAgencyIdentifier, that.transferingAgencyIdentifier) &&
-            Objects.equals(originatingAgencyIdentifier, that.originatingAgencyIdentifier) &&
-            Objects.equals(archivalProfile, that.archivalProfile) &&
-            Objects.equals(comment, that.comment) && status == that.status;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
-            archivalProfile, comment, status);
+        return Objects.hash(id);
     }
 
 }
