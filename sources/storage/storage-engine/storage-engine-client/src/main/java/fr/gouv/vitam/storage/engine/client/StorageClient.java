@@ -189,7 +189,8 @@ public interface StorageClient extends BasicClient {
 
     Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
         AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException;
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException;
 
     /**
      * List object type in container

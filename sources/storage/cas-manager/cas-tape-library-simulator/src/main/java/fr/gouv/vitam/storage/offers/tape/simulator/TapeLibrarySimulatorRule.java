@@ -36,6 +36,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorker;
 import org.junit.rules.ExternalResource;
 
 import java.nio.file.Path;
@@ -89,6 +90,7 @@ public class TapeLibrarySimulatorRule extends ExternalResource {
         };
 
         TapeLibraryFactory.getInstance().overrideTapeServiceCreatorForTesting(tapeServiceCreator);
+        TapeDriveWorker.updateInactivitySleepDelayForTesting();
     }
 
     public TapeLibrarySimulator getTapeLibrarySimulator() {
@@ -96,8 +98,8 @@ public class TapeLibrarySimulatorRule extends ExternalResource {
     }
 
     @Override
-    protected void after() {
-        TapeLibraryFactory.getInstance().resetTapeServiceCreatorAfterTesting();
+    public void after() {
+        TapeLibraryFactory.getInstance().resetTapeLibraryFactoryAfterTests();
 
         List<Exception> reportedExceptions = tapeLibrarySimulator.getFailures();
         if (!reportedExceptions.isEmpty()) {

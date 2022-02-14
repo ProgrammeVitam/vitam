@@ -1,0 +1,21 @@
+[
+  {
+    "id" : "default",
+    "offers" : [
+      {"id" : "offer1", "referent": true},
+      {"id" : "offer2"}
+    ]
+  },
+  {
+    "id" : "tape_only",
+    "offers" : [
+      {"id" : "offer1", "referent": true}
+    ]
+  },
+  {
+    "id" : "fs_only",
+    "offers" : [
+      {"id" : "offer2", "referent": true}
+    ]
+  }
+]

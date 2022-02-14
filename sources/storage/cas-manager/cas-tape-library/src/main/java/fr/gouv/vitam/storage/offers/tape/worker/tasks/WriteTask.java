@@ -146,7 +146,16 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             retryable().execute(this::updateTarReferential);
 
-            moveArchiveToCache(file);
+            if (writeOrder.getMessageType() == QueueMessageType.WriteBackupOrder) {
+                // Backup archives are not persisted on cache
+                if (!file.delete()) {
+                    throw new ReadWriteException("Could not delete backup archive " + writeOrder.getArchiveId() +
+                        " (" + file + ")", ReadWriteErrorCode.KO_ON_DELETE_ARCHIVED_BACKUP);
+                }
+            } else {
+                // Regular (data) archive. Move it to cache.
+                moveArchiveToCache(file);
+            }
 
             readWriteResult.setStatus(StatusCode.OK);
             readWriteResult.setOrderState(QueueState.COMPLETED);
@@ -226,6 +235,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // File delete or not generated
                     // Mark write order as error state
                 case KO_ON_MOVE_TO_CACHE:
+                case KO_ON_DELETE_ARCHIVED_BACKUP:
                 case INTERNAL_ERROR_SERVER:
                 default:
                     readWriteResult.setStatus(StatusCode.FATAL);

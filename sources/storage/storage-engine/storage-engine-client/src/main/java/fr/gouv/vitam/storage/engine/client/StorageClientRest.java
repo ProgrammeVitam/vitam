@@ -415,6 +415,12 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private Response handleCommonResponseStatus(Response response)
         throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
         final Response.Status status = fromStatusCode(response.getStatus());
+
+        if (status == null) {
+            throw new StorageServerClientException(
+                VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    "Unknown status code " + response.getStatus());
+        }
         switch (status) {
             case OK:
             case CREATED:
@@ -480,7 +486,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
         AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectName);
         VitamRequestBuilder request = get()
@@ -493,6 +500,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
         try {
             Response response = make(request);
+            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
             return handleCommonResponseStatus(response);
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
@@ -852,7 +860,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private void checkIllegalOperation(Response response) throws StorageIllegalOperationClientException {
         if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
             throw new StorageIllegalOperationClientException(
-                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.", response.getStatus(),
+                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                    response.getStatus(),
                     fromStatusCode(response.getStatus()).getReasonPhrase()));
         }
     }

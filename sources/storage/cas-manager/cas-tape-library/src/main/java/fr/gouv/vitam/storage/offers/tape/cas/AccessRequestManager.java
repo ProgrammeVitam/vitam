@@ -315,11 +315,11 @@ public class AccessRequestManager {
                 = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
 
             if (unavailableArchivesOnDisk.isEmpty()) {
-                LOGGER.debug("Immediate access is available for objects {} of container ", objectNames, containerName);
+                LOGGER.debug("Immediate access is available for objects {} of container {}", objectNames, containerName);
                 return true;
             }
 
-            LOGGER.warn("One or more objects are not available of container {} are not available for on disk. " +
+            LOGGER.warn("One or more objects of container {} are not available for on disk. " +
                 "Object names: {}", containerName, objectNames);
             return false;
 
@@ -484,6 +484,9 @@ public class AccessRequestManager {
 
             accessRequestEntity = refreshedAccessRequestEntity.get();
         }
+
+        throw new AccessRequestReferentialException("Could not update accessRequest " +
+            accessRequestEntity.getRequestId() + ". Aborting after " + MAX_RETRIES + " unsuccessful retries");
     }
 
     private boolean tryUpdateAccessRequestWithReadyArchiveId(String readyArchiveId,

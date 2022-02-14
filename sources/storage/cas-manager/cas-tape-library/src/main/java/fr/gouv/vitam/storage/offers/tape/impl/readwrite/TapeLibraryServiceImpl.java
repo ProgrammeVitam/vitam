@@ -423,7 +423,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         // Read Label from tape
         File labelFile = null;
         try {
-            labelFile = File.createTempFile(TAPE_LABEL, GUIDFactory.newGUID().getId());
+
+            labelFile = new File(this.getTmpOutputDirectory(), GUIDFactory.newGUID().getId());
 
             try {
                 tapeDriveService.getReadWriteService()

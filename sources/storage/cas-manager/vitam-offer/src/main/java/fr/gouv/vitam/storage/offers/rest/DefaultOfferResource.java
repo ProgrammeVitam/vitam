@@ -54,9 +54,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
-import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -71,6 +69,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.TaggedInputStream;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.exceptions.ConnectionException;
@@ -96,7 +96,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -275,12 +274,43 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             final String containerName = buildContainerName(type, xTenantId);
             ObjectContent objectContent = defaultOfferService.getObject(containerName, objectId);
 
-            Map<String, String> responseHeader = new HashMap<>();
-            responseHeader.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
-            responseHeader.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), String.valueOf(objectContent.getSize()));
+            StreamingOutput streamingOutput = output -> {
 
-            return new VitamAsyncInputStreamResponse(objectContent.getInputStream(),
-                Status.OK, responseHeader);
+                TaggedInputStream taggedInputStream = null;
+                try {
+
+                    taggedInputStream = new TaggedInputStream(
+                        new ExactSizeInputStream(objectContent.getInputStream(), objectContent.getSize()));
+
+                    IOUtils.copy(taggedInputStream, output);
+
+                } catch (IOException e) {
+
+                    // 2 types on IO Exceptions :
+                    // - Client-side exceptions (caused by networking errors, client closing connection...). Just let jetty handle it
+                    // - Server-side exceptions (caused by inner CAS provider...). These exceptions need at least to be logged.
+
+                    // TaggedInputStream is used to detect error cause
+
+                    if (taggedInputStream == null || taggedInputStream.isCauseOf(e)) {
+                        LOGGER.error("Server-side IOException. Could not serve object stream from CAS container", e);
+                        throw new WebApplicationException(
+                            "Server-side IOException. Could not serve object stream from CAS container", e);
+                    }
+
+                    // Client-side IOException. Let webapp container handle it
+                    throw e;
+                } finally {
+                    objectContent.getInputStream().close();
+                }
+            };
+
+            return Response
+                .ok(streamingOutput)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), String.valueOf(objectContent.getSize()))
+                .build();
+
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
@@ -371,12 +401,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            final String adminCrossTenantAccessRequestAllowedStr =
+                headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
             if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
                 LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
-            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+            boolean adminCrossTenantAccessRequestAllowed =
+                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
 
 
             Map<String, AccessRequestStatus> accessRequestStatus =
@@ -411,12 +443,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            final String adminCrossTenantAccessRequestAllowedStr =
+                headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
             if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
                 LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
-            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+            boolean adminCrossTenantAccessRequestAllowed =
+                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
 
             defaultOfferService.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
 

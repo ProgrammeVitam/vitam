@@ -50,11 +50,9 @@ import fr.gouv.vitam.common.stream.ExactDigestValidatorInputStream;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.LazySequenceInputStream;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
@@ -279,8 +277,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         if (tarEntries.size() == 1) {
             // Just load / return TAR entry content.
             TarEntryDescription tarEntry = tarEntries.get(0);
-            return loadTarFileInputStream(containerName, objectName, tarEntry,
-                tapeArchiveReferentialEntityMap.get(tarEntry.getTarFileId()));
+            return loadTarFileInputStream(containerName, objectName, tarEntry);
         }
 
         return loadLargeObjectInputStream(containerName, objectName, tarEntries, fileBucketId, tarIds,
@@ -341,8 +338,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             Iterator<InputStream> lazyInputStreamIterator = tarEntries.stream().
                 map(tarEntry -> {
                     try {
-                        return loadTarFileInputStream(containerName, objectName, tarEntry,
-                            tapeArchiveReferentialEntityMap.get(tarEntry.getTarFileId()));
+                        return loadTarFileInputStream(containerName, objectName, tarEntry);
                     } catch (ContentAddressableStorageUnavailableDataFromAsyncOfferException | ContentAddressableStorageServerException e) {
                         throw new RuntimeException("Could not load entry " + fileBucketId + "/"
                             + tarEntry.getTarFileId() + " @" + tarEntry.getEntryName(), e);
@@ -369,37 +365,35 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         Collection<TapeArchiveReferentialEntity> tapeArchiveReferentialEntities)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
         for (TapeArchiveReferentialEntity tapeArchiveReferentialEntity : tapeArchiveReferentialEntities) {
-            checkTarExistence(fileBucketId, tapeArchiveReferentialEntity);
+            checkTarExistence(fileBucketId, tapeArchiveReferentialEntity.getArchiveId());
         }
     }
 
-    private void checkTarExistence(String fileBucketId, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+    private void checkTarExistence(String fileBucketId, String archiveId)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
-        if (tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryBuildingOnDiskArchiveStorageLocation ||
-            tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {
-            if (this.fileBucketTarCreatorManager.containsTar(fileBucketId,
-                tapeArchiveReferentialEntity.getArchiveId())) {
-                LOGGER.debug("{}/{} found." + fileBucketId);
-                return;
-            }
+
+        if (this.fileBucketTarCreatorManager.containsTar(fileBucketId,
+            archiveId)) {
+            LOGGER.debug("{}/{} found." + fileBucketId);
+            return;
         }
 
-        if (archiveCacheStorage.containsArchive(fileBucketId, tapeArchiveReferentialEntity.getArchiveId())) {
+        if (archiveCacheStorage.containsArchive(fileBucketId, archiveId)) {
             LOGGER.debug("{}/{} found." + fileBucketId);
             return;
         }
 
         throw new ContentAddressableStorageUnavailableDataFromAsyncOfferException(
-            "Could not find archive " + fileBucketId + "/" + tapeArchiveReferentialEntity.getArchiveId());
+            "Could not find archive " + fileBucketId + "/" + archiveId);
     }
 
     private InputStream loadTarFileInputStream(String containerName, String objectName,
-        TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+        TarEntryDescription tarEntry)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException,
         ContentAddressableStorageServerException {
         try {
             FileInputStream fileInputStream =
-                locateAndOpenTarFileInputStream(containerName, objectName, tarEntry, tapeArchiveReferentialEntity);
+                locateAndOpenTarFileInputStream(containerName, objectName, tarEntry);
             return TarHelper.readEntryAtPos(fileInputStream, tarEntry);
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException("Could not load tar file", e);
@@ -407,35 +401,28 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     private FileInputStream locateAndOpenTarFileInputStream(String containerName, String objectName,
-        TarEntryDescription tarEntry, TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
+        TarEntryDescription tarEntry)
         throws ContentAddressableStorageUnavailableDataFromAsyncOfferException {
 
-        if (tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryBuildingOnDiskArchiveStorageLocation ||
-            tapeArchiveReferentialEntity.getLocation() instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {
+        String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
 
-            String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+        Optional<FileInputStream> fileInputStream =
+            this.fileBucketTarCreatorManager.tryReadTar(fileBucketId, tarEntry.getTarFileId());
 
-            Optional<FileInputStream> fileInputStream =
-                this.fileBucketTarCreatorManager.tryReadTar(fileBucketId, tarEntry.getTarFileId());
-
-            if (fileInputStream.isPresent())
-                return fileInputStream.get();
-        }
-
-        String fileBucketId =
-            this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+        if (fileInputStream.isPresent())
+            return fileInputStream.get();
 
         try {
-            Optional<FileInputStream> fileInputStream
+            Optional<FileInputStream> cachedFileInputStream
                 = archiveCacheStorage.tryReadArchive(fileBucketId, tarEntry.getTarFileId());
 
-            if (fileInputStream.isEmpty()) {
+            if (cachedFileInputStream.isEmpty()) {
                 throw new ContentAddressableStorageUnavailableDataFromAsyncOfferException(
                     "Could not locate archive " + tarEntry.getTarFileId() + " for object " + containerName + "/" +
                         objectName);
             }
 
-            return fileInputStream.get();
+            return cachedFileInputStream.get();
 
         } catch (IllegalPathException e) {
             throw new IllegalStateException(
@@ -599,7 +586,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 objectListingListener.handleObjectEntry(entryIterator.next());
             }
         } catch (ObjectReferentialException | MongoException e) {
-            throw new ContentAddressableStorageServerException("Could not list objects of container " + containerName, e);
+            throw new ContentAddressableStorageServerException("Could not list objects of container " + containerName,
+                e);
         }
         LOGGER.info("Done listing objects of container {}", containerName);
     }

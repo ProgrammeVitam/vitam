@@ -129,7 +129,12 @@ public class ArchiveCacheStorage {
         LOGGER.warn("Preparing archive cache eviction. Max capacity {}MB, Current usage: {}MB",
             this.lruCache.getMaxCapacity() / MB_TO_BYTES, this.lruCache.getCurrentCapacity() / MB_TO_BYTES);
 
-        return archiveCacheEvictionController.computeEvictionJudge();
+        LRUCacheEvictionJudge<ArchiveCacheEntry> entryLRUCacheEvictionJudge =
+            archiveCacheEvictionController.computeEvictionJudge();
+
+        LOGGER.info("Done preparing archive cache eviction...");
+
+        return entryLRUCacheEvictionJudge;
     }
 
     private LRUCache<ArchiveCacheEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,
@@ -395,6 +400,10 @@ public class ArchiveCacheStorage {
             LOGGER.warn("Could not delete file {}/{}" + archiveCacheEntry.getFileBucketId() + "/" +
                 archiveCacheEntry.getTarId() + " from " + this.cacheDirectory, e);
         }
+    }
+
+    public boolean isCacheEvictionRunning() {
+        return this.lruCache.isCacheEvictionRunning();
     }
 
     private Instant getCurrentInstant() {
