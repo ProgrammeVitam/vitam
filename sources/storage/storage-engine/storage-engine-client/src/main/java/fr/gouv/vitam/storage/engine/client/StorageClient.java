@@ -187,6 +187,17 @@ public interface StorageClient extends BasicClient {
         throws StorageServerClientException, StorageNotFoundException,
         StorageUnavailableDataFromAsyncOfferClientException;
 
+    /**
+     * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy/offerId
+     * @param strategyId
+     * @param offerId
+     * @param objectName
+     * @param type
+     * @param logInfo
+     * @return
+     * @throws StorageServerClientException
+     * @throws StorageNotFoundException
+     */
     Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
         AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException,
@@ -196,11 +207,12 @@ public interface StorageClient extends BasicClient {
      * List object type in container
      *
      * @param strategyId the strategy ID
+     * @param offerId the Offer ID
      * @param type the object type to list
      * @return an iterator with object list
      * @throws StorageServerClientException thrown if the server got an internal error
      */
-    CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
+    CloseableIterator<ObjectEntry> listContainer(String strategyId, String offerId, DataCategory type)
         throws StorageServerClientException, StorageNotFoundClientException;
 
 
@@ -300,6 +312,7 @@ public interface StorageClient extends BasicClient {
      * Get offer log .
      *
      * @param strategyId the strategy to get offers
+     * @param offerId the offer Id to read object from
      * @param type the object type to list
      * @param offset offset of the last object before
      * @param limit the number of result wanted
@@ -307,7 +320,7 @@ public interface StorageClient extends BasicClient {
      * @return list of offer log
      * @throws StorageServerClientException
      */
-    RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit, Order order)
+    RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit, Order order)
         throws StorageServerClientException;
 
     /**
@@ -375,4 +388,11 @@ public interface StorageClient extends BasicClient {
     BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
         BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest)
         throws StorageServerClientException;
+
+    /**
+     * Get referent offer of strategy
+     * @param strategy
+     * @return
+     */
+    String getReferentOffer(String strategy) throws StorageNotFoundClientException, StorageServerClientException;
 }

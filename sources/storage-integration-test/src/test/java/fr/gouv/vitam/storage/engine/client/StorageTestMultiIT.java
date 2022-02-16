@@ -336,7 +336,8 @@ public class StorageTestMultiIT {
 
         backupService.backup(fileIS, DataCategory.RULES, FILE_NAME);
 
-        CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES);
+        CloseableIterator<ObjectEntry> result =
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.RULES);
 
         TestCase.assertNotNull(result);
 
@@ -376,7 +377,8 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result =
+                    storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 ObjectEntry node = result.next();
@@ -431,7 +433,8 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result =
+                    storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 ObjectEntry node = result.next();
@@ -764,7 +767,8 @@ public class StorageTestMultiIT {
         }
 
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+            CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),
+                null, DataCategory.OBJECT)) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {

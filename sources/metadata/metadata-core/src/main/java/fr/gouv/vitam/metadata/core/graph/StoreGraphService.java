@@ -157,9 +157,8 @@ public class StoreGraphService {
     public LocalDateTime getLastGraphStoreDate(MetadataCollections metadataCollections) throws StoreGraphException {
         try {
             DataCategory dataCategory = getDataCategory(metadataCollections);
-
             Iterator<OfferLog> offerLogIterator =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, null,
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, dataCategory, null,
                     null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
 
             if (!offerLogIterator.hasNext()) {

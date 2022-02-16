@@ -48,6 +48,8 @@ public class OfferReference {
     private boolean referent;
     @JsonProperty("status")
     private ActivationStatus status = ActivationStatus.ACTIVE;
+    @JsonProperty("rank")
+    private Integer rank;
 
     /**
      * @return the id
@@ -94,5 +96,13 @@ public class OfferReference {
 
     public boolean isEnabled() {
         return ActivationStatus.ACTIVE.equals(this.getStatus());
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }

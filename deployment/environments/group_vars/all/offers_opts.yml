@@ -1,9 +1,10 @@
 # This is the default vitam strategy ('default'). It is mandatory and must define a referent offer.
-# This list of offers is ordered. It has to be completed if more offers are necessary
-# Strategy order (1st has to be the preferred one)
+# This list of offers will be ordered by the property rank. It has to be completed if more offers are necessary
+# The property rank indicates the rank of the offer in the strategy. The ranking is done is ASC order and should be different for all declared offers
 vitam_strategy:
   - name: offer-fs-1
     referent: true
+    rank: 0
 
 # Optional params for each offers in vitam_strategy. If not set, the default values are applied.
 #    referent: false              # true / false (default), only one per site must be referent
@@ -12,18 +13,21 @@ vitam_strategy:
 #    distant: false               # true / false (default). If set to true, it will not check if the provider for this offer is correctly set
 #    id: idoffre                  # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
 #    asyncRead: false             # true / false (default). Should be set to true for tape offer only
+#    rank: 0                      # Integer that indicates in ascending order the priority of the offer in the strategy
 
 # Example for tape offer:
 # Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
 #  - name: offer-tape-1
 #    referent: false
 #    asyncRead: true
+#    rank: 0
 
 # Example distant offer:
 #  - name: distant
 #    referent: false
 #    vitam_site_name: distant-dc2
 #    distant: true # Only add this parameter when distant offer (not on same platform)
+#    rank: 1
 
 # WARNING : multi-strategy is a BETA functionality
 # More strategies can be added but are optional
@@ -35,13 +39,17 @@ vitam_strategy:
 #  metadata:
 #    - name: offer-fs-1
 #      referent: true
+#      rank: 0
 #    - name: offer-fs-2
 #      referent: false
+#      rank: 1
 #  binary:
 #    - name: offer-fs-2
 #      referent: false
+#      rank: 0
 #    - name: offer-s3-1
 #      referent: false
+#      referent: 1
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage

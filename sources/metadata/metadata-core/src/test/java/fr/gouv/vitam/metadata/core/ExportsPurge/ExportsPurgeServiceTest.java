@@ -89,7 +89,7 @@ public class ExportsPurgeServiceTest {
         );
 
         doReturn(new RequestResponseOK<OfferLog>().addAllResults(offerLogs))
-            .when(storageClient).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP,
+            .when(storageClient).getOfferLogs(VitamConfiguration.getDefaultStrategy(), null,DataCategory.DIP,
                 null, VitamConfiguration.getChunkSize(), Order.ASC);
 
         when(workspaceClient.getFreespacePercent()).thenReturn((JsonHandler.createObjectNode().put(FREESPACE, 50)));

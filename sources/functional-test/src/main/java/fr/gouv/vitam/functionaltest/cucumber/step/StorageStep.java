@@ -165,7 +165,7 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 try {
-                    result.set(world.storageClient.listContainer(strategy, DataCategory.OBJECT));
+                    result.set(world.storageClient.listContainer(strategy, null, DataCategory.OBJECT));
                 } catch (StorageServerClientException e) {
                     throw new RuntimeException(e);
                 }

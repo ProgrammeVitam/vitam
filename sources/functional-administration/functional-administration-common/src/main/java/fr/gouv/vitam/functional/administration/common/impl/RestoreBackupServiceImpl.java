@@ -49,7 +49,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -90,10 +90,11 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     }
 
     @Override
-    public Optional<String> getLatestSavedFileName(String strategy, DataCategory type,
+    public Optional<String> getLatestSavedFileName(String strategy, String offerId, DataCategory type,
         FunctionalAdminCollections collection) {
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy, type);
+            CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy,
+                offerId, type);
         ) {
             // recover an intact backup copy for the reconstruction.
             Iterable<ObjectEntry> iterable = () -> listing;
@@ -126,23 +127,23 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     }
 
     @Override
-    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, FunctionalAdminCollections collection) {
+    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, String offerId, FunctionalAdminCollections collection) {
 
         // get the last version of the json backup files.
-        Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, DataCategory.BACKUP, collection);
+        Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, offerId, DataCategory.BACKUP, collection);
 
         if (lastBackupVersion.isPresent()) {
             Response response = null;
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 response =
-                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP,
+                    storageClient.getContainerAsync(strategy, offerId, lastBackupVersion.get(), DataCategory.BACKUP,
                         AccessLogUtils.getNoLogAccessLog());
                 final InputStream inputStream =
                     response.readEntity(InputStream.class);
 
                 // get backup collections to reconstruct.
                 return Optional.of(JsonHandler.getFromInputStream(inputStream, CollectionBackupModel.class));
-            } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (StorageServerClientException | InvalidParseOperationException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
             } finally {
                 StreamUtils.consumeAnyEntityAndClose(response);
@@ -164,15 +165,15 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
      */
     @Override
     public Iterator<List<OfferLog>> getListing(String strategy, DataCategory dataCategory, Long offset, int limit,
-        Order order) {
+        Order order) throws StorageServerClientException, StorageNotFoundClientException {
 
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             dataCategory, strategy, offset, limit));
-
         return Iterators.partition(
             OfferLogHelper.getListing(
-                storageClientFactory, strategy, dataCategory, offset, order, VitamConfiguration.getRestoreBulkSize(),
+                storageClientFactory, strategy, storageClientFactory.getClient().getReferentOffer(strategy),
+                dataCategory, offset, order, VitamConfiguration.getRestoreBulkSize(),
                 limit),
             VitamConfiguration.getRestoreBulkSize()
         );
@@ -210,7 +211,9 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
+            String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
+            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type,
+                AccessLogUtils.getNoLogAccessLog());
             inputStream = response.readEntity(InputStream.class);
             Document doc =
                 JsonHandler.getFromInputStream(inputStream, Document.class);
@@ -223,7 +226,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
             accessionRegisterBackupModel.setOffset(offset);
             return accessionRegisterBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);

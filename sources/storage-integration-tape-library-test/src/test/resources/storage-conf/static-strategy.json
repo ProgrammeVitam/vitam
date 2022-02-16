@@ -2,20 +2,20 @@
   {
     "id" : "default",
     "offers" : [
-      {"id" : "offer1", "referent": true},
-      {"id" : "offer2"}
+      {"id" : "offer1", "referent": true, "rank":  0},
+      {"id" : "offer2", "rank":  1}
     ]
   },
   {
     "id" : "tape_only",
     "offers" : [
-      {"id" : "offer1", "referent": true}
+      {"id" : "offer1", "referent": true, "rank":  0}
     ]
   },
   {
     "id" : "fs_only",
     "offers" : [
-      {"id" : "offer2", "referent": true}
+      {"id" : "offer2", "referent": true, "rank":  0}
     ]
   }
 ]

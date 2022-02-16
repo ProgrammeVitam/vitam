@@ -114,6 +114,9 @@ public enum VitamCode {
     STORAGE_ILLEGAL_OPERATION(ServiceName.STORAGE, DomainName.STORAGE, "24", Status.NOT_ACCEPTABLE,
         "Illegal operation"),
 
+    STORAGE_OFFER_EXCEPTION_RANK(ServiceName.STORAGE, DomainName.STORAGE, "25", Status.NOT_FOUND, "A duplicated or missing" +
+        " rank have been detected in offers configuration."),
+
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
     WORKSPACE_BAD_REQUEST(ServiceName.WORKSPACE, DomainName.STORAGE, "15", Status.BAD_REQUEST,

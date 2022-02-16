@@ -41,8 +41,10 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -93,14 +95,16 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public Iterator<List<OfferLog>> getListing(String strategy, long offset, int limit) {
+    public Iterator<List<OfferLog>> getListing(String strategy, long offset, int limit)
+        throws StorageServerClientException, StorageNotFoundClientException {
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             DataCategory.BACKUP_OPERATION.name(), strategy, offset, limit));
 
         return Iterators.partition(
-            OfferLogHelper.getListing(storageClientFactory, strategy, DataCategory.BACKUP_OPERATION, offset, Order.ASC,
-                VitamConfiguration.getRestoreBulkSize(), limit),
+            OfferLogHelper.getListing(storageClientFactory, strategy,
+                storageClientFactory.getClient().getReferentOffer(strategy), DataCategory.BACKUP_OPERATION, offset,
+                Order.ASC, VitamConfiguration.getRestoreBulkSize(), limit),
             VitamConfiguration.getRestoreBulkSize());
     }
 
@@ -125,7 +129,8 @@ public class RestoreBackupService {
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
-            response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
+            String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
+            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type, AccessLogUtils.getNoLogAccessLog());
             inputStream = response.readEntity(InputStream.class);
             LogbookOperation logbookOperationDocument =
                 new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
@@ -134,12 +139,11 @@ public class RestoreBackupService {
             logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
             logbookBackupModel.setOffset(offset);
             return logbookBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             StreamUtils.closeSilently(inputStream);
             StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
-
 }

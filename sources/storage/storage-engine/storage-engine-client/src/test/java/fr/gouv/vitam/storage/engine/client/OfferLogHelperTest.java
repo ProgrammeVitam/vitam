@@ -65,6 +65,7 @@ public class OfferLogHelperTest {
     @Mock
     private StorageClient storageClient;
     private List<String> offerIds = Arrays.asList("offer1", "offer2");
+    private static final String DEFAULT_OFFER_ID = "default";
 
     @Before
     public void init() throws Exception {
@@ -76,8 +77,8 @@ public class OfferLogHelperTest {
         throws StorageServerClientException {
         doAnswer(
             args -> {
-                Long startOffset = args.getArgument(2);
-                int limit = args.getArgument(3);
+                Long startOffset = args.getArgument(3);
+                int limit = args.getArgument(4);
 
                 return new RequestResponseOK<>()
                     .addAllResults(filesOffsets.stream()
@@ -86,7 +87,9 @@ public class OfferLogHelperTest {
                         .map(o -> new OfferLog(o, LocalDateUtil.now(), "0_unit", "file" + o, OfferLogAction.WRITE))
                         .collect(Collectors.toList()));
             }
-        ).when(storageClient).getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+        ).when(storageClient)
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT), anyLong(), anyInt(),
+                eq(Order.ASC));
     }
 
     @Test
@@ -97,7 +100,8 @@ public class OfferLogHelperTest {
         givenOfferLogOffsets(filesOffsets);
 
         Iterator<OfferLog> offerLogIterator =
-            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 20L, Order.ASC, 5, 7);
+            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER_ID,
+                DataCategory.UNIT, 20L, Order.ASC, 5, 7);
 
         // When
         assertThat(offerLogIterator)
@@ -105,6 +109,7 @@ public class OfferLogHelperTest {
             .containsExactly("file20", "file30", "file40", "file50", "file60", "file70", "file80");
 
         verify(storageClient, times(2))
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT), anyLong(), anyInt(),
+                eq(Order.ASC));
     }
 }

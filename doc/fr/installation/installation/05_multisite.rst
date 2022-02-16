@@ -117,14 +117,17 @@ Exemple pour le site 1 (site primaire):
     vitam_strategy:
         - name: offer-fs-1
           referent: true
+          rank: 0
         - name: offer-fs-2
           referent: false
           distant: true
           vitam_site_name: site2
+          rank: 1
         - name: offer-fs-3
           referent: false
           distant: true
           vitam_site_name: site3
+          rank: 2
     # Optional params for each offers in vitam_strategy. If not set, the default values are applied.
     #    referent: false              # true / false (default), only one per site must be referent
     #    status: ACTIVE               # ACTIVE (default) / INACTIVE
@@ -132,6 +135,7 @@ Exemple pour le site 1 (site primaire):
     #    distant: false               # true / false (default). If set to true, it will not check if the provider for this offer is correctly set
     #    id: idoffre                  # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
     #    asyncRead: false             # true / false (default). Should be set to true for tape offer only
+    #    rank: 0                      # Integer that indicates in ascending order the priority of the offer in the strategy
 
 
 Exemple pour le site 2 (site secondaire):
@@ -189,35 +193,44 @@ Exemple pour le site 1 (site primaire):
         metadata:
             - name: offer-fs-1
               referent: true
+              rank: 0
             - name: offer-fs-2
               referent: false
               distant: true
               vitam_site_name: site2
+              rank: 1
             - name: offer-fs-3
               referent: false
               distant: true
               vitam_site_name: site3
+              rank: 2
             - name: offer-s3-1
               referent: false
+              rank: 3
             - name: offer-s3-2
               referent: false
               distant: true
               vitam_site_name: site2
+              rank: 4
             - name: offer-s3-3
               referent: false
               distant: true
               vitam_site_name: site3
+              rank: 5
         binary:
             - name: offer-s3-1
               referent: false
+              rank: 0
             - name: offer-s3-2
               referent: false
               distant: true
               vitam_site_name: site2
+              rank: 1
             - name: offer-s3-3
               referent: false
               distant: true
               vitam_site_name: site3
+              rank: 2
 
 
 Exemple pour le site 2 (site secondaire):
@@ -228,11 +241,14 @@ Exemple pour le site 2 (site secondaire):
         metadata:
             - name: offer-fs-2
               referent: true
+              rank: 0
             - name: offer-s3-2
               referent: false
+              rank: 1
         binary:
             - name: offer-s3-2
               referent: false
+              rank: 0
 
 
 Exemple pour le site 3 (site secondaire):
@@ -243,11 +259,14 @@ Exemple pour le site 3 (site secondaire):
         metadata:
             - name: offer-fs-3
               referent: true
+              rank: 0
             - name: offer-s3-3
               referent: false
+              rank: 1
         binary:
             - name: offer-s3-3
               referent: false
+              rank: 0
 
 
 plateforme_secret

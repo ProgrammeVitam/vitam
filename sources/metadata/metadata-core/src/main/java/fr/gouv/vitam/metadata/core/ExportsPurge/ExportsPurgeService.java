@@ -101,7 +101,7 @@ public class ExportsPurgeService {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             Iterator<OfferLog> offerLogIterator = OfferLogHelper.getListing(
-                storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, null,
+                storageClientFactory, VitamConfiguration.getDefaultStrategy(), null, DataCategory.DIP, null,
                 Order.ASC, VitamConfiguration.getChunkSize(), null);
 
             while(offerLogIterator.hasNext()) {

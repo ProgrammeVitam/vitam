@@ -4,10 +4,12 @@
 		"offers": [
 			{
 				"id": "offer-fs-1.service.strategy.consul",
-				"referent": true
+				"referent": true,
+				"rank": 0
 			},
 			{
-				"id": "offer-fs-2.service.strategy.consul"
+				"id": "offer-fs-2.service.strategy.consul",
+				"rank": 1
 			}
 		]
 	},
@@ -15,7 +17,8 @@
 		"id": "binary2",
 		"offers": [
 			{
-				"id": "offer-fs-3.service.strategy.consul"
+				"id": "offer-fs-3.service.strategy.consul",
+				"rank": 0
 			}
 		]
 	},
@@ -23,10 +26,12 @@
 		"id": "binary1",
 		"offers": [
 			{
-				"id": "offer-fs-1.service.strategy.consul"
+				"id": "offer-fs-1.service.strategy.consul",
+				"rank": 0
 			},
 			{
-				"id": "offer-fs-3.service.strategy.consul"
+				"id": "offer-fs-3.service.strategy.consul",
+				"rank": 1
 			}
 		]
 	},
@@ -35,10 +40,12 @@
 		"offers": [
 			{
 				"id": "offer-fs-4.service.strategy.consul",
-				"referent": true
+				"referent": true,
+				"rank": 0
 			},
 			{
-				"id": "offer-fs-5.service.strategy.consul"
+				"id": "offer-fs-5.service.strategy.consul",
+				"rank": 1
 			}
 		]
 	},
@@ -47,10 +54,12 @@
 		"offers": [
 			{
 				"id": "offer-fs-6.service.strategy.consul",
-				"referent": true
+				"referent": true,
+				"rank": 0
 			},
 			{
-				"id": "offer-fs-7.service.strategy.consul"
+				"id": "offer-fs-7.service.strategy.consul",
+				"rank": 1
 			}
 		]
 	}

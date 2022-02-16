@@ -532,7 +532,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         doThrow(new StorageServerClientException("Internal Error")).when(storageClient)
-            .listContainer(any(), any());
+            .listContainer(any(), any(), any());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0").body("{}")
@@ -552,7 +552,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         when(iterator.hasNext()).thenReturn(true);
         when(iterator.next()).thenReturn(new ObjectEntry("guid", 0L));
 
-        when(storageClient.listContainer(anyString(), any())).thenReturn(iterator);
+        when(storageClient.listContainer(anyString(), any(), any())).thenReturn(iterator);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")

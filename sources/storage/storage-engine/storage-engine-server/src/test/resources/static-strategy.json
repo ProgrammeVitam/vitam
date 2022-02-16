@@ -2,22 +2,43 @@
   {
     "id" : "default",
     "offers" : [
-      {"id" : "default", "referent": true},
-      {"id" : "default2"}
+      {
+        "id" : "default",
+        "referent": true,
+        "rank": 0
+      },
+      {
+        "id" : "default2",
+        "rank": 1
+      }
     ]
   },
   {
     "id" : "sync_and_async_storage",
     "offers" : [
-      {"id" : "default", "referent": true},
-      {"id" : "myTapeOffer1"}
+      {
+        "id" : "default",
+        "referent": true,
+        "rank": 0
+      },
+      {
+        "id" : "myTapeOffer1",
+        "rank": 1
+      }
     ]
   },
   {
     "id" : "async_and_async_storage",
     "offers" : [
-      {"id" : "myTapeOffer1", "referent": true},
-      {"id" : "myTapeOffer2"}
+      {
+        "id" : "myTapeOffer1",
+        "referent": true,
+        "rank": 0
+      },
+      {
+        "id" : "myTapeOffer2",
+        "rank": 1
+      }
     ]
   }
 ]

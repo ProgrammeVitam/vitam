@@ -212,7 +212,7 @@ public class StorageLogBackupIT extends VitamRuleRunner {
 
             // Check storage log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGELOG);
+                storageClient.listContainer(STRATEGY_ID,null, DataCategory.STORAGELOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();

@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.client;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -101,6 +102,7 @@ public class RestoreBackupIT {
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
+    private static final String OFFER_ID = "default";
 
     // ports are overriden
     private static int workspacePort = 8987;
@@ -261,7 +263,7 @@ public class RestoreBackupIT {
     public void testRetrievalLastBackupVersion_emptyResult() throws Exception {
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.RULES, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup version found.");
         Assert.assertEquals(Optional.empty(), lastBackupVersion);
@@ -276,7 +278,7 @@ public class RestoreBackupIT {
 
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(lastBackupVersion.isPresent());
         LOGGER.debug(String.format("Last backup version -> %s", lastBackupVersion.get()));
@@ -290,7 +292,7 @@ public class RestoreBackupIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBackupService
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), OFFER_ID, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup copy found.");
         Assert.assertEquals(Optional.empty(), collectionBackup);
@@ -305,7 +307,7 @@ public class RestoreBackupIT {
 
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBackupService
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), OFFER_ID, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(collectionBackup.isPresent());
         Assert.assertEquals(52, collectionBackup.get().getDocuments().size());

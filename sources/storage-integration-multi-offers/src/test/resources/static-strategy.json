@@ -2,8 +2,15 @@
   {
     "id" : "default",
     "offers" : [
-      {"id" : "default", "referent": true},
-      {"id" : "default2"}
+      {
+        "id" : "default",
+        "referent": true,
+        "rank": 1
+      },
+      {
+        "id" : "default2",
+        "rank": 0
+      }
     ]
   }
 ]

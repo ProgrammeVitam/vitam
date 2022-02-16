@@ -46,18 +46,20 @@ import java.util.List;
 public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
 
     private final String strategyId;
+    private final String offerId;
     private final Order order;
     private final DataCategory dataCategory;
     private final StorageClientFactory storageClientFactory;
     private final int chunkSize;
     private Long lastOffset;
 
-    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, Order order,
+    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, String offerId, Order order,
         DataCategory dataCategory,
         int chunkSize, Long startOffset) {
         super(chunkSize);
 
         this.strategyId = strategyId;
+        this.offerId = offerId;
         this.order = order;
         this.dataCategory = dataCategory;
         this.storageClientFactory = storageClientFactory;
@@ -70,7 +72,7 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
 
         try (StorageClient storageClient = this.storageClientFactory.getClient()) {
             RequestResponse<OfferLog> response = storageClient.getOfferLogs(this.strategyId,
-                this.dataCategory, this.lastOffset, this.chunkSize, this.order);
+                this.offerId, this.dataCategory, this.lastOffset, this.chunkSize, this.order);
 
             if (!response.isOk()) {
                 throw new VitamRuntimeException("Could not list offer log");

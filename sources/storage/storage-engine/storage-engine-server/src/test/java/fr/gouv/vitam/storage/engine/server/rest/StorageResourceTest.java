@@ -1863,5 +1863,10 @@ public class StorageResourceTest {
 
             throw new StorageException("FATAL");
         }
+
+        @Override
+        public String getReferentOffer(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
+            throw new UnsupportedOperationException("UnsupportedOperationException");
+        }
     }
 }

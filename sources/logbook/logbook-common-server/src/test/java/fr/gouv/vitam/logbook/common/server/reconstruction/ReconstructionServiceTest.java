@@ -45,6 +45,8 @@ import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestIt
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
@@ -177,7 +179,8 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_item_limit_zero() throws DatabaseException {
+    public void should_return_request_offset_when_item_limit_zero()
+        throws DatabaseException, StorageServerClientException, StorageNotFoundClientException {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
 

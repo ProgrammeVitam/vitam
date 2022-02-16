@@ -68,6 +68,10 @@ import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -198,13 +202,16 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         final Histogram.Timer timer =
             VitamCommonMetrics.RECONSTRUCTION_DURATION.labels(String.valueOf(tenant), collection.name())
                 .startTimer();
-        try {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient())
+        {
             // This is a hak, we must set manually the tenant in the VitamSession (used and transmitted in the headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
             // get the last version of the backup copies.
+            String referentOfferForStrategy = storageClient.getReferentOffer(VitamConfiguration.getDefaultStrategy());
             Optional<CollectionBackupModel> collectionBackup =
-                recoverBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
+                recoverBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(),
+                    referentOfferForStrategy, collection);
 
             // reconstruct Vitam collection from the backup copy.
             if (collectionBackup.isPresent()) {
@@ -233,7 +240,9 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                         "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
                         collectionBackup, Arrays.toString(tenants), LocalDateUtil.now()));
             }
-        } finally {
+        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+            LOGGER.error("ERROR: Exception has been thrown when trying to get Referent offer :", e);;
+        }  finally {
             timer.observeDuration();
         }
     }
@@ -376,7 +385,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 collection, tenant, offset), de);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
-        } catch (StorageException se) {
+        } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
             LOGGER.error(se.getMessage());
             newOffset = offset;
             response.setStatus(StatusCode.KO);

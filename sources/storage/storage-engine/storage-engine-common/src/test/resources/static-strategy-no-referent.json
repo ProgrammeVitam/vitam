@@ -3,7 +3,8 @@
 		"id": "binary2",
 		"offers": [
 			{
-				"id": "offer-fs-3.service.strategy.consul"
+				"id": "offer-fs-3.service.strategy.consul",
+				"rank": 0
 			}
 		]
 	},
@@ -11,10 +12,12 @@
 		"id": "binary1",
 		"offers": [
 			{
-				"id": "offer-fs-1.service.strategy.consul"
+				"id": "offer-fs-1.service.strategy.consul",
+				"rank": 0
 			},
 			{
-				"id": "offer-fs-3.service.strategy.consul"
+				"id": "offer-fs-3.service.strategy.consul",
+				"rank": 1
 			}
 		]
 	}

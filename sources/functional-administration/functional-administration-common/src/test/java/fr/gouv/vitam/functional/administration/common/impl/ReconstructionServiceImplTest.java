@@ -46,6 +46,8 @@ import fr.gouv.vitam.functional.administration.common.config.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.common.Strings;
@@ -59,7 +61,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +76,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,7 +103,7 @@ public class ReconstructionServiceImplTest {
     private static final String MONGODB_BULK_EXCEPTION_MESSAGE = "MongoDB: Bulk Request failure.";
     public static final String SEQUENCE_NAME = "fake name";
     public static final String BACKUP_SEQUENCE_NAME = "fake backup name";
-
+    private static final String DEFAULT_OFFER = "default";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -125,18 +132,19 @@ public class ReconstructionServiceImplTest {
     private VitamRepositoryProvider repositoryFactory;
 
     @Mock
-    private AdminManagementConfiguration configuration;
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
 
     @Captor
     private ArgumentCaptor<Integer> tenantCaptor;
 
     private ElasticsearchFunctionalAdminIndexManager indexManager = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-
     private ReconstructionServiceImpl reconstructionService;
 
     @Before
     public void setup() {
-
         reconstructionService =
             spy(new ReconstructionServiceImpl(repositoryFactory, recoverBuckupService, null, indexManager));
 
@@ -151,6 +159,7 @@ public class ReconstructionServiceImplTest {
             .thenReturn(crossTenantElasticsearchRepository);
         when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()))
             .thenReturn(crossTenantMongoRepository);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
     @Test
@@ -159,7 +168,7 @@ public class ReconstructionServiceImplTest {
 
         // mock the recoverBackupCopy service.
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_0);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection);
         when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
             .thenReturn(multiTenantMongoRepository);
@@ -177,7 +186,7 @@ public class ReconstructionServiceImplTest {
             .removeByNameAndTenant(BACKUP_SEQUENCE_NAME, TENANT_ID_0);
 
         verify(recoverBuckupService)
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES));
 
         verify(multiTenantMongoRepository, times(1))
             .save(backupCollection.get().getDocuments());
@@ -196,7 +205,7 @@ public class ReconstructionServiceImplTest {
 
         // mock the recoverBackupCopy service.
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.FORMATS)))
             .thenReturn(backupCollection);
 
         when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
@@ -215,7 +224,7 @@ public class ReconstructionServiceImplTest {
         verify(crossTenantElasticsearchRepository, times(1)).purge();
 
         verify(recoverBuckupService)
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS);
+            .readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.FORMATS));
 
         verify(crossTenantMongoRepository, times(1))
             .save(backupCollection.get().getDocuments());
@@ -232,7 +241,7 @@ public class ReconstructionServiceImplTest {
     public void reconstructCollectionByTenantOK_NoBackupCopy() throws Exception {
 
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection);
 
         when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
@@ -245,7 +254,7 @@ public class ReconstructionServiceImplTest {
         verify(multiTenantMongoRepository).purge(TENANT_ID_0);
         verify(mutliTenantElasticsearchRepository).purge(TENANT_ID_0);
         verify(recoverBuckupService, times(1))
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES));
 
         // No call of the saving services when no backup copy found..
         verify(multiTenantMongoRepository, never())
@@ -268,7 +277,7 @@ public class ReconstructionServiceImplTest {
 
         // mock the recoverBackupCopy service.
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection);
 
         // verify type and message of the thrown elasticSearch Exception.
@@ -283,7 +292,7 @@ public class ReconstructionServiceImplTest {
 
         // mock the recoverBackupCopy service.
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection);
 
         // mock thrown database Exception by mongoDB.
@@ -304,11 +313,11 @@ public class ReconstructionServiceImplTest {
         Optional<CollectionBackupModel> backupCollection0 = getBackupCollection(TENANT_ID_0);
         Optional<CollectionBackupModel> backupCollection1 = getBackupCollection(TENANT_ID_1);
         Optional<CollectionBackupModel> backupCollection2 = getBackupCollection(TENANT_ID_2);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection0);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection1);
-        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+        when(recoverBuckupService.readLatestSavedFile(eq(STRATEGY_ID), eq(DEFAULT_OFFER), eq(FunctionalAdminCollections.RULES)))
             .thenReturn(backupCollection2);
 
         when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))

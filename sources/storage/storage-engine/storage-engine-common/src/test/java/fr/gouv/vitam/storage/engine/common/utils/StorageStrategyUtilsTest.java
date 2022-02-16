@@ -46,7 +46,7 @@ public class StorageStrategyUtilsTest {
             throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-complex-valid.json");
         List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-                new TypeReference<List<StorageStrategy>>() {
+                new TypeReference<>() {
                 });
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isTrue();

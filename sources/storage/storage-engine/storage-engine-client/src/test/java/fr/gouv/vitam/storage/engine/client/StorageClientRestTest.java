@@ -360,6 +360,13 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
             return expectedResponse.get();
         }
+
+        @GET
+        @Path("/referentOffer")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getReferentOffer() {
+            return expectedResponse.get();
+        }
     }
 
     @RunWithCustomExecutor
@@ -775,7 +782,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
                 .entity(JsonHandler.writeAsString(requestResponse)).build());
 
         final RequestResponse<OfferLog> result =
-            client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+            client.getOfferLogs("idStrategy", null, DataCategory.OBJECT, 2L, 10, Order.ASC);
         assertNotNull(result);
         assertEquals(String.valueOf(TENANT_ID), result.getHeaderString(GlobalDataRest.X_TENANT_ID));
         assertEquals(true, result.isOk());
@@ -799,7 +806,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).build());
-        assertThatThrownBy(() -> client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC))
+        assertThatThrownBy(() -> client.getOfferLogs("idStrategy", null, DataCategory.OBJECT, 2L, 10, Order.ASC))
             .isInstanceOf(StorageServerClientException.class);
     }
 
@@ -807,14 +814,14 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test(expected = IllegalArgumentException.class)
     public void getOfferLogInvalidRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.getOfferLogs("idStrategy", null, 2L, 10, Order.ASC);
+        client.getOfferLogs("idStrategy", null,null, 2L, 10, Order.ASC);
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void getOfferLogInvalidRequestOrder() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, null);
+        client.getOfferLogs("idStrategy", null, DataCategory.OBJECT, 2L, 10, null);
     }
 
     @RunWithCustomExecutor
@@ -924,6 +931,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         client.getStorageStrategies();
     }
+
 
     @RunWithCustomExecutor
     @Test
@@ -1091,6 +1099,26 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(objectAvailabilityResponse).isNotNull();
         assertThat(objectAvailabilityResponse.getAreObjectsAvailable()).isTrue();
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void getReferentOffer() throws Exception {
+
+        // Given
+        final String OFFER_ID = "offerId";
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        when(mock.get()).thenReturn(new RequestResponseOK<>()
+            .addResult("offerId")
+            .setHttpCode(Status.OK.getStatusCode())
+            .toResponse());
+
+        // When
+        String referentOffer = client.getReferentOffer("myStrategyId");
+
+        // Then
+        assertThat(referentOffer).isNotNull();
     }
 
     @RunWithCustomExecutor

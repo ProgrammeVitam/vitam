@@ -262,7 +262,7 @@ public class ReferentialAuditService {
 
     private Iterator<ObjectEntry> listObjectEntry() throws StorageServerClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            return storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP);
+            return storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP);
         } catch (StorageNotFoundClientException e) {
             return new ArrayIterator<>(new ObjectEntry[]{});
         }

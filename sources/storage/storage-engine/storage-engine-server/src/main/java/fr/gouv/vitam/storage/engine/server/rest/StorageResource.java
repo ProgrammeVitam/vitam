@@ -72,6 +72,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -194,6 +195,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         } catch (IOException e) {
             LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
             // FIXME: erf, not cool here
+            throw new RuntimeException(e);
+        } catch (StorageTechnicalException e) {
+            LOGGER.error("A problem occured when checking strategy offers in Storage");
             throw new RuntimeException(e);
         }
     }
@@ -379,7 +383,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId;
         try {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            CloseableIterator<ObjectEntry> objectEntryIterator = distribution.listContainerObjects(strategyId, type);
+            List<String> offerIdHeaders =
+                Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)).orElse(Collections.emptyList());
+            CloseableIterator<ObjectEntry> objectEntryIterator;
+            if (offerIdHeaders.isEmpty()) {
+                objectEntryIterator = distribution.listContainerObjects(strategyId, type);
+            } else {
+                objectEntryIterator = distribution.listContainerObjectsForOffer(type, offerIdHeaders.get(0), false);
+            }
 
             StreamingOutput streamingOutput = output -> {
                 try (
@@ -737,7 +748,23 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
-
+    /** Get referent Offer in strategy
+     * @param strategyId the strategy to get offers
+     * @return
+     */
+    @Path("/referentOffer")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getReferentOffer(@HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId) {
+        try {
+            RequestResponse<String> entity = new RequestResponseOK<String>()
+                .addResult(distribution.getReferentOffer(strategyId));
+            return Response.status(Status.OK).entity(entity).build();
+        } catch (StorageException e) {
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
 
     /**
      * Get a backup operation

@@ -75,6 +75,8 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -265,9 +267,10 @@ public class ReconstructionService {
 
         try {
             // get the list of data to backup.
+            String referentOffer = storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
             Iterator<OfferLog> listing =
                 restoreBackupService
-                    .getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, offset, limit, Order.ASC,
+                    .getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory, offset, limit, Order.ASC,
                         VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
@@ -312,7 +315,11 @@ public class ReconstructionService {
             newOffset = offset;
             response.setStatus(StatusCode.KO);
 
-        } finally {
+        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+            LOGGER.error(e.getMessage());
+            newOffset = offset;
+            response.setStatus(StatusCode.KO);
+        }  finally {
             offsetRepository
                 .createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), dataCategory.name(), newOffset);
         }
@@ -408,8 +415,9 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
+            String referentOffer = storageClientFactory.getClient().getReferentOffer(strategy);
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(strategy, type, offset, limit, Order.ASC,
+                restoreBackupService.getListing(strategy, referentOffer, type, offset, limit, Order.ASC,
                     VitamConfiguration.getRestoreBulkSize());
 
             Iterator<List<OfferLog>> bulkListing =
@@ -461,7 +469,10 @@ public class ReconstructionService {
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles for the strategy {%s} on the tenant {%s} from {offset:%s}",
                 collection, strategy, tenant, offset), e);
             resultStatusCode = StatusCode.KO;
-        } finally {
+        } catch (StorageNotFoundClientException |StorageServerClientException e) {
+            LOGGER.error("Error occured when getting data from Storage : "+ e.getMessage(),e);
+            resultStatusCode = StatusCode.KO;
+        }  finally {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return resultStatusCode;

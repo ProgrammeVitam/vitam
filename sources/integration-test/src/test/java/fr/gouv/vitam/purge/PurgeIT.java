@@ -94,6 +94,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECTGROUP
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 
 
 /**
@@ -301,7 +302,7 @@ public class PurgeIT extends VitamRuleRunner {
 
     private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogRequestResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, 100000, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), null,dataCategory, null, 100000, Order.ASC);
         assertThat(offerLogRequestResponse.isOk()).isTrue();
         List<OfferLog> offerLogs = ((RequestResponseOK<OfferLog>) offerLogRequestResponse).getResults();
 

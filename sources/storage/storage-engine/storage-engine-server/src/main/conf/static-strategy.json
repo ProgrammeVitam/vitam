@@ -2,7 +2,11 @@
   {
     "id" : "default",
     "offers" : [
-      {"id" : "default", "referent": true}
+      {
+        "id" : "default",
+        "referent": true,
+        "rank": 0
+      }
     ]
   }
 ]
