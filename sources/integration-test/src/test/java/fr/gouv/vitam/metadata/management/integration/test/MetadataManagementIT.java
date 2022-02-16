@@ -151,6 +151,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Integration tests for the reconstruction of metadata. <br/>
@@ -228,6 +229,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
     public static final String JSON_EXTENTION = ".json";
+    public static final String OFFER_ID = "default";
 
     private static WorkspaceClient workspaceClient;
     private static StorageClient storageClient;
@@ -465,7 +467,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, Integer.MAX_VALUE,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, dataCategory, null, Integer.MAX_VALUE,
                 Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
@@ -605,7 +607,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
@@ -645,7 +647,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -696,14 +698,14 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -715,13 +717,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
                 Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
@@ -815,13 +817,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         RequestResponse<OfferLog> offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
                 Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
@@ -880,14 +882,14 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);

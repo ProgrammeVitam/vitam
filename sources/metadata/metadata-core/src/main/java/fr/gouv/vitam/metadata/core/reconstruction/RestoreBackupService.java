@@ -38,8 +38,10 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -91,14 +93,16 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public Iterator<OfferLog> getListing(String strategy, DataCategory category, Long offset, Integer limit, Order order,
-        int batchSize) {
+    public Iterator<OfferLog> getListing(String strategy, String offerId, DataCategory category, Long offset,
+        Integer limit, Order order,
+        int batchSize) throws StorageServerClientException, StorageNotFoundClientException {
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             category, strategy, offset, limit));
 
         return OfferLogHelper.getListing(
-            storageClientFactory, strategy, category, offset, order, batchSize, limit);
+            storageClientFactory, strategy, offerId, category,
+            offset, order, batchSize, limit);
     }
 
     /**
@@ -157,11 +161,11 @@ public class RestoreBackupService {
                 filename, category.name(), strategy));
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
+            String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
             return new VitamAsyncInputStream(
-                storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog()));
+                storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, category, AccessLogUtils.getNoLogAccessLog()));
 
-        } catch (StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
     }

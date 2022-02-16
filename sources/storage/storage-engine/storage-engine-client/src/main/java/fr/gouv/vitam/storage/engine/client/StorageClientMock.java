@@ -100,6 +100,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
             "long long long long long long long long long long long long long long long long long long long long " +
             "long long long long long long long long long long long long long long long long long long long long " +
             "long long long long long long long long long long long long long long long long long long long long file";
+    private static final String DEFAULT_OFFER = "default";
 
 
     @Override
@@ -223,7 +224,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type) {
+    public CloseableIterator<ObjectEntry> listContainer(String strategyId, String offerId, DataCategory type) {
         throw new IllegalStateException("Stop use this please");
     }
 
@@ -280,7 +281,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit,
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
         Order order)
         throws StorageServerClientException {
         RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
@@ -327,6 +328,12 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     public BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
         BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest) {
         throw new UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public String getReferentOffer(String strategy)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        return DEFAULT_OFFER;
     }
 
 }

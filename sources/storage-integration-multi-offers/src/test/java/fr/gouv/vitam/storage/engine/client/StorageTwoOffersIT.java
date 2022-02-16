@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -41,7 +42,9 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -123,6 +126,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
@@ -271,18 +275,24 @@ public class StorageTwoOffersIT {
         RequestResponse<StorageStrategy> response = storageClient.getStorageStrategies();
         assertThat(response.isOk());
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().size()).isEqualTo(2);
+
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).isReferent())
-            .isTrue();
+            .isFalse();
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getId())
-            .isEqualTo("default");
+            .isEqualTo("default2");
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getStatus())
             .isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getRank())
+            .isEqualTo(0);
+
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).isReferent())
-            .isFalse();
+            .isTrue();
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getId())
-            .isEqualTo("default2");
+            .isEqualTo("default");
         assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getStatus())
             .isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getRank())
+            .isEqualTo(1);
     }
 
     @Test
@@ -1262,6 +1272,98 @@ public class StorageTwoOffersIT {
         assertThat(offerDiffStatus.getRequestId())
             .isEqualTo(startOfferDiff.headers().get(X_REQUEST_ID));
         assertThat(offerDiffStatus.getTenantId()).isEqualTo(TENANT_0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getObjectsFromOffers() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // GIVEN
+        String objectToInsert = GUIDFactory.newGUID().getId();
+
+        // WHEN
+        storeObjectInAllOffers(objectToInsert, OBJECT, new ByteArrayInputStream(objectToInsert.getBytes()));
+        deleteObjectFromOffers(objectToInsert, OBJECT, SECOND_OFFER_ID);
+
+        javax.ws.rs.core.Response responseStorage =
+            storageClient.getContainerAsync(STRATEGY_ID, objectToInsert, OBJECT, AccessLogUtils.getNoLogAccessLog());
+
+        // THEN
+        InputStream inputStream = responseStorage.readEntity(InputStream.class);
+        SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
+        final long size = StreamUtils.closeSilently(sizedInputStream);
+
+        assertEquals(objectToInsert.getBytes().length, size );
+
+        // Try to get inserted Object from second offer, in wich it was already deleted
+        assertThatThrownBy(() -> storageClient.getContainerAsync(STRATEGY_ID, SECOND_OFFER_ID, objectToInsert, OBJECT,
+            AccessLogUtils.getNoLogAccessLog()))
+            .isInstanceOf(StorageNotFoundException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void listContainerObjectsWithMultipleOffersInStrategy() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // GIVEN
+        String firstObjectToInsert = GUIDFactory.newGUID().getId();
+        String secondObjectToInsert = GUIDFactory.newGUID().getId();
+
+        // WHEN
+        storeObjectInAllOffers(firstObjectToInsert, OBJECT, new ByteArrayInputStream(firstObjectToInsert.getBytes()));
+        storeObjectInAllOffers(secondObjectToInsert, OBJECT, new ByteArrayInputStream(secondObjectToInsert.getBytes()));
+
+        // Delete inserted object from offer "default2" to check that the file's size is getted from offer "default"
+        deleteObjectFromOffers(firstObjectToInsert, OBJECT, SECOND_OFFER_ID);
+
+        // THEN
+
+        CloseableIterator<ObjectEntry>
+            resultForFirstObjectInserted = storageClient.listContainer(STRATEGY_ID, null,DataCategory.OBJECT);
+        assertNotNull(resultForFirstObjectInserted);
+        assertEquals(1, getFilesCountFromIterator(resultForFirstObjectInserted));
+
+        // Delete second inserted object from offer "default" to check that the file's size is getted from offer "default"
+        deleteObjectFromOffers(secondObjectToInsert, OBJECT, OFFER_ID);
+        CloseableIterator<ObjectEntry>
+            resultForSecondObjectInserted = storageClient.listContainer(STRATEGY_ID, null,DataCategory.OBJECT);
+        assertNotNull(resultForSecondObjectInserted);
+        assertEquals(1, getFilesCountFromIterator(resultForSecondObjectInserted));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getReferentOffer() throws Exception {
+        // GIVEN
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // WHEN
+        String referentOfferId = storageClient.getReferentOffer(STRATEGY_ID);
+
+        // THEN
+        assertEquals(OFFER_ID, referentOfferId );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getReferentOfferFromUnknownStrategy() {
+        // GIVEN
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // WHEN &THEN
+        assertThatThrownBy(()-> storageClient.getReferentOffer("unknown Strategy"))
+            .isInstanceOf(StorageServerClientException.class);
+    }
+
+    private int getFilesCountFromIterator(CloseableIterator<ObjectEntry> resultForFirstObjectInserted) {
+        int count = 0;
+        while (resultForFirstObjectInserted.hasNext()) {
+            count++;
+            assertNotNull(resultForFirstObjectInserted.next());
+        }
+        return count;
     }
 
     private void awaitOfferDiffTermination(int timeoutInSeconds) throws IOException {

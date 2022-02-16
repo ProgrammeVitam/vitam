@@ -390,7 +390,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     private List<OfferLog> getOfferLogsFromStorage(StorageClient storageClient, DataCategory dataCategory, Long offset,
         int limit, Order order) throws StorageServerClientException {
-        RequestResponse<OfferLog> response = storageClient.getOfferLogs(STRATEGY, dataCategory, offset, limit, order);
+        RequestResponse<OfferLog> response = storageClient.getOfferLogs(STRATEGY, null, dataCategory, offset, limit, order);
         if (!response.isOk()) {
             throw new VitamRuntimeException("Could not list offer log");
         }

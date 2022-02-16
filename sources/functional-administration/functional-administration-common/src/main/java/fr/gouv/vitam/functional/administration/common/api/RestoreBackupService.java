@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -48,11 +50,12 @@ public interface RestoreBackupService {
      * get the latest file name according to the name suffix.<br/>
      *
      * @param strategy the storage strategy to be applied
+     * @param offerId offer from the object should be readed
      * @param collection the collection to be restored
      * @param type the storage collection type.
      * @return the last version.
      */
-    Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type,
+    Optional<String> getLatestSavedFileName(final String strategy, final String offerId, final DataCategory type,
         final FunctionalAdminCollections collection);
 
     /**
@@ -63,7 +66,7 @@ public interface RestoreBackupService {
      * @param collection the collection to be restored
      * @return the backup copy.
      */
-    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy,
+    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final String offerId,
         final FunctionalAdminCollections collection);
 
     /**
@@ -77,7 +80,8 @@ public interface RestoreBackupService {
      * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
-    Iterator<List<OfferLog>> getListing(String strategy, DataCategory category, Long offset, int limit, Order order);
+    Iterator<List<OfferLog>> getListing(String strategy, DataCategory category, Long offset, int limit, Order order)
+        throws StorageServerClientException, StorageNotFoundClientException;
 
     /**
      * Load data from storage

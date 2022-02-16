@@ -4,13 +4,16 @@
       "offers": [
         {
           "id": "default",
-          "referent": true
+          "referent": true,
+          "rank": 0
         },
         {
-          "id": "default2"
+          "id": "default2",
+          "rank": 1
         },
         {
-          "id": "inactiveOffer"
+          "id": "inactiveOffer",
+          "rank": 2
         }
       ]
     }

@@ -39,6 +39,8 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
@@ -62,7 +64,6 @@ import static fr.gouv.vitam.metadata.core.graph.StoreGraphService.LAST_GRAPHSTOR
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -141,10 +142,11 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenNoGraphInOfferThenGetListingReturnInitialDate() throws StoreGraphException {
+    public void whenNoGraphInOfferThenGetListingReturnInitialDate()
+        throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 
@@ -155,12 +157,13 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenGetListingReturnLastDate() throws StoreGraphException {
+    public void whenGetListingReturnLastDate()
+        throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(
                 IteratorUtils.singletonIterator(
@@ -174,10 +177,11 @@ public class StoreGraphServiceTest {
 
     @Test(expected = StoreGraphException.class)
     @RunWithCustomExecutor
-    public void whenGetListingThenExceptionOccurs() throws StoreGraphException {
+    public void whenGetListingThenExceptionOccurs()
+        throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenThrow(new RuntimeException(""));
         storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
@@ -185,16 +189,17 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenTryStoreGraphThenOK() throws StoreGraphException {
+    public void whenTryStoreGraphThenOK()
+        throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.singletonIterator(
                 new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                     OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECTGROUP_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 
@@ -219,16 +224,17 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenStoreGraphThenNoUnitGraphInThePeriodOK() throws StoreGraphException {
+    public void whenStoreGraphThenNoUnitGraphInThePeriodOK()
+        throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.singletonIterator(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                         OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null,DataCategory.OBJECTGROUP_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 

@@ -131,6 +131,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -225,7 +226,8 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param configuration the configuration of the storage
      * @param storageLogService service that allow write and access log
      */
-    public StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService) {
+    public StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService)
+        throws StorageTechnicalException {
         ParametersChecker.checkParameter(STORAGE_SERVICE_CONFIGURATION_IS_MANDATORY, configuration);
         urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);
@@ -236,6 +238,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             configuration.getMinWriteTimeoutMs(), configuration.getMinBulkWriteTimeoutMsPerObject());
         this.bulkStorageDistribution = new BulkStorageDistribution(3, this.workspaceClientFactory,
             this.storageLogService, this.transfertTimeoutHelper);
+        validateStrategyOffers();
     }
 
     @VisibleForTesting
@@ -669,6 +672,12 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
+    @Override
+    public String getReferentOffer(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
+        return chooseReferentOffer(storageStrategy).getId();
+    }
+
     private OfferReference selectFirstOffer(String strategyId, String optionalOfferId)
         throws StorageTechnicalException, StorageNotFoundException, StorageDriverNotFoundException {
 
@@ -677,10 +686,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // Retrieve / check storage strategy
         StorageStrategy storageStrategy = checkStrategy(strategyId);
 
-        // FIXME : #9031 : Unify offer selection
-
         if (optionalOfferId == null) {
-            // As for now, select the "first" offer since getObject() uses offer lists in order
             return storageStrategy.getOffers().stream()
                 .findFirst()
                 .orElseThrow(() -> new StorageDriverNotFoundException(
@@ -1057,6 +1063,15 @@ public class StorageDistributionImpl implements StorageDistribution {
         return JsonHandler.createObjectNode().set(CAPACITIES, resultArray);
     }
 
+    private List<OfferReference> checkCoherentOfferRanksAndSort(List<OfferReference> offerReferences) throws StorageTechnicalException {
+        if (offerReferences.size() !=
+            offerReferences.stream().filter(elmt -> null != elmt.getRank()).map(OfferReference::getRank).distinct()
+                .count()) {
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_EXCEPTION_RANK));
+        }
+        return offerReferences.stream().sorted(Comparator.comparing(OfferReference::getRank)).collect(Collectors.toList());
+    }
+
     private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId, int nbCopy)
         throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
@@ -1079,17 +1094,16 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private List<OfferReference> getOfferListFromHotStrategy(StorageStrategy storageStrategy) throws
         StorageTechnicalException {
-        // TODO gafou : useless ?
-        final List<OfferReference> offerReferences = new ArrayList<>();
+        final List<OfferReference> declaredOffers = new ArrayList<>();
         if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
-            offerReferences.addAll(storageStrategy.getOffers());
+            declaredOffers.addAll(storageStrategy.getOffers());
         }
 
-        if (offerReferences.isEmpty()) {
+        if (declaredOffers.isEmpty()) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
         }
-        return offerReferences;
+        return declaredOffers;
     }
 
     private OfferReference chooseReferentOffer(StorageStrategy storageStrategy) {
@@ -1109,27 +1123,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         if (storageStrategy != null) {
-            final List<OfferReference> offerReferenceList = getOfferListFromHotStrategy(storageStrategy);
+            final List<OfferReference> orderedOffersByPriority = getOfferListFromHotStrategy(storageStrategy);
 
-            // Get referent offer
-            Optional<OfferReference> offerReference = offerReferenceList
-                .stream()
-                .filter(OfferReference::isReferent)
-                .findFirst();
-
-            if (offerReference.isEmpty()) {
-                // Try to take a not referent offer
-                offerReference = offerReferenceList
-                    .stream()
-                    .findFirst();
-            }
-
-            if (offerReference.isEmpty()) {
+            if (orderedOffersByPriority.isEmpty()) {
                 LOGGER.error("No offer found");
                 throw new StorageTechnicalException("No offer found");
             }
 
-            return listContainerObjectsForOffer(category, offerReference.get().getId(), false);
+            return listContainerObjectsForOffer(category, orderedOffersByPriority.get(0).getId(), false);
         }
         LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
@@ -1181,7 +1182,6 @@ public class StorageDistributionImpl implements StorageDistribution {
         DataCategory category,
         Long offset, int limit, Order order) throws StorageException {
         ParametersChecker.checkParameter(NO_OFFER_IDENTIFIER_SPECIFIED_THIS_IS_MANDATORY, offerId);
-
         return getOfferLogRequestResponse(strategyId, offerId, category, offset, limit, order);
     }
 
@@ -1209,12 +1209,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
 
-        // In case we do not specify an offer as parameter, the referent offer is chosen
         if (offerId == null) {
-            // find offer referent
-            final OfferReference offerReference = chooseReferentOffer(storageStrategy);
-            if (offerReference != null) {
-                offerId = offerReference.getId();
+            final OfferReference priorizedOffer = selectFirstOffer(storageStrategy.getId(), null);
+            if (priorizedOffer != null) {
+                offerId = priorizedOffer.getId();
             } else {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
                 throw new StorageTechnicalException(
@@ -1278,8 +1276,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
 
         if (StringUtils.isBlank(offerId)) {
-
-            // FIXME : #9031 : Unify offer selection algorithm
             // FIXME : #9032 : Handle failover over async offers
             final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
@@ -1729,6 +1725,16 @@ public class StorageDistributionImpl implements StorageDistribution {
         mapParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
 
         return new AccessLogParameters(mapParameters);
+    }
+
+    private void validateStrategyOffers() throws StorageTechnicalException {
+        for (Entry<String, StorageStrategy> strategyEntry : getStrategyProvider().getStorageStrategies().entrySet()) {
+            strategyEntry.getValue().setOffers(checkCoherentOfferRanksAndSort(strategyEntry.getValue().getOffers()));
+        }
+    }
+
+    protected StorageStrategyProvider getStrategyProvider() {
+        return STRATEGY_PROVIDER;
     }
 
     @Override

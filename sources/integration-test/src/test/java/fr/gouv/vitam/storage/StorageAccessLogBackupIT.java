@@ -198,7 +198,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
 
             // Check storage access log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGEACCESSLOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
@@ -251,7 +251,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
 
             // Check storage access log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(STRATEGY_ID, null,DataCategory.STORAGEACCESSLOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
@@ -311,7 +311,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
 
             // Check storage access log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(STRATEGY_ID, null,DataCategory.STORAGEACCESSLOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
@@ -376,7 +376,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
 
             // Check storage access log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(STRATEGY_ID, null,DataCategory.STORAGEACCESSLOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();

@@ -1053,7 +1053,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
         Optional<CollectionBackupModel> collectionBackup =
-            restoreBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+            restoreBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
         ArrayNode arrayNode = JsonHandler.createArrayNode();
 
         if (collectionBackup.isPresent()) {

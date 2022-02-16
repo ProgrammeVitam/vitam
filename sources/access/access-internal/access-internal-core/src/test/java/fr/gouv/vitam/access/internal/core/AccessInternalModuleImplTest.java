@@ -1382,7 +1382,7 @@ public class AccessInternalModuleImplTest {
     }
 
     private void initMocksForAccessLog() throws Exception {
-        when(storageClient.listContainer(any(), any())).thenReturn(getMockedResponseForListContainer());
+        when(storageClient.listContainer(any(), any(), any())).thenReturn(getMockedResponseForListContainer());
         when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(Response.ok(mock(InputStream.class)).build());
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);

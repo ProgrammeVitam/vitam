@@ -57,6 +57,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -109,6 +112,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -121,6 +125,8 @@ public class StorageDistributionImplTest {
 
     private static final String OFFER_ID = "default";
     private static final int TENANT_ID = 0;
+    public static final String DUPLICATED_OR_MISSING_RANK =
+        "A duplicated or missing rank have been detected in offers configuration.";
 
     private static StorageDistribution simpleDistribution;
     private StorageDistribution customDistribution;
@@ -145,22 +151,12 @@ public class StorageDistributionImplTest {
     private BulkStorageDistribution bulkStorageDistribution;
 
     @Before
-    public void prepare() throws IOException {
-        final StorageConfiguration configuration = new StorageConfiguration();
-        configuration.setUrlWorkspace("http://localhost:8080");
-        configuration.setTimeoutMsPerKB(1000);
-        doReturn(workspaceClient).when(workspaceClientFactory).getClient();
-        List<Integer> list = new ArrayList<>();
-        list.add(0);
-        list.add(1);
+    public void prepare() throws IOException, StorageTechnicalException {
 
-        folder.create();
-
+        Pair<StorageConfiguration, StorageLog> confPair = prepareServiceImpl();
         // /!\ WARNING : Configuration is currently loaded from static resources (src/test/resources) & use "spi loaded" driver name fr.gouv.vitam.driver.fake.FakeDriverImpl
-        StorageLog storageLogService =
-            StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
-        simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
-        customDistribution = new StorageDistributionImpl(workspaceClientFactory, DigestType.SHA1, storageLogService,
+        simpleDistribution = new StorageDistributionImpl(confPair.getLeft(), confPair.getRight());
+        customDistribution = new StorageDistributionImpl(workspaceClientFactory, DigestType.SHA1, confPair.getRight(),
             bulkStorageDistribution);
     }
 
@@ -1082,5 +1078,123 @@ public class StorageDistributionImplTest {
         assertThat(batchObjectInformation.get(1).getObjectId()).isEqualTo("guid2");
         assertThat(batchObjectInformation.get(1).getOfferDigests()).containsOnlyKeys(OFFER_ID);
         assertThat(batchObjectInformation.get(1).getOfferDigests().get(OFFER_ID)).isEqualTo("digest-guid2");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGetContainerByCategoryFromStrategyWithOneEmptyOfferRanks()
+        throws StorageException, IOException {
+        OfferReference firstOffer = new OfferReference();
+        firstOffer.setId("firstOffer");
+        firstOffer.setReferent(true);
+        firstOffer.setRank(0);
+
+        OfferReference secondOffer = new OfferReference();
+        secondOffer.setId("secondOffer");
+        secondOffer.setRank(1);
+
+        OfferReference thirdOffer = new OfferReference();
+        thirdOffer.setId("thirdOffer");
+        thirdOffer.setRank(null);
+
+        StorageStrategy storageStrategy = new StorageStrategy();
+        storageStrategy.setId("default");
+        storageStrategy.setOffers(Arrays.asList(firstOffer, secondOffer, thirdOffer));
+
+        Pair<StorageConfiguration, StorageLog> confPair = prepareServiceImpl();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+
+        assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
+            protected StorageStrategyProvider getStrategyProvider() {
+                return mock;
+            }
+        })
+            .isInstanceOf(StorageTechnicalException.class)
+            .hasMessageContaining(DUPLICATED_OR_MISSING_RANK);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGetContainerByCategoryFromStrategyWithDuplicatedOfferRanks()
+        throws StorageException, IOException {
+        OfferReference firstOffer = new OfferReference();
+        firstOffer.setId("firstOffer");
+        firstOffer.setReferent(true);
+        firstOffer.setRank(0);
+
+        OfferReference secondOffer = new OfferReference();
+        secondOffer.setId("secondOffer");
+        secondOffer.setRank(0);
+
+        StorageStrategy storageStrategy = new StorageStrategy();
+        storageStrategy.setId("default");
+        storageStrategy.setOffers(Arrays.asList(firstOffer, secondOffer));
+
+        Pair<StorageConfiguration, StorageLog> confPair = prepareServiceImpl();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+
+        assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
+            protected StorageStrategyProvider getStrategyProvider() {
+                return mock;
+            }
+        })
+            .isInstanceOf(StorageTechnicalException.class)
+            .hasMessageContaining(DUPLICATED_OR_MISSING_RANK);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGetContainerByCategoryFromStrategyWithEmptyOfferRanks()
+        throws StorageException, IOException {
+        OfferReference firstOffer = new OfferReference();
+        firstOffer.setId("firstOffer");
+        firstOffer.setReferent(true);
+        firstOffer.setRank(null);
+
+        OfferReference secondOffer = new OfferReference();
+        secondOffer.setId("secondOffer");
+        secondOffer.setRank(null);
+
+        StorageStrategy storageStrategy = new StorageStrategy();
+        storageStrategy.setId("default");
+        storageStrategy.setOffers(Arrays.asList(firstOffer, secondOffer));
+
+        Pair<StorageConfiguration, StorageLog> confPair = prepareServiceImpl();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+
+        assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
+            protected StorageStrategyProvider getStrategyProvider() {
+                return mock;
+            }
+        })
+            .isInstanceOf(StorageTechnicalException.class)
+            .hasMessageContaining(DUPLICATED_OR_MISSING_RANK);
+    }
+
+    private Pair<StorageConfiguration, StorageLog> prepareServiceImpl() throws IOException {
+
+        final StorageConfiguration configuration = new StorageConfiguration();
+        configuration.setUrlWorkspace("http://localhost:8080");
+        configuration.setTimeoutMsPerKB(1000);
+        doReturn(workspaceClient).when(workspaceClientFactory).getClient();
+        List<Integer> list = new ArrayList<>();
+        list.add(0);
+        list.add(1);
+
+        folder.create();
+
+        StorageLog storageLogService =
+            StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
+
+        return Pair.of(configuration, storageLogService);
     }
 }

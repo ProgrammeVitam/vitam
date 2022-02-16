@@ -323,7 +323,8 @@ public class StorageTestMultiNoSslIT {
 
         // see other test for full listing, here, we only have one object !
         try {
-            CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+            CloseableIterator<ObjectEntry> result =
+                storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
             TestCase.assertNotNull(result);
             Assert.assertTrue(result.hasNext());
             ObjectEntry node = result.next();
@@ -376,7 +377,8 @@ public class StorageTestMultiNoSslIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result =
+                    storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 ObjectEntry node = result.next();
@@ -600,7 +602,8 @@ public class StorageTestMultiNoSslIT {
             }
         }
 
-        try (CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+        try (CloseableIterator<ObjectEntry> result = storageClient.listContainer(
+            VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT)) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {
@@ -619,7 +622,7 @@ public class StorageTestMultiNoSslIT {
     public void listingTestErrorWhenContainerNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(99);
         try (CloseableIterator<ObjectEntry> objectEntryCloseableIterator = storageClient
-            .listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+            .listContainer(VitamConfiguration.getDefaultStrategy(), null,DataCategory.OBJECT)) {
             assertFalse(objectEntryCloseableIterator.hasNext());
         }
     }

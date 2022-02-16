@@ -50,6 +50,8 @@ import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseI
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -223,7 +225,7 @@ public class ReconstructionService {
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
                 DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
             response.setStatus(StatusCode.KO);
-        } catch (StorageException se) {
+        } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
             LOGGER.error(se.getMessage());
             response.setStatus(StatusCode.KO);
         } finally {

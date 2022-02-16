@@ -28,6 +28,9 @@ package fr.gouv.vitam.logbook.common.server.reconstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.util.Iterator;
@@ -38,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
@@ -71,23 +75,27 @@ public class RestoreBackupServiceTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private StorageClientFactory storageClientFactory;
+    private static final String DEFAULT_OFFER = "default";
 
     @Before
     public void setup() {
         storageClientFactory = Mockito.mock(StorageClientFactory.class);
         StorageClient storageClient = Mockito.mock(StorageClient.class);
-        Mockito.when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_get_listing_when_listing_units_and_storage_returns_response_ok()
-        throws StorageServerClientException {
+        throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 100L, 2,
-                Order.ASC))
+        when(storageClientFactory.getClient()
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
+                eq(DataCategory.BACKUP_OPERATION), eq(100L), eq(2),
+                eq(Order.ASC)))
             .thenReturn(getListingOk(100L, 2L));
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         Iterator<List<OfferLog>> listingIterator = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
@@ -104,12 +112,13 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_empty_listing_when_listing_units_and_storage_returns_empty_response_ok()
-        throws StorageServerClientException {
+        throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 100L, 2,
-                Order.ASC))
+        when(storageClientFactory.getClient()
+                .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER), eq(DataCategory.BACKUP_OPERATION), eq(100L),
+                    eq(2), eq(Order.ASC)))
             .thenReturn(getListingOk(100L, -1L));
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
@@ -120,11 +129,14 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_listing_and_storage_returns_VitamError()
-        throws StorageServerClientException {
+        throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 100L, 2,
-                Order.ASC))
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
+                eq(DataCategory.BACKUP_OPERATION),
+                eq(100L), eq(2),
+                eq(Order.ASC)))
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -136,11 +148,13 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_listing_and_storage_throws_StorageServerClientException()
-        throws StorageServerClientException {
+        throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 100L, 2,
-                Order.ASC))
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
+                eq(DataCategory.BACKUP_OPERATION),
+                eq(100L), eq(2), eq(Order.ASC)))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -154,8 +168,8 @@ public class RestoreBackupServiceTest {
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
         throws Exception {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation.json"),
@@ -176,13 +190,14 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_invalid()
         throws Exception {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
+
         // when + then
         assertThatCode(() -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100.json", 100L))
             .isInstanceOf(VitamRuntimeException.class);
@@ -194,8 +209,8 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws Exception {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
@@ -209,8 +224,8 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
         throws Exception {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),

@@ -199,7 +199,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Ensure no storage log stored
             try (CloseableIterator<ObjectEntry> storageLogs = storageClient
-                .listContainer(STRATEGY_ID, DataCategory.STORAGELOG)) {
+                .listContainer(STRATEGY_ID, null,DataCategory.STORAGELOG)) {
                 assertThat(storageLogs).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
@@ -207,7 +207,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Ensure no storage log traceability zip generated
             try (CloseableIterator<ObjectEntry> storageTraceabilityZips = storageClient
-                .listContainer(STRATEGY_ID, DataCategory.STORAGETRACEABILITY)) {
+                .listContainer(STRATEGY_ID, null,DataCategory.STORAGETRACEABILITY)) {
                 assertThat(storageTraceabilityZips).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
@@ -269,7 +269,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Check storage log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.STORAGELOG);
+                storageClient.listContainer(STRATEGY_ID, null,DataCategory.STORAGELOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             String storageLogObjectId = objectEntries.get(0).getObjectId();

@@ -58,6 +58,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageIllegalOperationClie
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -513,12 +514,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
+    public CloseableIterator<ObjectEntry> listContainer(String strategyId, String offerId, DataCategory type)
         throws StorageServerClientException, StorageNotFoundClientException {
         ParametersChecker.checkParameter("Type cannot be null", type);
         VitamRequestBuilder request = VitamRequestBuilder.get()
             .withPath("/" + type.name())
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
 
         try {
@@ -646,7 +648,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit,
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
         Order order)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -657,6 +659,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withPath("/" + type.name() + "/logs")
             .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
             .withBody(new OfferLogRequest(offset, limit, order))
             .withJson();
         try (Response response = make(request)) {
@@ -840,6 +843,32 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             return objectAvailabilityResponse;
 
         } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public String getReferentOffer(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+
+        VitamRequestBuilder request = get()
+            .withPath("/referentOffer")
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            RequestResponse<String> referentOfferForStrategyResponse = RequestResponse.parseFromResponse(response, String.class);
+            if (!referentOfferForStrategyResponse.isOk()) {
+                throw new StorageException("Exception while retrieving referent Offer for strategy "+ strategyId);
+            }
+            return ((RequestResponseOK<String>) referentOfferForStrategyResponse).getFirstResult();
+
+        } catch (final VitamClientInternalException | StorageException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             throw new StorageServerClientException(errorMessage, e);
