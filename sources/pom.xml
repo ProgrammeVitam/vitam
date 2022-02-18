@@ -1542,11 +1542,6 @@
 
             <!-- ####################### Extra Logger ####################### -->
             <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j2.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.flipkart.zjsonpatch</groupId>
                 <artifactId>zjsonpatch</artifactId>
                 <version>${zjsonpatch.version}</version>
