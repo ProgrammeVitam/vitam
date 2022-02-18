@@ -29,12 +29,7 @@ package fr.gouv.vitam.common.logging;
 /**
  * Creates an {@link VitamLogger} or changes the default factory implementation. This factory allows you to choose what
  * logging framework VITAM should use. The default factory is {@link LogbackLoggerFactory}. If SLF4J is not available,
- * Log4JLoggerFactory is used. If Log4J is not available, {@link JdkLoggerFactory} is used. You can change it to
- * your preferred logging framework before other VITAM classes are loaded:
- *
- * <pre>
- * {@link VitamLoggerFactory}.setDefaultFactory(new Log4JLoggerFactory());
- * </pre>
+ * {@link JdkLoggerFactory} is used. You can change it to your preferred logging framework before other VITAM classes are loaded:
  *
  * Please note that the new default factory is effective only for the classes which were loaded after the default
  * factory is changed. Therefore, {@link #setDefaultFactory(VitamLoggerFactory)} should be called as early as possible

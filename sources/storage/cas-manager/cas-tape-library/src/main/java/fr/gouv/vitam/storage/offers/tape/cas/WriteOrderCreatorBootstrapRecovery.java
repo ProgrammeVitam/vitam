@@ -44,7 +44,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
-import org.apache.logging.log4j.util.Strings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +61,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.getCreationDateFromArchiveId;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public class WriteOrderCreatorBootstrapRecovery {
 
@@ -336,7 +336,7 @@ public class WriteOrderCreatorBootstrapRecovery {
         Path finalFilePath = fileBucketArchiveStoragePath.resolve(archiveId);
 
 
-        if (Strings.isEmpty(digestValue)) {
+        if (isEmpty(digestValue)) {
             // Compute digest
             final Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
             try (SizedInputStream is = new SizedInputStream(
