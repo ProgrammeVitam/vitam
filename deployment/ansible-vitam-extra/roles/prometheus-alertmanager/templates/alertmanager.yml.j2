@@ -1,4 +1,8 @@
 global:
+{% if http_proxy_environnement is defined and http_proxy_environnement|length > 0 %}
+  http_config:
+    proxy_url: '{{ http_proxy_environnement }}'
+{% endif %}
   resolve_timeout: 5m
 
 route:
@@ -6,11 +10,15 @@ route:
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
-  receiver: 'web.hook'
+{% if prometheus.alertmanager.receivers is defined and prometheus.alertmanager.receivers|length > 0 %}
+  receiver: {{ prometheus.alertmanager.receivers.0.name }}
 receivers:
-- name: 'web.hook'
-  webhook_configs:
-  - url: 'http://127.0.0.1:5001/'
+{{ prometheus.alertmanager.receivers | to_nice_yaml(width=80, indent=2) }}
+{% else %}
+  receiver: 'null'
+receivers:
+- name: 'null'
+{% endif %}
 inhibit_rules:
   - source_match:
       severity: 'critical'
