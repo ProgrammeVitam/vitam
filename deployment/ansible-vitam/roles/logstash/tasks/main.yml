@@ -5,7 +5,6 @@
   fail: msg="Too much replica defined for logstash index in elasticsearch-log"
   when: groups['hosts_elasticsearch_log']|length <= kibana.log.metrics.replica and groups['hosts_elasticsearch_log']|length>1
 
-
 - name: Install java (prerequisite for other components) when RedHat
   yum:
     name: "{{ java_prerequisites.redhat }}"
@@ -52,12 +51,21 @@
   notify:
     - restart logstash
 
-- name: Enable logstash
-  service:
-    name: logstash
-    enabled: yes
-  notify:
-    - restart logstash
+## log4j-core cleanup; remove this block when logstash will be completely free from this bug !
+- block:
+
+  - name: Install zip package to clean log4j-core
+    package:
+      name: zip
+      state: latest
+
+  - name: Remove JndiLookup.class from log4j-core
+    command: "bash -c 'zip -q -d /usr/share/logstash/logstash-core/lib/jars/log4j-core-2.* org/apache/logging/log4j/core/lookup/JndiLookup.class'"
+    ignore_errors: true # correct rc are 0 or 12 (if already removed)
+    notify: restart logstash
+
+  tags: log4j_security
+##
 
 ## Logstash configuration
 
@@ -77,7 +85,7 @@
   notify:
     - restart logstash
 
-- name: ensure json conf extra  directory exists
+- name: ensure json conf extra directory exists
   file:
     path: "{{ logstash_confextra_dir }}"
     owner: "{{ logstash.user }}"
@@ -118,11 +126,10 @@
 - name: add vitam patterns conf
   template:
     src: "vitam-patterns.j2"
-    dest: "/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-4.3.1/patterns/vitam"
+    dest: "/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version }}/patterns/vitam"
     owner: "{{ logstash.user }}"
   notify:
     - restart logstash
-
 
 - name: configure extra parser configuration
   template:
@@ -152,7 +159,7 @@
     notify:
       - restart logstash
 
-  - name:  recreate cacerts only on Debian
+  - name: recreate cacerts only on Debian
     shell: "update-ca-certificates -f"
     notify:
       - restart logstash
@@ -192,3 +199,4 @@
   service:
     name: "logstash"
     state: started
+    enabled: yes
