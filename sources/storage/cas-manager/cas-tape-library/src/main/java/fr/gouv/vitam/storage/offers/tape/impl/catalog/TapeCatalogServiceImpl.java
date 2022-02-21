@@ -48,7 +48,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.apache.commons.lang3.NotImplementedException;
 import org.bson.conversions.Bson;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +86,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
-        Map<String, TapeCatalog> existingTapes = tapeCatalogRepository.findTapes(Arrays.asList(criteria)).stream()
+        Map<String, TapeCatalog> existingTapes = tapeCatalogRepository.findTapes(List.of(criteria)).stream()
             .collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
 
         Map<Integer, TapeCatalog> driveTape = new HashMap<>();
@@ -129,9 +128,15 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 TapeLocation tapeLocationInit =
                     new TapeLocation(slot.getIndex(), slot.getStorageElementType().getTapeLocationType());
 
-                if (null != existingTape &&
-                    !Objects.equals(existingTape.getCurrentLocation().getLocationType(),
-                        tapeLocationInit.getLocationType())) {
+                if (null == existingTape) {
+                    LOGGER.info("A new tape (" + slot.getTape().getVolumeTag() + ") found in " +
+                        slot.getStorageElementType().getTapeLocationType() + " slot " + slot.getIndex() +
+                        ". It will be added to catalog");
+                } else if (tapeLocationInit.equals(existingTape.getCurrentLocation())) {
+                    LOGGER.info("Tape (" + slot.getTape().getVolumeTag() + ") has found in " +
+                        slot.getStorageElementType().getTapeLocationType() + " slot " + slot.getIndex() +
+                        ". Tape location matches last known location.");
+                } else {
                     LOGGER.warn("Tape (" + existingTape.getCode() + ") location changed. Catalog location : " +
                         JsonHandler.unprettyPrint(existingTape.getCurrentLocation()) +
                         " Robot status command location: " + JsonHandler.unprettyPrint(tapeLocationInit) +
@@ -144,8 +149,11 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             }
         }
 
-
         existingTapes.values().forEach(tape -> {
+
+            LOGGER.warn("Tape (" + tape.getCode() + ") with  NOT FOUND in tape library ! " +
+                "Last catalog location : " + JsonHandler.unprettyPrint(tape.getCurrentLocation()) +
+                ", last tape state : " + tape.getTapeState());
             tape.setCurrentLocation(new TapeLocation(-1, TapeLocationType.OUTSIDE));
             // Conflict because the tape maybe altered. Audit should fix this state and update state of the tape.
             // FIXME: 16/05/19 check state conflict when audit implemented

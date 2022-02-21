@@ -36,7 +36,12 @@ public enum TapeDriveStatus {
     // Begin of tape
     BOT("BOT"),
 
-    // End of tape
+    /**
+     * End of tape
+     *
+     * @deprecated EndOfTape status is not properly handled by MTX utility.
+     *             According to the man page of mtx utility : "In addition,  MTX  does  not handle the end of tape properly."
+     */
     EOT("EOT"),
 
     // Tape position is at Setmark

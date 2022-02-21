@@ -56,7 +56,7 @@ public final class TarHelper {
         fileInputStream.getChannel().position(entryDescription.getStartPos());
 
         TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
-            new CloseShieldInputStream(fileInputStream));
+            CloseShieldInputStream.wrap(fileInputStream));
 
         ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
         if (!tarEntry.getName().equals(entryDescription.getEntryName())) {

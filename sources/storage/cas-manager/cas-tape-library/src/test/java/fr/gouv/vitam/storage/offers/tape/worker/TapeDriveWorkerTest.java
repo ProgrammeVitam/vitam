@@ -26,15 +26,29 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -42,7 +56,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
@@ -52,9 +68,15 @@ import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -84,19 +106,34 @@ public class TapeDriveWorkerTest {
     @Mock
     private ArchiveCacheStorage archiveCacheStorage;
 
+    @Mock
+    private CartridgeCapacityHelper cartridgeCapacityHelper;
+
     @Spy
     private TapeDriveOrderConsumer tapeDriveOrderConsumer;
 
     @Mock
     private TapeDriveConf tapeDriveConf;
 
+    @Mock
+    private TapeDriveCommandService tapeDriveCommandService;
+
+    @Mock
+    private TapeReadWriteService tapeReadWriteService;
+
     private File inputTarDir;
+    private File tmpTarOutputDir;
 
     @Before
     public void setUp() throws Exception {
         when(tapeDriveService.getTapeDriveConf()).thenReturn(tapeDriveConf);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getReadWriteService()).thenReturn(tapeReadWriteService);
 
         inputTarDir = temporaryFolder.newFolder("inputTars");
+
+        tmpTarOutputDir = temporaryFolder.newFolder("tmpTarOutput");
+        when(tapeReadWriteService.getTmpOutputStorageFolder()).thenReturn(tmpTarOutputDir.getAbsolutePath());
     }
 
     @After
@@ -107,12 +144,12 @@ public class TapeDriveWorkerTest {
     public void test_constructor() {
         new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
             archiveReferentialRepository, accessRequestManager, null,
-            inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
+            inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
 
         try {
             new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage);
+                false, archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -121,7 +158,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage);
+                false, archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -130,7 +167,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(), false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -139,7 +176,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository,
                 accessRequestManager,
-                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
+                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -148,7 +185,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null,
                 accessRequestManager, null,
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail archiveReferentialRepository required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -157,7 +194,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, null, null,
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
             Assertions.fail("Should fail accessRequestManager required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -166,7 +203,16 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null,
-                inputTarDir.getAbsolutePath(), false, null);
+                inputTarDir.getAbsolutePath(), false, null, cartridgeCapacityHelper);
+            Assertions.fail("Should fail archiveOutputRetentionPolicy required");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, null,
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, null);
             Assertions.fail("Should fail archiveOutputRetentionPolicy required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -185,12 +231,12 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         tapeDriveWorker.stop();
         Thread.sleep(2);
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
+        assertThat(tapeDriveWorker.isRunning()).isFalse();
 
     }
 
@@ -199,7 +245,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 100, false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
 
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(20);
@@ -210,11 +256,11 @@ public class TapeDriveWorkerTest {
         Thread.sleep(5);
 
         tapeDriveWorker.stop(1, TimeUnit.MICROSECONDS);
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isTrue();
+        assertThat(tapeDriveWorker.isRunning()).isTrue();
 
         Thread.sleep(150);
 
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
+        assertThat(tapeDriveWorker.isRunning()).isFalse();
     }
 
     @Test
@@ -222,7 +268,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
         when(tapeDriveConf.getIndex()).thenReturn(1);
         when(tapeDriveOrderConsumer.consume(eq(tapeDriveWorker))).thenAnswer(o -> {
             Thread.sleep(5);
@@ -230,12 +276,12 @@ public class TapeDriveWorkerTest {
         });
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
-        Assertions.assertThat(tapeDriveWorker.getIndex()).isEqualTo(1);
+        assertThat(tapeDriveWorker.getIndex()).isEqualTo(1);
         verify(tapeDriveConf, VerificationModeFactory.times(3)).getIndex();
 
 
         tapeDriveWorker.stop();
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
+        assertThat(tapeDriveWorker.isRunning()).isFalse();
     }
 
     @Test
@@ -243,7 +289,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(5);
@@ -251,12 +297,12 @@ public class TapeDriveWorkerTest {
         });
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
-        Assertions.assertThat(tapeDriveWorker.getPriority()).isEqualTo(ReadWritePriority.READ);
+        assertThat(tapeDriveWorker.getPriority()).isEqualTo(ReadWritePriority.READ);
         verify(tapeDriveConf, VerificationModeFactory.times(1)).getReadWritePriority();
 
 
         tapeDriveWorker.stop();
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
+        assertThat(tapeDriveWorker.isRunning()).isFalse();
     }
 
     @Test
@@ -264,7 +310,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage);
+                archiveCacheStorage, cartridgeCapacityHelper);
 
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
@@ -273,11 +319,211 @@ public class TapeDriveWorkerTest {
         });
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
-        Assertions.assertThat(tapeDriveWorker.getReadWriteResult()).isNull();
-        Assertions.assertThat(tapeDriveWorker.getCurrentTape()).isNull();
+        assertThat(tapeDriveWorker.getReadWriteResult()).isNull();
+        assertThat(tapeDriveWorker.getCurrentTape()).isNull();
 
 
         tapeDriveWorker.stop();
-        Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
+        assertThat(tapeDriveWorker.isRunning()).isFalse();
+    }
+
+    @Test
+    public void test_initialize_empty_drive_on_bootstrap() throws Exception {
+
+        TapeDriveWorker tapeDriveWorker =
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
+                archiveCacheStorage, cartridgeCapacityHelper);
+
+        TapeDriveSpec driveStatus = new TapeDriveState();
+        driveStatus.getDriveStatuses().add(TapeDriveStatus.DR_OPEN);
+        doReturn(driveStatus).when(tapeDriveCommandService).status();
+
+        // When
+        tapeDriveWorker.initializeOnBootstrap();
+
+        // Then
+        verify(tapeDriveCommandService).status();
+        verifyNoMoreInteractions(tapeDriveCommandService);
+    }
+
+    @Test
+    public void test_initialize_non_empty_loaded_drive_on_bootstrap() throws Exception {
+
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
+            .setCode("tapeCode")
+            .setBucket("bucket");
+
+        TapeCatalog tapeCatalog = new TapeCatalog()
+            .setLibrary("lib")
+            .setCode("tapeCode")
+            .setCurrentPosition(12)
+            .setTapeState(TapeState.OPEN)
+            .setCurrentLocation(new TapeLocation(2, TapeLocationType.DRIVE))
+            .setLabel(tapeCatalogLabel);
+
+        TapeDriveWorker tapeDriveWorker =
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
+                archiveCacheStorage, cartridgeCapacityHelper);
+
+        TapeDriveSpec driveStatus = new TapeDriveState();
+        driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
+        doReturn(driveStatus).when(tapeDriveCommandService).status();
+
+        doAnswer((args) -> {
+            String labelPath = args.getArgument(0);
+            JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
+            return null;
+        }).when(tapeReadWriteService).readFromTape(any());
+
+        // When
+        tapeDriveWorker.initializeOnBootstrap();
+
+        // Then
+        InOrder inOrder = Mockito.inOrder(tapeDriveCommandService, tapeReadWriteService);
+        // Check status
+        inOrder.verify(tapeDriveCommandService).status();
+        // Reset
+        inOrder.verify(tapeDriveCommandService).rewind();
+        // Check label
+        inOrder.verify(tapeReadWriteService).getTmpOutputStorageFolder();
+        inOrder.verify(tapeReadWriteService).readFromTape(any());
+        inOrder.verifyNoMoreInteractions();
+
+        verify(tapeCatalogService).replace(tapeCatalog);
+    }
+
+    @Test
+    public void test_initialize_empty_loaded_drive_on_bootstrap() throws Exception {
+
+        TapeCatalog tapeCatalog = new TapeCatalog()
+            .setLibrary("lib")
+            .setCode("tapeCode")
+            .setCurrentPosition(0)
+            .setTapeState(TapeState.EMPTY)
+            .setCurrentLocation(new TapeLocation(2, TapeLocationType.DRIVE))
+            .setLabel(null);
+
+        TapeDriveWorker tapeDriveWorker =
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
+                archiveCacheStorage, cartridgeCapacityHelper);
+
+        TapeDriveState driveStatus = new TapeDriveState();
+        driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
+        driveStatus.setCartridge("LTO-6");
+        doReturn(driveStatus).when(tapeDriveCommandService).status();
+
+        doThrow(new TapeCommandException("Cannot advance, empty tape"))
+            .when(tapeDriveCommandService).move(1, false);
+
+        // When
+        tapeDriveWorker.initializeOnBootstrap();
+
+        // Then
+        InOrder inOrder = Mockito.inOrder(tapeDriveCommandService, tapeReadWriteService);
+        // Check status
+        inOrder.verify(tapeDriveCommandService).status();
+        // Reset
+        inOrder.verify(tapeDriveCommandService).rewind();
+        // Check empty
+        inOrder.verify(tapeDriveCommandService).move(1, false);
+        // Get cartridge type from drive status information
+        inOrder.verify(tapeDriveCommandService).status();
+        inOrder.verifyNoMoreInteractions();
+
+        // Ensure that cartridge type has been updated
+        verify(tapeCatalogService).replace(tapeCatalog);
+        assertThat(tapeCatalog.getType()).isEqualTo("LTO-6");
+    }
+
+    @Test
+    public void test_initialize_loaded_drive_with_invalid_label_on_bootstrap() throws Exception {
+
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
+            .setCode("tapeCode")
+            .setBucket("bucket");
+
+        TapeCatalog tapeCatalog = new TapeCatalog()
+            .setLibrary("lib")
+            .setCode("tapeCode")
+            .setCurrentPosition(12)
+            .setTapeState(TapeState.OPEN)
+            .setCurrentLocation(new TapeLocation(2, TapeLocationType.DRIVE))
+            .setLabel(tapeCatalogLabel);
+
+        TapeDriveWorker tapeDriveWorker =
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
+                archiveCacheStorage, cartridgeCapacityHelper);
+
+        TapeDriveSpec driveStatus = new TapeDriveState();
+        driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
+        doReturn(driveStatus).when(tapeDriveCommandService).status();
+
+        doAnswer((args) -> {
+            TapeCatalogLabel invalidTapeCatalogLabel = new TapeCatalogLabel()
+                .setCode("WRONG")
+                .setBucket("bucket");
+
+            String labelPath = args.getArgument(0);
+            JsonHandler.writeAsFile(invalidTapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
+            return null;
+        }).when(tapeReadWriteService).readFromTape(any());
+
+        // When / Then
+        assertThatThrownBy(tapeDriveWorker::initializeOnBootstrap)
+            .isInstanceOf(ReadWriteException.class);
+
+        InOrder inOrder = Mockito.inOrder(tapeDriveCommandService, tapeReadWriteService);
+        // Check status
+        inOrder.verify(tapeDriveCommandService).status();
+        // Reset
+        inOrder.verify(tapeDriveCommandService).rewind();
+        // Check label
+        inOrder.verify(tapeReadWriteService).getTmpOutputStorageFolder();
+        inOrder.verify(tapeReadWriteService).readFromTape(any());
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void test_initialize_ejected_drive_on_bootstrap() throws Exception {
+
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
+            .setCode("tapeCode")
+            .setBucket("bucket");
+
+        TapeCatalog tapeCatalog = new TapeCatalog()
+            .setLibrary("lib")
+            .setCode("tapeCode")
+            .setCurrentPosition(12)
+            .setTapeState(TapeState.OPEN)
+            .setCurrentLocation(new TapeLocation(2, TapeLocationType.DRIVE))
+            .setLabel(tapeCatalogLabel);
+
+        TapeDriveWorker tapeDriveWorker =
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
+                archiveCacheStorage, cartridgeCapacityHelper);
+
+        TapeDriveSpec driveStatus = new TapeDriveState();
+        driveStatus.getDriveStatuses().add(TapeDriveStatus.DR_OPEN);
+        doReturn(driveStatus).when(tapeDriveCommandService).status();
+
+        doAnswer((args) -> {
+            String labelPath = args.getArgument(0);
+            JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
+            return null;
+        }).when(tapeReadWriteService).readFromTape(any());
+
+        // When / Then
+        assertThatThrownBy(tapeDriveWorker::initializeOnBootstrap)
+            .isInstanceOf(IllegalStateException.class);
+
+        InOrder inOrder = Mockito.inOrder(tapeDriveCommandService, tapeReadWriteService);
+        // Check status
+        inOrder.verify(tapeDriveCommandService).status();
+        inOrder.verifyNoMoreInteractions();
     }
 }

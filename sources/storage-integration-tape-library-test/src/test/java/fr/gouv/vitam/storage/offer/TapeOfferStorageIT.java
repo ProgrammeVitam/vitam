@@ -235,6 +235,7 @@ public class TapeOfferStorageIT {
     private static final String PROD_BUCKET = "prod";
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
+    private static final String LTO_6 = "LTO-6";
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -364,7 +365,7 @@ public class TapeOfferStorageIT {
         Path offer1TmpTarOutputStorageFolder = tempFolder.newFolder("offer1-data", "tmpTarOutput").toPath();
         Path offer1CachedTarStorageFolder = tempFolder.newFolder("offer1-data", "cachedTars").toPath();
         tapeLibrarySimulatorRule = new TapeLibrarySimulatorRule(
-            offer1InputTarStorageFolder, offer1TmpTarOutputStorageFolder, 4, 20, 16, 100_000_000, 10);
+            offer1InputTarStorageFolder, offer1TmpTarOutputStorageFolder, 4, 50, 50, 5_000_000, LTO_6, 10);
 
         String offer1ConfDir = PropertiesUtils.getResourceFile(OFFER1_CONF_DIR).getAbsolutePath();
         SystemPropertyUtil.set("vitam.conf.folder", offer1ConfDir);

@@ -341,7 +341,7 @@ De nouvelles entrées ont été ajoutées pour décrire d'une part le matériel 
 
 Un paramètre a été ajouté aux définitions de stratégie.
 `AsyncRead` permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
-Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
+Une offre froide "offer-tape" **doit** être configurée en lecture asynchrone.
 La valeur par défaut pour `asyncRead` est False.
 
 Exemple:
@@ -363,7 +363,11 @@ Exemple:
 
         * **tapeLibrary**  une librairie de bande dans son ensemble. Une *tapeLibrary* est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
 
+        .. note:: Seule une librairie de bandes doit être configurée par offre froide. La configuration de plusieurs librairies pour une même offre froide n'est actuellement PAS supporté.
+
         * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
+
+        .. note:: Seul un robot doit être configuré pour piloter une librairie de bandes. La configuration de plusieurs robots pour une même librairie de bandes n'est actuellement PAS supporté.
 
         .. note:: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur
 
@@ -391,17 +395,30 @@ Exemple:
             tapeLibraryConfiguration:
 ..
 
-La description "tapeLibraryConfiguration" débute par la définition des répertoires de stockage ainsi que le paramétrage des `tars`.
-* **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'OF
+La description "tapeLibraryConfiguration" débute par la définition des paramètres globaux de l'offre froide :
+
+* **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'offre froide
 * **inputTarStorageFolder** Répertoire où seront générés et stockés les `tars` avant transfert sur bandes
 * **tmpTarOutputStorageFolder** Répertoire temporaire où seront rapatriés les `tars` depuis les bandes durant leur écriture.
 * **cachedTarStorageFolder** Répertoire de cache de où seront stockées une copie disque des `tars` archivés sur bandes.
 * **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
 * **maxTarFileSize** Taille maximale des `tars` à constituer, en octets.
-* **forceOverrideNonEmptyCartridge** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
+* **forceOverrideNonEmptyCartridges** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*. Ne doit être défini à *true* que sur un environnement de recette où l'écrasement d'une bande de test est sans risque.
+* **cachedTarMaxStorageSpaceInMB** Permet de définir la taille maximale du cache disque (en Mo)
+* **cachedTarEvictionStorageSpaceThresholdInMB** Permet de définir la taille critique du cache disque (en Mo). Une fois ce seuil atteint, les archives non utilisées sont purgées (selon la date de dernier accès). Doit être plus petit que la taille maximale **cachedTarMaxStorageSpaceInMB**.
+* **cachedTarSafeStorageSpaceThresholdInMB** Seuil "confortable" d'utilisation du cache (en Mo). Le processus d'éviction des archives du cache s'arrête lorsque ce seuil est atteint. Doit être plus petit que la taille critique **cachedTarEvictionStorageSpaceThresholdInMB**.
+* **maxAccessRequestSize** Définit un seuil technique du nombre d'objets que peut cibler une demande d'accès. Par défaut de 10000. À Ne pas modifier.
+* **readyAccessRequestExpirationDelay** Valeur du délais d'expiration des demandes d'accès. Une fois une demande d'accès à des objets est prête, l'accès immédiat aux objets est garantie durant cette période.
+* **readyAccessRequestExpirationUnit** Unité du délais d'expiration des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
+* **readyAccessRequestPurgeDelay** Valeur du délais de purge complète des demandes d'accès.
+* **readyAccessRequestPurgeUnit** Unité du délais de purge complète des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
+* **accessRequestCleanupTaskIntervalDelay** Valeur de la fréquence de nettoyage des demandes d'accès.
+et **accessRequestCleanupTaskIntervalUnit** Unité de la fréquence de nettoyage des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
 
 .. note:: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
-
+.. note:: cachedTarEvictionStorageSpaceThresholdInMB doit être strictement inférieur à cachedTarMaxStorageSpaceInMB
+.. note:: cachedTarSafeStorageSpaceThresholdInMB doit être strictement inférieur à cachedTarEvictionStorageSpaceThresholdInMB
+.. note:: La durée de purge des demandes d'accès readyAccessRequestPurgeDelay/readyAccessRequestPurgeUnit doit être strictement supérieure à leur durée d'expiration readyAccessRequestExpirationDelay/readyAccessRequestExpirationUnit.
 
 Exemple:
 
@@ -413,7 +430,17 @@ Exemple:
         cachedTarStorageFolder: "/vitam/data/offer/offer/cachedTars"
         maxTarEntrySize: 10000000
         maxTarFileSize: 10000000000
-        ForceOverrideNonEmptyCartridge: False
+        ForceOverrideNonEmptyCartridge: false
+        cachedTarMaxStorageSpaceInMB: 1_000_000
+        cachedTarEvictionStorageSpaceThresholdInMB: 800_000
+        cachedTarSafeStorageSpaceThresholdInMB: 700_000
+        maxAccessRequestSize: 10_000
+        readyAccessRequestExpirationDelay: 30
+        readyAccessRequestExpirationUnit: DAYS
+        readyAccessRequestPurgeDelay: 60
+        readyAccessRequestPurgeUnit: DAYS
+        accessRequestCleanupTaskIntervalDelay: 15
+        accessRequestCleanupTaskIntervalUnit: MINUTES
 ..
 
 Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
@@ -446,11 +473,16 @@ Enfin, la définition des équipements robotiques proprement dite doit être ré
 *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
 
 * **drives:** Définition du/ou des lecteurs de cartouches de la librairie.
-*   **index:** Numéro de lecteur, valeur débutant à 0
+*   **index:** Numéro de lecteur, valeur débutant à 0.
 *   **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
 *   **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
 *   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
 *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
+
+* **cartridgeCapacities** Définition des types de cartouches de la librairie et de leur capacité théorique. Ce seuil permet à Vitam de détecter les fins de bandes versus les erreurs d'écriture sur bandes.
+*   **type**: Type de cartouche (tel que décrits par la commande *mtx status*).
+*   **capacityInMB** Capacité de stockage théorique (en Mo) de la bande (hors éventuelle compression).
+* **fullCartridgeDetectionThresholdInPercentage** Pourcentage de remplissage d'une bande par rapport à sa capacité théorique. Si une erreur d'écriture sur bande avant ce seuil, la bande est supposée corrompue (CONFLICT), sinon, une fin de bande est présupposée. Par défaut 90 (%).
 
 Exemple:
 
@@ -488,6 +520,17 @@ Exemple:
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
+
+            cartridgeCapacities:
+              - type: LTO-6
+                capacityInMB: 2_500_000
+              - type: LTO-7
+                capacityInMB: 6_000_000
+              - type: LTO-8
+                capacityInMB: 12_000_000
+              - type: LTO-9
+                capacityInMB: 18_000_000
+            fullCartridgeDetectionThresholdInPercentage: 90
 ..
 
 Sécurisation SELinux
@@ -510,7 +553,7 @@ Les enjeux de la sécurisation SELinux dans le cadre de la solution logicielle :
 SELinux propose trois modes différents :
 
 * *Enforcing* : dans ce mode, les accès sont restreints en fonction des règles SELinux en vigueur sur la machine ;
-* *Permissive* : ce mode est généralement à considérer comme un mode de déboguage. En mode permissif, les règles SELinux seront interrogées, les erreurs d'accès logguées, mais l'accès ne sera pas bloqué.
+* *Permissive* : ce mode est généralement à considérer comme un mode de débogage. En mode permissif, les règles SELinux seront interrogées, les erreurs d'accès logguées, mais l'accès ne sera pas bloqué.
 * *Disabled* : SELinux est désactivé. Rien ne sera restreint, rien ne sera loggué.
 
 La mise en oeuvre de SELinux est prise en charge par le processus de déploiement et s'effectue de la sorte :
@@ -593,7 +636,7 @@ Pour se faire, il suffit d'exécuter le playbook associée :
 Configuration
 -------------
 
-Les paramères de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_vars.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+Les paramètres de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_vars.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
 
 Configuration spécifique derrière un proxy
 ------------------------------------------

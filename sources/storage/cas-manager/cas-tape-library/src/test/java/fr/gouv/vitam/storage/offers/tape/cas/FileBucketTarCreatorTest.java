@@ -368,7 +368,7 @@ public class FileBucketTarCreatorTest {
 
             List<TarEntryDescription> fileTarEntries = tarEntries.get(i);
             Digest digest = new Digest(digestType);
-            OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+            OutputStream digestOutputStream = digest.getDigestOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
             for (TarEntryDescription fileTarEntry : fileTarEntries) {
 
                 Path tarFilePath = tarIdToTarFile.get(fileTarEntry.getTarFileId());

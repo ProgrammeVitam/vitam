@@ -39,6 +39,8 @@ public interface TapeLibraryService {
     void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode)
         throws ReadWriteException;
 
+    void rewindTape(TapeCatalog tape) throws ReadWriteException;
+
     void write(String filePath, long writtenBytes, TapeCatalog tape) throws ReadWriteException;
 
     void read(TapeCatalog tape, Integer position, String outputPath) throws ReadWriteException;
@@ -55,12 +57,8 @@ public interface TapeLibraryService {
 
     String getTmpOutputDirectory();
 
-    /**
-     * @param tape
-     * @param forceOverrideNonEmptyCartridges
-     * @return true to inform that update tape catalog is needed, false else
-     * @throws ReadWriteException
-     */
-    boolean checkTapeLabel(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException;
+    void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
+        throws ReadWriteException;
 
+    void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException;
 }

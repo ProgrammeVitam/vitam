@@ -56,7 +56,7 @@ public class TapeLibraryStatusParser {
         ParametersChecker.checkParameter("Output param is required", output);
 
         final TapeLibraryState tapeLibraryState = new TapeLibraryState();
-        for (String s : output.split("\\|")) {
+        for (String s : output.split("\n")) {
 
             // Slots
             if (s.trim().startsWith(STORAGE_ELEMENT)) {

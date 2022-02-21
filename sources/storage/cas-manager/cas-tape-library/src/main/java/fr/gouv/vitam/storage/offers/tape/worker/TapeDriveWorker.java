@@ -46,7 +46,12 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -89,7 +94,7 @@ public class TapeDriveWorker implements Runnable {
     private ReadWriteResult readWriteResult;
     private final CountDownLatch shutdownSignal;
     private CountDownLatch pauseSignal;
-    private String inputTarPath;
+    private final String inputTarPath;
     private final ArchiveCacheStorage archiveCacheStorage;
 
     @VisibleForTesting
@@ -102,10 +107,11 @@ public class TapeDriveWorker implements Runnable {
         AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, long sleepTime, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage) {
+        ArchiveCacheStorage archiveCacheStorage, CartridgeCapacityHelper cartridgeCapacityHelper) {
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
-                archiveReferentialRepository, accessRequestManager, tapeCatalogService, receiver, archiveCacheStorage);
+                archiveReferentialRepository, accessRequestManager, tapeCatalogService, receiver, archiveCacheStorage,
+                cartridgeCapacityHelper);
 
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.accessRequestManager = accessRequestManager;
@@ -114,7 +120,7 @@ public class TapeDriveWorker implements Runnable {
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;
-        tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool);
+        this.tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper);
 
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         this.archiveCacheStorage = archiveCacheStorage;
@@ -142,10 +148,10 @@ public class TapeDriveWorker implements Runnable {
         AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage) {
+        ArchiveCacheStorage archiveCacheStorage, CartridgeCapacityHelper cartridgeCapacityHelper) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository,
             accessRequestManager, currentTape,
-            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage);
+            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage, cartridgeCapacityHelper);
     }
 
     @Override
@@ -400,6 +406,51 @@ public class TapeDriveWorker implements Runnable {
 
     TapeCatalog getCurrentTape() {
         return readWriteResult == null ? null : readWriteResult.getCurrentTape();
+    }
+
+    public void initializeOnBootstrap() throws ReadWriteException, TapeCatalogException {
+
+        TapeCatalog currentTape = getCurrentTape();
+
+        LOGGER.info(this.msgPrefix + "Checking drive " + tapeLibraryService.getDriveIndex() + " on bootstrap");
+
+        // Checking access to drive using a status command
+        TapeDriveSpec driveStatus = tapeLibraryService.getDriveStatus(ReadWriteErrorCode.KO_ON_STATUS);
+
+        // Check for drives having an ejected tape
+        if (currentTape != null && !driveStatus.driveHasTape()) {
+            throw new IllegalStateException(this.msgPrefix + "Drive " + getIndex() + " should contain a tape " +
+                currentTape.getCode() + " but no tape found in drive. Possible drive ejected but not unloaded?");
+        }
+
+        if (currentTape == null) {
+            LOGGER.info(this.msgPrefix + "Drive " + tapeLibraryService.getDriveIndex() + " is empty on bootstrap");
+            return;
+        }
+
+        LOGGER.warn(this.msgPrefix + "Found a tape " + currentTape.getCode() + " with " + currentTape.getTapeState() +
+            " state on drive " + tapeLibraryService.getDriveIndex() + " on bootstrap");
+
+        // Rewind tape
+        tapeLibraryService.rewindTape(currentTape);
+
+        switch (currentTape.getTapeState()) {
+            case EMPTY:
+                LOGGER.info(this.msgPrefix + "Ensuring tape is empty...");
+                tapeLibraryService.ensureTapeIsEmpty(currentTape, forceOverrideNonEmptyCartridges);
+                break;
+            case OPEN:
+            case FULL:
+                LOGGER.info(this.msgPrefix + "Read and validate tape label...");
+                tapeLibraryService.checkNonEmptyTapeLabel(currentTape);
+                break;
+            case CONFLICT:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentTape.getTapeState());
+        }
+
+        this.tapeCatalogService.replace(currentTape);
     }
 
     @VisibleForTesting

@@ -164,6 +164,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             LOGGER.error("Write task failed", e);
             readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
+
                 case KO_LABEL_DISCORDING:
                 case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_UNKNOWN_CURRENT_POSITION:
@@ -237,6 +238,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case KO_ON_MOVE_TO_CACHE:
                 case KO_ON_DELETE_ARCHIVED_BACKUP:
                 case INTERNAL_ERROR_SERVER:
+                case KO_DRIVE_STATUS_KO_AFTER_WRITE_ERROR:
                 default:
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.ERROR);
@@ -305,11 +307,10 @@ public class WriteTask implements Future<ReadWriteResult> {
         // If tape not found WARN (return TAR to queue and continue)
         // If tape ok load tape to drive
         // Do status to get tape TYPE and some other information (update catalog)
-        if (tryFindTapeCatalogAndLoadIntoDrive()) {
-            // Check if new tape then doWrite(label)
-            // doWrite(TAR)
-            doWrite(file);
-        }
+        tryFindTapeCatalogAndLoadIntoDrive();
+        // Check if new tape then doWrite(label)
+        // doWrite(TAR)
+        doWrite(file);
     }
 
     /**
@@ -330,11 +331,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         return file;
     }
 
-    /**
-     * @return true if tape loaded into drive, false else
-     * @throws ReadWriteException
-     */
-    private boolean tryFindTapeCatalogAndLoadIntoDrive()
+    private void tryFindTapeCatalogAndLoadIntoDrive()
         throws ReadWriteException {
         // Find tape
         // If tape not found WARN (return TAR to queue and continue)
@@ -348,8 +345,6 @@ public class WriteTask implements Future<ReadWriteResult> {
         retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
 
         doCheckTapeLabel();
-
-        return true;
     }
 
     /**
@@ -405,12 +400,18 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private void doCheckTapeLabel() throws ReadWriteException {
-        boolean updateTapeCatalog =
-            tapeLibraryService.checkTapeLabel(workerCurrentTape, this.forceOverrideNonEmptyCartridges);
 
-        if (updateTapeCatalog) {
+        // If no label then cartridge is unknown
+        if (null == workerCurrentTape.getLabel()) {
+
+            tapeLibraryService.ensureTapeIsEmpty(workerCurrentTape, forceOverrideNonEmptyCartridges);
+
             workerCurrentTape.setBucket(writeOrder.getBucket());
             retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
+
+        } else {
+
+            tapeLibraryService.checkNonEmptyTapeLabel(workerCurrentTape);
         }
     }
 

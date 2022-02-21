@@ -40,10 +40,6 @@ public interface TapeDriveSpec {
 
     List<TapeDriveStatus> getDriveStatuses();
 
-    default boolean isEndOfTape() {
-        return getDriveStatuses().contains(TapeDriveStatus.EOT);
-    }
-
     default boolean isBeginOfTape() {
         return getDriveStatuses().contains(TapeDriveStatus.BOT);
     }

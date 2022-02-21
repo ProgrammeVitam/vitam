@@ -40,6 +40,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
@@ -83,12 +84,14 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class WriteTaskTest {
@@ -97,6 +100,7 @@ public class WriteTaskTest {
     private static final String FAKE_FILE_BUCKET_ID = "fakeFileBucketId";
     private static final String FAKE_LIBRARY = "fakeLibrary";
     private static final String LTO_6 = "LTO-6";
+    private static final String LTO_7 = "LTO-7";
     private static final String TAPE_CODE = "VIT0001";
     private static final String FAKE_FILE_PATH = "fakeFilePath";
     private static final String FAKE_DIGEST = "digest";
@@ -134,6 +138,9 @@ public class WriteTaskTest {
     @Mock
     private ArchiveCacheStorage archiveCacheStorage;
 
+    @Mock
+    private CartridgeCapacityHelper cartridgeCapacityHelper;
+
     private File inputTarDir;
 
     @Before
@@ -161,6 +168,7 @@ public class WriteTaskTest {
     @After
     public void cleanup() {
         verifyNoMoreInteractions(archiveCacheStorage);
+        verifyNoMoreInteractions(cartridgeCapacityHelper);
     }
 
     @Test
@@ -177,36 +185,36 @@ public class WriteTaskTest {
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), null, archiveReferentialRepository,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), null, archiveReferentialRepository,
             archiveCacheStorage, FAKE_FILE_PATH, false))
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), tapeCatalogService, null,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), tapeCatalogService, null,
             archiveCacheStorage, FAKE_FILE_PATH, false))
             .withFailMessage("should fail tapeCatalogService is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatCode(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), tapeCatalogService,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), tapeCatalogService,
             archiveReferentialRepository, null, FAKE_FILE_PATH, false))
             .withFailMessage("should fail archiveCacheStorage is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), tapeCatalogService,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), tapeCatalogService,
             archiveReferentialRepository, archiveCacheStorage, null, false))
             .withFailMessage("should fail inputTarPath is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), tapeCatalogService,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), tapeCatalogService,
             archiveReferentialRepository, archiveCacheStorage, "", false))
             .withFailMessage("should fail inputTarPath is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatCode(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool), tapeCatalogService,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper), tapeCatalogService,
             archiveReferentialRepository, archiveCacheStorage, FAKE_FILE_PATH, false))
             .doesNotThrowAnyException();
     }
@@ -228,7 +236,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -284,7 +292,8 @@ public class WriteTaskTest {
         doNothing().when(tapeDriveCommandService).rewind();
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -347,7 +356,8 @@ public class WriteTaskTest {
         doNothing().when(tapeDriveCommandService).rewind();
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -393,7 +403,8 @@ public class WriteTaskTest {
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), false);
 
@@ -475,7 +486,8 @@ public class WriteTaskTest {
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), false);
 
@@ -537,7 +549,8 @@ public class WriteTaskTest {
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), true);
 
@@ -619,7 +632,8 @@ public class WriteTaskTest {
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), false);
 
@@ -682,7 +696,8 @@ public class WriteTaskTest {
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), false);
 
@@ -740,7 +755,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -829,9 +844,15 @@ public class WriteTaskTest {
         WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, filePath, 10L, FAKE_DIGEST, file,
             QueueMessageType.WriteOrder);
 
+        doReturn(900_000_000L)
+            .when(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+
+        TapeCatalog almostFullTapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        almostFullTapeCatalog.setWrittenBytes(1_000_000_000L);
+
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, almostFullTapeCatalog,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -846,14 +867,14 @@ public class WriteTaskTest {
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
         doNothing().when(tapeDriveCommandService).rewind();
 
-        TapeDriveState tapeDriveState = new TapeDriveState();
-        tapeDriveState.setCartridge("VIT0001");
+        TapeDriveState fullTapeStatus = new TapeDriveState();
+        fullTapeStatus.setCartridge(LTO_6);
 
-        TapeDriveState driveStateEndOfTape = new TapeDriveState();
-        driveStateEndOfTape.addToDriveStatuses(TapeDriveStatus.EOT);
+        TapeDriveState tapeDriveState = new TapeDriveState();
+        tapeDriveState.setCartridge(LTO_7);
 
         when(tapeDriveCommandService.status())
-            .thenReturn(driveStateEndOfTape)
+            .thenReturn(fullTapeStatus)
             .thenThrow(new TapeCommandException("error"))
             .thenReturn(tapeDriveState);
 
@@ -899,6 +920,8 @@ public class WriteTaskTest {
             .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
 
+        verify(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, file, 10L);
         verify(archiveCacheStorage).moveArchiveToCache(eq(inputTarDir.toPath().resolve(filePath)),
             eq(FAKE_FILE_BUCKET_ID),
@@ -917,10 +940,15 @@ public class WriteTaskTest {
         WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, filePath, 10L, FAKE_DIGEST, file,
             QueueMessageType.WriteOrder);
 
-        TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
+        doReturn(900_000_000L)
+            .when(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+
+        TapeCatalog writeKoTapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        writeKoTapeCatalog.setWrittenBytes(1_000L);
+
         WriteTask writeTask =
-            new WriteTask(writeOrder, tape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, writeKoTapeCatalog,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(),
                 false);
 
@@ -938,14 +966,17 @@ public class WriteTaskTest {
         // When Write Label and file to tape
         doNothing().when(tapeReadWriteService).writeToTape(contains(WriteTask.TAPE_LABEL));
 
+        TapeDriveState koTapeStatus = new TapeDriveState();
+        koTapeStatus.setCartridge(LTO_6);
+
         TapeDriveState tapeDriveState = new TapeDriveState();
-        tapeDriveState.setCartridge("VIT0001");
+        tapeDriveState.setCartridge(LTO_7);
 
         when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState())
+            .thenReturn(koTapeStatus)
             .thenReturn(tapeDriveState);
 
-        // First write response ko (end of tape) the second write should be a new tape
+        // First write response ko (corrupted tape) the second write should be a new tape
         doThrow(new TapeCommandException("error"))
             .doNothing()
             .when(tapeReadWriteService).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
@@ -982,6 +1013,8 @@ public class WriteTaskTest {
             .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
 
+        verify(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, file, 10L);
         verify(archiveCacheStorage).moveArchiveToCache(eq(inputTarDir.toPath().resolve(filePath)),
             eq(FAKE_FILE_BUCKET_ID),
@@ -1004,15 +1037,25 @@ public class WriteTaskTest {
         WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, filePath, 10L, FAKE_DIGEST, file,
             QueueMessageType.WriteOrder);
 
+        doReturn(900_000_000L)
+            .when(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+        doReturn(1_800_000_000L)
+            .when(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_7);
+
+        TapeCatalog koTapeCatalog1 = getTapeCatalog(true, false, TapeState.OPEN);
+        koTapeCatalog1.setWrittenBytes(1_000_000L);
+        koTapeCatalog1.setType(LTO_6);
+
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, koTapeCatalog1,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage,
                 inputTarDir.getAbsolutePath(),
                 false);
 
-
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        koTapeCatalog1.setWrittenBytes(0L);
+        tapeCatalog.setType(LTO_7);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
@@ -1025,15 +1068,17 @@ public class WriteTaskTest {
         // When Write Label and file to tape
         doNothing().when(tapeReadWriteService).writeToTape(contains(WriteTask.TAPE_LABEL));
 
-        TapeDriveState tapeDriveState = new TapeDriveState();
-        tapeDriveState.setCartridge("VIT0001");
+        TapeDriveState tape1KoStatus = new TapeDriveState();
+        tape1KoStatus.setCartridge(LTO_6);
+
+        TapeDriveState tape2Status = new TapeDriveState();
+        tape2Status.setCartridge(LTO_7);
 
         when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState())
-            .thenReturn(tapeDriveState)
-            .thenReturn(new TapeDriveState());
+            .thenReturn(tape1KoStatus)
+            .thenReturn(tape2Status);
 
-        // First write response ko (end of tape) the second write should be a new tape
+        // First write response ko (corrupted) the second write should be a new tape
         doThrow(new TapeCommandException("error"))
             .doThrow(new TapeCommandException("error"))
             .when(tapeReadWriteService).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
@@ -1052,6 +1097,9 @@ public class WriteTaskTest {
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
         verify(tapeReadWriteService, new Times(2)).writeToTape(
             eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
+
+        verify(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_6);
+        verify(cartridgeCapacityHelper).getFullTapeOccupationThreshold(LTO_7);
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -1077,7 +1125,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage,
                 inputTarDir.getAbsolutePath(),
                 false);
@@ -1116,7 +1164,8 @@ public class WriteTaskTest {
                 QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService,
                 archiveReferentialRepository, archiveCacheStorage, inputTarDir.getAbsolutePath(), false);
 
@@ -1146,7 +1195,8 @@ public class WriteTaskTest {
         tape.setBucket("wrongBucket");
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+            new WriteTask(writeOrder, tape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool,
+                cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage,
                 inputTarDir.getAbsolutePath(),
                 false);
@@ -1182,7 +1232,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
                 tapeCatalogService, archiveReferentialRepository, archiveCacheStorage,
                 inputTarDir.getAbsolutePath(),
                 false);

@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
@@ -41,8 +40,10 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 
@@ -54,6 +55,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,20 +79,23 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         AccessRequestManager accessRequestManager,
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage) {
+        ArchiveCacheStorage archiveCacheStorage,
+        TapeCatalogService tapeCatalogService,
+        CartridgeCapacityHelper cartridgeCapacityHelper
+    ) {
 
-        ParametersChecker
-            .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-                archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage);
+        ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
+            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService,
+            cartridgeCapacityHelper);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
-                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
+                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeCatalogService,
                     this, archiveReferentialRepository, accessRequestManager,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, archiveCacheStorage);
+                    forceOverrideNonEmptyCartridges, archiveCacheStorage, cartridgeCapacityHelper);
             workers.add(tapeDriveWorker);
         }
     }
@@ -103,12 +109,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             LOGGER.debug("Start worker :" + thread.getName());
         }
     }
-
-    public void enqueue(QueueMessageEntity entity) throws QueueException {
-        // FIXME : Unused
-        this.readWriteQueue.add(entity);
-    }
-
 
     public void shutdown() {
         List<CompletableFuture> completableFutures = new ArrayList<>();
@@ -308,6 +308,28 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             nin(ReadOrder.TAPE_CODE, activeTapeCodes),
             QueueMessageType.ReadOrder
         );
+    }
+
+    public void initializeOnBootstrap() {
+        // Initialize drives concurrently
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(workers.size(), VitamThreadFactory.getInstance());
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        for (TapeDriveWorker worker : workers) {
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.currentThread().setName("BootstrapThreadDrive" + worker.getIndex());
+                    LOGGER.info("Initializing drive " + worker.getIndex());
+                    worker.initializeOnBootstrap();
+                } catch (Exception e) {
+                    LOGGER.error("Could not initialize worker " + worker.getIndex(), e);
+                    throw new RuntimeException("Could not initialize worker " + worker.getIndex(), e);
+                }
+            }, executorService);
+            completableFutures.add(completableFuture);
+        }
+        CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).join();
+        executorService.shutdown();
     }
 
     private static class OptimisticDriveResourceStatus {

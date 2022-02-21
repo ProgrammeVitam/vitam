@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
 import fr.gouv.vitam.storage.offers.tape.cas.IncompleteWriteOrderBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
@@ -197,6 +198,8 @@ public class TapeLibraryFactory {
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
 
+            CartridgeCapacityHelper cartridgeCapacityHelper = new CartridgeCapacityHelper(tapeLibraryConf);
+
             BlockingQueue<TapeRobotService> robotServices =
                 new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
             ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
@@ -215,8 +218,7 @@ public class TapeLibraryFactory {
             if (robotServices.size() > 0 && driveServices.size() > 0) {
                 tapeLibraryPool
                     .putIfAbsent(tapeLibraryIdentifier,
-                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices,
-                            tapeCatalogService));
+                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices));
             }
 
             // init tape catalog
@@ -241,18 +243,17 @@ public class TapeLibraryFactory {
                 throw new RuntimeException(e);
             }
 
-            // force rewind
-            forceRewindOnBootstrap(driveServices, driveTape);
-
-            // FIXME #8760 : Check labels of loaded tapes in drives
-
             // Start all workers
-            tapeDriveWorkerManagers
-                .put(tapeLibraryIdentifier,
-                    new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository,
-                        accessRequestManager, libraryPool, driveTape,
-                        configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges(),
-                        archiveCacheStorage));
+            TapeDriveWorkerManager tapeDriveWorkerManager =
+                new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, accessRequestManager,
+                    libraryPool, driveTape, configuration.getInputTarStorageFolder(),
+                    configuration.isForceOverrideNonEmptyCartridges(), archiveCacheStorage, tapeCatalogService,
+                    cartridgeCapacityHelper);
+
+            // Initialize drives on bootstrap
+            tapeDriveWorkerManager.initializeOnBootstrap();
+
+            tapeDriveWorkerManagers.put(tapeLibraryIdentifier, tapeDriveWorkerManager);
         }
 
         // Everything's alright. Start tar creation listeners
@@ -301,17 +302,6 @@ public class TapeLibraryFactory {
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
-    }
-
-    private void forceRewindOnBootstrap(ConcurrentHashMap<Integer, TapeDriveService> driveServices,
-        Map<Integer, TapeCatalog> driveTape) {
-        driveTape.keySet().forEach(driveIndex -> {
-            try {
-                driveServices.get(driveIndex).getDriveCommandService().rewind();
-            } catch (TapeCommandException e) {
-                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(e.getDetails()), e);
-            }
-        });
     }
 
     public BackupFileStorage getBackupFileStorage() {

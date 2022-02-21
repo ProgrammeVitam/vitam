@@ -37,6 +37,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
+import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
@@ -60,13 +61,15 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
     private final TapeDriveService tapeDriveService;
     private final TapeRobotPool tapeRobotPool;
+    private final CartridgeCapacityHelper cartridgeCapacityHelper;
 
     public final String MSG_PREFIX;
 
-
-    public TapeLibraryServiceImpl(TapeDriveService tapeDriveService, TapeRobotPool tapeRobotPool) {
+    public TapeLibraryServiceImpl(TapeDriveService tapeDriveService, TapeRobotPool tapeRobotPool,
+        CartridgeCapacityHelper cartridgeCapacityHelper) {
         this.tapeDriveService = tapeDriveService;
         this.tapeRobotPool = tapeRobotPool;
+        this.cartridgeCapacityHelper = cartridgeCapacityHelper;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
     }
@@ -100,7 +103,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         tape.setCurrentPosition(position);
     }
 
-    private void rewindTape(TapeCatalog tape) throws ReadWriteException {
+    @Override
+    public void rewindTape(TapeCatalog tape) throws ReadWriteException {
         try {
             tapeDriveService.getDriveCommandService().rewind();
         } catch (TapeCommandException e) {
@@ -120,7 +124,6 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
         }
 
-        // FIXME : Can we write when tape.getFileCount() > tape.getCurrentPosition()?!!
         if (tape.getFileCount() < tape.getCurrentPosition()) {
             throw new ReadWriteException(
                 MSG_PREFIX + ", Error: current position must be <= to fileCount.",
@@ -138,19 +141,39 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     " Action : Write, Entity: " +
                     JsonHandler.unprettyPrint(e.getDetails()), e);
 
-                // Do status and check if end of tape
-                TapeDriveSpec status = getDriveStatus(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
+                // Check tape capacity :
+                // EndOfTape status is not properly handled by MTX utility.
+                // According to the man page of mtx utility : "In addition,  MTX  does  not handle the end of tape properly."
+                // We use the following heuristic for EndOfTape detection :
+                //  - If written data > a cartridge type dependent threshold (by default, 90% of tape capacity),
+                //      ==> We assume the tape to be FULL
+                //  - Otherwise ==> tape is considered as corrupted
 
-                if (status.isEndOfTape()) {
+                // Exec status to ensure drive is up, and has no errors reported
+                TapeDriveSpec status = getDriveStatus(ReadWriteErrorCode.KO_DRIVE_STATUS_KO_AFTER_WRITE_ERROR);
+
+                String cartridgeType = status.getCartridge();
+                long tapeOccupation = tape.getWrittenBytes() + writtenBytes;
+                Long fullTapeOccupationThreshold =
+                    cartridgeCapacityHelper.getFullTapeOccupationThreshold(cartridgeType);
+
+                if (fullTapeOccupationThreshold != null && tapeOccupation >= fullTapeOccupationThreshold) {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                        " Action : Write, Drive Status: " +
-                        JsonHandler.unprettyPrint(status) + ", Error: End of tape",
+                        " Action : Write, Drive Status: " + JsonHandler.unprettyPrint(status) +
+                        ", Error: End Of Tape, Tape Occupation: " + tapeOccupation + " (bytes)" +
+                        ", Cartridge type: " + cartridgeType + "]",
                         ReadWriteErrorCode.KO_ON_END_OF_TAPE, e);
                 }
 
                 tape.setTapeState(TapeState.CONFLICT);
 
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode(),
+                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+                    " Action : Write, Drive Status: " + JsonHandler.unprettyPrint(status) +
+                    ", Error: Tape is CORRUPTED" +
+                    ", Cartridge type: '" + cartridgeType + "'" +
+                    ", Tape space usage: " + tapeOccupation + " (bytes)" +
+                    ", Full tape threshold: "
+                    + (fullTapeOccupationThreshold == null ? " UNKNOWN" : fullTapeOccupationThreshold + " (bytes)"),
                     ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE, e);
             }
 
@@ -355,27 +378,7 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     }
 
     @Override
-    /**
-     * Check if label of tape catalog match label of loaded tape
-     *
-     * @throws ReadWriteException
-     */
-    public boolean checkTapeLabel(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException {
-
-        // If no label then cartridge is unknown
-        if (null == tape.getLabel()) {
-
-            ensureTapeIsEmpty(tape, forceOverrideNonEmptyCartridges);
-            return true;
-
-        } else {
-
-            checkNonEmptyTapeLabel(tape);
-            return false;
-        }
-    }
-
-    private void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
+    public void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
         throws ReadWriteException {
 
         // Check empty tape
@@ -419,7 +422,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         tape.setWorm(driveStatus.getDriveStatuses().contains(TapeDriveStatus.WR_PROT));
     }
 
-    private void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException {
+    @Override
+    public void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException {
         // Read Label from tape
         File labelFile = null;
         try {

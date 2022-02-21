@@ -110,7 +110,7 @@ public class TarFileRapairer {
                             Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
 
                         try {
-                            InputStream entryInputStream = new CloseShieldInputStream(taggedEntryInputStream);
+                            InputStream entryInputStream = CloseShieldInputStream.wrap(taggedEntryInputStream);
                             FileUtils.copyInputStreamToFile(entryInputStream, tempEntryFile.toFile());
                         } catch (IOException ex) {
                             if (taggedEntryInputStream.isCauseOf(ex)) {
@@ -125,7 +125,7 @@ public class TarFileRapairer {
 
                             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
                             InputStream entryInputStream = digest.getDigestInputStream(
-                                new CloseShieldInputStream(temptFileInputStream));
+                                CloseShieldInputStream.wrap(temptFileInputStream));
 
                             TarEntryDescription tarEntryDescription =
                                 tarAppender.append(inputTarEntry.getName(), entryInputStream, inputTarEntry.getSize());
@@ -170,7 +170,7 @@ public class TarFileRapairer {
 
                 String tarEntryName = tarEntry.getName();
                 Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-                InputStream entryInputStream = new CloseShieldInputStream(tarArchiveInputStream);
+                InputStream entryInputStream = CloseShieldInputStream.wrap(tarArchiveInputStream);
                 digest.update(entryInputStream);
                 String entryDigestValue = digest.digestHex();
 

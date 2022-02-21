@@ -43,15 +43,13 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     private final String libraryIdentifier;
     private final BlockingQueue<TapeRobotService> tapeRobotServicePool;
     private final ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool;
-    private final TapeCatalogService tapeCatalogService;
 
     public TapeLibraryPoolImpl(String libraryIdentifier,
         BlockingQueue<TapeRobotService> tapeRobotServicePool,
-        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool, TapeCatalogService tapeCatalogService) {
+        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool) {
         this.libraryIdentifier = libraryIdentifier;
         this.tapeRobotServicePool = tapeRobotServicePool;
         this.tapeDriveServicePool = tapeDriveServicePool;
-        this.tapeCatalogService = tapeCatalogService;
     }
 
     @Override
@@ -92,10 +90,5 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     @Override
     public String getLibraryIdentifier() {
         return libraryIdentifier;
-    }
-
-    @Override
-    public TapeCatalogService getTapeCatalogService() {
-        return tapeCatalogService;
     }
 }

@@ -46,7 +46,7 @@ public final class TarTestHelper {
         throws IOException {
 
         Digest digest = new Digest(DigestType.SHA512);
-        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+        OutputStream digestOutputStream = digest.getDigestOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
         readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
         String tarEntryDigest = digest.digestHex();
         assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());

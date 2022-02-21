@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.process;
 
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -88,17 +89,13 @@ public class Output {
                 }
             }
 
-            return getLinesFromInputStream(std).collect(Collectors.joining(" | "));
+            return IOUtils.toString(std, UTF_8);
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return msgToReturn + "|" + e.getMessage();
         } finally {
             StreamUtils.closeSilently(std);
         }
-    }
-
-    private static Stream<String> getLinesFromInputStream(InputStream std) {
-        return new BufferedReader(new InputStreamReader(std, UTF_8)).lines();
     }
 
     public Exception getException() {
