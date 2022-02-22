@@ -295,10 +295,48 @@ Exemples:
 
 .. seealso:: Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
 
+Augmenter la précision sur le nombre de résultats retournés dépassant 10000
+===========================================================================
 
+Suite à une évolution d'ElasticSearch (à partir de la version 7.6), le nombre maximum de résultats retournés est limité à 10000. Ceci afin de limiter la consommation de ressources sur le cluster elasticsearch.
+
+Pour permettre de retourner le nombre exact de résultats, il est possible d'éditer le paramètre ``vitam.accessexternal.authorizeTrackTotalHits`` dans le fichier de configuration ``environments/group_vars/all/vitam_vars.yml``
+
+Il sera nécessaire de réappliquer la configuration sur le groupe hosts_access_external:
+
+.. code-block:: bash
+
+  ansible-playbook ansible-vitam/vitam.yml --limit hosts_access_external --tags update_vitam_configuration -i environments/hosts.<environnement> --ask-vault-pass
+
+..
+
+Ensuite, si l'API de recherche utilise le type d'entrée de DSL "SELECT_MULTIPLE", il faut ajouter ``$track_total_hits : true`` au niveau de la partie "filter" de la requête d'entrée.
+
+Ci-dessous, un exemple de requête d'entrée :
+
+.. code-block:: json
+
+    {
+      "$roots": [],
+      "$query": [
+       {
+         "$match": {
+            "Title": "héritage"
+         }
+       }
+      ],
+      "$filter": {
+        "$offset": 0,
+        "$limit": 100,
+        "$track_total_hits": true
+      },
+      "$projection": {}
+    }
+
+..
 
 Fichiers complémentaires
-==========================
+========================
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées dans les fichiers suivants :
 

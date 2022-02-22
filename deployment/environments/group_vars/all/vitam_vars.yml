@@ -198,6 +198,7 @@ vitam:
         https_enabled: true
         # Use platform secret for this component ? : do not modify
         secret_platform: "false"
+        authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
