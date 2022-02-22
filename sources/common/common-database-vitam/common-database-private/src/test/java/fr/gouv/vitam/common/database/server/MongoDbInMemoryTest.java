@@ -60,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -73,119 +74,119 @@ public class MongoDbInMemoryTest {
             "\"expandField\": \"XXX\", \"arrayRegex\": [ \"V1\", \"\", \"V2\"] }";
     private static JsonNode jsonDocument;
     private static MongoDbInMemory mDIM;
-    private static AbstractParser<?> parser = new UpdateParserSingle(new SingleVarNameAdapter());
+    private static final AbstractParser<?> parser = new UpdateParserSingle(new SingleVarNameAdapter());
     private final static AbstractParser<?> emptyParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
-    private static String requestAdd = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val3\"] } }]}";
-    private static String requestAddMultiple =
+    private static final String requestAdd = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val3\"] } }]}";
+    private static final String requestAddMultiple =
         "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val3\", \"val4\"] } }]}";
-    private static String requestAddSubField =
+    private static final String requestAddSubField =
         "{\"$action\": [{ \"$add\": {\"subItem.subArray\": [\"val3\"] } }]}";
-    private static String requestAddWrongField =
+    private static final String requestAddWrongField =
         "{\"$action\": [{ \"$add\": {\"numberAsString\": [\"val3\"] } }]}";
-    private static String requestAddDuplicate =
+    private static final String requestAddDuplicate =
         "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val2\"] } }]}";
-    private static String requestAddOnNull =
+    private static final String requestAddOnNull =
         "{\"$action\": [{ \"$add\": {\"nullField\": [\"val2\"] } }]}";
 
-    private static String requestInc = "{\"$action\": [{ \"$inc\": {\"numberTen\": 2 } }]}";
-    private static String requestIncSubField = "{\"$action\": [{ \"$inc\": {\"subItem.subInt\": 2 } }]}";
-    private static String requestIncWrongField = "{\"$action\": [{ \"$inc\": {\"numberAsString\": 2 } }]}";
-    private static String requestIncWrongValue = "{\"$action\": [{ \"$inc\": {\"numberTen\": \"b\" } }]}";
-    private static String requestIncOnNull = "{\"$action\": [{ \"$inc\": {\"nullField\": 1 } }]}";
+    private static final String requestInc = "{\"$action\": [{ \"$inc\": {\"numberTen\": 2 } }]}";
+    private static final String requestIncSubField = "{\"$action\": [{ \"$inc\": {\"subItem.subInt\": 2 } }]}";
+    private static final String requestIncWrongField = "{\"$action\": [{ \"$inc\": {\"numberAsString\": 2 } }]}";
+    private static final String requestIncWrongValue = "{\"$action\": [{ \"$inc\": {\"numberTen\": \"b\" } }]}";
+    private static final String requestIncOnNull = "{\"$action\": [{ \"$inc\": {\"nullField\": 1 } }]}";
 
-    private static String requestMin = "{\"$action\": [{ \"$min\": {\"numberTen\": 1 } }]}";
-    private static String requestMinSubField = "{\"$action\": [{ \"$min\": {\"subItem.subInt\": 1 } }]}";
-    private static String requestMinInDb = "{\"$action\": [{ \"$min\": {\"numberTen\": 100 } }]}";
-    private static String requestMinWrongField = "{\"$action\": [{ \"$min\": {\"numberAsString\": 1 } }]}";
-    private static String requestMinWrongValue = "{\"$action\": [{ \"$min\": {\"numberTen\": \"b\" } }]}";
-    private static String requestMinOnNull = "{\"$action\": [{ \"$min\": {\"nullField\": 1 } }]}";
+    private static final String requestMin = "{\"$action\": [{ \"$min\": {\"numberTen\": 1 } }]}";
+    private static final String requestMinSubField = "{\"$action\": [{ \"$min\": {\"subItem.subInt\": 1 } }]}";
+    private static final String requestMinInDb = "{\"$action\": [{ \"$min\": {\"numberTen\": 100 } }]}";
+    private static final String requestMinWrongField = "{\"$action\": [{ \"$min\": {\"numberAsString\": 1 } }]}";
+    private static final String requestMinWrongValue = "{\"$action\": [{ \"$min\": {\"numberTen\": \"b\" } }]}";
+    private static final String requestMinOnNull = "{\"$action\": [{ \"$min\": {\"nullField\": 1 } }]}";
 
-    private static String requestMax = "{\"$action\": [{ \"$max\": {\"numberTen\": 100 } }]}";
-    private static String requestMaxSubField = "{\"$action\": [{ \"$max\": {\"subItem.subInt\": 100 } }]}";
-    private static String requestMaxInDb = "{\"$action\": [{ \"$max\": {\"numberTen\": 1 } }]}";
-    private static String requestMaxWrongField = "{\"$action\": [{ \"$max\": {\"numberAsString\": 1 } }]}";
-    private static String requestMaxWrongValue = "{\"$action\": [{ \"$max\": {\"numberTen\": \"b\" } }]}";
-    private static String requestMaxOnNull = "{\"$action\": [{ \"$max\": {\"nullField\": 1 } }]}";
+    private static final String requestMax = "{\"$action\": [{ \"$max\": {\"numberTen\": 100 } }]}";
+    private static final String requestMaxSubField = "{\"$action\": [{ \"$max\": {\"subItem.subInt\": 100 } }]}";
+    private static final String requestMaxInDb = "{\"$action\": [{ \"$max\": {\"numberTen\": 1 } }]}";
+    private static final String requestMaxWrongField = "{\"$action\": [{ \"$max\": {\"numberAsString\": 1 } }]}";
+    private static final String requestMaxWrongValue = "{\"$action\": [{ \"$max\": {\"numberTen\": \"b\" } }]}";
+    private static final String requestMaxOnNull = "{\"$action\": [{ \"$max\": {\"nullField\": 1 } }]}";
 
-    private static String requestPopSubField = "{\"$action\": [{ \"$pop\": {\"subItem.subArray\": -1 } }]}";
-    private static String requestPopFirst = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": -1 } }]}";
-    private static String requestPopLast = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": 1 } }]}";
-    private static String requestPopMultiple = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": 2 } }]}";
-    private static String requestPopWrongField = "{\"$action\": [{ \"$pop\": {\"numberAsString\": -2 } }]}";
-    private static String requestPopWrongValue = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": \"b\" } }]}";
-    private static String requestPopOnNull = "{\"$action\": [{ \"$pop\": {\"nullField\": 1 } }]}";
+    private static final String requestPopSubField = "{\"$action\": [{ \"$pop\": {\"subItem.subArray\": -1 } }]}";
+    private static final String requestPopFirst = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": -1 } }]}";
+    private static final String requestPopLast = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": 1 } }]}";
+    private static final String requestPopMultiple = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": 2 } }]}";
+    private static final String requestPopWrongField = "{\"$action\": [{ \"$pop\": {\"numberAsString\": -2 } }]}";
+    private static final String requestPopWrongValue = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": \"b\" } }]}";
+    private static final String requestPopOnNull = "{\"$action\": [{ \"$pop\": {\"nullField\": 1 } }]}";
 
-    private static String requestPullSubField =
+    private static final String requestPullSubField =
         "{\"$action\": [{ \"$pull\": {\"subItem.subArray\": [\"subValue\"] } }] }";
-    private static String requestPullFirst =
+    private static final String requestPullFirst =
         "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v1\"] } }] }";
-    private static String requestPullMultiple =
+    private static final String requestPullMultiple =
         "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v1\", \"v3\"] } }]}";
-    private static String requestPullUnknow =
+    private static final String requestPullUnknow =
         "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v6\"] } }] }";
-    private static String requestPullWrongField = "{\"$action\": [{ \"$pull\": {\"numberAsString\": \"2\"} }]}";
-    private static String requestPullOnNull =
+    private static final String requestPullWrongField = "{\"$action\": [{ \"$pull\": {\"numberAsString\": \"2\"} }]}";
+    private static final String requestPullOnNull =
         "{\"$action\": [{ \"$pull\": {\"nullField\": [\"v1\"] } }] }";
 
-    private static String requestPush =
+    private static final String requestPush =
         "{\"$action\": [{ \"$push\": {\"ArrayToPush\": [\"v3\", \"v4\"]}}]}";
-    private static String requestPushSubField =
+    private static final String requestPushSubField =
         "{\"$action\": [{ \"$push\": {\"subItem.subArray\": [\"v3\", \"v4\"]}}]}";
-    private static String requestPushDuplicate =
+    private static final String requestPushDuplicate =
         "{\"$action\": [{ \"$push\": {\"ArrayToPush\": [\"v1\", \"v1\"]}}]}";
-    private static String requestPushWrongField =
+    private static final String requestPushWrongField =
         "{\"$action\": [{ \"$push\": {\"numberAsString\": [\"v1\"]}}]}";
-    private static String requestPushOnNull =
+    private static final String requestPushOnNull =
         "{\"$action\": [{ \"$push\": {\"nullField\": [\"v3\", \"v4\"]}}]}";
 
-    private static String requestRename = "{\"$action\": [{ \"$rename\": {\"oldField\": \"renamedField\" } }]}";
-    private static String requestRenameSubField =
+    private static final String requestRename = "{\"$action\": [{ \"$rename\": {\"oldField\": \"renamedField\" } }]}";
+    private static final String requestRenameSubField =
         "{\"$action\": [{ \"$rename\": {\"subItem.subInt\": \"newSubItem.newName\" } }]}";
-    private static String requestRenameUnknowField = "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
+    private static final String requestRenameUnknowField = "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
 
-    private static String requestSetRegexRemovePrefix = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexRemovePrefix = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"oldField\", " +
         "\"$controlPattern\": \"value\", " +
         "\"$updatePattern\": \"\" } } ]}";
 
-    private static String requestSetRegexReplaceAll = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexReplaceAll = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"oldValue\", " +
         "\"$controlPattern\": \"^.*$\", " +
         "\"$updatePattern\": \"newValue\" } } ]}";
 
-    private static String requestSetRegexStringArray = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexStringArray = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"arrayRegex\", " +
         "\"$controlPattern\": \"V\", " +
         "\"$updatePattern\": \"W\" } } ]}";
 
-    private static String requestSetRegexExpand = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexExpand = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"expandField\", " +
         "\"$controlPattern\": \"X\", " +
         "\"$updatePattern\": \"XX\" } } ]}";
 
-    private static String requestSetRegexNonExitingField = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexNonExitingField = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"subItem.NonExistingField\", " +
         "\"$controlPattern\": \"^.*$\", " +
         "\"$updatePattern\": \"XX\" } } ]}";
 
-    private static String requestSetRegexSubField = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexSubField = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"subItem.subArray\", " +
         "\"$controlPattern\": \"subValue\", " +
         "\"$updatePattern\": \"newSubValue\" } } ]}";
 
-    private static String requestSetRegexNullField = "{\"$action\": [{\"$setregex\": { " +
+    private static final String requestSetRegexNullField = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"nullField\", " +
         "\"$controlPattern\": \"oldValue\", " +
         "\"$updatePattern\": \"newValue\" } } ]}";
 
     //private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
-    private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": { \"subItem\" : \"newValue\"} } }]}";
-    private static String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
+    private static final String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": { \"subItem\" : \"newValue\"} } }]}";
+    private static final String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
 
-    private static String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";
-    private static String requestUnsetSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.subInt\" ] }]}";
-    private static String requestNonExistingSubSubField =
+    private static final String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";
+    private static final String requestUnsetSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.subInt\" ] }]}";
+    private static final String requestNonExistingSubSubField =
         "{\"$action\": [{ \"$unset\": [ \"subItem.nonExisting.NonExistingSubField\" ] }]}";
 
     @Before
@@ -243,17 +244,13 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestAddSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
+        assertNotNull(array);
         assertEquals("Value must be added on new array", 2, array.size());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestAddWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestAddWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -269,36 +266,23 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestIncSubField));
         result = mDIM.getUpdateJson(parser);
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
+        assertNotNull(response);
         assertTrue(response.isNumber());
         assertEquals("Should add action value (2) to original value (42)", 44, response.asLong());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestIncWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestIncWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestIncOnNull));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestIncWrongValue));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestIncOnNull));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
+
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestIncWrongValue));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -314,6 +298,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestMinSubField));
         result = mDIM.getUpdateJson(parser);
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
+        assertNotNull(response);
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 1, response.asLong());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
@@ -326,32 +311,17 @@ public class MongoDbInMemoryTest {
         assertEquals("Original value should be taken", 10, response.asLong());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMinWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMinWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMinOnNull));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMinOnNull));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMinWrongValue));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMinWrongValue));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -367,6 +337,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestMaxSubField));
         result = mDIM.getUpdateJson(parser);
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
+        assertNotNull(response);
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 100, response.asLong());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
@@ -379,32 +350,17 @@ public class MongoDbInMemoryTest {
         assertEquals("Original value should be taken", 10, response.asLong());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMaxWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMaxWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMaxOnNull));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMaxOnNull));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestMaxWrongValue));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestMaxWrongValue));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -420,6 +376,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestPopSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
+        assertNotNull(array);
         assertEquals("Should pop a value", 0, array.size());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
@@ -439,32 +396,17 @@ public class MongoDbInMemoryTest {
         assertEquals("Only first element should remains", "val1", array.get(0).asText());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPop");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestPopWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestPopWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestPopOnNull));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestPopOnNull));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestPopWrongValue));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because action value is not a number");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestPopWrongValue));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -480,6 +422,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestPullSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
+        assertNotNull(array);
         assertEquals("Should pull first value", 0, array.size());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
@@ -505,14 +448,9 @@ public class MongoDbInMemoryTest {
         assertEquals("Shouldn't pop a value", 0, array.size());
         assertThat(mDIM.getUpdatedFields()).isEmpty();
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestPullWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestPullWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -527,6 +465,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestPushSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
+        assertNotNull(array);
         assertEquals("Value must be added on new array", 3, array.size());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
@@ -544,14 +483,9 @@ public class MongoDbInMemoryTest {
         assertEquals("Should push values in new array", 2, array.size());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("nullField");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestPushWrongField));
-            result = mDIM.getUpdateJson(parser);
-            fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestPushWrongField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -571,13 +505,9 @@ public class MongoDbInMemoryTest {
         assertEquals("New field should have oldValue", 42, newSubItem.get("newName").asInt());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt", "newSubItem.newName");
 
-        try {
-            mDIM.resetUpdatedAU();
-            parser.parse(JsonHandler.getFromString(requestRenameUnknowField));
-            result = mDIM.getUpdateJson(parser);
-        } catch (final InvalidParseOperationException e) {
-            // Normal Path of the unit test
-        }
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestRenameUnknowField));
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -626,7 +556,7 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestSet));
 
         JsonNode resultAfterUpdate = mDIM.getUpdateJson(parser);
-        assertNotEquals("Json should be updated", "newValue", resultAfterUpdate.get("oldValue"));
+        assertNotEquals("Json should be updated", "newValue", resultAfterUpdate.get("oldValue").asText());
         assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("oldValue");
 
         mDIM.resetUpdatedAU();

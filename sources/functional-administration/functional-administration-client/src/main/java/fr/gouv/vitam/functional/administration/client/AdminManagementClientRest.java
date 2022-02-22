@@ -75,10 +75,10 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -1103,7 +1103,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withJson();
 
         try (Response response = make(request)) {
-            check(response);
+            checkCreation(response);
             return fromStatusCode(response.getStatus());
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1500,8 +1500,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             RequestResponse<PreservationScenarioModel> requestResponseOK = findPreservation(queryDsl);
 
-            if (((RequestResponseOK) requestResponseOK).getResults() == null ||
-                ((RequestResponseOK) requestResponseOK).isEmpty()) {
+            if (((RequestResponseOK<PreservationScenarioModel>) requestResponseOK).getResults() == null ||
+                ((RequestResponseOK<PreservationScenarioModel>) requestResponseOK).isEmpty()) {
                 throw new ReferentialNotFoundException(String.format("Preservation Scenario not found %s", id));
             }
             return requestResponseOK;
@@ -1559,6 +1559,23 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throw new VitamClientInternalException(
             String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
                 fromStatusCode(response.getStatus()).getReasonPhrase()));
+
+    }
+
+    private void checkCreation(Response response) throws VitamClientInternalException, AdminManagementClientBadRequestException {
+        final Status status = fromStatusCode(response.getStatus());
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
+        if (status == Status.BAD_REQUEST) {
+            String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                : Status.BAD_REQUEST.getReasonPhrase();
+            throw new AdminManagementClientBadRequestException(reason);
+        }
+        throw new VitamClientInternalException(
+            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()));
+
     }
 
     private void checkWithSpecificException(Response response)

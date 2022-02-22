@@ -606,21 +606,21 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         for (JsonNode doc : registerSummaryDocs) {
             if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
-                assertEquals("2000.0", doc.get("TotalObjectGroups").get("ingested").asText());
-                assertEquals("0.0", doc.get("TotalObjectGroups").get("deleted").asText());
-                assertEquals("2000.0", doc.get("TotalObjectGroups").get("remained").asText());
+                assertEquals(2000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(2000, doc.get("TotalObjectGroups").get("remained").asInt());
 
-                assertEquals("19998.0", doc.get("ObjectSize").get("ingested").asText());
-                assertEquals("0.0", doc.get("ObjectSize").get("deleted").asText());
-                assertEquals("19998.0", doc.get("ObjectSize").get("remained").asText());
+                assertEquals(19998, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(19998, doc.get("ObjectSize").get("remained").asInt());
             } else if (doc.get("OriginatingAgency").asText().equals("OG_2")) {
-                assertEquals("1000.0", doc.get("TotalObjectGroups").get("ingested").asText());
-                assertEquals("0.0", doc.get("TotalObjectGroups").get("deleted").asText());
-                assertEquals("1000.0", doc.get("TotalObjectGroups").get("remained").asText());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("remained").asInt());
 
-                assertEquals("9999.0", doc.get("ObjectSize").get("ingested").asText());
-                assertEquals("0.0", doc.get("ObjectSize").get("deleted").asText());
-                assertEquals("9999.0", doc.get("ObjectSize").get("remained").asText());
+                assertEquals(9999, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
             }
         }
 
@@ -685,21 +685,21 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             assertEquals(0, doc.get("_v").asInt());
 
             if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
-                assertEquals("2000", doc.get("TotalObjectGroups").get("ingested").asText());
-                assertEquals("0", doc.get("TotalObjectGroups").get("deleted").asText());
-                assertEquals("2000", doc.get("TotalObjectGroups").get("remained").asText());
+                assertEquals(2000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(2000, doc.get("TotalObjectGroups").get("remained").asInt());
 
-                assertEquals("19998", doc.get("ObjectSize").get("ingested").asText());
-                assertEquals("0", doc.get("ObjectSize").get("deleted").asText());
-                assertEquals("19998", doc.get("ObjectSize").get("remained").asText());
+                assertEquals(19998, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(19998, doc.get("ObjectSize").get("remained").asInt());
             } else if (doc.get("OriginatingAgency").asText().equals("OG_2")) {
-                assertEquals("1000", doc.get("TotalObjectGroups").get("ingested").asText());
-                assertEquals("0", doc.get("TotalObjectGroups").get("deleted").asText());
-                assertEquals("1000", doc.get("TotalObjectGroups").get("remained").asText());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("remained").asInt());
 
-                assertEquals("9999", doc.get("ObjectSize").get("ingested").asText());
-                assertEquals("0", doc.get("ObjectSize").get("deleted").asText());
-                assertEquals("9999", doc.get("ObjectSize").get("remained").asText());
+                assertEquals(9999, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
             }
         }
     }
@@ -778,14 +778,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private void checkSymbolicRegisterResult(ArrayNode docs) {
         for (JsonNode doc : docs) {
             if (doc.get("OriginatingAgency").asText().equals("OA1")) {
-                assertThat(doc.get("_tenant").asText().equals(String.valueOf(TENANT_1)));
-                assertThat(doc.get("ArchiveUnit").asText().equals(String.valueOf(4)));
+                assertEquals(doc.get("_tenant").asInt(), TENANT_1);
+                assertEquals(doc.get("ArchiveUnit").asInt(), 4);
             } else if (doc.get("OriginatingAgency").asText().equals("OA2")) {
-                assertThat(doc.get("_tenant").asText().equals(String.valueOf(TENANT_1)));
-                assertThat(doc.get("ArchiveUnit").asText().equals(String.valueOf(2)));
+                assertEquals(doc.get("_tenant").asInt(), TENANT_1);
+                assertEquals(doc.get("ArchiveUnit").asInt(), 2);
             } else {
-                assertThat(doc.get("_tenant").asText().equals(String.valueOf(TENANT_1)));
-                assertThat(doc.get("ArchiveUnit").asText().equals(String.valueOf(2)));
+                assertEquals(doc.get("_tenant").asInt(), TENANT_1);
+                assertEquals(doc.get("ArchiveUnit").asInt(), 2);
             }
         }
     }
@@ -1017,8 +1017,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 });
             assertThatThrownBy(() -> client.importSecurityProfiles(securityProfileModelList))
                 .isInstanceOf(AdminManagementClientServerException.class)
-                .hasMessageContaining("Internal Server Error")
-                .toString().contains("Au moins une permission n'existe pas.");
+                .hasMessageContaining("SecurityProfile service error")
+                .hasMessageContaining("Au moins une permission n'existe pas.");
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
@@ -1145,7 +1145,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             assertThatThrownBy(() -> client.updateSecurityProfile(SECURITY_PROFILE_IDENTIFIER_1, queryDslForUpdate))
                 .isInstanceOf(AdminManagementClientBadRequestException.class)
                 .hasMessageContaining("Update security profile error")
-                .toString().contains("Au moins une permission n'existe pas.");
+                .hasMessageContaining("Au moins une permission n'existe pas.");
         }
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();

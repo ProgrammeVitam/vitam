@@ -2966,19 +2966,19 @@ public class ProcessingIT extends VitamRuleRunner {
         Document accessRegDoc = accessReg.first();
         assertNotNull(accessRegDoc);
         // 2 units are attached - 1 was previously added
-        assertEquals("1.0",
-            accessRegDoc.get("TotalUnits", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(1,
+            accessRegDoc.get("TotalUnits", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
-        assertEquals("1.0",
-            accessRegDoc.get("TotalObjects", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(1,
+            accessRegDoc.get("TotalObjects", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 1 Got is attached - 1 was previously added
-        assertEquals("1.0",
-            accessRegDoc.get("TotalObjectGroups", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(1,
+            accessRegDoc.get("TotalObjectGroups", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 285804 octets is attached - 4109 was previously added
-        assertEquals("4109.0",
-            accessRegDoc.get("ObjectSize", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(4109,
+            accessRegDoc.get("ObjectSize", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 3. Add object to an existing GOT
         containerName = createOperationContainer();
@@ -3045,19 +3045,19 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(accessRegDoc);
 
         // 2 units are attached - 1 was previously added
-        assertEquals("2.0",
-            accessRegDoc.get("TotalUnits",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(2,
+            accessRegDoc.get("TotalUnits",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
-        assertEquals("2.0",
-            accessRegDoc.get("TotalObjects",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(2,
+            accessRegDoc.get("TotalObjects",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 1 Got is attached - 1 was previously added
-        assertEquals("1.0",
-            accessRegDoc.get("TotalObjectGroups",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(1,
+            accessRegDoc.get("TotalObjectGroups",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 285804 octets is attached - 4109 was previously added
-        assertEquals("14077.0",
-            accessRegDoc.get("ObjectSize",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals(14077,
+            accessRegDoc.get("ObjectSize",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
 
         // Check global accession register count
