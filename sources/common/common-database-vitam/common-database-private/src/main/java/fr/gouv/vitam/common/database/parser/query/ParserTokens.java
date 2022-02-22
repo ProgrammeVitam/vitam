@@ -202,9 +202,9 @@ public class ParserTokens extends BuilderToken {
         COMPUTEDINHERITEDRULES("computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("validComputedInheritedRules"),
 
-        APPROXIMATECREATIONDATE("approximate_creation_date"),
+        APPROXIMATE_CREATION_DATE("approximate_creation_date"),
 
-        APPROXIMATEUPDATEDATE("approximate_update_date"),
+        APPROXIMATE_UPDATE_DATE("approximate_update_date"),
         /**
          * TRANSFER
          */
