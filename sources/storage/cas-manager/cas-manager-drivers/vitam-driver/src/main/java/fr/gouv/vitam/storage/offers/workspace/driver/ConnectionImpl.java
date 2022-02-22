@@ -53,6 +53,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServerErrorException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
@@ -150,6 +151,7 @@ public class ConnectionImpl extends AbstractConnection {
             case CONFLICT:
                 throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
             case INTERNAL_SERVER_ERROR:
+                throw new StorageDriverServerErrorException(getDriverName(), status.getReasonPhrase());
             default:
                 throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
         }

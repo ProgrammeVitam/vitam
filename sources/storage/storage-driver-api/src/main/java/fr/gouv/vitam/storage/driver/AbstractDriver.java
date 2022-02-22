@@ -88,7 +88,7 @@ public abstract class AbstractDriver implements Driver {
      * @param parameters
      * @return true if added
      */
-    protected abstract VitamClientFactoryInterface<AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters);
+    protected abstract VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters);
     
     @Override
     public final boolean removeOffer(String offer) {

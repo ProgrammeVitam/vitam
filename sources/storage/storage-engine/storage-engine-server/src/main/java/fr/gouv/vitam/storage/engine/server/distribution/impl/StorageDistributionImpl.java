@@ -67,6 +67,8 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServerErrorException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
@@ -168,7 +170,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public static final String NORMAL_ORIGIN = "normal";
     public static final String COPY_OBJECT_ORIGIN = "copy_object";
 
-    private final RetryableParameters retryableParameters = new RetryableParameters(3, 5, 10, 5, SECONDS);
+    private final RetryableParameters retryableParameters = new RetryableParameters(3, 1, 5, 3, SECONDS);
 
     /**
      * Global pool thread
@@ -208,14 +210,13 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String ATTEMPT = " attempt ";
     private static final String OFFERS_LIST_IS_MANDATORY = "Offers List is mandatory";
     public static final String DIGEST = "digest";
-    private static final RetryableParameters PARAMETERS = new RetryableParameters(3, 1, 5, 3, SECONDS);
 
     private final String urlWorkspace;
     private final TransfertTimeoutHelper transfertTimeoutHelper;
 
     private final DigestType digestType;
 
-    private StorageLog storageLogService;
+    private final StorageLog storageLogService;
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final BulkStorageDistribution bulkStorageDistribution;
@@ -818,7 +819,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, dataCategoty,
                 res != null ? (StoragePutResult) res.getResponse() : null,
-                null, offerId, res != null ? res.getStatus() : status, requester, attempt);
+                offerId, res != null ? res.getStatus() : status, requester, attempt);
         } else {
             updateStorageLogbookParameters(parameters, offerId,
                 res != null ? res.getStatus() : status, attempt);
@@ -953,25 +954,23 @@ public class StorageDistributionImpl implements StorageDistribution {
      * Storage logbook entry for ONE offer
      *
      * @param objectGuid the object Guid
-     * @param dataCategoty
+     * @param dataCategory category
      * @param putObjectResult the response
-     * @param messageDigest the computed digest
      * @param offerId the offerId
      * @param objectStored the operation status
      * @return storage logbook parameters
      */
-    private StorageLogbookParameters getParameters(String objectGuid, String dataCategoty,
+    private StorageLogbookParameters getParameters(String objectGuid, String dataCategory,
         StoragePutResult putObjectResult,
-        Digest messageDigest, String offerId, Status objectStored, String requester, int attempt) {
+        String offerId, Status objectStored, String requester, int attempt) {
         final String objectIdentifier = objectGuid != null ? objectGuid : "objectRequest NA";
-        final String messageDig = messageDigest != null ? messageDigest.digestHex()
-            : (putObjectResult != null ? putObjectResult.getDigestHashBase16() : "messageDigest NA");
+        final String messageDig = putObjectResult != null ? putObjectResult.getDigestHashBase16() : "messageDigest NA";
         final String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
         boolean error = objectStored == Status.INTERNAL_SERVER_ERROR;
         final StorageLogbookOutcome outcome = error ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
         return StorageLogbookParameters
-            .createLogParameters(objectIdentifier, dataCategoty, messageDig, digestType.getName(), size,
+            .createLogParameters(objectIdentifier, dataCategory, messageDig, digestType.getName(), size,
                 getAttemptLog(offerId, attempt, error), requester, outcome);
     }
 
@@ -1342,14 +1341,16 @@ public class StorageDistributionImpl implements StorageDistribution {
         throws StorageException {
 
         StorageGetResult result;
-        boolean offerOkNoBinary = false;
 
-        // FIXME : #9038 : Retry on first offer failure
         for (final StorageOffer storageOffer : storageOffers) {
             final Driver driver = retrieveDriverInternal(storageOffer.getId());
             try (Connection connection = driver.connect(storageOffer.getId())) {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
-                result = connection.getObject(request);
+                RetryableOnException<StorageGetResult, StorageDriverException> retryable =
+                    new RetryableOnException<>(retryableParameters,
+                        exception -> exception instanceof StorageDriverServiceUnavailableException ||
+                            exception instanceof StorageDriverServerErrorException);
+                result = retryable.exec(() -> connection.getObject(request));
 
                 Response response = result.getObject();
                 if (response != null) {
@@ -1357,8 +1358,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                         type, response);
                 }
             } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
-                LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY, exc);
-                offerOkNoBinary = true;
+                throw new StorageNotFoundException(
+                    VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId), exc);
             } catch (final StorageDriverUnavailableDataFromAsyncOfferException exc) {
                 throw new StorageUnavailableDataFromAsyncOfferException(
                     "Access not acceptable for object '" + type.getFolder()
@@ -1367,13 +1368,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY, exc);
             }
         }
-        if (offerOkNoBinary) {
-            throw new StorageNotFoundException(
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
-        } else {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
-            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
-        }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
     }
 
     @Override
@@ -1524,7 +1520,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             try {
                 Retryable<Void, StorageTechnicalException> retryable =
-                    new RetryableOnException<>(PARAMETERS, e -> e instanceof StorageTechnicalException);
+                    new RetryableOnException<>(retryableParameters, e -> e instanceof StorageTechnicalException);
                 retryable.execute(() -> deleteObject(context.getObjectId(), context.getTenantId(), driver, offer,
                     context.getCategory()));
 

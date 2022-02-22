@@ -539,14 +539,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param headers http header
      * @param objectId the id of the object
      * @return the stream
-     * @throws IOException throws an IO Exception
      */
     @Path("/objects/{id_object}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        AccessLogInfoModel logInfo)
-        throws IOException {
+        AccessLogInfoModel logInfo) {
         return getObject(headers, objectId, DataCategory.OBJECT, logInfo);
     }
 
