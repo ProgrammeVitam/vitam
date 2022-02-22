@@ -337,6 +337,101 @@
         }
       }
     },
+    "Agent": {
+      "properties": {
+        "Activity": {
+          "type": "text"
+        },
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Mandate": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
+        }
+      }
+    },
     "Writer": {
       "properties": {
         "BirthPlace": {

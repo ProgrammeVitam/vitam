@@ -3261,9 +3261,23 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(mandates.get(0)).isEqualTo("Mandataire_1");
         assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
 
+        //Agent
+        List<Document> agents = unitToAssert.getList("Agent",Document.class);
+        assertThat(agents).isNotNull().isNotEmpty();
+        Document agent = agents.get(0);
+
+        final List<String> functionsAgent = agent.getList("Function",String.class);
+        final List<String> roles = agent.getList("Role",String.class);
+        assertThat(functionsAgent).isNotNull().isNotEmpty();
+        assertThat(functionsAgent.get(0)).isEqualTo("Ajout SEDA 2.2");
+
+        assertThat(roles).isNotNull().isNotEmpty();
+        assertThat(roles.get(0)).isEqualTo("Ajout SEDA 2.2");
+
         //transmitter
         List<Document> transmitters = unitToAssert.getList("Transmitter", Document.class);
         assertThat(senders).isNotNull().isNotEmpty();
+
 
         Document transmitter = transmitters.get(0);
         final List<String> functions = transmitter.getList("Function", String.class);

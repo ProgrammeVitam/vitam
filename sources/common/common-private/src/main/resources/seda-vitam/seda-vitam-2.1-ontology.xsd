@@ -781,9 +781,13 @@
    
     <!-- Pour ajouter des extensions d'agents -->
     <xsd:group name="AgentGroup">
+      <!--Redefined by vitam-->
         <xsd:sequence>
-            <!-- Ajout d'un abstract à AgentType -->
-            <xsd:element ref="AgentAbstract" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Agent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Agent générique.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:group>
     <!-- Agent description -->

@@ -384,6 +384,186 @@
     "cardinality": "many"
   },
   {
+    "path": "Agent",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Activity",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.BirthDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.Address",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.City",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.Country",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.Geogname",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.PostalCode",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.BirthPlace.Region",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.Corpname",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.Address",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.City",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.Country",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.Geogname",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.PostalCode",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.DeathPlace.Region",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.FirstName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.FullName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.Function",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Gender",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.GivenName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Agent.Identifier",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Mandate",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Nationality",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Position",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Agent.Role",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "_validComputedInheritedRules",
     "type": "bool",
     "indexed": true,

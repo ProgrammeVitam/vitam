@@ -88,6 +88,7 @@ public class DescriptiveMetadataMapper {
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());
 
         descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
+        descriptiveMetadataModel.setAgent(metadataContentType.getAgent());
 
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
         descriptiveMetadataModel.setCreatedDate(

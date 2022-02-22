@@ -1,0 +1,373 @@
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:pr="info:lc/xmlns/premis-v2" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Desktop/ANCIEN_ORDI/0_Dossier/Formations_Ateliers/SEDA_formation_20190829/Etp2_SEDA_2-1_definitif/seda-2.1-main.xsd" xml:id="ID1">
+    <Comment>SIP SEDA 2.1</Comment>
+    <Date>2016-10-18T14:52:27</Date>
+    <MessageIdentifier>SIP SEDA 2.1</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <!--  SEDA 2.1  -->
+        <AcquisitionInformationCodeListVersion>AcquisitionInformationCodeListVersion0</AcquisitionInformationCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <!--  SEDA 2.1  -->
+        <DataObjectGroup id="ID6">
+            <BinaryDataObject id="ID7">
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+            <BinaryDataObject id="ID11">
+                <DataObjectVersion>Dissemination</DataObjectVersion>
+                <Uri>Content/IckGHIhYvJmy2WwNddEBmljXFol4Zd.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>IckGHIhYvJmy2WwNddEBmljXFol4Zd.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+            <PhysicalDataObject id="IDPHY2">
+                <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+                <PhysicalId>1500W03</PhysicalId>
+                <PhysicalDimensions>
+                    <Depth unit="CMT">4</Depth>
+                </PhysicalDimensions>
+            </PhysicalDataObject>
+            <!--  SEDA 2.1  -->
+            <LogBook>
+                <Event>
+                    <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                </Event>
+                <Event>
+                    <EventIdentifier>EventIdentifier_ObjectGroup0</EventIdentifier>
+                    <EventTypeCode>EventTypeCode_ObjectGroup0</EventTypeCode>
+                    <EventType>EventType_ObjectGroup0</EventType>
+                    <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                    <EventDetail>EventDetail_ObjectGroup0</EventDetail>
+                    <Outcome>Outcome0</Outcome>
+                    <OutcomeDetail>OutcomeDetail_ObjectGroup0</OutcomeDetail>
+                    <OutcomeDetailMessage>OutcomeDetailMessage_ObjectGroup0</OutcomeDetailMessage>
+                    <EventDetailData>EventDetailData_ObjectGroup0</EventDetailData>
+                    <DataObjectReferenceId>ID11</DataObjectReferenceId>
+                </Event>
+            </LogBook>
+        </DataObjectGroup>
+        <!--  SEDA 2.1 : mélange à la fois de la déclaration en 2.0 (tous les binary à la racine) et en 2.1 (les binary dans un DataObjectGroup)  -->
+        <BinaryDataObject id="ID18">
+            <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+            <DataObjectVersion>Thumbnail</DataObjectVersion>
+            <Uri>Content/JpddOUNiM4SgeBHfZy6fGepG9dV7ca.odt</Uri>
+            <MessageDigest algorithm="SHA-512">58e37fa092797145f2a0d063ebf8699b9725ab9955ebc2aa503539c3d7c39ab4f867ffb02595782195f2f94ac23017f9a78c1b10c2fc37287227a7673e2b8c28</MessageDigest>
+            <Size>68438</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>JpddOUNiM4SgeBHfZy6fGepG9dV7ca.odt</Filename>
+                <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DataObjectGroup id="ID30">
+            <BinaryDataObject id="ID17">
+                <DataObjectGroupId>ID16</DataObjectGroupId>
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Management>
+                    <AppraisalRule>
+                        <FinalAction>Keep</FinalAction>
+                    </AppraisalRule>
+                    <!--  SEDA 2.1  -->
+                    <LogBook>
+                        <Event>
+                            <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                        </Event>
+                        <Event>
+                            <EventIdentifier>EventIdentifier_Management0</EventIdentifier>
+                            <EventTypeCode>EventTypeCode_Management0</EventTypeCode>
+                            <EventType>EventType_Management0</EventType>
+                            <EventDateTime>2015-06-03T15:28:00</EventDateTime>
+                            <EventDetail>EventDetail_Management0</EventDetail>
+                            <Outcome>Outcome0</Outcome>
+                            <OutcomeDetail>OutcomeDetail_Management0</OutcomeDetail>
+                            <OutcomeDetailMessage>OutcomeDetailMessage_Management0</OutcomeDetailMessage>
+                            <EventDetailData>EventDetailData_Management0</EventDetailData>
+                            <!--  interdit dans la version finale  -->
+                            <!-- DataObjectReference>
+                                                            <DataObjectReferenceId>ID11</DataObjectReferenceId>
+                                                        </DataObjectReference -->
+                        </Event>
+                    </LogBook>
+                    <!--  SEDA 2.2  -->
+                    <HoldRule>
+                        <Rule>HOL-00002</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <HoldEndDate>2010-01-01</HoldEndDate>
+                        <HoldOwner>Owner</HoldOwner>
+                        <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                        <HoldReason>Reason</HoldReason>
+                        <PreventRearrangement>false</PreventRearrangement>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>monSIP</Title>
+                    <Description>Sed placerat sapien a arcu venenatis ultrices. Sed a eleifend odio, ac tincidunt sem. Fusce luctus in augue nec volutpat. Integer libero elit, aliquet nec dapibus at, dictum feugiat sapien. Quisque feugiat purus id sapien facilisis, nec sodales diam semper. Mauris pretium luctus malesuada</Description>
+                    <Agent>
+                        <!--  SEDA 2.2  -->
+                        <Function>Ajout SEDA 2.2</Function>
+                        <Role>Ajout SEDA 2.2</Role>
+                    </Agent>
+                    <!--  SEDA 2.1 (presque tout le content)  -->
+                    <Writer>
+                        <Nationality>Sealand</Nationality>
+                    </Writer>
+                    <Addressee>
+                        <FirstName>Jules</FirstName>
+                        <FullName>Iulius Caesar Divus</FullName>
+                        <Nationality>Italien</Nationality>
+                    </Addressee>
+                    <Addressee>
+                        <GivenName>Alexandre</GivenName>
+                        <BirthPlace>
+                            <City>Pella</City>
+                            <Country>Macédoine</Country>
+                        </BirthPlace>
+                    </Addressee>
+                    <Transmitter>
+                        <Function>Service de transmission</Function>
+                    </Transmitter>
+                    <Sender>
+                        <GivenName>Alexander</GivenName>
+                        <BirthDate>1970-06-03</BirthDate>
+                        <Position>CEO</Position>
+                        <Mandate>Mandataire_1</Mandate>
+                        <Mandate>Mandataire_2</Mandate>
+                    </Sender>
+                    <RelatedObjectReference>
+                        <Replaces>
+                            <ExternalReference>ID_Fictif</ExternalReference>
+                        </Replaces>
+                    </RelatedObjectReference>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                    <Event>
+                        <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                    </Event>
+                    <Event>
+                        <EventIdentifier>EventIdentifier_content0</EventIdentifier>
+                        <EventTypeCode>EventTypeCode_content0</EventTypeCode>
+                        <EventType>EventType_content0</EventType>
+                        <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                        <EventDetail>EventDetail_content0</EventDetail>
+                        <Outcome>Outcome0</Outcome>
+                        <OutcomeDetail>OutcomeDetail_content0</OutcomeDetail>
+                        <OutcomeDetailMessage>OutcomeDetailMessage_content0</OutcomeDetailMessage>
+                        <EventDetailData>EventDetailData_content0</EventDetailData>
+                    </Event>
+                    <Signature>
+                        <Signer>
+                            <BirthName>Henry</BirthName>
+                            <SigningTime>2016-06-03T15:28:00</SigningTime>
+                        </Signer>
+                        <Signer>
+                            <Nationality>Monaco</Nationality>
+                            <SigningTime>2016-06-03T15:28:00</SigningTime>
+                        </Signer>
+                        <Validator>
+                            <FirstName>ValidatorFirstName</FirstName>
+                            <FullName>ValidatorFullName</FullName>
+                            <ValidationTime>2016-06-03T15:28:00</ValidationTime>
+                        </Validator>
+                        <ReferencedObject>
+                            <SignedObjectId>ID17</SignedObjectId>
+                            <SignedObjectDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</SignedObjectDigest>
+                        </ReferencedObject>
+                    </Signature>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID15">
+                    <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>dossier1</Title>
+                    <OriginatingSystemId>OriginatingSystemId_02</OriginatingSystemId>
+                    <Description>Sed pellentesque augue tellus, at ultricies ex viverra ut. Vivamus sed orci leo. Phasellus gravida ex quis velit pretium, at hendrerit urna elementum. Nam placerat leo in magna mattis consectetur. Fusce convallis efficitur imperdiet. Phasellus ac interdum dui. Nunc ullamcorper placerat metus</Description>
+                    <Agent>
+                        <Corpname>corpname</Corpname>
+                        <Identifier>ID1</Identifier>
+                        <Function>fonction</Function>
+                        <Function>fonction</Function>
+                        <Activity>activity</Activity>
+                        <Activity>activity</Activity>
+                        <Position>position</Position>
+                        <Position>position</Position>
+                        <Role>role</Role>
+                        <Mandate>mandate</Mandate>
+                        <Mandate>mandate</Mandate>
+                    </Agent>
+                    <Agent>
+                        <FirstName>John</FirstName>
+                        <BirthName>Doe</BirthName>
+                        <FullName>John Doe dit Martin</FullName>
+                        <GivenName>Martin</GivenName>
+                        <Gender>Male</Gender>
+                        <BirthDate>2000-01-01</BirthDate>
+                        <BirthPlace>
+                            <Geogname>Geogname</Geogname>
+                            <Address>123 my Street</Address>
+                            <PostalCode>CD255</PostalCode>
+                            <City>Toronto</City>
+                            <Region>Ontario</Region>
+                            <Country>Canada</Country>
+                        </BirthPlace>
+                        <DeathDate>2000-01-01</DeathDate>
+                        <DeathPlace>
+                            <Geogname>Geogname</Geogname>
+                            <Address>123 my Street</Address>
+                            <PostalCode>CD255</PostalCode>
+                            <City>Toronto</City>
+                            <Region>Ontario</Region>
+                            <Country>Canada</Country>
+                        </DeathPlace>
+                        <Nationality>Canadian</Nationality>
+                        <Identifier>ABC</Identifier>
+                        <Identifier>DEF</Identifier>
+                    </Agent>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID13">
+                    <ArchiveUnitRefId>ID12</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID8">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>BAD0431E2C5E80E5BD42D547A3ED596444446.odt</Title>
+                    <Description>Integer lectus elit, maximus eu gravida et, sagittis eu est. Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros. Aenean efficitur felis massa, id viverra est pharetra nec. Aenean eros libero, efficitur quis auctor ut, ornare eu risus</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>BAD0431E2C5E80E5BD42D547zzzzzA3ED5966.odt</Title>
+                    <Description>Aliquam pharetra diam nec ex sodales varius. Nulla quam lacus, viverra in vulputate vel, lobortis aliquam nulla. Mauris laoreet sem vel accumsan placerat. In ultricies risus id leo viverra, sed tempor elit elementum. Maecenas ac odio et nunc aliquam volutpat</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID14">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>dossier2</Title>
+                    <Description>Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum</Description>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID30</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <!--  SEDA 2.1  -->
+            <AcquisitionInformation>AcquisitionInformation0</AcquisitionInformation>
+            <LegalStatus>Private Archive</LegalStatus>
+            <!--  SEDA 2.1  -->
+            <OriginatingAgencyIdentifier>FRAN_NP_009913</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
+            <StorageRule>
+                <FinalAction>Transfer</FinalAction>
+            </StorageRule>
+            <ClassificationRule>
+                <ClassificationAudience>ClassificationAudience0</ClassificationAudience>
+                <ClassificationLevel>Secret Défense</ClassificationLevel>
+                <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+            </ClassificationRule>
+            <!--  SEDA 2.1  -->
+            <LogBook>
+                <Event>
+                    <EventDateTime>2016-06-03T15:28:00</EventDateTime>
+                </Event>
+                <Event>
+                    <EventIdentifier>EventIdentifier_ManagementMetadata0</EventIdentifier>
+                    <EventTypeCode>EventTypeCode_ManagementMetadata0</EventTypeCode>
+                    <EventType>EventType_ManagementMetadata0</EventType>
+                    <EventDateTime>2015-06-03T15:28:00</EventDateTime>
+                    <EventDetail>EventDetail_ManagementMetadata0</EventDetail>
+                    <Outcome>Outcome0</Outcome>
+                    <OutcomeDetail>OutcomeDetail_ManagementMetadata0</OutcomeDetail>
+                    <OutcomeDetailMessage>OutcomeDetailMessage_ManagementMetadata0</OutcomeDetailMessage>
+                    <EventDetailData>EventDetailData_ManagementMetadata0</EventDetailData>
+                    <!--  interdit dans la version finale  -->
+                    <!-- DataObjectReference>
+                                            <DataObjectReferenceId>ID11</DataObjectReferenceId>
+                                        </DataObjectReference -->
+                </Event>
+            </LogBook>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
