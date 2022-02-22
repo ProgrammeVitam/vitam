@@ -171,7 +171,6 @@
     - "antisamy-esapi.xml"
     - "jetty-config.xml"
     - "vitam.conf"
-    - "vitam.metrics.conf"
   when: ( item != "logbook-client.conf" ) or
         ( item == "logbook-client.conf" and vitam_struct.vitam_component != "ihm-demo" )
   tags:
@@ -299,8 +298,6 @@
     - restart service
     - reload consul configuration
 
-- include_tasks: remove_metrics.yml
-  when: metrics_enabled |lower != "true"
 
 - import_tasks: consul.yml
 

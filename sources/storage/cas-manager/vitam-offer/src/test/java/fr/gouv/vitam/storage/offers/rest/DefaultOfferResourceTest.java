@@ -101,7 +101,6 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.elasticsearch.common.collect.Tuple.tuple;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

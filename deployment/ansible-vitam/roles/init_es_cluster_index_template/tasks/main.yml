@@ -36,7 +36,6 @@
     status_code: 200,201
     method: GET
     url: "{{ composant |client_url }}_cluster/health"
-    body_format: "json"
   register: result
   until: result.json.status == "green"
   retries: "{{ vitam_defaults.services.api_call_timeout }}"

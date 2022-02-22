@@ -80,10 +80,9 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.cluster.metadata.AliasMetadata;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.core.TimeValue;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -95,6 +94,7 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.xcontent.XContentType;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -666,7 +666,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         GetAliasesResponse actualIndex =
             getClient().indices().getAlias(new GetAliasesRequest(indexAlias.getName()), RequestOptions.DEFAULT);
 
-        Map<String, Set<AliasMetaData>> aliases = actualIndex.getAliases();
+        Map<String, Set<AliasMetadata>> aliases = actualIndex.getAliases();
 
         String oldIndexName = null;
 
@@ -712,7 +712,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         } catch (IOException e) {
             throw new DatabaseException(e);
         }
-        for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
+        for (Map.Entry<String, Set<AliasMetadata>> entry : aliasResponse.getAliases().entrySet()) {
             deleteIndexForTesting(entry.getKey());
         }
     }

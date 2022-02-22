@@ -256,10 +256,6 @@ kibana:
         metrics:
             shards: 1
             replica: 1
-        # pour index metrics-vitam-*
-        logs:
-            shards: 1
-            replica: 1
         # pour index metricbeat-*
         metricbeat:
             shards: 3 # must be a factor of 30

@@ -6,49 +6,5 @@
 # want to use this action as a template, be sure to set this to False after
 # copying it.
 actions:
-  1:
-    action: close
-    description: >-
-      Close indices older than {{ curator.log.metrics.close }} days (based on index name), for metrics-vitam-
-      prefixed indices.
-    options:
-      ignore_empty_list: True
-      delete_aliases: False
-      timeout_override:
-      continue_if_exception: False
-      disable_action: False
-    filters:
-    - filtertype: pattern
-      kind: prefix
-      value: metrics-vitam-
-      exclude:
-    - filtertype: age
-      source: name
-      direction: older
-      timestring: '%Y.%m.%d'
-      unit: days
-      unit_count: {{ curator.log.metrics.close }}
-      exclude:
 
-  2:
-    action: delete_indices
-    description: >-
-      Delete indices older than {{ curator.log.metrics.delete }} days (based on index name), for metrics-vitam-
-      prefixed indices.
-    options:
-      ignore_empty_list: True
-      timeout_override:
-      continue_if_exception: False
-    filters:
-    - filtertype: pattern
-      kind: prefix
-      value: metrics-vitam-
-      exclude:
-    - filtertype: age
-      source: name
-      direction: older
-      timestring: '%Y.%m.%d'
-      unit: days
-      unit_count: {{ curator.log.metrics.delete }}
-      exclude:
 # --------------------------------------------

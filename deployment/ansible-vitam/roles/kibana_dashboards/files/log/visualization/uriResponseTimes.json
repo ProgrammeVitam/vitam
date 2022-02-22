@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"uriResponseTimes\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"max\",\"customLabel\":\"max response time\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"type\":\"min\",\"schema\":\"metric\",\"params\":{\"field\":\"min\",\"customLabel\":\"min response time\"}},{\"id\":\"4\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"mean\",\"customLabel\":\"mean response time\"}},{\"id\":\"5\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"p99\",\"customLabel\":\"P99 response time\"}}],\"listeners\":{}}",
-    "description": "",
-    "title": "Temps de reponse moyen de l'URI",
-    "uiStateJSON": "{\"vis\":{\"colors\":{\"Max response time\":\"#BF1B00\",\"Min min\":\"#9AC48A\",\"Mean response time\":\"#5195CE\",\"P99 repsonse time\":\"#EF843C\",\"mean response time\":\"#0A50A1\",\"min response time\":\"#629E51\",\"P99 response time\":\"#EF843C\",\"max response time\":\"#BF1B00\"}}}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-rest*\",\"filter\":[]}"
-    }
-}

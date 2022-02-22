@@ -1,8 +1,0 @@
----
-
-- name: Remove the metrics conf
-  file:
-    path: "{{ vitam_folder_conf }}/vitam.metrics.conf"
-    state: absent
-  notify:
-    - restart service

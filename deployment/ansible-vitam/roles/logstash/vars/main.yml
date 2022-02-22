@@ -5,3 +5,8 @@ logstash_tmp_dir: "{{ vitam_defaults.folder.root_path }}/tmp/logstash"
 logstash_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/logstash"
 logstash_confextra_dir: "{{ logstash_conf_dir }}/extra"
 logstash_data_dir: "{{ vitam_defaults.folder.root_path }}/data/logstash"
+
+# ----------------------------------------------
+#to be adapted according to elastcisearch version  
+logstash_patterns_core_version: '4.3.1'
+# ----------------------------------------------

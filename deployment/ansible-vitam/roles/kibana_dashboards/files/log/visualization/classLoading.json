@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"value\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"name:loaded\",\"analyze_wildcard\":true}}},\"label\":\"loaded classes\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"name:unloaded\",\"analyze_wildcard\":true}}},\"label\":\"unloaded classes\"}]}}],\"listeners\":{}}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
-    },
-    "uiStateJSON": "{\"vis\":{\"colors\":{\"loaded classes\":\"#7EB26D\",\"unloaded classes\":\"#E0752D\"}}}",
-    "description": "",
-    "title": "Chargements des classes JAVA"
-}
