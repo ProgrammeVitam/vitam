@@ -37,9 +37,6 @@ La fonction suivante de la classe *CommonBusinessApplication* quant à elle s'oc
 .. note::
    Les *VitamMetrics* de type REST ou JVM n'ont pas à être modifiés pendant l'execution d'une application VITAM.
 
-Configuration
-=============
-Les métriques sont configurées dans le fichier ``/vitam/conf/<service_id>/vitam.metrics.conf``. Ce fichier contient la documentation nécessaire pour configurer correctement les métriques.
 
 Métriques métier
 ================

@@ -121,8 +121,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         }
         processMonitoring = ProcessMonitoringImpl.getInstance();
         LOGGER.info("init Process Management Resource server");
-        CommonBusinessApplication.getBusinessMetricsRegistry().register("Running workflows",
-            (Gauge<Long>) () -> runningWorkflows.get());
     }
 
     /**

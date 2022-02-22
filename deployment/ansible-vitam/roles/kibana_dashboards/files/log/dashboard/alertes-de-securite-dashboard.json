@@ -14,6 +14,6 @@
     "value": 0
   },
   "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":null,\"disabled\":false,\"index\":\"logstash-vitam*\",\"key\":\"java_class\",\"negate\":false,\"type\":\"phrase\",\"value\":\"fr.gouv.vitam.common.alert.AlertServiceImpl\"},\"query\":{\"match\":{\"java_class\":{\"query\":\"fr.gouv.vitam.common.alert.AlertServiceImpl\",\"type\":\"phrase\"}}}},{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
+    "searchSourceJSON": "{\"query\": {\"query\": \"\",\"language\": \"kuery\"},\"filter\": []}"
   }
 }

@@ -26,7 +26,6 @@ vitam:
         baseuri: "doc"
         https_enabled: false
         secret_platform: "false"
-        metrics_enabled: false
         consul_business_check: 30 # value in seconds
         consul_admin_check: 30 # value in seconds
 
