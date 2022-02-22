@@ -43,10 +43,16 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.driver.fake.FakeDriverImpl;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageIllegalOperationException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -64,6 +70,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -88,6 +95,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,6 +105,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -161,9 +171,11 @@ public class StorageDistributionImplTest {
     }
 
     @After
-    public void cleanup() {
+    public void cleanup() throws Exception {
         simpleDistribution.close();
         customDistribution.close();
+        final FakeDriverImpl defaultDriver = (FakeDriverImpl) DriverManager.getDriverFor("default");
+        defaultDriver.clear();
     }
 
     @Test
@@ -1196,5 +1208,66 @@ public class StorageDistributionImplTest {
             StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
 
         return Pair.of(configuration, storageLogService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getContainerByCategoryResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final String expectedObject = "My stream Object";
+        final Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
+
+        final AtomicInteger fireCount = new AtomicInteger(0);
+
+        // override default get object in fake Driver
+        final FakeDriverImpl defaultDriver = (FakeDriverImpl) DriverManager.getDriverFor("default");
+        final FakeDriverImpl.FakeConnectionImpl connection1 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
+        connection1.setGetObjectFunction((e) -> {
+            fireCount.incrementAndGet();
+            throw new StorageDriverServiceUnavailableException("", "");
+        } );
+        final FakeDriverImpl.FakeConnectionImpl connection2 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
+        connection2.setGetObjectFunction((e) -> new StorageGetResult(0,"type","guid", responseMock));
+
+        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverServiceUnavailableException.class);
+        assertThatCode(() -> connection2.getObject(new StorageObjectRequest(0, ""))).doesNotThrowAnyException();
+
+        final Response response = simpleDistribution
+            .getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "containerId", "obId", DataCategory.UNIT,
+                AccessLogUtils.getNoLogAccessLog());
+
+        assertThat(IOUtils.toString(response.readEntity(InputStream.class),Charset.defaultCharset())).isEqualTo(expectedObject);
+        assertEquals(4, fireCount.get());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getContainerByCategoryResponseKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final String expectedObject = "My stream Object";
+        final Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
+
+        final AtomicInteger fireCount = new AtomicInteger(0);
+
+        // override default get object in fake Driver
+        final FakeDriverImpl defaultDriver = (FakeDriverImpl) DriverManager.getDriverFor("default");
+        final FakeDriverImpl.FakeConnectionImpl connection1 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
+        connection1.setGetObjectFunction((e) -> {
+            fireCount.incrementAndGet();
+            throw new StorageDriverServiceUnavailableException("", "");
+        } );
+        final FakeDriverImpl.FakeConnectionImpl connection2 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
+        connection2.setGetObjectFunction((e) -> {
+            throw new StorageDriverNotFoundException("", "");
+        });
+
+        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverServiceUnavailableException.class);
+        assertThatCode(() -> connection2.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverNotFoundException.class);
+
+        assertThatCode(() -> simpleDistribution.getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "containerId", "obId",
+            DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog())).isInstanceOf(StorageNotFoundException.class);
+        assertEquals(4, fireCount.get());
     }
 }

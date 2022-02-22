@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -87,102 +88,106 @@ import java.util.stream.Collectors;
  */
 public class FakeDriverImpl extends AbstractDriver {
 
+    private final Map<String, FakeConnectionImpl> fakeConnection = new HashMap<>();
+
     @Override
-    protected VitamClientFactoryInterface addInternalOfferAsFactory(final StorageOffer offer,
+    protected VitamClientFactoryInterface<FakeConnectionImpl> addInternalOfferAsFactory(final StorageOffer offer,
         final Properties parameters) {
-        VitamClientFactoryInterface<FakeConnectionImpl> factory =
-            new VitamClientFactoryInterface<FakeConnectionImpl>() {
-                private StorageOffer offerf = offer;
+        return new VitamClientFactoryInterface<>() {
+            private final StorageOffer offerf = offer;
 
-                @Override
-                public Client getHttpClient() {
-                    return null;
+            @Override
+            public Client getHttpClient() {
+                return null;
+            }
+
+            @Override
+            public Client getHttpClient(boolean useChunkedMode) {
+                return null;
+            }
+
+            @Override
+            public FakeConnectionImpl getClient() {
+                if (!fakeConnection.containsKey(offer.getId())) {
+                    fakeConnection.put(offer.getId(), new FakeConnectionImpl(offer.getId()));
                 }
+                return fakeConnection.get(offer.getId());
+            }
 
-                @Override
-                public Client getHttpClient(boolean useChunkedMode) {
-                    return null;
-                }
+            @Override
+            public String getResourcePath() {
+                return null;
+            }
 
-                @Override
-                public FakeConnectionImpl getClient() {
-                    return new FakeConnectionImpl(offer.getId());
-                }
+            @Override
+            public String getServiceUrl() {
+                return offerf.getBaseUrl();
+            }
 
-                @Override
-                public String getResourcePath() {
-                    return null;
-                }
+            @Override
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
+                return null;
+            }
 
-                @Override
-                public String getServiceUrl() {
-                    return offerf.getBaseUrl();
-                }
+            @Override
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
+                return null;
+            }
 
-                @Override
-                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
-                    return null;
-                }
+            @Override
+            public ClientConfiguration getClientConfiguration() {
+                return null;
+            }
 
-                @Override
-                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
-                    return null;
-                }
+            @Override
+            public VitamClientType getVitamClientType() {
+                return null;
+            }
 
-                @Override
-                public ClientConfiguration getClientConfiguration() {
-                    return null;
-                }
+            @Override
+            public VitamClientFactoryInterface<?> setVitamClientType(
+                VitamClientType vitamClientType) {
+                return null;
+            }
 
-                @Override
-                public fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType getVitamClientType() {
-                    return null;
-                }
+            @Override
+            public void changeResourcePath(String resourcePath) {
+                // empty
+            }
 
-                @Override
-                public VitamClientFactoryInterface<?> setVitamClientType(
-                    fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType vitamClientType) {
-                    return null;
-                }
+            @Override
+            public void changeServerPort(int port) {
+                // empty
+            }
 
-                @Override
-                public void changeResourcePath(String resourcePath) {
-                    // empty
-                }
+            @Override
+            public void shutdown() {
+                // empty
+            }
 
-                @Override
-                public void changeServerPort(int port) {
-                    // empty
-                }
+            @Override
+            public void resume(Client client, boolean chunk) {
+                // Empty
+            }
 
-                @Override
-                public void shutdown() {
-                    // empty
-                }
-
-                @Override
-                public void resume(Client client, boolean chunk) {
-                    // Empty
-                }
-
-            };
-        return factory;
+        };
     }
 
     @Override
     public Connection connect(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
-            throw new StorageDriverException(getName(),
-                "Intentionaly thrown", false);
+            throw new StorageDriverException(getName(), "Intentionaly thrown", false);
         }
-        return new FakeConnectionImpl(offerId);
+        if (!fakeConnection.containsKey(offerId)) {
+            fakeConnection.put(offerId, new FakeConnectionImpl(offerId));
+        }
+        return fakeConnection.get(offerId);
     }
 
     @Override
     public boolean isStorageOfferAvailable(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
-            throw new StorageDriverException(getName(),
-                "Intentionaly thrown", false);
+            throw new StorageDriverException(getName(), "Intentionaly thrown", false);
         }
         return true;
     }
@@ -202,40 +207,63 @@ public class FakeDriverImpl extends AbstractDriver {
         return 0;
     }
 
-    class FakeConnectionImpl extends AbstractConnection {
+    public void clear() {
+        this.fakeConnection.clear();
+    }
+
+    @FunctionalInterface
+    public interface ThrowableFunction<T,R> {
+        R apply(T t) throws StorageDriverException;
+    }
+
+    public class FakeConnectionImpl extends AbstractConnection {
 
         private final String offerId;
+        private ThrowableFunction<StorageObjectRequest,StorageGetResult> getObjectFunction;
 
         FakeConnectionImpl(String offerId) {
-            super("FakeDriverName", new TestVitamClientFactory<AbstractConnection>(1324, "/chemin/"));
+            super("FakeDriverName", new TestVitamClientFactory<>(1324, "/chemin/"));
             this.offerId = offerId;
+
+            // Default getObjectFunction
+            getObjectFunction = (objectRequest) -> {
+                if (this.offerId.equals("myTapeOffer1") &&
+                    objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
+                    throw new StorageDriverUnavailableDataFromAsyncOfferException("any", "msg");
+                }
+
+                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+                headers.add(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "4");
+                return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    objectRequest.getGuid(),
+                    new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
+            };
+        }
+
+        public String getOfferId() {
+            return offerId;
+        }
+
+        public void setGetObjectFunction(
+            ThrowableFunction<StorageObjectRequest, StorageGetResult> getObjectFunction) {
+            this.getObjectFunction = getObjectFunction;
         }
 
         @Override
         public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
             Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
-                throw new StorageDriverException("driverInfo",
-                    "ExceptionTest", false);
+                throw new StorageDriverException("driverInfo", "ExceptionTest", false);
             }
 
-            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000);
-            return result;
+            return new StorageCapacityResult(tenantId, 1000000);
         }
+
 
         @Override
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
-
-            if (this.offerId.equals("myTapeOffer1") &&
-                objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
-                throw new StorageDriverUnavailableDataFromAsyncOfferException("any", "msg");
-            }
-
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "4");
-            return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
+            return this.getObjectFunction.apply(objectRequest);
         }
 
         @Override
@@ -340,7 +368,7 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
+        public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) {
 
             return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
                 objectRequest.getGuid(), true);
@@ -348,12 +376,12 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
+        public boolean objectExistsInOffer(StorageObjectRequest request) {
             return "already_in_offer".equals(request.getGuid());
         }
 
         @Override
-        public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
+        public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) {
             return new StorageMetadataResult(
                 new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now"));
         }
@@ -368,7 +396,7 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException {
+        public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) {
             return CloseableIteratorUtils.toCloseableIterator(IteratorUtils.singletonListIterator(
                 new ObjectEntry("objectId", 100L)
             ));

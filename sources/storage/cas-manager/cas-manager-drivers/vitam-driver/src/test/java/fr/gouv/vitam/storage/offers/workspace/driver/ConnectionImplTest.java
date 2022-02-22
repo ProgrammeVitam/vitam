@@ -53,6 +53,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServerErrorException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
@@ -603,10 +604,9 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
-            connection.getObject(request);
-            fail("Expected exception");
-        } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.class, exc.getClass());
+            assertThatCode(() -> connection.getObject(request)).isInstanceOf(
+                StorageDriverServerErrorException.class
+            );
         }
     }
 

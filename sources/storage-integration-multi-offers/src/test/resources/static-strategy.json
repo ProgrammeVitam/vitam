@@ -1,16 +1,16 @@
-[
-  {
-    "id" : "default",
-    "offers" : [
-      {
-        "id" : "default",
-        "referent": true,
-        "rank": 1
-      },
-      {
-        "id" : "default2",
-        "rank": 0
-      }
-    ]
-  }
-]
+  [
+    {
+      "id" : "default",
+      "offers" : [
+        {
+          "id" : "default",
+          "referent": true,
+          "rank": 1
+        },
+        {
+          "id" : "default2",
+          "rank": 0
+        }
+      ]
+    }
+  ]

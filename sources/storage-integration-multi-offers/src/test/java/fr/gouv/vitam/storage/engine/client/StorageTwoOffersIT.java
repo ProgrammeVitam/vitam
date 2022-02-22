@@ -129,6 +129,7 @@ import static org.assertj.core.util.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 /**
  * StorageTwoOffersIT class
@@ -273,26 +274,19 @@ public class StorageTwoOffersIT {
     public void checkStrategyConfigutation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<StorageStrategy> response = storageClient.getStorageStrategies();
-        assertThat(response.isOk());
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().size()).isEqualTo(2);
+        assertTrue(response.isOk());
+        final StorageStrategy firstResult = ((RequestResponseOK<StorageStrategy>) response).getFirstResult();
+        assertNotNull(firstResult);
+        assertThat(firstResult.getOffers().size()).isEqualTo(2);
+        assertThat(firstResult.getOffers().get(0).isReferent()).isFalse();
+        assertThat(firstResult.getOffers().get(0).getId()).isEqualTo("default2");
+        assertThat(firstResult.getOffers().get(0).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(firstResult.getOffers().get(0).getRank()).isEqualTo(0);
 
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).isReferent())
-            .isFalse();
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getId())
-            .isEqualTo("default2");
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getStatus())
-            .isEqualTo(ActivationStatus.ACTIVE);
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getRank())
-            .isEqualTo(0);
-
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).isReferent())
-            .isTrue();
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getId())
-            .isEqualTo("default");
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getStatus())
-            .isEqualTo(ActivationStatus.ACTIVE);
-        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getRank())
-            .isEqualTo(1);
+        assertThat(firstResult.getOffers().get(1).isReferent()).isTrue();
+        assertThat(firstResult.getOffers().get(1).getId()).isEqualTo("default");
+        assertThat(firstResult.getOffers().get(1).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(firstResult.getOffers().get(1).getRank()).isEqualTo(1);
     }
 
     @Test
@@ -400,8 +394,7 @@ public class StorageTwoOffersIT {
 
         // Try to download object & object2 in STRATEGY
         javax.ws.rs.core.Response objectToGetFromStrategy =
-            storageClient.getContainerAsync(STRATEGY_ID, object, OBJECT,
-                AccessLogUtils.getNoLogAccessLog());
+            storageClient.getContainerAsync(STRATEGY_ID, OFFER_ID, object, OBJECT, AccessLogUtils.getNoLogAccessLog());
         assertThat(objectToGetFromStrategy.getStatus()).isEqualTo(OK.getStatusCode());
 
         assertThrows(StorageNotFoundException.class,
@@ -1286,20 +1279,20 @@ public class StorageTwoOffersIT {
         storeObjectInAllOffers(objectToInsert, OBJECT, new ByteArrayInputStream(objectToInsert.getBytes()));
         deleteObjectFromOffers(objectToInsert, OBJECT, SECOND_OFFER_ID);
 
-        javax.ws.rs.core.Response responseStorage =
-            storageClient.getContainerAsync(STRATEGY_ID, objectToInsert, OBJECT, AccessLogUtils.getNoLogAccessLog());
+        // By default we read from the offre who has the higher priority which is default2 in this case
+        assertThatThrownBy(() ->
+            storageClient.getContainerAsync(STRATEGY_ID, objectToInsert, OBJECT, AccessLogUtils.getNoLogAccessLog())
+        ).isInstanceOf(StorageNotFoundException.class);
 
+        // Try to get inserted Object from first offer
+        javax.ws.rs.core.Response responseStorage = storageClient.getContainerAsync(STRATEGY_ID, OFFER_ID, objectToInsert, OBJECT,
+            AccessLogUtils.getNoLogAccessLog());
         // THEN
         InputStream inputStream = responseStorage.readEntity(InputStream.class);
         SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
         final long size = StreamUtils.closeSilently(sizedInputStream);
 
         assertEquals(objectToInsert.getBytes().length, size );
-
-        // Try to get inserted Object from second offer, in wich it was already deleted
-        assertThatThrownBy(() -> storageClient.getContainerAsync(STRATEGY_ID, SECOND_OFFER_ID, objectToInsert, OBJECT,
-            AccessLogUtils.getNoLogAccessLog()))
-            .isInstanceOf(StorageNotFoundException.class);
     }
 
     @Test
