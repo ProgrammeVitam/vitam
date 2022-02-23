@@ -27,6 +27,12 @@
 
 package fr.gouv.vitam.common.digest;
 
+import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,12 +44,6 @@ import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Digest implementation
@@ -242,26 +242,11 @@ public class Digest {
             return this;
         }
         finalized = null;
-        int size = 0;
         final byte[] buf = setReusableByte(chunkSize);
-        long toRead = limit > 0 ? limit : Long.MAX_VALUE;
-        int chunk = chunkSize;
-        if (chunk > toRead) {
-            chunk = (int) toRead;
-        }
         try {
-            while ((size = inputStream.read(buf, 0, chunk)) >= 0) {
-                if (size == 0) {
-                    continue;
-                }
+            int size;
+            while ((size = inputStream.read(buf)) >= 0) {
                 messageDigest.update(buf, 0, size);
-                toRead -= size;
-                if (toRead <= 0) {
-                    break;
-                }
-                if (chunk > toRead) {
-                    chunk = (int) toRead;
-                }
             }
             return this;
         } finally {
@@ -303,32 +288,16 @@ public class Digest {
             return this;
         }
         finalized = null;
-        int size = 0;
         final byte[] buf = setReusableByte(chunkSize);
-        final long toRead = limit > 0 ? limit : Long.MAX_VALUE;
-        long read = 0;
-        int chunk = chunkSize;
-        if (chunk > toRead) {
-            chunk = (int) toRead;
-        }
         try {
             final ByteBuffer bb = ByteBuffer.wrap(buf);
             if (start > 0) {
                 fileChannelInputStream.position(start);
             }
+            int size;
             while ((size = fileChannelInputStream.read(bb)) >= 0) {
-                if (size == 0) {
-                    continue;
-                }
-                if (read + size > toRead) {
-                    size = (int) (toRead - read);
-                }
-                read += size;
                 messageDigest.update(buf, 0, size);
                 bb.clear();
-                if (read >= toRead) {
-                    break;
-                }
             }
             return this;
         } finally {
@@ -471,7 +440,7 @@ public class Digest {
         return algo == type && MessageDigest.isEqual(digest(), digest);
     }
 
-    private final byte[] setReusableByte(int length) {
+    private byte[] setReusableByte(int length) {
         if (reusableBytes == null || reusableBytes.length != length) {
             reusableBytes = new byte[length];
         }
@@ -486,7 +455,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException in or algo null
      */
-    public static final Digest digest(InputStream in, DigestType algo)
+    public static Digest digest(InputStream in, DigestType algo)
         throws IOException {
         return new Digest(algo).update(in);
     }
@@ -498,7 +467,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException in or algo null
      */
-    public static final Digest digest(File in, DigestType algo)
+    public static Digest digest(File in, DigestType algo)
         throws IOException {
         return new Digest(algo).update(in);
     }
