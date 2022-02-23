@@ -26,17 +26,13 @@
  */
 package fr.gouv.vitam.common.tenant.filter;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -45,15 +41,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
-import org.junit.Before;
-import org.junit.Test;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TenantFilterTest {
 
@@ -119,7 +118,8 @@ public class TenantFilterTest {
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
         when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.UNAUTHORIZED.getStatusCode()),
+            eq("{\"Error\":\"X-Tenant-Id check failed!\"}"));
     }
 
     @Test
@@ -136,7 +136,8 @@ public class TenantFilterTest {
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
         when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.PRECONDITION_FAILED.getStatusCode()),
+            eq("{\"Error\":\"X-Tenant-Id check failed!\"}"));
     }
 
     @Test
@@ -181,7 +182,8 @@ public class TenantFilterTest {
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
         when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.PRECONDITION_FAILED.getStatusCode()),
+            eq("{\"Error\":\"X-Tenant-Id check failed!\"}"));
     }
 
     @Test
@@ -190,9 +192,9 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
-        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.PRECONDITION_FAILED.getStatusCode()),
+            eq("{\"Error\":\"X-Tenant-Id check failed!\"}"));
     }
 
     @Test
@@ -201,9 +203,9 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn("thisIsAString");
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
-        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.PRECONDITION_FAILED.getStatusCode()),
+            eq("{\"Error\":\"X-Tenant-Id check failed!\"}"));
     }
 
 }
