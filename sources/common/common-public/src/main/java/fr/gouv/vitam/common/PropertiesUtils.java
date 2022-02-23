@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -63,8 +64,6 @@ public final class PropertiesUtils {
 
     private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";
     private static final String ARGUMENTS_MUST_BE_NON_NULL = "Arguments must be non null";
-    private static final String TO_REPLACE = "%20";
-    private static final String VIDE_STRING = " ";
 
     private PropertiesUtils() {
         // Empty
@@ -162,7 +161,7 @@ public final class PropertiesUtils {
             file = new File(url.toURI());
         } catch (final URISyntaxException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            file = new File(url.getFile().replaceAll(TO_REPLACE, VIDE_STRING));
+            file = new File(URLDecoder.decode(url.getFile(), StandardCharsets.UTF_8));
         }
         if (file.exists()) {
             return file;
