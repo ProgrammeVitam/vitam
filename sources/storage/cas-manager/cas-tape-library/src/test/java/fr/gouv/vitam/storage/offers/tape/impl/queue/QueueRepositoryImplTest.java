@@ -27,11 +27,9 @@
 package fr.gouv.vitam.storage.offers.tape.impl.queue;
 
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
@@ -248,15 +246,13 @@ public class QueueRepositoryImplTest {
 
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
-        Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
-        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("myBucket2");
         assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId3");
-        assertThat(found.get().getPriority()).isEqualTo(5);
 
     }
 
@@ -283,15 +279,13 @@ public class QueueRepositoryImplTest {
 
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
-        Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
-        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder, false);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("myBucket2");
         assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
-        assertThat(found.get().getPriority()).isEqualTo(5);
 
     }
 }

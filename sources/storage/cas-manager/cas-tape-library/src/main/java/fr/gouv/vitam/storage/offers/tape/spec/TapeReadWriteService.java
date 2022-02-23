@@ -32,14 +32,12 @@ public interface TapeReadWriteService {
 
     /**
      * @param inputPath mini-path to file from workingDir
-     *
      * @throws TapeCommandException on command failure
      */
     void writeToTape(String inputPath) throws TapeCommandException;
 
     /**
      * @param outputPath in case dd implementation, outputPath is mini-path to file from workingDir. In case of tar implementation, outputPath is the file inside tar to extract
-     *
      * @throws TapeCommandException on command failure
      */
     void readFromTape(String outputPath) throws TapeCommandException;

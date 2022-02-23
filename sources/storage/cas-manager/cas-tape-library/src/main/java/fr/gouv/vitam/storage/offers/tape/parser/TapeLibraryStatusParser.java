@@ -141,7 +141,8 @@ public class TapeLibraryStatusParser {
 
     private void extractDriveVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(DRIVE_VOLUME_TAG) && s.contains(DRIVE_ALTERNATE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim());
+            cartridge.setVolumeTag(
+                StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim());
             cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(DRIVE_VOLUME_TAG)) {
             cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG).trim());

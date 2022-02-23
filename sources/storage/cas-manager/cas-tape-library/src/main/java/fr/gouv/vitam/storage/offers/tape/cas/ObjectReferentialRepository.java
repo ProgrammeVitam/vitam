@@ -254,7 +254,8 @@ public class ObjectReferentialRepository {
         return BsonHelper.fromDocumentToObject(document, TapeObjectReferentialEntity.class);
     }
 
-    public CloseableIterator<ObjectEntry> listContainerObjectEntries(String containerName) throws ObjectReferentialException {
+    public CloseableIterator<ObjectEntry> listContainerObjectEntries(String containerName)
+        throws ObjectReferentialException {
 
         try {
             MongoCursor<Document> mongoCursor = collection.find(

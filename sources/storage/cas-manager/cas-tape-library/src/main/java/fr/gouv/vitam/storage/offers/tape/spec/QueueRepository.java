@@ -89,18 +89,4 @@ public interface QueueRepository {
 
     <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority) throws QueueException;
 
-    <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException;
-
-    /**
-     * @param inQuery filter
-     * @param inUpdate atomic update
-     * @param messageType
-     * @param usePriority if true sort by priority and take first
-     * @param <T>
-     * @return
-     * @throws QueueException
-     */
-    <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
-        throws QueueException;
-
 }

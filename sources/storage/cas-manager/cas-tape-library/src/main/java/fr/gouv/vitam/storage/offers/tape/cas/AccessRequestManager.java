@@ -315,7 +315,8 @@ public class AccessRequestManager {
                 = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
 
             if (unavailableArchivesOnDisk.isEmpty()) {
-                LOGGER.debug("Immediate access is available for objects {} of container {}", objectNames, containerName);
+                LOGGER.debug("Immediate access is available for objects {} of container {}", objectNames,
+                    containerName);
                 return true;
             }
 

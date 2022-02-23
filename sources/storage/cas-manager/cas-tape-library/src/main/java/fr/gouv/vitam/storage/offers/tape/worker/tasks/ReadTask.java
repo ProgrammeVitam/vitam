@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
@@ -258,13 +257,17 @@ public class ReadTask implements Future<ReadWriteResult> {
      */
     private CatalogResponse getTapeFromCatalog() throws ReadWriteException, QueueException, TapeCatalogException {
         Bson query = and(
+            eq(TapeCatalog.LIBRARY, tapeLibraryService.getLibraryIdentifier()),
             eq(TapeCatalog.CODE, readOrder.getTapeCode()),
             ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT.name())
         );
-        Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
+        Optional<TapeCatalog> found = tapeCatalogService.receive(query);
         if (found.isEmpty()) {
-            List<TapeCatalog> tapes = tapeCatalogService.find(
-                List.of(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
+            List<TapeCatalog> tapes = tapeCatalogService.find(List.of(
+                new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryService.getLibraryIdentifier(),
+                    QueryCriteriaOperator.EQ),
+                new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)
+            ));
             if (tapes.size() == 0) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG +
                         " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +

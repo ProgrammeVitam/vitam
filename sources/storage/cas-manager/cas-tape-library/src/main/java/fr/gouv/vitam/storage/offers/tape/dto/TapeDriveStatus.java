@@ -40,7 +40,7 @@ public enum TapeDriveStatus {
      * End of tape
      *
      * @deprecated EndOfTape status is not properly handled by MTX utility.
-     *             According to the man page of mtx utility : "In addition,  MTX  does  not handle the end of tape properly."
+     * According to the man page of mtx utility : "In addition,  MTX  does  not handle the end of tape properly."
      */
     EOT("EOT"),
 

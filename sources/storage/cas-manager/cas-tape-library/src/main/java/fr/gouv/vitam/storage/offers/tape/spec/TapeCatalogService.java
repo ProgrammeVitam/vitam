@@ -29,12 +29,15 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import org.bson.conversions.Bson;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-public interface TapeCatalogService extends QueueRepository {
+public interface TapeCatalogService {
 
     void create(TapeCatalog tapeCatalog) throws TapeCatalogException;
 
@@ -57,4 +60,8 @@ public interface TapeCatalogService extends QueueRepository {
     TapeCatalog findById(String tapeId) throws TapeCatalogException;
 
     List<TapeCatalog> find(List<QueryCriteria> criteria) throws TapeCatalogException;
+
+    void markReady(String queueId) throws QueueException;
+
+    Optional<TapeCatalog> receive(Bson inQuery) throws QueueException;
 }

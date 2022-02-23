@@ -46,7 +46,7 @@ public class CatalogResponse {
         return status;
     }
 
-   public TapeCatalog getCurrentTape() {
+    public TapeCatalog getCurrentTape() {
         return currentTape;
     }
 
