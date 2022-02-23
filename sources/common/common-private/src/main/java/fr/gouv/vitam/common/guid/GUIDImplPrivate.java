@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.guid;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -80,7 +81,7 @@ final class GUIDImplPrivate extends GUIDImpl {
     /**
      * Random Generator
      */
-    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     static {
         JVMPID = jvmProcessId();
