@@ -14,4 +14,11 @@ sh.enableSharding("offer")
 
 // Add the sharding key for the sharded collections
 
-sh.shardCollection("offer.OfferLog"                        ,{ _id: "hashed" })
+sh.shardCollection("offer.OfferLog", { _id: "hashed" })
+
+{% if vitam_offers[mongo_cluster_name]["provider"] in ["tape-library"] %}
+// Add sharding for tape storage offer collections
+
+sh.shardCollection("offer.TapeObjectReferential", { _id: "hashed" })
+
+{% endif %}

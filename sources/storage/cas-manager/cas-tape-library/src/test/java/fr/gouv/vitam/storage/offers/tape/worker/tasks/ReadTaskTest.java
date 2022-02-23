@@ -315,7 +315,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -424,7 +424,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -537,7 +537,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -625,7 +625,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -708,7 +708,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
             .thenReturn(List.of(appropriateTape));
@@ -763,7 +763,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
             .thenReturn(Collections.emptyList());
@@ -817,7 +817,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenThrow(QueueException.class);
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -879,7 +879,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -943,7 +943,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -1010,7 +1010,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -1081,7 +1081,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);
@@ -1167,7 +1167,7 @@ public class ReadTaskTest {
             .thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any(), any()))
+        when(tapeCatalogService.receive(any()))
             .thenReturn(Optional.of(tapeCatalog));
         when(tapeDriveService.getTapeDriveConf().getIndex())
             .thenReturn(DRIVE_INDEX);

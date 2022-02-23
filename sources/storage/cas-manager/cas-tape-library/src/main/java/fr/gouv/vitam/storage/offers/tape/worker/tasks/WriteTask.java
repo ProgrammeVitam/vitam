@@ -27,6 +27,8 @@
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -63,6 +65,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -147,6 +150,10 @@ public class WriteTask implements Future<ReadWriteResult> {
             retryable().execute(this::updateTarReferential);
 
             if (writeOrder.getMessageType() == QueueMessageType.WriteBackupOrder) {
+
+                LOGGER.warn("Backup archive '" + writeOrder.getArchiveId() + " archived to a backup tape with code '" +
+                    workerCurrentTape.getCode() + "'");
+
                 // Backup archives are not persisted on cache
                 if (!file.delete()) {
                     throw new ReadWriteException("Could not delete backup archive " + writeOrder.getArchiveId() +
@@ -365,7 +372,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         );
 
         try {
-            Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
+            Optional<TapeCatalog> found = tapeCatalogService.receive(query);
             if (found.isPresent()) {
                 return found.get();
             } else {
@@ -379,7 +386,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     )
                 );
 
-                found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
+                found = tapeCatalogService.receive(query);
                 if (found.isPresent()) {
                     return found.get();
                 } else {

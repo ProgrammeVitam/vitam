@@ -42,7 +42,6 @@ public interface TapeDriveCommandService {
      *
      * @param position
      * @param isBackward
-     *
      * @throws TapeCommandException on command failure
      */
     void move(int position, boolean isBackward) throws TapeCommandException;

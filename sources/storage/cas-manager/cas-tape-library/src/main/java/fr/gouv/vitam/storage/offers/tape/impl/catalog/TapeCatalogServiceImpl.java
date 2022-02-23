@@ -45,7 +45,6 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
-import org.apache.commons.lang3.NotImplementedException;
 import org.bson.conversions.Bson;
 
 import java.util.HashMap;
@@ -59,7 +58,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogServiceImpl.class);
 
-    private TapeCatalogRepository tapeCatalogRepository;
+    private final TapeCatalogRepository tapeCatalogRepository;
 
     public TapeCatalogServiceImpl(TapeCatalogRepository tapeCatalogRepository) {
         this.tapeCatalogRepository = tapeCatalogRepository;
@@ -269,76 +268,12 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public void add(QueueMessageEntity queue) throws QueueException {
-        tapeCatalogRepository.add(queue);
+    public void markReady(String queueId) throws QueueException {
+        tapeCatalogRepository.markReady(queueId);
     }
 
     @Override
-    public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) {
-        // FIXME / TODO
-        throw new NotImplementedException("Not implemented for this service");
-    }
-
-    @Override
-    public void tryCancelIfNotStarted(List<QueryCriteria> criteria) {
-        throw new NotImplementedException("Not implemented for this service");
-    }
-
-    @Override
-    public long remove(String queueId) throws QueueException {
-        return tapeCatalogRepository.remove(queueId);
-    }
-
-    @Override
-    public long complete(String queueId) throws QueueException {
-        return tapeCatalogRepository.complete(queueId);
-    }
-
-    @Override
-    public long markError(String queueMessageId) throws QueueException {
-        return tapeCatalogRepository.markError(queueMessageId);
-    }
-
-    @Override
-    public long markReady(String queueId) throws QueueException {
-        return tapeCatalogRepository.markReady(queueId);
-    }
-
-    @Override
-    public long initializeOnBootstrap() {
-        throw new NotImplementedException("Not implemented for this service");
-    }
-
-    @Override
-    public <T> Optional<T> receive(QueueMessageType messageType) throws QueueException {
-        return tapeCatalogRepository.receive(messageType);
-    }
-
-    @Override
-    public <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException {
-        return tapeCatalogRepository.receive(messageType, usePriority);
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException {
-        return tapeCatalogRepository.receive(inQuery, messageType);
-
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
-        throws QueueException {
-        return tapeCatalogRepository.receive(inQuery, messageType, usePriority);
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException {
-        return tapeCatalogRepository.receive(inQuery, inUpdate, messageType);
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
-        throws QueueException {
-        return tapeCatalogRepository.receive(inQuery, inUpdate, messageType, usePriority);
+    public Optional<TapeCatalog> receive(Bson inQuery) throws QueueException {
+        return tapeCatalogRepository.receive(inQuery, QueueMessageType.TapeCatalog);
     }
 }

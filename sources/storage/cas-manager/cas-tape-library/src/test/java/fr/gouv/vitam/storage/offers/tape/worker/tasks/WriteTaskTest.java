@@ -410,7 +410,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
@@ -493,7 +493,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
@@ -556,7 +556,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
@@ -639,7 +639,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
@@ -703,7 +703,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
@@ -761,7 +761,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeDriveCommandService).eject();
@@ -858,7 +858,7 @@ public class WriteTaskTest {
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
@@ -954,7 +954,7 @@ public class WriteTaskTest {
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());
@@ -1056,7 +1056,7 @@ public class WriteTaskTest {
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         koTapeCatalog1.setWrittenBytes(0L);
         tapeCatalog.setType(LTO_7);
-        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+        when(tapeCatalogService.receive(any())).thenReturn(
             Optional.of(tapeCatalog));
 
         doNothing().when(tapeLoadUnloadService).unloadTape(anyInt(), anyInt());

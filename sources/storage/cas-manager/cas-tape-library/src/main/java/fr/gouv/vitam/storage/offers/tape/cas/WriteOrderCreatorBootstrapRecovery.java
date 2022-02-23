@@ -240,14 +240,16 @@ public class WriteOrderCreatorBootstrapRecovery {
             .getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation) {
 
             if (archiveCacheStorage.containsArchive(fileBucket, archiveId)) {
-                LOGGER.warn("Archive file {}/{} already written on tape, and in cache. Deleting it", fileBucket, archiveFile);
+                LOGGER.warn("Archive file {}/{} already written on tape, and in cache. Deleting it", fileBucket,
+                    archiveFile);
                 Files.delete(archiveFile);
             } else {
 
                 LOGGER.warn("Archive file {}/{} already written on tape, moving it to cache", fileBucket, archiveFile);
 
                 // Reserve cache space and move archive to cache
-                archiveCacheStorage.reserveArchiveStorageSpace(fileBucket, archiveId, tarReferentialEntity.get().getSize());
+                archiveCacheStorage.reserveArchiveStorageSpace(fileBucket, archiveId,
+                    tarReferentialEntity.get().getSize());
                 try {
                     archiveCacheStorage.moveArchiveToCache(archiveFile, fileBucket, archiveId);
                 } catch (Exception e) {

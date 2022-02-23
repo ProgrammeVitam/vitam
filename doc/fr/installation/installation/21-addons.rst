@@ -363,11 +363,11 @@ Exemple:
 
         * **tapeLibrary**  une librairie de bande dans son ensemble. Une *tapeLibrary* est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
 
-        .. note:: Seule une librairie de bandes doit être configurée par offre froide. La configuration de plusieurs librairies pour une même offre froide n'est actuellement PAS supporté.
+        .. note:: Seule une librairie de bandes doit être configurée par offre froide. La configuration de plusieurs librairies pour une même offre froide n'est actuellement PAS supportée.
 
         * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
 
-        .. note:: Seul un robot doit être configuré pour piloter une librairie de bandes. La configuration de plusieurs robots pour une même librairie de bandes n'est actuellement PAS supporté.
+        .. note:: Seul un robot doit être configuré pour piloter une librairie de bandes. La configuration de plusieurs robots pour une même librairie de bandes n'est actuellement PAS supportée.
 
         .. note:: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur
 

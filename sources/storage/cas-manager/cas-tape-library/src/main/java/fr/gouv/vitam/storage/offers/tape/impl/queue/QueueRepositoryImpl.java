@@ -196,7 +196,7 @@ public class QueueRepositoryImpl implements QueueRepository {
 
     @Override
     public <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException {
-        return receive(null, null, messageType, usePriority);
+        return receive(null, messageType, usePriority);
     }
 
     @Override
@@ -206,17 +206,6 @@ public class QueueRepositoryImpl implements QueueRepository {
 
     @Override
     public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
-        throws QueueException {
-        return receive(inQuery, null, messageType, usePriority);
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException {
-        return receive(inQuery, inUpdate, messageType, true);
-    }
-
-    @Override
-    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
 
         Bson query = inQuery != null ?
@@ -235,12 +224,7 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
         option.upsert(false);
 
-        Bson update = inUpdate != null ?
-            Updates.combine(
-                Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis()),
-                inUpdate)
-            :
+        Bson update =
             Updates.combine(
                 Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
                 Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));

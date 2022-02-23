@@ -53,7 +53,7 @@ import java.io.InputStream;
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
-@Tag(name="Tape")
+@Tag(name = "Tape")
 public class AdminTapeResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminTapeResource.class);
