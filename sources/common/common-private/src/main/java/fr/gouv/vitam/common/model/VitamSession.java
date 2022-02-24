@@ -184,6 +184,9 @@ public class VitamSession {
     public void setTenantId(Integer newTenantId) {
         checkCallingThread();
         this.tenantId = newTenantId;
+        if (newTenantId != null) {
+            MDC.put(GlobalDataRest.X_TENANT_ID, String.valueOf(newTenantId));
+        }
     }
 
     /**
