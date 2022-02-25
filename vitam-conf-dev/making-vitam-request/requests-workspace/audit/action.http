@@ -68,3 +68,37 @@ X-Tenant-Id: {{tenant}}
 
 {
 }
+
+###### Run audit by SP
+POST {{url-access}}/admin-external/v1/audits
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "auditActions": "AUDIT_FILE_INTEGRITY",
+  "auditType": "originatingagency",
+  "objectId": "ABCDEFG"
+}
+
+##### Run audit by DSL query
+POST {{url-access}}/admin-external/v1/audits
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "auditActions": "AUDIT_FILE_INTEGRITY",
+  "auditType": "dsl",
+  "query" : {
+    "$query": [
+    {
+      "$match": {
+        "Title": "a"
+      }
+    }
+  ]
+  }
+}
