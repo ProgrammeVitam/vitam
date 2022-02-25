@@ -43,6 +43,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
+import fr.gouv.vitam.storage.offers.tape.metrics.InputFilesMetrics;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
@@ -207,6 +208,14 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         } finally {
             inputStream.ifPresent(IOUtils::closeQuietly);
+
+            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT
+                .labels(bucketId)
+                .dec();
+
+            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE
+                .labels(bucketId)
+                .dec(message.getSize());
         }
     }
 
@@ -359,5 +368,19 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         LOGGER.info("Tar file " + tarId + " could not be located. Concurrent delete?");
         return Optional.empty();
+    }
+
+    public void addToQueue(TarCreatorMessage message) {
+        super.addToQueue(message);
+        if (message instanceof InputFileToProcessMessage) {
+
+            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT
+                .labels(bucketId)
+                .inc();
+
+            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE
+                .labels(bucketId)
+                .inc(((InputFileToProcessMessage) message).getSize());
+        }
     }
 }

@@ -33,6 +33,36 @@
   changed_when: false
   when: grafana.grafana_dashboards | length > 0
 
+- name: Get declared tape offers
+  set_fact:
+    tape_offers: "{{ tape_offers | default([]) + [item.key] }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: "'tape-library' in item.value.provider"
+
+- name: Get configured tape offers
+  set_fact:
+    tape_offers: []
+    tape_offer_ids: "{{ groups['hosts_storage_offer_default'] | map ('extract', hostvars, 'offer_conf') | list  | unique | intersect((tape_offers | default([]))) }}"
+
+- name: Copy vitam tape offer dashboard json files to provisioning dashboard folder
+  copy:
+    src: vitam_tape_storage_offer_dashboard.json
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_tape_storage_offer_dashboard-{{ item }}.json"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+  with_items: "{{ tape_offer_ids }}"
+
+- name: Set offer id in tape storage dashboards
+  replace:
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_tape_storage_offer_dashboard-{{ item }}.json"
+    regexp: '_OFFER_ID_'
+    replace: '{{ item }}'
+  changed_when: false
+  with_items: "{{ tape_offer_ids }}"
+
 - name: Create Grafana Dashboard provisioning file
   template:
     src: dashboards.yml.j2

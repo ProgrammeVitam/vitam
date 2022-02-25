@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -52,6 +45,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test @TapeCatalogRepository
@@ -184,6 +184,46 @@ public class TapeCatalogRepositoryTest {
         TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(id);
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCountTapesByState()
+        throws TapeCatalogException {
+
+        TapeCatalog tapeCatalog1 = getTapeModel();
+        tapeCatalog1.setTapeState(TapeState.FULL);
+        tapeCatalogRepository.createTape(tapeCatalog1);
+
+        TapeCatalog tapeCatalog2 = getTapeModel();
+        tapeCatalog2.setTapeState(TapeState.FULL);
+        tapeCatalogRepository.createTape(tapeCatalog2);
+
+        TapeCatalog tapeCatalog3 = getTapeModel();
+        tapeCatalog3.setTapeState(TapeState.EMPTY);
+        tapeCatalogRepository.createTape(tapeCatalog3);
+
+        TapeCatalog tapeCatalog4 = getTapeModel();
+        tapeCatalog4.setTapeState(TapeState.OPEN);
+        tapeCatalogRepository.createTape(tapeCatalog4);
+
+        TapeCatalog tapeCatalog5 = getTapeModel();
+        tapeCatalog5.setTapeState(TapeState.OPEN);
+        tapeCatalogRepository.createTape(tapeCatalog5);
+
+        TapeCatalog tapeCatalog6 = getTapeModel();
+        tapeCatalog6.setTapeState(TapeState.OPEN);
+        tapeCatalogRepository.createTape(tapeCatalog6);
+
+        // When
+        Map<TapeState, Integer> stats = tapeCatalogRepository.countByState();
+
+        // Then
+        assertThat(stats).isEqualTo(Map.of(
+            TapeState.FULL, 2,
+            TapeState.EMPTY, 1,
+            TapeState.OPEN, 3)
+        );
+        assertThat(stats.getOrDefault(TapeState.CONFLICT, 0)).isEqualTo(0);
     }
 
     private TapeCatalog getTapeModel() {

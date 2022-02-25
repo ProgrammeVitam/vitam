@@ -26,26 +26,33 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
+import fr.gouv.vitam.storage.offers.tape.utils.QueryCriteriaUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * repository for Tapes Catalog management in mongo.
@@ -134,30 +141,12 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @return
      */
     public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws TapeCatalogException {
+
         if (criteria == null || criteria.isEmpty()) {
             throw new TapeCatalogException(ALL_PARAMS_REQUIRED);
         }
 
-        List<Bson> filters = new ArrayList<>();
-        for (QueryCriteria criterion : criteria) {
-            switch (criterion.getOperator()) {
-                case EQ:
-                    filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
-                    break;
-                case GT:
-                    filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
-                    break;
-                case GTE:
-                    filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
-                    break;
-                case LT:
-                    filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
-                    break;
-                case LTE:
-                    filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
-                    break;
-            }
-        }
+        List<Bson> filters = QueryCriteriaUtils.criteriaToMongoFilters(criteria);
 
         List<TapeCatalog> result = new ArrayList<>();
         List<Document> documents = collection.find(Filters.and(filters)).into(new ArrayList<>());
@@ -170,6 +159,42 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
         }
 
         return result;
+    }
+
+    /**
+     * count tapes matching by state
+     *
+     * @return number of tapes by state
+     */
+    public Map<TapeState, Integer> countByState() throws TapeCatalogException {
+
+        try {
+            AggregateIterable<Document> aggregate = collection.aggregate(List.of(
+                    Aggregates.group("$" + TapeCatalog.TAPE_STATE,
+                        Accumulators.sum("count", 1)
+                    )
+                )
+            );
+
+            Map<TapeState, Integer> results = new HashMap<>();
+            try (MongoCursor<Document> iterator = aggregate.iterator()) {
+                while (iterator.hasNext()) {
+
+                    Document doc = iterator.next();
+                    String stateStr = doc.getString("_id");
+                    TapeState tapeState = TapeState.valueOf(stateStr);
+
+                    int count = doc.getInteger("count");
+
+                    results.put(tapeState, count);
+                }
+            }
+
+            return results;
+
+        } catch (Exception e) {
+            throw new TapeCatalogException(e);
+        }
     }
 
     /**

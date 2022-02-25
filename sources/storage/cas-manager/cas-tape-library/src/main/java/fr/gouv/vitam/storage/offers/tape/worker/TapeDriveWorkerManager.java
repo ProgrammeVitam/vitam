@@ -63,6 +63,7 @@ import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.nin;
+import static java.util.function.Predicate.not;
 
 public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDriveOrderProducer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorkerManager.class);
@@ -111,18 +112,30 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     public void shutdown() {
-        List<CompletableFuture> completableFutures = new ArrayList<>();
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         workers.forEach(w -> completableFutures
-            .add(CompletableFuture.runAsync(() -> w.stop(), VitamThreadPoolExecutor.getDefaultExecutor())));
+            .add(CompletableFuture.runAsync(() -> {
+                try {
+                    w.stop();
+                } catch (Exception e) {
+                    LOGGER.error("An error occurred during worker shutdown", e);
+                }
+            }, VitamThreadPoolExecutor.getDefaultExecutor())));
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[workers.size()])).join();
     }
 
 
     public void shutdown(long timeout, TimeUnit timeUnit) {
-        List<CompletableFuture> completableFutures = new ArrayList<>();
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         workers.forEach(w -> completableFutures
             .add(CompletableFuture
-                .runAsync(() -> w.stop(timeout, timeUnit), VitamThreadPoolExecutor.getDefaultExecutor())));
+                .runAsync(() -> {
+                    try {
+                        w.stop(timeout, timeUnit);
+                    } catch (Exception e) {
+                        LOGGER.error("An error occurred during worker shutdown", e);
+                    }
+                }, VitamThreadPoolExecutor.getDefaultExecutor())));
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[workers.size()])).join();
     }
 
@@ -330,6 +343,16 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
         CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).join();
         executorService.shutdown();
+    }
+
+    public int getTotalWorkerCount() {
+        return this.workers.size();
+    }
+
+    public int getInterruptedWorkerCount() {
+        return (int) this.workers.stream()
+            .filter(not(TapeDriveWorker::isRunning))
+            .count();
     }
 
     private static class OptimisticDriveResourceStatus {

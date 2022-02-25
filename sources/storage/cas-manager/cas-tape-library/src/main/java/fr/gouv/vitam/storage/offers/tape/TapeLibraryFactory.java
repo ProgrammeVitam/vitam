@@ -62,8 +62,12 @@ import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
+import fr.gouv.vitam.storage.offers.tape.metrics.AccessRequestMetrics;
+import fr.gouv.vitam.storage.offers.tape.metrics.ArchiveCacheMetrics;
+import fr.gouv.vitam.storage.offers.tape.metrics.DriveWorkerMetrics;
+import fr.gouv.vitam.storage.offers.tape.metrics.OrderQueueMetrics;
+import fr.gouv.vitam.storage.offers.tape.metrics.TapeCatalogMetrics;
 import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
-import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
@@ -131,7 +135,7 @@ public class TapeLibraryFactory {
         AccessRequestReferentialRepository accessRequestReferentialRepository =
             new AccessRequestReferentialRepository(mongoDatabase
                 .getCollection(OfferCollections.ACCESS_REQUEST_REFERENTIAL.getName()));
-        QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDatabase.getCollection(
+        QueueRepositoryImpl readWriteQueue = new QueueRepositoryImpl(mongoDatabase.getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
         ArchiveCacheEvictionController archiveCacheEvictionController = new ArchiveCacheEvictionController(
@@ -263,6 +267,15 @@ public class TapeLibraryFactory {
         // Start tape drive workers
         for (TapeDriveWorkerManager tapeDriveWorkerManager : tapeDriveWorkerManagers.values()) {
             tapeDriveWorkerManager.startWorkers();
+        }
+
+        // Initialize monitoring metrics
+        ArchiveCacheMetrics.initializeMetrics(archiveCacheStorage);
+        AccessRequestMetrics.initializeMetrics(accessRequestReferentialRepository);
+        OrderQueueMetrics.initializeMetrics(readWriteQueue);
+        TapeCatalogMetrics.initializeMetrics(tapeCatalogRepository);
+        for (String tapeLibrary : tapeDriveWorkerManagers.keySet()) {
+            DriveWorkerMetrics.initializeMetrics(tapeLibrary, tapeDriveWorkerManagers.get(tapeLibrary));
         }
     }
 

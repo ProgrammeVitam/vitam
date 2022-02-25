@@ -67,6 +67,7 @@ import org.mockito.junit.MockitoRule;
 import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -241,7 +242,7 @@ public class TapeDriveWorkerTest {
     }
 
     @Test
-    public void stop_no_wait() throws QueueException, InterruptedException {
+    public void stop_no_wait() throws QueueException, InterruptedException, TimeoutException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 100, false,
@@ -255,7 +256,8 @@ public class TapeDriveWorkerTest {
         thread1.start();
         Thread.sleep(5);
 
-        tapeDriveWorker.stop(1, TimeUnit.MICROSECONDS);
+        assertThatThrownBy(() -> tapeDriveWorker.stop(1, TimeUnit.MICROSECONDS))
+            .isInstanceOf(TimeoutException.class);
         assertThat(tapeDriveWorker.isRunning()).isTrue();
 
         Thread.sleep(150);

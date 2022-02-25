@@ -1,0 +1,12 @@
+groups:
+  - name: tape_offer
+    rules:
+      - alert: DriveWorkerKO
+        expr: vitam_offer_tape_workers_interrupted > 0
+        for: 1s
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            At least one tape offer drive worker is KO
+          summary: Drive worker KO (offerId {{$labels.offerId}})

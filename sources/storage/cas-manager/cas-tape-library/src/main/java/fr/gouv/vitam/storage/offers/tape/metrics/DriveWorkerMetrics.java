@@ -24,54 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.metrics;
+package fr.gouv.vitam.storage.offers.tape.metrics;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricSet;
+import fr.gouv.vitam.common.metrics.GaugeUtils;
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
+import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Get the cpu metrics
- */
-public class CpuGaugeSet implements MetricSet {
-    private final OperatingSystemMXBean operatingSystemMXBean;
+public final class DriveWorkerMetrics {
 
-    private CpuGaugeSet(OperatingSystemMXBean operatingSystemMXBean) {
-        this.operatingSystemMXBean = operatingSystemMXBean;
+    private DriveWorkerMetrics() {
+        // Empty private constructor
     }
 
-    @Override
-    public Map<String, Metric> getMetrics() {
-        if (!(operatingSystemMXBean instanceof com.sun.management.OperatingSystemMXBean)) {
-            return Collections.emptyMap();
-        }
+    public static void initializeMetrics(String tapeLibrary, TapeDriveWorkerManager tapeDriveWorkerManager) {
 
-        final com.sun.management.OperatingSystemMXBean osMxBean =
-            (com.sun.management.OperatingSystemMXBean) operatingSystemMXBean;
+        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_TOTAL_WORKERS,
+            "Total number of worker drives for a vitam tape offer",
+            Map.of("library", tapeLibrary),
+            () -> (double) tapeDriveWorkerManager.getTotalWorkerCount()
+        ).register();
 
-        final Map<String, Metric> gauges = new HashMap<>();
-
-        gauges.put("process-cpu-load-percentage-percent",
-            (Gauge<Double>) () -> osMxBean.getProcessCpuLoad());
-
-        gauges.put("system-cpu-load-percentage-percent",
-            (Gauge<Double>) () -> osMxBean.getSystemCpuLoad());
-
-        //gauges.put("system-load-average", (Gauge<Double>) () -> osMxBean.getSystemLoadAverage());
-
-        //gauges.put("process-cpu-time-ns", (Gauge<Long>) () -> osMxBean.getProcessCpuTime());
-
-        return Collections.unmodifiableMap(gauges);
+        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_INTERRUPTED_WORKERS,
+            "Number of KO worker drives for a vitam tape offer",
+            Map.of("library", tapeLibrary),
+            () -> (double) tapeDriveWorkerManager.getInterruptedWorkerCount()
+        ).register();
     }
-
-    public static CpuGaugeSet create() {
-        return new CpuGaugeSet(ManagementFactory.getOperatingSystemMXBean());
-    }
-
 }

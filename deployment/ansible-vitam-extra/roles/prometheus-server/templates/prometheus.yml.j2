@@ -153,12 +153,20 @@ scrape_configs:
 {% endif %}
 
 {% if (groups['hosts_storage_offer_default']|length >0) %}
+{% set offerInstances = [] %}
+{% for host in groups['hosts_storage_offer_default'] %}
+{{ offerInstances.append({"offerId": hostvars[host]['offer_conf'], "host": host }) }}
+{% endfor %}
   - job_name: vitam-storage-offer-default
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
+{% for offerId, hosts in offerInstances | groupby('offerId') %}
     - targets:
-{% for host in groups['hosts_storage_offer_default'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin | default(29900) }}
+{% for host in hosts %}
+      - {{ hostvars[host.host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin | default(29900) }}
+{% endfor %}
+      labels:
+        offerId: {{ offerId }}
 {% endfor %}
 {% endif %}
 

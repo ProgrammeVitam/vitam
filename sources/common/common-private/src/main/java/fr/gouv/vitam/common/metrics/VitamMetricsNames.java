@@ -172,4 +172,183 @@ public class VitamMetricsNames {
      * Labels: "tenant", "container"
      */
     public static final String VITAM_RECONSTRUCTION_DURATION = "vitam_reconstruction_duration";
+
+    /*
+     * =================================
+     *            Tape Offer
+     * ==================================
+     */
+
+    /**
+     * Max cache capacity for vitam tape offer
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_CACHE_MAX_CAPACITY = "vitam_offer_tape_cache_capacity_max";
+
+    /**
+     * Current cache usage for vitam tape offer
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_USED_CACHE_CAPACITY = "vitam_offer_tape_cache_capacity_used";
+
+    /**
+     * Total number of worker drives for a vitam tape offer
+     * Type: Gauge
+     * Labels: "library"
+     */
+    public static final String VITAM_TAPE_OFFER_TOTAL_WORKERS = "vitam_offer_tape_workers_total";
+
+    /**
+     * Number of KO worker drives for a vitam tape offer
+     * Type: Gauge
+     * Labels: "library"
+     */
+    public static final String VITAM_TAPE_OFFER_INTERRUPTED_WORKERS = "vitam_offer_tape_workers_interrupted";
+
+    /**
+     * Total number of tapes with EMPTY state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_EMPTY_STATE_TAPE = "vitam_offer_tape_state_empty";
+
+    /**
+     * Total number of tapes with OPEN state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_OPEN_STATE_TAPE = "vitam_offer_tape_state_open";
+
+    /**
+     * Total number of tapes with FULL state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_FULL_STATE_TAPE = "vitam_offer_tape_state_full";
+
+    /**
+     * Total number of tapes with CONFLICT state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_CONFLICT_STATE_TAPE = "vitam_offer_tape_state_conflict";
+
+    /**
+     * Number of READY access requests
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_READY_ACCESS_REQUESTS =
+        "vitam_offer_tape_access_requests_ready_count";
+
+    /**
+     * Number of NON_READY access requests
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_NON_READY_ACCESS_REQUESTS =
+        "vitam_offer_tape_access_requests_non_ready_count";
+
+    /**
+     * Number of EXPIRED access requests
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_EXPIRED_ACCESS_REQUESTS =
+        "vitam_offer_tape_access_requests_expired_count";
+
+    /**
+     * Number of read orders with READY state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_READY_READ_ORDERS = "vitam_offer_tape_read_orders_ready_count";
+
+    /**
+     * Number of read orders with RUNNING state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_RUNNING_READ_ORDERS =
+        "vitam_offer_tape_read_orders_running_count";
+
+
+    /**
+     * Number of read orders with ERROR state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_ERROR_READ_ORDERS = "vitam_offer_tape_read_orders_error_count";
+
+    /**
+     * Number of write orders with READY state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_READY_WRITE_ORDERS = "vitam_offer_tape_write_orders_ready_count";
+
+    /**
+     * Number of write orders with RUNNING state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_RUNNING_WRITE_ORDERS =
+        "vitam_offer_tape_write_orders_running_count";
+
+    /**
+     * Number of write orders with ERROR state
+     * Type: Gauge
+     * Labels: None
+     */
+    public static final String VITAM_TAPE_OFFER_COUNT_ERROR_WRITE_ORDERS = "vitam_offer_tape_write_orders_error_count";
+
+    /**
+     * Wait time (in queue) before execution of a read order of a Vitam tape storage offer
+     * Type: Histogram
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_READ_ORDER_WAIT_TIME_BEFORE_EXECUTION =
+        "vitam_offer_tape_read_order_wait_time_before_execution";
+
+    /**
+     * Wait time (in queue) before execution of a write order of a Vitam tape storage offer
+     * Type: Histogram
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION =
+        "vitam_offer_tape_write_order_wait_time_before_execution";
+
+    /**
+     * Execution duration of read orders of a Vitam tape storage offer
+     * Type: Histogram
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_READ_ORDER_EXECUTION_DURATION =
+        "vitam_offer_tape_read_order_execution_duration";
+
+    /**
+     * Execution duration of write orders of a Vitam tape storage offer
+     * Type: Histogram
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_WRITE_ORDER_EXECUTION_DURATION =
+        "vitam_offer_tape_write_order_execution_duration";
+
+    /**
+     * Total size in bytes of input files queued for archival
+     * Type: Gauge
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_SIZE =
+        "vitam_offer_tape_input_files_size";
+
+    /**
+     * Number of input files queued for archival
+     * Type: Gauge
+     * Labels: "bucket"
+     */
+    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_COUNT =
+        "vitam_offer_tape_input_files_count";
 }

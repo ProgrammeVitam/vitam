@@ -24,52 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.metrics;
+package fr.gouv.vitam.storage.offers.tape.metrics;
 
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
+import fr.gouv.vitam.common.metrics.GaugeUtils;
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+public final class ArchiveCacheMetrics {
 
-/**
- * A class extending the MetricRegistry to expose safe functions to register metrics.
- */
-public final class VitamMetricRegistry extends MetricRegistry {
-    private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetricRegistry.class);
-
-    /**
-     * VitamMetricRegistry constructor
-     */
-    public VitamMetricRegistry() {
-        // empty
+    private ArchiveCacheMetrics() {
+        // Empty private constructor
     }
 
-    /**
-     * Return the {@link Metric} registered under this name; or create and register a new {@code metric} if none is
-     * registered.
-     *
-     * @param name the name of the metric
-     * @return a new or pre-existing {@code metric}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Metric> T register(String name, T metric) {
-        ParametersChecker.checkParameter(VITAM_METRIC_REGISTRY_PARAMS, name, metric);
+    public static void initializeMetrics(ArchiveCacheStorage archiveCacheStorage) {
 
-        if (!super.getMetrics().containsKey(name)) {
-            super.register(name, metric);
-        } else {
-            // Erase previous metric, warn the user and register the new metric.
-            LOGGER.warn("Metric " + name + " already exists. Erasing and replacing with the new one.");
-            super.remove(name);
-            super.register(name, metric);
-        }
+        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_CACHE_MAX_CAPACITY,
+            "Max cache capacity for vitam tape offer",
+            () -> (double) archiveCacheStorage.getMaxStorageSpace()
+        ).register();
 
-        return (T) super.getMetrics().get(name);
+        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_USED_CACHE_CAPACITY,
+            "Current cache usage for vitam tape offer",
+            () -> (double) archiveCacheStorage.getCurrentStorageSpaceUsage()
+        ).register();
     }
-
-
 }
