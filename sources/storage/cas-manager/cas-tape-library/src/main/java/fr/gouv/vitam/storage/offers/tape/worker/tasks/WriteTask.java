@@ -26,9 +26,8 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.query.QueryCriteria;
-import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -56,6 +55,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
+import io.prometheus.client.Histogram;
 import org.apache.commons.io.FileUtils;
 import org.bson.conversions.Bson;
 
@@ -64,8 +64,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,6 +80,8 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.or;
+import static fr.gouv.vitam.storage.offers.tape.metrics.ReadWriteOrderMetrics.WRITE_ORDER_EXECUTION_DURATION;
+import static fr.gouv.vitam.storage.offers.tape.metrics.ReadWriteOrderMetrics.WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class WriteTask implements Future<ReadWriteResult> {
@@ -132,6 +135,10 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     @Override
     public ReadWriteResult get() {
+
+        reportWaitTime();
+
+        Histogram.Timer executionTimer = WRITE_ORDER_EXECUTION_DURATION.labels(writeOrder.getBucket()).startTimer();
 
         final ReadWriteResult readWriteResult = new ReadWriteResult();
         try {
@@ -250,6 +257,8 @@ public class WriteTask implements Future<ReadWriteResult> {
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.ERROR);
             }
+        } finally {
+            executionTimer.observeDuration();
         }
 
         readWriteResult.setCurrentTape(workerCurrentTape);
@@ -572,5 +581,14 @@ public class WriteTask implements Future<ReadWriteResult> {
     @Override
     public boolean isDone() {
         return done;
+    }
+
+    private void reportWaitTime() {
+        long waitTimeInSeconds = Duration.between(
+                LocalDateUtil.now(),
+                LocalDateUtil.parseMongoFormattedDate(writeOrder.getCreated()))
+            .get(ChronoUnit.SECONDS);
+
+        WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION.labels(writeOrder.getBucket()).observe(waitTimeInSeconds);
     }
 }

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
@@ -49,12 +50,15 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
+import io.prometheus.client.Histogram;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +76,8 @@ import static com.mongodb.client.model.Filters.ne;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.offers.tape.metrics.ReadWriteOrderMetrics.READ_ORDER_EXECUTION_DURATION;
+import static fr.gouv.vitam.storage.offers.tape.metrics.ReadWriteOrderMetrics.READ_ORDER_WAIT_TIME_BEFORE_EXECUTION;
 
 public class ReadTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
@@ -110,6 +116,12 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     @Override
     public ReadWriteResult get() {
+
+        reportWaitTime();
+
+        Histogram.Timer executionTimer = READ_ORDER_EXECUTION_DURATION
+            .labels(readOrder.getBucket()).startTimer();
+
         try {
             if (null != workerCurrentTape && !workerCurrentTape.getCode().equals(readOrder.getTapeCode())) {
                 // Unload current tape
@@ -176,6 +188,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             }
         } finally {
             done.set(true);
+            executionTimer.observeDuration();
         }
 
         return new ReadWriteResult(OK, QueueState.COMPLETED, workerCurrentTape);
@@ -342,5 +355,14 @@ public class ReadTask implements Future<ReadWriteResult> {
             LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Failed to update access requests in DB for archiveId" + readOrder.getFileName(), e);
         }
+    }
+
+    private void reportWaitTime() {
+        long waitTimeInSeconds = Duration.between(
+                LocalDateUtil.now(),
+                LocalDateUtil.parseMongoFormattedDate(readOrder.getCreated()))
+            .get(ChronoUnit.SECONDS);
+
+        READ_ORDER_WAIT_TIME_BEFORE_EXECUTION.labels(readOrder.getBucket()).observe(waitTimeInSeconds);
     }
 }

@@ -35,6 +35,8 @@ import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bson.conversions.Bson;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
@@ -287,5 +290,46 @@ public class QueueRepositoryImplTest {
         assertThat(found.get().getBucket()).isEqualTo("myBucket2");
         assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
 
+    }
+
+    @Test
+    public void testCountByStateAndType() throws QueueException {
+
+        // Given
+        WriteOrder writeOrder1 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
+            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        writeOrder1.setState(QueueState.READY);
+        queueRepositoryImpl.add(writeOrder1);
+
+        WriteOrder writeOrder2 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
+            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        writeOrder2.setState(QueueState.READY);
+        queueRepositoryImpl.add(writeOrder2);
+
+        WriteOrder writeOrder3 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
+            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        writeOrder3.setState(QueueState.ERROR);
+        queueRepositoryImpl.add(writeOrder3);
+
+        WriteOrder backupWriteOrder1 = new WriteOrder("backup", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
+            "digest", "myArchiveId", QueueMessageType.WriteBackupOrder);
+        backupWriteOrder1.setState(QueueState.READY);
+        queueRepositoryImpl.add(backupWriteOrder1);
+
+        ReadOrder readOrder1 =
+            new ReadOrder("VIT0001", 3, "tarId.tar", "myBucket", "myFileBucketId", 1_234_567_890_123L);
+        readOrder1.setState(QueueState.RUNNING);
+        queueRepositoryImpl.add(readOrder1);
+
+        // When
+        Map<Pair<QueueState, QueueMessageType>, Integer> stats = queueRepositoryImpl.countByStateAndType();
+
+        // Then
+        assertThat(stats).isEqualTo(Map.of(
+            new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteOrder), 2,
+            new ImmutablePair<>(QueueState.ERROR, QueueMessageType.WriteOrder), 1,
+            new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteBackupOrder), 1,
+            new ImmutablePair<>(QueueState.RUNNING, QueueMessageType.ReadOrder), 1
+        ));
     }
 }

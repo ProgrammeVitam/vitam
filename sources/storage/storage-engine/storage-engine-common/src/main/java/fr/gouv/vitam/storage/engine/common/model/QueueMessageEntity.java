@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.common.model;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 

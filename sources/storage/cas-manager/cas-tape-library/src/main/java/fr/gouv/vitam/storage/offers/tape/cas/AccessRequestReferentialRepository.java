@@ -130,6 +130,48 @@ public class AccessRequestReferentialRepository {
         }
     }
 
+    public long countNonReadyAccessRequests()
+        throws AccessRequestReferentialException {
+
+        try {
+
+            return collection.countDocuments(
+                Filters.and(Filters.exists(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS),
+                    Filters.ne(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, emptyList())));
+
+        } catch (MongoException ex) {
+            throw new AccessRequestReferentialException("Could not count non-ready access requests", ex);
+        }
+    }
+
+    public long countReadyAccessRequests()
+        throws AccessRequestReferentialException {
+
+        try {
+            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+
+            return collection.countDocuments(
+                Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
+
+        } catch (MongoException ex) {
+            throw new AccessRequestReferentialException("Could not count ready access requests", ex);
+        }
+    }
+
+    public long countExpiredAccessRequests()
+        throws AccessRequestReferentialException {
+
+        try {
+            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+
+            return collection.countDocuments(
+                Filters.lt(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
+
+        } catch (MongoException ex) {
+            throw new AccessRequestReferentialException("Could not count expired access requests", ex);
+        }
+    }
+
     public List<TapeAccessRequestReferentialEntity> findNonReadyAccessRequests()
         throws AccessRequestReferentialException {
 

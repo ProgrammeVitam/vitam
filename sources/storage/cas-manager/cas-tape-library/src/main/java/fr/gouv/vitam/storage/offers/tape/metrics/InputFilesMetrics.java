@@ -24,43 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.serverv2.metrics;
+package fr.gouv.vitam.storage.offers.tape.metrics;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Timer;
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
+import io.prometheus.client.Gauge;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
+public class InputFilesMetrics {
 
-/**
- *
- */
-public class MetricsInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
+    public static final Gauge QUEUED_INPUT_FILES_SIZE = Gauge.build()
+        .name(VitamMetricsNames.VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_SIZE)
+        .help("Total size in bytes of input files queued for archival")
+        .labelNames("bucket")
+        .register();
 
-    public static final String CONTEXT_KEY = "context";
-    private final Timer timer;
-    private final Meter meter;
-
-    public MetricsInterceptor(Timer timer, Meter meter) {
-        this.timer = timer;
-        this.meter = meter;
-    }
-
-    @Override
-    public void filter(ContainerRequestContext requestContext) {
-        // Called when a request is received
-        requestContext.setProperty(CONTEXT_KEY, timer.time());
-        meter.mark();
-    }
-
-    @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        // Called when the response is about to be sent back
-        Object contextKey = requestContext.getProperty(CONTEXT_KEY);
-        if (null != contextKey && contextKey instanceof Timer.Context) {
-            ((Timer.Context) requestContext.getProperty(CONTEXT_KEY)).stop();
-        }
-    }
+    public static final Gauge QUEUED_INPUT_FILES_COUNT = Gauge.build()
+        .name(VitamMetricsNames.VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_COUNT)
+        .help("Number of input files queued for archival")
+        .labelNames("bucket")
+        .register();
 }

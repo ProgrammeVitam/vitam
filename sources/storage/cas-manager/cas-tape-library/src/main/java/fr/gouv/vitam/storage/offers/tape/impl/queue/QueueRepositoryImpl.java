@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.queue;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -47,12 +51,16 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.utils.QueryCriteriaUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
@@ -85,7 +93,7 @@ public class QueueRepositoryImpl implements QueueRepository {
     public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
         try {
 
-            List<Bson> filters = criteriaToMongoFilters(criteria);
+            List<Bson> filters = QueryCriteriaUtils.criteriaToMongoFilters(criteria);
 
             if (collection.find(Filters.and(filters)).iterator().hasNext()) {
                 LOGGER.warn("Message already in queue " + JsonHandler.unprettyPrint(queueMessageEntity));
@@ -99,35 +107,11 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
     }
 
-    private List<Bson> criteriaToMongoFilters(List<QueryCriteria> criteria) {
-        List<Bson> filters = new ArrayList<>();
-        for (QueryCriteria criterion : criteria) {
-            switch (criterion.getOperator()) {
-                case EQ:
-                    filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
-                    break;
-                case GT:
-                    filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
-                    break;
-                case GTE:
-                    filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
-                    break;
-                case LT:
-                    filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
-                    break;
-                case LTE:
-                    filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
-                    break;
-            }
-        }
-        return filters;
-    }
-
     @Override
     public void tryCancelIfNotStarted(List<QueryCriteria> criteria) throws QueueException {
         try {
 
-            List<Bson> filters = criteriaToMongoFilters(criteria);
+            List<Bson> filters = QueryCriteriaUtils.criteriaToMongoFilters(criteria);
             filters.add(Filters.ne(QueueMessageEntity.STATE, QueueState.RUNNING.getState()));
 
             DeleteResult deleteResult = collection.deleteOne(and(filters));
@@ -243,4 +227,46 @@ public class QueueRepositoryImpl implements QueueRepository {
 
     }
 
+    /**
+     * count queue entries grouped by state & message type
+     *
+     * @return number of queue entries by state & message type
+     */
+    public Map<Pair<QueueState, QueueMessageType>, Integer> countByStateAndType() throws QueueException {
+        try {
+            AggregateIterable<Document> aggregate = collection.aggregate(List.of(
+                    Aggregates.group(
+                        new Document()
+                            .append("state", "$" + QueueMessageEntity.STATE)
+                            .append("type", "$" + QueueMessageEntity.MESSAGE_TYPE),
+                        Accumulators.sum("count", 1)
+                    )
+                )
+            );
+
+            Map<Pair<QueueState, QueueMessageType>, Integer> results = new HashMap<>();
+            try (MongoCursor<Document> iterator = aggregate.iterator()) {
+                while (iterator.hasNext()) {
+
+                    Document doc = iterator.next();
+                    Document _id = (Document) doc.get("_id");
+
+                    String stateStr = _id.getString("state");
+                    QueueState queueState = QueueState.valueOf(stateStr);
+
+                    String typeStr = _id.getString("type");
+                    QueueMessageType type = QueueMessageType.valueOf(typeStr);
+
+                    int count = doc.getInteger("count");
+
+                    results.put(new ImmutablePair<>(queueState, type), count);
+                }
+            }
+
+            return results;
+
+        } catch (Exception e) {
+            throw new QueueException(e);
+        }
+    }
 }

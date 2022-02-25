@@ -40,7 +40,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   notify: restart prometheus server
 
-- name: Check that the prometheus rules directorie exist
+- name: Check that the prometheus rules directory exist
   file:
     path: "{{ prometheus_server_config_path }}/rules"
     state: directory

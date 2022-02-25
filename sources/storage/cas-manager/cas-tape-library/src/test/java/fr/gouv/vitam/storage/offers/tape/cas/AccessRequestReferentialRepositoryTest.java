@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -558,6 +559,102 @@ public class AccessRequestReferentialRepositoryTest {
                 new TapeLibraryObjectReferentialId("myContainer2", "obj4")
             );
         }
+    }
+
+    @Test
+    public void givenAccessRequestsWhenCountNonReadyAccessRequestsThenOK()
+        throws AccessRequestReferentialException {
+
+        // Given
+        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
+            null, null, List.of("tarId1", "tarId4"), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest1);
+
+        TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), null,
+            null, null, List.of("tarId1", "tarId2"), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest2);
+
+        TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
+            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest3);
+
+        TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(30),
+            getNowMinusMinutes(10), getNowPlusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest4);
+
+        // When
+        long nbNonReady = accessRequestReferentialRepository.countNonReadyAccessRequests();
+
+        // Then
+        assertThat(nbNonReady).isEqualTo(2L);
+    }
+
+    @Test
+    public void givenAccessRequestsWhenCountReadyAccessRequestsThenOK()
+        throws AccessRequestReferentialException {
+
+        // Given
+        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
+            null, null, List.of("tarId1", "tarId4"), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest1);
+
+        TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), getNowPlusMinutes(10),
+            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 1, 0);
+        accessRequestReferentialRepository.insert(accessRequest2);
+
+        TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
+            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest3);
+
+        TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(40),
+            getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest4);
+
+        // When
+        long nbReady = accessRequestReferentialRepository.countReadyAccessRequests();
+
+        // Then
+        assertThat(nbReady).isEqualTo(2L);
+    }
+
+    @Test
+    public void givenAccessRequestsWhenExpiredAccessRequestsThenOK()
+        throws AccessRequestReferentialException {
+
+        // Given
+        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
+            null, null, List.of("tarId1", "tarId4"), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest1);
+
+        TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), getNowPlusMinutes(10),
+            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 1, 0);
+        accessRequestReferentialRepository.insert(accessRequest2);
+
+        TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
+            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest3);
+
+        TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
+            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(40),
+            getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+        accessRequestReferentialRepository.insert(accessRequest4);
+
+        // When
+        long nbExpired = accessRequestReferentialRepository.countExpiredAccessRequests();
+
+        // Then
+        assertThat(nbExpired).isEqualTo(1L);
     }
 
     private TapeAccessRequestReferentialEntity createAccessRequest(String container,
