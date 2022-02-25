@@ -131,7 +131,7 @@ Cette migration devrait être faite après la montée de version V5.
 
 
 Mise à jour des certificats
------------------------------------
+---------------------------
 
 Cette migration de données consiste à mettre à jour le champ ``ExpirationDate`` pour les anciens certificats existants dans la base de donnée.
 
@@ -142,4 +142,33 @@ Elle est réalisée en exécutant la commande suivante (sur tous les sites, dans
 ou, si vault_pass.txt n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5_certificate.yml --ask-vault-pass``
+
+
+Classement des offres dans une stratégie
+----------------------------------------
+
+Dans une stratégie de stockage, chaque offre renseignée déclare un ordre de lecture. Cet ordre est manifeste à travers la propriété ``rank``. Il est obligatoire
+de la renseigner dans chaque offre utilisée. La lecture depuis les offres se fait selon un ordre ascendant en se basant sur cette propriété.
+Ci-dessous un exemple de déclaration de stratégie de stockage et ses offres, dans le fichier de configuration ``deployment/environments/group_vars/all/offer_opts.yml`` :
+
+    .. code-block:: yaml
+
+        vitam_strategy:
+        - name: offer-1
+          referent: true
+          rank: 10
+        - name: offer-2
+          referent: false
+          rank: 20
+        - name: offer-3
+          referent: false
+          rank: 30
+
+        vitam_offers:
+            offer-1:
+                provider: filesystem
+            offer-2:
+                provider: filesystem
+            offer-3:
+                provider: filesystem
 
