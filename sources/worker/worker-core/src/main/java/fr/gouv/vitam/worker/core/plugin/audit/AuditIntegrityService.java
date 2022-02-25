@@ -26,15 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -43,10 +36,15 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -59,6 +57,8 @@ public class AuditIntegrityService {
 
     public static final String CHECK_INTEGRITY_ID = "AUDIT_FILE_INTEGRITY";
     private static final String PHYSICAL_MASTER = "PhysicalMaster";
+    private static final String DIGEST = "digest";
+    private static final String PROBLEM_OCCURED_MSG = "A problem occured when checking information from offer : ";
 
     private final StorageClientFactory storageClientFactory;
 
@@ -87,6 +87,8 @@ public class AuditIntegrityService {
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             for (AuditObject object : gotDetail.getObjects()) {
                 if (PHYSICAL_MASTER.equals(object.getQualifier())) {
+                    LOGGER.info(String.format("Skip checking object %s due to its Physical Master type.",
+                        object.getId()));
                     continue;
                 }
 
@@ -98,13 +100,21 @@ public class AuditIntegrityService {
                         DataCategory.OBJECT, object.getId(), offerIds, true);
                 for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
-                    if (metadata == null || object.getMessageDigest() == null || !metadata.has("digest")) {
+                    if (object.getMessageDigest() == null || metadata == null || !metadata.has(DIGEST)) {
+                        LOGGER.warn(
+                            String.format(
+                                PROBLEM_OCCURED_MSG + "Object Digest is %s and metadata size is  %s",
+                                object.getMessageDigest(), metadata == null ? 0 : metadata.size()));
                         auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.KO);
                     } else {
-                        String digest = metadata.get("digest").asText();
+                        String digest = metadata.get(DIGEST).asText();
                         if (StringUtils.equals(object.getMessageDigest(), digest)) {
                             auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.OK);
                         } else {
+                            LOGGER.warn(
+                                String.format(PROBLEM_OCCURED_MSG +
+                                        "Object Digest %s is different then object metadata digest %s",
+                                    object.getMessageDigest(), digest));
                             auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.KO);
                         }
                     }
