@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -59,12 +58,12 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, DataObjectVersionType usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException {
         return null;
     }
 
     @Override
-    public Response addBinary(String unitId, DataObjectVersionType usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException {
+    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException {
         return null;
     }
 

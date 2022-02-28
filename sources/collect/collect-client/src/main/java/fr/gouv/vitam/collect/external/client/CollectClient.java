@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -70,7 +69,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> addObjectGroup(String unitId, DataObjectVersionType usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException;
+    RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException;
 
     /**
      * ADD Binary
@@ -80,7 +79,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    Response addBinary(String unitId, DataObjectVersionType usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException;
+    Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException;
 
     /**
      * Close Transaction

@@ -76,7 +76,7 @@ public class CollectIT extends VitamRuleRunner {
 
     private static String transactionGuuid;
     private static String unitGuuid;
-    private static DataObjectVersionType usage = DataObjectVersionType.BINARY_MASTER;
+    private static String usage = DataObjectVersionType.BINARY_MASTER.getName();
     private static Integer version = 1;
     private ObjectMapper mapper = new ObjectMapper();
 
