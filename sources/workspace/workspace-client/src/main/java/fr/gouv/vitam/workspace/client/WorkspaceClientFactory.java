@@ -91,7 +91,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
         ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);
         final URI uri = URI.create(serviceUrl);
         final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
-        changeMode(configuration,workspaceType);
+        changeMode(configuration, workspaceType);
     }
 
 
@@ -99,7 +99,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
      * @param configuration null for MOCK
      */
     private static void changeMode(ClientConfiguration configuration) {
-        for (WorkspaceType type: WorkspaceType.values()) {
+        for (WorkspaceType type : WorkspaceType.values()) {
             getInstance(type).initialisation(configuration, getInstance(type).getResourcePath());
         }
     }
@@ -107,7 +107,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
     /**
      * @param configuration null for MOCK
      */
-    private static void changeMode(ClientConfiguration configuration, WorkspaceType workspaceType){
-            getInstance(workspaceType).initialisation(configuration, getInstance(workspaceType).getResourcePath());
-        }
+    private static void changeMode(ClientConfiguration configuration, WorkspaceType workspaceType) {
+        getInstance(workspaceType).initialisation(configuration, getInstance(workspaceType).getResourcePath());
+    }
 }

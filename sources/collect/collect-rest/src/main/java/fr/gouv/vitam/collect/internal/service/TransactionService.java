@@ -91,13 +91,9 @@ import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
@@ -319,7 +315,6 @@ public class TransactionService {
             UpdateMultiQuery query = new UpdateMultiQuery();
             query.addHintFilter(OBJECTGROUPS.exactToken());
             query.addActions(setQualifier);
-
             client.updateObjectGroupById(query.getFinalUpdate(), dbObjectGroupModel.getId());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Error when updating existing qualifier: {}", e);
@@ -352,22 +347,15 @@ public class TransactionService {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             ObjectNode unitJson = JsonHandler.createObjectNode();
             this.collectVarNameAdapter.setVarsValue(unitJson, unitJsonDto);
-            List<BulkUnitInsertEntry> units;
-            if (null != unitJson.get("_up") && unitJson.get("_up").size() != 0) {
-                Set<String> parentUnitIds = StreamSupport
-                    .stream(unitJson.get("_up").spliterator(), false)
-                    .map(JsonNode::asText)
-                    .collect(Collectors.toSet());
-                units = Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
-            } else {
-                units = Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
-            }
+            List<BulkUnitInsertEntry> units = CollectHelper.fetchBulkUnitInsertEntries(unitJson);
             return client.insertUnitBulk(new BulkUnitInsertRequest(units));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error when saving unit in metadata: {}", e);
             throw new CollectException("Error when saving unit in metadata: " + e);
         }
     }
+
+
 
     public ArchiveUnitModel getArchiveUnitById(String unitId) throws CollectException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
@@ -393,7 +381,7 @@ public class TransactionService {
                 return null;
             }
             InputStream is =
-                workspaceClient.getObject(transactionId, "Content/" + objectName).readEntity(InputStream.class);
+                workspaceClient.getObject(transactionId, FOLDER_CONTENT + "/" + objectName).readEntity(InputStream.class);
             Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), objectName);
             Files.copy(is, path);
             File tmpFile = path.toFile();

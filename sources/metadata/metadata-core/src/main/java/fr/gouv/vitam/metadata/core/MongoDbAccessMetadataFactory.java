@@ -47,6 +47,8 @@ import java.util.List;
  */
 public class MongoDbAccessMetadataFactory {
 
+    public static final String COLLECT_PREFIX = "collect_";
+
     /**
      * Creation of one MongoDbAccess
      *
@@ -77,6 +79,15 @@ public class MongoDbAccessMetadataFactory {
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient);
+
+        MetadataCollections unitCollection = MetadataCollections.UNIT;
+        MetadataCollections objectCollection = MetadataCollections.OBJECTGROUP;
+
+        if(Boolean.TRUE.equals(configuration.getCollectModule())) {
+            unitCollection.setPrefix(COLLECT_PREFIX);
+            objectCollection.setPrefix(COLLECT_PREFIX);
+        }
+
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, unitCollection, objectCollection);
     }
 }

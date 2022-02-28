@@ -102,7 +102,7 @@ public final class MetadataCollectionsTestUtils {
         }
 
         if (esClient != null) {
-            esClient.createIndexesAndAliases();
+            esClient.createIndexesAndAliases(MetadataCollections.OBJECTGROUP, MetadataCollections.UNIT);
         }
     }
 

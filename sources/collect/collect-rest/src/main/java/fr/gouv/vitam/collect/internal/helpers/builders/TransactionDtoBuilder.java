@@ -24,32 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers;
+package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 
-import javax.ws.rs.core.Response;
+public class TransactionDtoBuilder {
+    private String id;
+    private String archivalAgencyIdentifier;
+    private String transferingAgencyIdentifier;
+    private String originatingAgencyIdentifier;
+    private String archivalProfile;
+    private String comment;
 
-public class CollectRequestResponse {
-
-    public static final String COLLECT = "Collect";
-
-    private CollectRequestResponse() throws IllegalAccessException {
-        throw new IllegalAccessException("Utility class!");
+    public TransactionDtoBuilder setId(String id) {
+        this.id = id;
+        return this;
     }
 
-    public static Response toResponseOK(Object entity) {
-        RequestResponseOK<Object> requestResponse = new RequestResponseOK<>();
-        requestResponse.setHttpCode(Response.Status.OK.getStatusCode()).addResult(entity);
-        return Response.status(Response.Status.OK).entity(requestResponse).build();
+    public TransactionDtoBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+        return this;
     }
 
-    public static Response toVitamError(Response.Status status, String message) {
-        VitamError<Object> vitamError = new VitamError<>(status.name()).setContext(COLLECT)
-            .setMessage(message)
-            .setDescription(message)
-            .setHttpCode(status.getStatusCode());
-        return Response.status(status).entity(vitamError).build();
+    public TransactionDtoBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        return this;
+    }
+
+    public TransactionDtoBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        return this;
+    }
+
+    public TransactionDtoBuilder withArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
+        return this;
+    }
+
+    public TransactionDtoBuilder withComment(String comment) {
+        this.comment = comment;
+        return this;
+    }
+
+    public TransactionDto build() {
+        return new TransactionDto(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier, archivalProfile, comment);
     }
 }

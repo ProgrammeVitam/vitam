@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -37,12 +38,16 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 
@@ -129,5 +134,19 @@ public class CollectHelper {
         if (objectIdNode != null) {
             ogs.put(archiveUnitId, objectIdNode.asText());
         }
+    }
+
+    public static List<BulkUnitInsertEntry> fetchBulkUnitInsertEntries(ObjectNode unitJson) {
+        List<BulkUnitInsertEntry> units;
+        if (null != unitJson.get("_up") && unitJson.get("_up").size() != 0) {
+            Set<String> parentUnitIds = StreamSupport
+                .stream(unitJson.get("_up").spliterator(), false)
+                .map(JsonNode::asText)
+                .collect(Collectors.toSet());
+            units = Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
+        } else {
+            units = Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
+        }
+        return units;
     }
 }

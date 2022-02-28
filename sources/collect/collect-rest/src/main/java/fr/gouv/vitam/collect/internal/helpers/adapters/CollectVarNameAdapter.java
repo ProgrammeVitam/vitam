@@ -61,7 +61,7 @@ public class CollectVarNameAdapter extends VarNameAdapter {
     }
 
     @Override
-    public String getVariableName(String name) {
+    public String getVariableName(String name) throws InvalidParseOperationException {
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
             // Check on prefix (preceding '.')
             int pos = name.indexOf('.');
@@ -92,8 +92,7 @@ public class CollectVarNameAdapter extends VarNameAdapter {
                 }
 
             } catch (final IllegalArgumentException e) {
-                return null;
-                // TODO : throw new InvalidParseOperationException("Name: " + name, e);
+                 throw new InvalidParseOperationException("Name: " + name, e);
             }
         }
         return null;

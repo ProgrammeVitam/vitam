@@ -71,7 +71,8 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
-    public TransactionDto(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier, String originatingAgencyIdentifier, String archivalProfile, String comment) {
+    public TransactionDto(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier,
+        String originatingAgencyIdentifier, String archivalProfile, String comment) {
         this.id = id;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;

@@ -56,22 +56,24 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      * @param esClient Elasticsearch client
+     * @param unitCollection
+     * @param objectCollection
      */
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
-        ElasticsearchAccessMetadata esClient) {
+        ElasticsearchAccessMetadata esClient, MetadataCollections unitCollection, MetadataCollections objectCollection) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
 
-        MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
-        MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
+        unitCollection.initialize(getMongoDatabase(), recreate);
+        objectCollection.initialize(getMongoDatabase(), recreate);
 
         // init Unit Mapping for ES
-        MetadataCollections.UNIT.initialize(this.esClient);
+        unitCollection.initialize(this.esClient);
 
         // init OG Mapping for ES
-        MetadataCollections.OBJECTGROUP.initialize(this.esClient);
+        objectCollection.initialize(this.esClient);
 
-        esClient.createIndexesAndAliases();
+        esClient.createIndexesAndAliases(objectCollection, unitCollection);
     }
 
     /**

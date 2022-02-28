@@ -185,7 +185,7 @@ public class MongoDbAccessMetadataImplTest {
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), true,
-                esClient);
+                esClient, UNIT, OBJECTGROUP);
         assertThat(mongoDbAccess.getInfo())
             .contains(DEFAULT_MONGO1)
             .contains(DEFAULT_MONGO2)
@@ -206,7 +206,7 @@ public class MongoDbAccessMetadataImplTest {
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient);
+                esClient, UNIT, OBJECTGROUP);
         assertThat(mongoDbAccess.getInfo())
             .contains(DEFAULT_MONGO1)
             .contains(DEFAULT_MONGO2)
@@ -226,7 +226,7 @@ public class MongoDbAccessMetadataImplTest {
 
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient);
+                esClient, UNIT, OBJECTGROUP);
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
@@ -299,7 +299,7 @@ public class MongoDbAccessMetadataImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
-            mongoRule.getMongoDatabase().getName(), false, esClient);
+            mongoRule.getMongoDatabase().getName(), false, esClient, UNIT, OBJECTGROUP);
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
@@ -333,7 +333,7 @@ public class MongoDbAccessMetadataImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
-            mongoRule.getMongoDatabase().getName(), false, esClient);
+            mongoRule.getMongoDatabase().getName(), false, esClient, UNIT, OBJECTGROUP);
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
@@ -399,7 +399,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client
+                client, UNIT, OBJECTGROUP
             ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
@@ -432,7 +432,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client
+                client, UNIT, OBJECTGROUP
             ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
@@ -479,7 +479,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client
+                client, UNIT, OBJECTGROUP
             ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
@@ -525,7 +525,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client
+                client, UNIT, OBJECTGROUP
             ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
@@ -573,7 +573,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client), 100, 300, 100, 300, 100, 300, indexManager);
+                client, UNIT, OBJECTGROUP), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
@@ -612,7 +612,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client
+                client, UNIT, OBJECTGROUP
             ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When

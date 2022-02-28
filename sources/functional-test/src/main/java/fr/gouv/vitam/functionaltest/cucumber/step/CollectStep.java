@@ -31,7 +31,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.helpers.TransactionDtoBuilder;
+import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -40,7 +40,7 @@ import java.nio.file.Paths;
 
 public class CollectStep {
 
-    private String transactionGuuid;
+    private TransactionDto transactionDto;
     private final World world;
 
     public CollectStep(World world) {
@@ -68,7 +68,7 @@ public class CollectStep {
 
     @When("^j'initialise une transaction$")
     public void initTransaction() throws InvalidParseOperationException {
-        TransactionDto transactionDto = new TransactionDtoBuilder()
+        transactionDto = new TransactionDtoBuilder()
                 .withArchivalAgencyIdentifier("ArchivalAgencyIdentifier")
                 .withTransferingAgencyIdentifier("TransferingAgencyIdentifier")
                 .withOriginatingAgencyIdentifier("FRAN_NP_009913")

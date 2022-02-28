@@ -40,7 +40,7 @@ import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.helpers.TransactionDtoBuilder;
+import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
