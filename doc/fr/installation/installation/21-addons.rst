@@ -662,9 +662,9 @@ Voici les variables modifiées par la solution :term:`VITAM` pour permettre le f
 Installation de restic
 ======================
 
-restic est un addon de la solution :term:`VITAM`.
+restic est un addon (beta) de la solution :term:`VITAM`.
 
-restic sera déployé sur l'ensemble des machines renseignées dans le groupe ``[hosts_storage_offer_default]`` de votre fichier d'inventaire qui possèdent le paramètre ``restic_enabled=true``.
+restic sera déployé sur l'ensemble des machines du groupe ``[hosts_storage_offer_default]`` qui possèdent le paramètre ``restic_enabled=true``. Attention à ne renseigner qu'une seule fois ce paramètre par ``offer_conf``.
 
 Pour se faire, il suffit d'exécuter le playbook associé :
 
@@ -677,3 +677,12 @@ Configuration
 -------------
 
 Les paramères de configuration de ce composant se trouvent dans les fichiers ``environments/group_vars/all/cots_vars.yml`` et ``environments/group_vars/all/vault-cots.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+
+Limitations actuelles
+---------------------
+
+restic est fourni en tant que fonctionnalité beta. À ce titre, il ne peut se substituer à des vérifications régulières de l'état des sauvegardes de vos bases.
+
+restic ne fonctionne pas avec les providers `openstack-swift` et `openstack-swift-v2`. Pour le provider `tape-library`, il écrira au même endroit qu'un provider de type `filesystem` (sous /vitam/data/offer/container/).
+
+restic ne fonctionne pas avec un cluster mongo multi-shardé. Ainsi, mongo-data ne peut être sauvegardé via restic que dans de petites instances de Vitam.

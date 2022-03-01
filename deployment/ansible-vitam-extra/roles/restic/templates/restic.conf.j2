@@ -6,7 +6,7 @@ export RESTIC_PASSWORD={{ restic.password | default('vitam') }}
 # PARAMETERS FOR FILESYSTEM & TAPE OFFERS
 export RESTIC_CONTAINER=/vitam/data/offer/container/{{ vitam_prefix_offer | default(vitam_site_name) }}_restic
 {% endif %}
-{% if vitam_offers[offer_conf]["provider"] in ["openstack-swift", "openstack-swift-v2", "openstack-swift-v3"] %}
+{% if vitam_offers[offer_conf]["provider"] in ["openstack-swift-v3"] %}
 # PARAMETERS FOR SWIFT OFFERS
 export RESTIC_CONTAINER=swift:{{ vitam_prefix_offer|default(vitam_site_name) }}_restic:
 export OS_AUTH_URL={{ vitam_offers[offer_conf]["swiftKeystoneAuthUrl"] }}
