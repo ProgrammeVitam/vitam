@@ -129,7 +129,8 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
         JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
 
-        JsonAssert.assertJsonEquals(expectedJson, updatedUnit);
+        JsonAssert.assertJsonEquals(expectedJson, updatedUnit,
+            JsonAssert.whenIgnoringPaths("$action[*].$set.#computedInheritedRules.indexationDate"));
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
