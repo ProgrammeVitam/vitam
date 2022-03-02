@@ -52,22 +52,32 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Optional;
 
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_UPSERT;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/collect/v1")
 public class TransactionResource extends ApplicationStatusResource {
     public static final String ERROR_WHILE_TRYING_TO_SAVE_UNITS = "Error while trying to save units";
-    public static final String UNABLE_TO_FIND_ARCHIVE_UNIT_ID = "Unable to find archiveUnit Id";
     public static final String SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID =
-            "SIP ingest operation can't provide a null operationGuiid";
+        "SIP ingest operation can't provide a null operationGuiid";
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
     private final CollectService collectService;
     private final TransactionService transactionService;
@@ -78,7 +88,7 @@ public class TransactionResource extends ApplicationStatusResource {
     private static final String ID = "#id";
 
     public TransactionResource(CollectService collectService, TransactionService transactionService,
-                               SipService sipService) {
+        SipService sipService) {
         this.collectService = collectService;
         this.transactionService = transactionService;
         this.sipService = sipService;
@@ -88,26 +98,30 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_CREATE, description = "Créer une transaction")
+    @Secured(permission = TRANSACTION_CREATE, description = "Créer une transaction")
     public Response initTransaction(TransactionDto transactionDto) {
         try {
             ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(transactionDto));
 
             String requestId = collectService.createRequestId();
             transactionDto.setId(requestId);
             CollectModel collectModel = new CollectModelBuilder()
-                    .withId(transactionDto.getId())
-                    .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
-                    .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
-                    .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
-                    .withArchivalProfile(transactionDto.getArchivalProfile())
-                    .withComment(transactionDto.getComment())
-                    .withStatus(TransactionStatus.OPEN)
-                    .build();
+                .withId(transactionDto.getId())
+                .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
+                .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
+                .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
+                .withArchivalProfile(transactionDto.getArchivalProfile())
+                .withComment(transactionDto.getComment())
+                .withStatus(TransactionStatus.OPEN)
+                .build();
             collectService.createCollect(collectModel);
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
 
@@ -115,7 +129,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_UNIT_CREATE, description = "Créer une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_CREATE, description = "Créer une unité archivistique")
     public Response uploadArchiveUnit(@PathParam("transactionId") String transactionId, JsonNode unitJsonNode) {
 
         try {
@@ -129,16 +143,16 @@ public class TransactionResource extends ApplicationStatusResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
 
-            ObjectNode objectNode = JsonHandler.getFromJsonNode(unitJsonNode, ObjectNode.class);
-            objectNode.put(ID, collectService.createRequestId());
-            objectNode.put(OPI, transactionId);
-            JsonNode jsonNode = transactionService.saveArchiveUnitInMetaData(unitJsonNode);
+            ObjectNode unitObjectNode = JsonHandler.getFromJsonNode(unitJsonNode, ObjectNode.class);
+            unitObjectNode.put(ID, collectService.createRequestId());
+            unitObjectNode.put(OPI, transactionId);
+            JsonNode savedUnitJsonNode = transactionService.saveArchiveUnitInMetaData(unitObjectNode);
 
-            if (jsonNode == null) {
+            if (savedUnitJsonNode == null) {
                 LOGGER.error(ERROR_WHILE_TRYING_TO_SAVE_UNITS);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, ERROR_WHILE_TRYING_TO_SAVE_UNITS);
             }
-            return CollectRequestResponse.toResponseOK(unitJsonNode);
+            return CollectRequestResponse.toResponseOK(savedUnitJsonNode);
         } catch (CollectException | InvalidParseOperationException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
@@ -148,21 +162,24 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_OBJECT_UPSERT, description = "ajouter ou modifier un objet group")
+    @Secured(permission = TRANSACTION_OBJECT_UPSERT, description = "ajouter ou modifier un objet group")
     public Response uploadObjectGroup(@PathParam("unitId") String unitId,
-                                      @PathParam("usage") String usageString,
-                                      @PathParam("version") Integer version,
-                                      ObjectGroupDto objectGroupDto) {
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        ObjectGroupDto objectGroupDto) {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
             ParametersChecker.checkParameter("You must supply object datas!", objectGroupDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupDto));
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            ArchiveUnitModel archiveUnitModel = checkParametersAndGetArchiveUnitModel(unitId, usage, version);
-            transactionService.saveObjectGroupInMetaData(archiveUnitModel, usage, version, objectGroupDto);
+            transactionService.checkParameters(unitId, usage, version);
+            ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitModel(unitId);
+            ObjectGroupDto savedObjectGroupDto =
+                transactionService.saveObjectGroupInMetaData(archiveUnitModel, usage, version, objectGroupDto);
 
-            return CollectRequestResponse.toResponseOK(objectGroupDto);
+            return CollectRequestResponse.toResponseOK(savedObjectGroupDto);
         } catch (CollectException e) {
             LOGGER.error("Error while trying to save objects : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -176,11 +193,11 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_BINARY_UPSERT, description = "ajouter ou modifier un binaire")
+    @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "ajouter ou modifier un binaire")
     public Response upload(@PathParam("unitId") String unitId,
-                           @PathParam("usage") String usageString,
-                           @PathParam("version") Integer version,
-                           InputStream uploadedInputStream) throws CollectException {
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        InputStream uploadedInputStream) throws CollectException {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
@@ -188,7 +205,8 @@ public class TransactionResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("You must supply a file!", uploadedInputStream);
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            ArchiveUnitModel archiveUnitModel = checkParametersAndGetArchiveUnitModel(unitId, usage, version);
+            transactionService.checkParameters(unitId, usage, version);
+            ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitModel(unitId);
             DbObjectGroupModel dbObjectGroupModel = transactionService.getDbObjectGroup(archiveUnitModel);
             transactionService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream);
 
@@ -204,44 +222,20 @@ public class TransactionResource extends ApplicationStatusResource {
 
     }
 
-    private ArchiveUnitModel checkParametersAndGetArchiveUnitModel(String unitId, DataObjectVersionType usage,
-                                                                   Integer version) throws CollectException {
-        if (usage == null || unitId == null || version == null) {
-            LOGGER.error("usage({}), unitId({}) or version({}) can't be null", usage, unitId, version);
-            throw new IllegalArgumentException("usage, unitId or version can't be null");
-        }
-
-        ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitById(unitId);
-        if (archiveUnitModel == null) {
-            LOGGER.error(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
-            throw new CollectException(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
-        }
-        return archiveUnitModel;
-    }
-
     @Path("/transactions/{transactionId}/close")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_CLOSE, description = "Fermer une transaction")
+    @Secured(permission = TRANSACTION_CLOSE, description = "Fermer une transaction")
     public Response closeTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
-
-            Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
-            if (collectModel.isEmpty() || !collectService.checkStatus(collectModel.get(), TransactionStatus.OPEN)) {
-                LOGGER.debug(TRANSACTION_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
-            }
-            CollectModel currentCollectModel = collectModel.get();
-            currentCollectModel.setStatus(TransactionStatus.CLOSE);
-            collectService.replaceCollect(currentCollectModel);
-
+            collectService.closeTransaction(transactionId);
             return Response.status(OK).build();
         } catch (CollectException e) {
             LOGGER.error("An error occurs when try to close transaction : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error("An error occurs when try to close transaction : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -251,7 +245,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission =  TRANSACTION_SEND, description = "Envoyer une transaction")
+    @Secured(permission = TRANSACTION_SEND, description = "Envoyer une transaction")
     public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
 
         try {
@@ -273,7 +267,7 @@ public class TransactionResource extends ApplicationStatusResource {
             if (operationGuiid == null) {
                 LOGGER.error(SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR,
-                        SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
+                    SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
             }
 
             CollectModel currentCollectModel = collectModel.get();

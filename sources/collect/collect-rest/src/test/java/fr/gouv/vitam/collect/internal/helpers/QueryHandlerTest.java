@@ -82,7 +82,8 @@ public class QueryHandlerTest {
 
         // WHEN
         UpdateMultiQuery qualifiersAddMultiQuery =
-            QueryHandler.getQualifiersAddMultiQuery(USAGE, QUALIFIER_VERSION_1, qualifiers, objectGroupDto, VERSION_ID, objectGroup);
+            QueryHandler.getQualifiersAddMultiQuery(USAGE, QUALIFIER_VERSION_1, qualifiers, objectGroupDto, VERSION_ID,
+                objectGroup.getNbc());
 
         // THEN
         JsonNode expectedJsonNode = qualifiersAddMultiQuery();

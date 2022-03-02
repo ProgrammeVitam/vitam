@@ -52,6 +52,9 @@ import java.util.stream.StreamSupport;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 
 public class CollectHelper {
+
+    public static final String UP = "_up";
+
     private CollectHelper() throws IllegalAccessException {
         throw new IllegalAccessException("Utility class!");
     }
@@ -87,6 +90,7 @@ public class CollectHelper {
         final String dataObjectVersion = usage.getName() + "_" + version;
 
         return dbObjectGroupModel.getQualifiers().stream()
+            // TODO : virer le traitement du peek et tester
             .peek(dbQualifiersModel -> {
                 if (dbQualifiersModel.getQualifier() != null && dbQualifiersModel.getQualifier().contains("_")) {
                     dbQualifiersModel.setQualifier(dbQualifiersModel.getQualifier().split("_")[0]);
@@ -108,9 +112,9 @@ public class CollectHelper {
             .orElse(0);
     }
 
-    public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, DataObjectVersionType usager) {
+    public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, DataObjectVersionType usage) {
         return qualifiers.stream()
-            .filter(qualifier -> qualifier.getQualifier().equals(usager.getName()))
+            .filter(qualifier -> qualifier.getQualifier().equals(usage.getName()))
             .findFirst()
             .orElse(null);
     }
@@ -138,9 +142,9 @@ public class CollectHelper {
 
     public static List<BulkUnitInsertEntry> fetchBulkUnitInsertEntries(ObjectNode unitJson) {
         List<BulkUnitInsertEntry> units;
-        if (null != unitJson.get("_up") && unitJson.get("_up").size() != 0) {
+        if (null != unitJson.get(UP) && unitJson.get(UP).size() != 0) {
             Set<String> parentUnitIds = StreamSupport
-                .stream(unitJson.get("_up").spliterator(), false)
+                .stream(unitJson.get(UP).spliterator(), false)
                 .map(JsonNode::asText)
                 .collect(Collectors.toSet());
             units = Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));

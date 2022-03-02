@@ -27,7 +27,6 @@
 package fr.gouv.vitam.collect.internal.repository;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
@@ -111,8 +110,7 @@ public class CollectRepository {
     public Optional<CollectModel> findCollect(String id) throws CollectException {
         LOGGER.debug("Collect id to find : {}", id);
         try {
-            FindIterable<Document> models = collectCollection.find(Filters.eq(ID, id));
-            Document first = models.first();
+            Document first = collectCollection.find(Filters.eq(ID, id)).first();
             if (first == null) {
                 return Optional.empty();
             }

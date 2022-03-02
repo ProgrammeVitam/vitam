@@ -66,11 +66,12 @@ public class QueryHandler {
         throw new IllegalAccessException("Utility class!");
     }
 
-    public static UpdateMultiQuery getQualifiersAddMultiQuery(DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String versionId, DbObjectGroupModel objectGroup) throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static UpdateMultiQuery getQualifiersAddMultiQuery(DataObjectVersionType usage, int version,
+        List<DbQualifiersModel> qualifiers,
+        ObjectGroupDto objectGroupDto, String objectGroupVersionId, int nbc) throws InvalidParseOperationException, InvalidCreateOperationException {
         DbQualifiersModel newQualifier = new DbQualifiersModelBuilder()
             .withUsage(usage)
-            .withVersion(versionId, objectGroupDto.getFileInfo().getFileName(), usage, version)
+            .withVersion(objectGroupVersionId, objectGroupDto.getFileInfo().getFileName(), usage, version)
             .withNbc(1)
             .build();
 
@@ -84,14 +85,14 @@ public class QueryHandler {
         query.addHintFilter(OBJECTGROUPS.exactToken());
         query.addActions(
             setQualifier,
-            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroup.getNbc() + 1L)
+            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), nbc + 1L)
         );
         return query;
     }
 
     public static UpdateMultiQuery getQualifiersUpdateMultiQuery(DbQualifiersModel qualifierModelToUpdate,
-        DbObjectGroupModel objectGroup, DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String versionId)
+        DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers,
+        ObjectGroupDto objectGroupDto, String versionId, int nbc)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         int index = qualifiers.indexOf(qualifierModelToUpdate);
         DbVersionsModel dbversion = new DbVersionsModelBuilder()
@@ -106,7 +107,7 @@ public class QueryHandler {
 
         UpdateMultiQuery query = new UpdateMultiQuery();
         query.addActions(
-            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroup.getNbc() + 1L),
+            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), nbc + 1L),
             new SetAction(action)
         );
         return query;
@@ -120,12 +121,11 @@ public class QueryHandler {
         return  insert.getFinalInsert();
     }
 
-    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, ObjectGroupDto objectGroupDto,
-        MetaDataClient client)
+    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, MetaDataClient client, String objectGroupId)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         UpdateMultiQuery multiQuery = new UpdateMultiQuery();
-        multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupDto.getId()));
+        multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupId));
         multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
         RequestResponse<JsonNode> requestResponse = client.updateUnitBulk(multiQuery.getFinalUpdate());
         return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();

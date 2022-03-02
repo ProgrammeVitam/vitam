@@ -43,6 +43,8 @@ public class CollectService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectService.class);
 
+    private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+
     public CollectService(CollectRepository collectRepository) {
         this.collectRepository = collectRepository;
     }
@@ -66,6 +68,16 @@ public class CollectService {
      */
     public Optional<CollectModel> findCollect(String id) throws CollectException {
         return collectRepository.findCollect(id);
+    }
+
+    public void closeTransaction(String transactionId) throws CollectException {
+        Optional<CollectModel> collectModel = findCollect(transactionId);
+        if (collectModel.isEmpty() || !checkStatus(collectModel.get(), TransactionStatus.OPEN)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        CollectModel currentCollectModel = collectModel.get();
+        currentCollectModel.setStatus(TransactionStatus.CLOSE);
+        replaceCollect(currentCollectModel);
     }
 
     public void replaceCollect(CollectModel collectModel) throws CollectException {

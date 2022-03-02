@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BatchReport" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <log_file alias="Logs" path="$vitamLocalShareFolder$/log/batch-report/batch-report.*.log" />
+    <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/batch-report/accesslog-batch-report.*.log" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.batch.report.rest.BatchReportMain" />
+    <module name="batch-report-rest" />
+    <option name="PROGRAM_PARAMETERS" value="$vitamLocalShareFolder$/conf/batch-report/batch-report.conf" />
+    <option name="VM_PARAMETERS" value="-Dlogback.configurationFile=$vitamLocalShareFolder$/conf/batch-report/logback.xml -Dvitam.tmp.folder=$vitamLocalShareFolder$/tmp -Dvitam.config.folder=$vitamLocalShareFolder$/conf -Dvitam.data.folder=$vitamLocalShareFolder$/data -Dvitam.log.folder=$vitamLocalShareFolder$/log" />
+    <option name="WORKING_DIRECTORY" value="$vitamLocalShareFolder$/conf/batch-report/" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

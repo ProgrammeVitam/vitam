@@ -107,6 +107,7 @@ public class TransactionService {
     private static final String FOLDER_CONTENT = "Content";
     private static final String TAG_STATUS = "#status";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+    public static final String UNABLE_TO_FIND_ARCHIVE_UNIT_ID = "Unable to find archiveUnit Id";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
 
     private final CollectService collectService;
@@ -125,7 +126,35 @@ public class TransactionService {
         this.collectVarNameAdapter = new CollectVarNameAdapter();
     }
 
-    public void saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage, int version,
+    public void checkParameters(String unitId, DataObjectVersionType usage, Integer version) {
+        if (usage == null || unitId == null || version == null) {
+            LOGGER.error("usage({}), unitId({}) or version({}) can't be null", usage, unitId, version);
+            throw new IllegalArgumentException("usage, unitId or version can't be null");
+        }
+    }
+
+    public ArchiveUnitModel getArchiveUnitModel(String unitId) throws CollectException {
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            JsonNode jsonNode = client.selectUnitbyId(new Select().getFinalSelect(), unitId);
+            if (jsonNode == null || !jsonNode.has(TAG_RESULTS) || jsonNode.get(TAG_RESULTS).size() == 0) {
+                LOGGER.error("Can't get unit by ID: {}" + unitId);
+                throw new CollectException("Can't get unit by ID: " + unitId);
+            }
+            ArchiveUnitModel archiveUnitModel = objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
+            if (archiveUnitModel == null) {
+                LOGGER.error(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
+                throw new CollectException(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
+            }
+            return objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
+        } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
+            | InvalidParseOperationException | MetaDataClientServerException e) {
+            LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
+            throw new CollectException("Error when fetching unit by id("+ unitId +") " + e);
+        }
+    }
+
+    public ObjectGroupDto saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage, int version,
         ObjectGroupDto objectGroupDto) throws CollectException {
 
         try {
@@ -135,6 +164,7 @@ public class TransactionService {
             } else {
                 updateExistingObject(archiveUnitModel, usage, version, objectGroupDto);
             }
+            return objectGroupDto;
         } catch (CollectException e) {
             LOGGER.error("Error when saving Object in metadata: {}", e);
             throw new CollectException(e);
@@ -157,7 +187,7 @@ public class TransactionService {
 
             if (qualifierModelToUpdate == null) {
                 CollectHelper.checkVersion(version, 1);
-                addQualifierToObjectGroups(dbObjectGroupModel, usage, version, dbObjectGroupModel.getQualifiers(),
+                addQualifierToObjectGroups(dbObjectGroupModel, usage, version,
                     objectGroupDto);
             } else {
                 DbVersionsModel dbVersionsModel =
@@ -200,7 +230,7 @@ public class TransactionService {
                 throw new CollectException("Error when trying to insert ObjectGroup : : " + insertRequest);
             }
 
-            JsonNode firstResult = QueryHandler.updateUnitMultiQuery(archiveUnitModel, objectGroupDto, client);
+            JsonNode firstResult = QueryHandler.updateUnitMultiQuery(archiveUnitModel, client, objectGroupDto.getId());
 
             if (firstResult != null && firstResult.has(TAG_STATUS) &&
                 firstResult.get(TAG_STATUS).textValue().equals(KO.name())) {
@@ -217,13 +247,13 @@ public class TransactionService {
     }
 
     public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, DataObjectVersionType usage, int version,
-        List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto) throws CollectException {
+        ObjectGroupDto objectGroupDto) throws CollectException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             String versionId = collectService.createRequestId();
             UpdateMultiQuery query =
-                QueryHandler.getQualifiersAddMultiQuery(usage, version, qualifiers, objectGroupDto, versionId,
-                    objectGroup);
+                QueryHandler.getQualifiersAddMultiQuery(usage, version, objectGroup.getQualifiers(), objectGroupDto, versionId,
+                    objectGroup.getNbc());
             client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Error when adding usage/version to existing qualifier: {}", e);
@@ -237,8 +267,8 @@ public class TransactionService {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             String versionId = collectService.createRequestId();
-            UpdateMultiQuery query = QueryHandler.getQualifiersUpdateMultiQuery(qualifierModelToUpdate, objectGroup,
-                usage, version, qualifiers, objectGroupDto, versionId);
+            UpdateMultiQuery query = QueryHandler.getQualifiersUpdateMultiQuery(qualifierModelToUpdate,
+                usage, version, qualifiers, objectGroupDto, versionId, objectGroup.getNbc());
 
             client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -352,23 +382,6 @@ public class TransactionService {
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error when saving unit in metadata: {}", e);
             throw new CollectException("Error when saving unit in metadata: " + e);
-        }
-    }
-
-
-
-    public ArchiveUnitModel getArchiveUnitById(String unitId) throws CollectException {
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            JsonNode jsonNode = client.selectUnitbyId(new Select().getFinalSelect(), unitId);
-            if (jsonNode == null || !jsonNode.has(TAG_RESULTS) || jsonNode.get(TAG_RESULTS).size() == 0) {
-                LOGGER.error("Can't get unit by ID: {}" + unitId);
-                throw new CollectException("Can't get unit by ID: " + unitId);
-            }
-            return objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
-        } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
-            | InvalidParseOperationException | MetaDataClientServerException e) {
-            LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
-            throw new CollectException("Error when fetching unit by id("+ unitId +") " + e);
         }
     }
 
