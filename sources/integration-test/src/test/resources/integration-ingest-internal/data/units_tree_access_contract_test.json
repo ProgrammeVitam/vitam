@@ -78,6 +78,7 @@
       "AppraisalRule": {},
       "DisseminationRule": {
         "MaxEndDate": "2125-01-01",
+        "InheritanceOrigin": "Local",
         "EndDates": {
           "DIS-00003": "2025-01-01",
           "DIS-00002": "2025-01-01"
@@ -138,8 +139,13 @@
       "DisseminationRule": {
         "MaxEndDate": "2015-01-01",
         "EndDates": {
-          "DIS-00001": "2015-01-01"
-        }
+          "DIS-00001": "2015-01-01",
+          "DIS-00002": "2010-01-01"
+        },
+        "InheritanceOrigin": "LocalAndInherited",
+        "InheritedRuleIds": [
+          "DIS-00002"
+        ]
       },
       "AccessRule": {},
       "ReuseRule": {},

@@ -3158,6 +3158,26 @@
     ]
   },
   {
+    "Identifier": "InheritanceOrigin",
+    "Description": "Origine de définition des règles de gestion",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "InheritanceOrigin",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "InheritedRuleIds",
+    "Description": "Identifiant des règles héritées applicables",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "InheritedRuleIds",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
     "Identifier": "MaxEndDate",
     "Description": "Date de fin maximale",
     "Type": "DATE",

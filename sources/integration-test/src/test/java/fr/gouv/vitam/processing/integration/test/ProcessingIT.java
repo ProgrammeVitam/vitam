@@ -563,7 +563,7 @@ public class ProcessingIT extends VitamRuleRunner {
             List<Document> versions = binaryMaster.getList("versions", Document.class);
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
-            Document storageVersion = version.get("_storage",Document.class);
+            Document storageVersion = version.get("_storage", Document.class);
             assertThat(storageVersion.get("_nbc")).isNull();
             assertThat(storageVersion.get("offerIds")).isNull();
         }
@@ -1753,7 +1753,7 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         Document unit = resultUnits.first();
         assertNotNull(unit);
-        String idGot = unit.get("_og",String.class);
+        String idGot = unit.get("_og", String.class);
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
             "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
@@ -1804,7 +1804,8 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
                 .collect(Collectors.toList());
 
-        List<Document> events = Iterables.getOnlyElement(currentLogbookLifeCycleUnits).getList("events", Document.class);
+        List<Document> events =
+            Iterables.getOnlyElement(currentLogbookLifeCycleUnits).getList("events", Document.class);
 
         List<Document> lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
             .collect(Collectors.toList());
@@ -2336,18 +2337,34 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::nonNull);
-        Optional<JsonNode> computedInheritedRulesOptional = StreamSupport.stream(selectUnitsAfterComputedInheritedRules.spliterator(), false)
-            .filter(unit -> unit.get("Title").textValue().equals("Pereire.txt"))
-            .findFirst();
+
+        checkComputedInheritedRules(selectUnitsAfterComputedInheritedRules, "Pereire.txt",
+            "integration-processing/expectedPereireComputedInheritedRules.json");
+
+        checkComputedInheritedRules(selectUnitsAfterComputedInheritedRules, "Réaumur",
+            "integration-processing/expectedReaumurComputedInheritedRules.json");
+
+        checkComputedInheritedRules(selectUnitsAfterComputedInheritedRules, "République",
+            "integration-processing/expectedRepubliqueComputedInheritedRules.json");
+    }
+
+    private void checkComputedInheritedRules(JsonNode selectUnitsAfterComputedInheritedRules, String title,
+        String resourcesFile)
+        throws InvalidParseOperationException, FileNotFoundException {
+        Optional<JsonNode> computedInheritedRulesOptional =
+            StreamSupport.stream(selectUnitsAfterComputedInheritedRules.spliterator(), false)
+                .filter(unit -> unit.get("Title").textValue().equals(title))
+                .findFirst();
         assertTrue(computedInheritedRulesOptional.isPresent());
         ObjectNode computedInheritedRules =
             (ObjectNode) computedInheritedRulesOptional.get().get(VitamFieldsHelper.computedInheritedRules());
         assertThat(computedInheritedRules.get("indexationDate")).isNotNull();
         // Check format ignoring indexationDate fields
         computedInheritedRules.remove("indexationDate");
+
         JsonAssert.assertJsonEquals(
             JsonHandler.getFromInputStream(PropertiesUtils
-                .getResourceAsStream("integration-processing/expectedPereireComputedInheritedRules.json")),
+                .getResourceAsStream(resourcesFile)),
             computedInheritedRules);
     }
 
@@ -2446,7 +2463,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Check end dates
         assertThat(
-            StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(),false)
+            StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
                 .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
                     unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
                     unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules"))
@@ -2563,18 +2580,20 @@ public class ProcessingIT extends VitamRuleRunner {
                 .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
                     unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
                     unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules"))
-                .flatMap(unit -> StreamSupport.stream(unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
-                .filter(rule -> rule.get("Rule").asText().equals("ACC-00003"))
-        ).allMatch(rule -> rule.get("EndDate").asText().equals(
-            LocalDateUtil.getLocalDateFromSimpleFormattedDate(rule.get("StartDate").asText()).plusYears(30).format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd")))));
+                .flatMap(unit -> StreamSupport.stream(
+                        unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
+                    .filter(rule -> rule.get("Rule").asText().equals("ACC-00003"))
+                ).allMatch(rule -> rule.get("EndDate").asText().equals(
+                    LocalDateUtil.getLocalDateFromSimpleFormattedDate(rule.get("StartDate").asText()).plusYears(30).format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd")))));
 
         // Check computed inherited rules invalidation of updated units and all then children
         List<String> updatedUnitIds = StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
             .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
                 unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
                 unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules") &&
-                StreamSupport.stream(unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
+                StreamSupport.stream(
+                        unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
                     .anyMatch(rule -> rule.get("Rule").asText().equals("ACC-00003")))
             .map(unit -> unit.get("#id").asText())
             .collect(Collectors.toList());
@@ -2974,7 +2993,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // 1 Got is attached - 1 was previously added
         assertEquals(1,
-            accessRegDoc.get("TotalObjectGroups", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
+            accessRegDoc.get("TotalObjectGroups", Document.class).getInteger(AccessionRegisterSummary.INGESTED)
+                .intValue());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals(4109,
@@ -3046,18 +3066,19 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // 2 units are attached - 1 was previously added
         assertEquals(2,
-            accessRegDoc.get("TotalUnits",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
+            accessRegDoc.get("TotalUnits", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         assertEquals(2,
-            accessRegDoc.get("TotalObjects",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
+            accessRegDoc.get("TotalObjects", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
         // 1 Got is attached - 1 was previously added
         assertEquals(1,
-            accessRegDoc.get("TotalObjectGroups",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
+            accessRegDoc.get("TotalObjectGroups", Document.class).getInteger(AccessionRegisterSummary.INGESTED)
+                .intValue());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals(14077,
-            accessRegDoc.get("ObjectSize",Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
+            accessRegDoc.get("ObjectSize", Document.class).getInteger(AccessionRegisterSummary.INGESTED).intValue());
 
 
         // Check global accession register count
@@ -3199,7 +3220,7 @@ public class ProcessingIT extends VitamRuleRunner {
             MetadataCollections.UNIT.getCollection().find(eq("Title", "Porte de Pantin"));
         final Document unitToAssert = resultUnits.first();
         assertNotNull(unitToAssert);
-        Document appraisalRule = unitToAssert.get("_mgt",Document.class).get(AppraisalRule.name(),Document.class);
+        Document appraisalRule = unitToAssert.get("_mgt", Document.class).get(AppraisalRule.name(), Document.class);
         assertNotNull(appraisalRule);
         final List<Object> rules = appraisalRule.getList("Rules", Object.class);
         final String finalAction = appraisalRule.get(FINAL_ACTION, String.class);
@@ -3222,7 +3243,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         //AgentType fullname field
 
-        List<Document> addressees = unitToAssert.getList("Addressee",Document.class);
+        List<Document> addressees = unitToAssert.getList("Addressee", Document.class);
         assertThat(addressees).isNotNull().isNotEmpty();
 
         Document addressee = addressees.get(0);
@@ -3233,7 +3254,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(senders).isNotNull().isNotEmpty();
 
         Document sender = senders.get(0);
-        final List<String> mandates = sender.getList("Mandate",String.class);
+        final List<String> mandates = sender.getList("Mandate", String.class);
 
         assertThat(sender.get("GivenName")).isEqualTo("Alexander");
         assertThat(mandates.size()).isEqualTo(2);
@@ -3241,11 +3262,11 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
 
         //transmitter
-        List<Document> transmitters = unitToAssert.getList("Transmitter",Document.class);
+        List<Document> transmitters = unitToAssert.getList("Transmitter", Document.class);
         assertThat(senders).isNotNull().isNotEmpty();
 
         Document transmitter = transmitters.get(0);
-        final List<String> functions = transmitter.getList("Function",String.class);
+        final List<String> functions = transmitter.getList("Function", String.class);
         assertThat(functions).isNotNull().isNotEmpty();
         assertThat(functions.get(0)).isEqualTo("Service de transmission");
 
@@ -3260,9 +3281,9 @@ public class ProcessingIT extends VitamRuleRunner {
 
         List<Document> versions = qualifiers.get(0).getList("versions", Document.class);
         assertThat(versions).isNotNull().isNotEmpty();
-        Document version =  versions.get(0);
+        Document version = versions.get(0);
         assertThat(version).isNotNull().isNotEmpty();
-        Document fileInfo = version.get("FileInfo",Document.class);
+        Document fileInfo = version.get("FileInfo", Document.class);
         assertNotNull(fileInfo);
         assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");

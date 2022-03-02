@@ -1639,6 +1639,12 @@
               "type": "object",
               "dynamic": false
             },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
+            },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
@@ -1661,6 +1667,12 @@
             "EndDates": {
               "type": "object",
               "dynamic": false
+            },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
             },
             "MaxEndDate": {
               "type": "date",
@@ -1688,6 +1700,12 @@
               "type": "object",
               "dynamic": false
             },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
+            },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
@@ -1711,6 +1729,12 @@
               "type": "object",
               "dynamic": false
             },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
+            },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
@@ -1733,6 +1757,12 @@
             "EndDates": {
               "type": "object",
               "dynamic": false
+            },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
             },
             "MaxEndDate": {
               "type": "date",
@@ -1760,6 +1790,12 @@
               "type": "object",
               "dynamic": false
             },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
+            },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
@@ -1782,6 +1818,12 @@
             "EndDates": {
               "type": "object",
               "dynamic": false
+            },
+            "InheritanceOrigin": {
+              "type": "keyword"
+            },
+            "InheritedRuleIds": {
+              "type": "keyword"
             },
             "MaxEndDate": {
               "type": "date",
