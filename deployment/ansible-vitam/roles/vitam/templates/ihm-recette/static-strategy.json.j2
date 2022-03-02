@@ -11,7 +11,7 @@
             {
                 "id" : "{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}"{% if item.referent | default(false) | bool == true %}, "referent" : true{% endif %}{% if item.status is defined %}, "status" : "{{ item.status | upper }}" {% endif %}{% if item.rank is defined %}, "rank" : "{{ item.rank }}"{% endif %}
             }{% if not loop.last %},{% endif %}
-    {% endif %}
+{% endif %}
 {% endfor %}
         ]
     }
