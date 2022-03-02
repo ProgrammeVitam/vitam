@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.security.filter;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -37,12 +36,10 @@ import org.mockito.junit.MockitoRule;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
-import java.io.PrintWriter;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -78,11 +75,6 @@ public class AuthorizationFilterTest {
         verifyNoMoreInteractions(httpServletResponse);
     }
 
-    @Before
-    public void init() throws Exception {
-        doReturn(mock(PrintWriter.class)).when(httpServletResponse).getWriter();
-    }
-
     @Test
     public void testDenyRequestWhenValidationFails() throws Exception {
 
@@ -94,7 +86,8 @@ public class AuthorizationFilterTest {
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
         // Then
-        verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
+        verify(httpServletResponse).sendError(eq(Status.UNAUTHORIZED.getStatusCode()),
+            eq("{\"Error\":\"Authorization headers check failed!\"}"));
         verifyNoMoreInteractions(filterChain);
     }
 }

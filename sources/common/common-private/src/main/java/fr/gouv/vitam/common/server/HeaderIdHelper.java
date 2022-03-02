@@ -72,18 +72,6 @@ public class HeaderIdHelper {
         throw new UnsupportedOperationException("Helper class");
     }
 
-    public static void writeMessageToResponse(ServletRequest request, ServletResponse servletResponse, JsonNode message)
-        throws IOException {
-        servletResponse.setContentType(MediaType.APPLICATION_JSON);
-        try {
-            PrintWriter writer = servletResponse.getWriter();
-            writer.write(JsonHandler.unprettyPrint(message));
-            writer.close();
-        } finally {
-            StreamUtils.closeSilently(request.getInputStream());
-        }
-    }
-
     /**
      * Extracts the vitam id from the headers to save it through the VitamSession
      *

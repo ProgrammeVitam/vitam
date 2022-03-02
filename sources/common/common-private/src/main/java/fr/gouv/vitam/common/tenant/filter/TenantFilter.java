@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -73,11 +72,9 @@ public class TenantFilter implements Filter {
             Status.UNAUTHORIZED.getStatusCode() == status.getStatusCode()) {
             LOGGER.error(GlobalDataRest.X_TENANT_ID + " check failed!");
             final HttpServletResponse newResponse = (HttpServletResponse) response;
-            newResponse.setStatus(status.getStatusCode());
-
-            HeaderIdHelper.writeMessageToResponse(request, newResponse,
-                JsonHandler.createObjectNode().put("Error", GlobalDataRest.X_TENANT_ID + " check failed!"));
-
+            newResponse.sendError(status.getStatusCode(),
+                JsonHandler.unprettyPrint(
+                    JsonHandler.createObjectNode().put("Error", GlobalDataRest.X_TENANT_ID + " check failed!")));
         } else {
             chain.doFilter(request, response);
         }

@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.security.filter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -71,9 +70,9 @@ public class AuthorizationFilter implements Filter {
             LOGGER.error("Authorization headers check failed!");
 
             final HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-            httpServletResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
-            HeaderIdHelper.writeMessageToResponse(request, httpServletResponse,
-                JsonHandler.createObjectNode().put("Error", "Authorization headers check failed!"));
+            httpServletResponse.sendError(Status.UNAUTHORIZED.getStatusCode(), JsonHandler.unprettyPrint(
+                JsonHandler.createObjectNode().put("Error", "Authorization headers check failed!")
+            ));
         } else {
             chain.doFilter(request, response);
         }

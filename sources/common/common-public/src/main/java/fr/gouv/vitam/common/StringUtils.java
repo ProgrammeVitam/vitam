@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -46,7 +47,7 @@ public final class StringUtils {
     /**
      * Random Generator
      */
-    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     // default parameters for XML check
     private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
