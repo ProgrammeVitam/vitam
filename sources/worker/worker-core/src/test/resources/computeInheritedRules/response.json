@@ -11,6 +11,7 @@
           },
           "DisseminationRule": {
             "MaxEndDate": "2025-01-01",
+            "InheritanceOrigin": "Local",
             "EndDates": {
               "DIS-00001": "2025-01-01"
             },
@@ -23,6 +24,11 @@
           },
           "AccessRule": {
             "MaxEndDate": "2025-01-01",
+            "InheritanceOrigin": "Inherited",
+            "InheritedRuleIds": [
+              "ACC-00003",
+              "ACC-00002"
+            ],
             "EndDates": {
               "ACC-00003": "2025-01-01",
               "ACC-00002": "2024-01-01"
@@ -38,43 +44,61 @@
               }
             ]
           },
-          "ReuseRule": {
-          },
+          "ReuseRule": {},
           "ClassificationRule": {
             "MaxEndDate": "2026-06-03",
-            "ClassificationOwner": ["ClassificationOwner0"],
-            "ClassificationLevel": ["Secret D\u00E9fense"],
-            "NeedReassessingAuthorization": [true],
-            "ClassificationReassessingDate": ["2016-06-03"],
+            "InheritanceOrigin": "LocalAndInherited",
+            "InheritedRuleIds": [
+              "CLASS-00001"
+            ],
             "EndDates": {
-              "CLASS-00001": "2026-06-03"
+              "CLASS-00001": "2026-06-03",
+              "CLASS-00002": "2025-06-03"
             },
             "Rules": [
               {
                 "Rule": "CLASS-00001",
                 "EndDate": "2026-06-03"
+              },
+              {
+                "Rule": "CLASS-00002",
+                "EndDate": "2025-06-03"
               }
+            ],
+            "ClassificationAudience": [
+              "ClassificationAudience0"
+            ],
+            "ClassificationLevel": [
+              "Secret D\u00E9fense"
+            ],
+            "ClassificationOwner": [
+              "ClassificationOwner0"
+            ],
+            "ClassificationReassessingDate": [
+              "2016-06-03"
+            ],
+            "NeedReassessingAuthorization": [
+              "true"
             ]
           },
           "HoldRule": {
             "MaxEndDate": "2010-01-01",
+            "InheritanceOrigin": "Local",
             "EndDates": {
-              "HOL-00001": "2001-01-01",
-              "HOL-00002": "2010-01-01"
+              "HOL-00002": "2010-01-01",
+              "HOL-00001": "2001-01-01"
             },
             "Rules": [
               {
-                "Rule": "HOL-00001",
-                "EndDate": "2001-01-01"
-              },
-              {
                 "Rule": "HOL-00002",
                 "EndDate": "2010-01-01"
+              },
+              {
+                "Rule": "HOL-00001",
+                "EndDate": "2001-01-01"
               }
             ]
           },
-          "NeedAuthorization": [ true ],
-          "indexationDate": "2019-06-28",
           "inheritedRulesAPIOutput": {
             "GlobalProperties": [
               {
@@ -89,15 +113,57 @@
                 "PropertyValue": true
               }
             ],
-            "StorageRule": {
-              "Rules": [],
-              "Properties": [
+            "HoldRule": {
+              "Rules": [
                 {
                   "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
                   "OriginatingAgency": "RATP",
                   "Paths": [
                     [
                       "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "HOL-00001",
+                  "StartDate": "2000-01-01",
+                  "HoldOwner": "Owner HOL-00001 guid1",
+                  "EndDate": "2001-01-01",
+                  "HoldReason": "Reason HOL-00001 guid1"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "HOL-00002",
+                  "PreventRearrangement": true,
+                  "HoldEndDate": "2010-01-01",
+                  "HoldOwner": "Owner HOL-00002 guid1",
+                  "HoldReassessingDate": "2005-01-01",
+                  "EndDate": "2010-01-01",
+                  "HoldReason": "Reason HOL-00002 guid1"
+                }
+              ],
+              "Properties": []
+            },
+            "StorageRule": {
+              "Rules": [],
+              "Properties": [
+                {
+                  "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytxkyaaaaq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
+                    ],
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
+                      "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
                     ]
                   ],
                   "PropertyName": "FinalAction",
@@ -143,13 +209,20 @@
               "Properties": []
             },
             "ClassificationRule": {
-              "Rules":[
+              "Rules": [
                 {
-                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq",
                   "OriginatingAgency": "RATP",
                   "Paths": [
                     [
-                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytxkyaaaaq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
+                    ],
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
+                      "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
                     ]
                   ],
                   "Rule": "CLASS-00001",
@@ -164,11 +237,10 @@
                       "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
                     ]
                   ],
-                  "Rule": "CLASS-00001",
+                  "Rule": "CLASS-00002",
                   "StartDate": "2015-06-03",
                   "EndDate": "2025-06-03"
                 }
-
               ],
               "Properties": [
                 {
@@ -191,7 +263,7 @@
                     ]
                   ],
                   "PropertyName": "ClassificationLevel",
-                  "PropertyValue": "Secret Défense"
+                  "PropertyValue": "Secret D\u00E9fense"
                 },
                 {
                   "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
@@ -229,13 +301,14 @@
               ]
             },
             "AccessRule": {
-              "Rules":[
+              "Rules": [
                 {
-                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "UnitId": "aeaqaaaabqhfltisaaxs4al67dnh4saaaabq",
                   "OriginatingAgency": "RATP",
                   "Paths": [
                     [
-                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaabqhfltisaaxs4al67dnh4saaaabq"
                     ]
                   ],
                   "Rule": "ACC-00003",
@@ -243,11 +316,12 @@
                   "EndDate": "2025-01-01"
                 },
                 {
-                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
                   "OriginatingAgency": "RATP",
                   "Paths": [
                     [
-                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                      "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba"
                     ]
                   ],
                   "Rule": "ACC-00002",
@@ -256,44 +330,14 @@
                 }
               ],
               "Properties": []
-            },
-            "HoldRule": {
-              "Rules": [
-                {
-                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
-                  "OriginatingAgency": "RATP",
-                  "Paths": [
-                    [
-                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
-                    ]
-                  ],
-                  "Rule": "HOL-00001",
-                  "StartDate": "2000-01-01",
-                  "EndDate": "2001-01-01",
-                  "HoldOwner": "Owner HOL-00001 guid1",
-                  "HoldReason": "Reason HOL-00001 guid1"
-                },
-                {
-                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
-                  "OriginatingAgency": "RATP",
-                  "Paths": [
-                    [
-                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
-                    ]
-                  ],
-                  "Rule": "HOL-00002",
-                  "EndDate": "2010-01-01",
-                  "HoldEndDate": "2010-01-01",
-                  "HoldOwner": "Owner HOL-00002 guid1",
-                  "HoldReason": "Reason HOL-00002 guid1",
-                  "HoldReassessingDate": "2005-01-01",
-                  "PreventRearrangement": true
-                }
-              ],
-              "Properties": []
             }
-          }
-        }
+          },
+          "indexationDate": "2022-02-23",
+          "NeedAuthorization": [
+            true
+          ]
+        },
+        "#validComputedInheritedRules": true
       }
     }
   ]

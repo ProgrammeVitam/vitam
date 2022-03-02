@@ -26,30 +26,22 @@
  */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public enum RuleCategoryInheritanceOrigin {
 
-/**
- * Rule
- */
-public class RuleMaxEndDate {
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
+    LOCAL("Local"),
+    INHERITED("Inherited"),
+    LOCAL_AND_INHERITED("LocalAndInherited");
 
-    public RuleMaxEndDate() {
+    private final String value;
+
+    RuleCategoryInheritanceOrigin(String value) {
+        this.value = value;
     }
 
-    public RuleMaxEndDate(LocalDate endDate) {
-        this.maxEndDate = endDate;
+    @JsonValue
+    public String getValue() {
+        return value;
     }
-
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
-    }
-
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
-    }
-
 }

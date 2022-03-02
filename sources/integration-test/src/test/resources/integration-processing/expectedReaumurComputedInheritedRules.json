@@ -7,13 +7,11 @@
     },
     "DisseminationRule" : {
         "MaxEndDate" : "2025-01-01",
-        "InheritanceOrigin" : "Inherited",
-        "InheritedRuleIds" : [ "DIS-00001" ]
+        "InheritanceOrigin" : "Local"
     },
     "AccessRule" : {
         "MaxEndDate" : "2000-01-01",
-        "InheritanceOrigin" : "Inherited",
-        "InheritedRuleIds" : [ "ACC-00001" ]
+        "InheritanceOrigin" : "Local"
     },
     "ReuseRule" : { },
     "ClassificationRule" : {

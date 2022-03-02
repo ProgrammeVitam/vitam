@@ -3,17 +3,13 @@
         "FinalAction" : [ ]
     },
     "AppraisalRule" : {
-        "FinalAction" : [ "Keep", "Keep" ]
+        "FinalAction" : [ "Keep" ]
     },
-    "DisseminationRule" : {
-        "MaxEndDate" : "2025-01-01",
-        "InheritanceOrigin" : "Inherited",
-        "InheritedRuleIds" : [ "DIS-00001" ]
-    },
+    "DisseminationRule" : { },
     "AccessRule" : {
-        "MaxEndDate" : "2000-01-01",
-        "InheritanceOrigin" : "Inherited",
-        "InheritedRuleIds" : [ "ACC-00001" ]
+        "MaxEndDate" : "2027-01-01",
+        "InheritanceOrigin" : "LocalAndInherited",
+        "InheritedRuleIds" : [ "ACC-00005" ]
     },
     "ReuseRule" : { },
     "ClassificationRule" : {

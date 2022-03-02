@@ -26,17 +26,24 @@
  */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,10 +53,21 @@ import java.util.stream.Collectors;
 public class InheritedRule {
     private static final String MAX_END_DATE = "MaxEndDate";
     private static final String END_DATES = "EndDates";
-    private static final String RULES ="Rules";
-;
+    private static final String RULES = "Rules";
+    private static final String INHERITANCE_ORIGIN = "InheritanceOrigin";
+    private static final String INHERITED_RULE_IDS = "InheritedRuleIds";
+
     @JsonProperty(MAX_END_DATE)
     private LocalDate maxEndDate;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty(INHERITANCE_ORIGIN)
+    private RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonProperty(INHERITED_RULE_IDS)
+    private Set<String> inheritedRuleIds;
+
     @JsonProperty(END_DATES)
     private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
     @JsonProperty(RULES)
@@ -59,18 +77,14 @@ public class InheritedRule {
 
     }
 
-    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule, List<ComputedInheritedRuleModel> rules) {
+    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule,
+        List<ComputedInheritedRuleModel> rules, RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds) {
         this.maxEndDate = maxEndDate;
-        if(ruleIdToRule == null) {
-            this.ruleIdToRule = Collections.emptyMap();
-        } else {
-            this.ruleIdToRule = ruleIdToRule;
-        }
-        if (rules == null) {
-            this.rules = Collections.emptyList();
-        } else {
-            this.rules = rules;
-        }
+        this.ruleIdToRule = MapUtils.emptyIfNull(ruleIdToRule);
+        this.rules = ListUtils.emptyIfNull(rules);
+        this.inheritedRuleIds = SetUtils.emptyIfNull(inheritedRuleIds);
+        this.ruleCategoryInheritanceOrigin = ruleCategoryInheritanceOrigin;
     }
 
     public InheritedRule(LocalDate maxEndDate) {
@@ -110,5 +124,24 @@ public class InheritedRule {
 
     public void setRules(List<ComputedInheritedRuleModel> rules) {
         this.rules = rules;
+    }
+
+    public RuleCategoryInheritanceOrigin getRuleCategoryInheritanceOrigin() {
+        return ruleCategoryInheritanceOrigin;
+    }
+
+    public InheritedRule setRuleCategoryInheritanceOrigin(
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin) {
+        this.ruleCategoryInheritanceOrigin = ruleCategoryInheritanceOrigin;
+        return this;
+    }
+
+    public Set<String> getInheritedRuleIds() {
+        return inheritedRuleIds;
+    }
+
+    public InheritedRule setInheritedRuleIds(Set<String> inheritedRuleIds) {
+        this.inheritedRuleIds = inheritedRuleIds;
+        return this;
     }
 }

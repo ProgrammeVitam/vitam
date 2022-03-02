@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AppraisalRule extends InheritedRule {
 
@@ -46,8 +47,9 @@ public class AppraisalRule extends InheritedRule {
     }
 
     public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules) {
-        super(maxEndDate, ruleIdToRule, rules);
+        List<ComputedInheritedRuleModel> rules, RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds) {
+        super(maxEndDate, ruleIdToRule, rules, ruleCategoryInheritanceOrigin, inheritedRuleIds);
         parseClassificationProperties(properties);
     }
 

@@ -27,15 +27,10 @@
         },
         "AccessRule": {
           "Rules": [
-            {
-              "Rule": "ACC-00003",
-              "StartDate": "2000-01-01",
-              "EndDate": "2025-01-01"
-            }
           ],
           "Inheritance": {
             "PreventRulesId": [
-              "ACC-00002"
+              "ACC-00001"
             ]
           }
         },
@@ -51,7 +46,7 @@
         "ClassificationRule": {
           "Rules": [
             {
-              "Rule": "CLASS-00001",
+              "Rule": "CLASS-00002",
               "StartDate": "2015-06-03",
               "EndDate": "2025-06-03"
             }
@@ -123,11 +118,18 @@
           "Rules": [],
           "Properties": [
             {
-              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq",
               "OriginatingAgency": "RATP",
               "Paths": [
                 [
-                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytxkyaaaaq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
+                ],
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
+                  "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
                 ]
               ],
               "PropertyName": "FinalAction",
@@ -175,11 +177,18 @@
         "ClassificationRule": {
           "Rules": [
             {
-              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq",
               "OriginatingAgency": "RATP",
               "Paths": [
                 [
-                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytxkyaaaaq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
+                ],
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
+                  "aeaqaaaaaahlq7cdab5e2al7epytwgyaaabq"
                 ]
               ],
               "Rule": "CLASS-00001",
@@ -194,7 +203,7 @@
                   "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
                 ]
               ],
-              "Rule": "CLASS-00001",
+              "Rule": "CLASS-00002",
               "StartDate": "2015-06-03",
               "EndDate": "2025-06-03"
             }
@@ -261,11 +270,12 @@
         "AccessRule": {
           "Rules": [
             {
-              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "UnitId": "aeaqaaaabqhfltisaaxs4al67dnh4saaaabq",
               "OriginatingAgency": "RATP",
               "Paths": [
                 [
-                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaabqhfltisaaxs4al67dnh4saaaabq"
                 ]
               ],
               "Rule": "ACC-00003",
@@ -273,11 +283,12 @@
               "EndDate": "2025-01-01"
             },
             {
-              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "UnitId": "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba",
               "OriginatingAgency": "RATP",
               "Paths": [
                 [
-                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "aeaqaaaaaahlq7cdab5e2al7epytxlaaaaba"
                 ]
               ],
               "Rule": "ACC-00002",
