@@ -165,6 +165,8 @@ public class RestoreBackupService {
             return new VitamAsyncInputStream(
                 storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, category, AccessLogUtils.getNoLogAccessLog()));
 
+        } catch (StorageNotFoundException e) {
+            throw e;
         } catch (StorageServerClientException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
