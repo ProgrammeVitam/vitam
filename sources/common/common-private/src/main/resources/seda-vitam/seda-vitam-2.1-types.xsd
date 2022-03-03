@@ -347,14 +347,7 @@
             <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
-    <!-- In AgentGroup fseda-vitam-2.1-ontology.xsd.xsd: If needed, extra agent could be added -->
-    <xsd:element name="AgentAbstract" abstract="true" type="AgentType">
-        <xsd:annotation>
-            <xsd:documentation>Permet d'ajouter de nouveau types d'agents dans l'ontologie.</xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-    
+
     <!-- In EventGroup fseda-vitam-2.1-ontology.xsd.xsd: If needed, extra event could be added -->
     <xsd:element name="EventAbstract" abstract="true">
         <xsd:annotation>

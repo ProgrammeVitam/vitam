@@ -122,6 +122,9 @@ public class DescriptiveMetadataModel {
     @JsonProperty("AuthorizedAgent")
     private List<AgentTypeModel> authorizedAgent;
 
+    @JsonProperty("Agent")
+    private List<AgentTypeModel> agent;
+
     @JsonProperty("Writer")
     private List<AgentTypeModel> writer;
 
@@ -519,10 +522,24 @@ public class DescriptiveMetadataModel {
     }
 
     /**
+     * @return
+     */
+    public List<AgentTypeModel> getAgent() {
+        return agent;
+    }
+
+    /**
      * @param authorizedAgent
      */
     public void setAuthorizedAgent(List<AgentTypeModel> authorizedAgent) {
         this.authorizedAgent = authorizedAgent;
+    }
+
+    /**
+     * @param agent
+     */
+    public void setAgent(List<AgentTypeModel> agent) {
+        this.agent = agent;
     }
 
     /**

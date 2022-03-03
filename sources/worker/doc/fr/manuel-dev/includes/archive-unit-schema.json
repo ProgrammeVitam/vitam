@@ -847,6 +847,12 @@
         "$ref": "#/definitions/agent-type"
       }
     },
+    "Agent": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/agent-type"
+      }
+    },
     "Writer": {
       "type": "array",
       "items": {
