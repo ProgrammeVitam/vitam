@@ -62,17 +62,12 @@
 
 - name: Install Avast and required packages
   package:
-    name: "{{ item }}"
+    name: [ 'avast', 'unzip', 'gzip', 'bzip2' ]
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  loop:
-    - avast
-    - unzip
-    - gzip
-    - bzip2
 
 - name: Adding {{ vitam_defaults.users.group }} group to avast so it can scan {{ vitam_defaults.users.group }}-based files
   user:
