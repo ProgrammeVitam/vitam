@@ -1,5 +1,5 @@
 %define debug_package %{nil}
-%define version 7.0.3
+%define version 8.4.1
 
 Name:          vitam-grafana
 Version:       %{version}

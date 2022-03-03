@@ -1,0 +1,10 @@
+Package: vitam-consul-exporter
+Source: consul_exporter
+Section: monitor
+Priority: optional
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Homepage: https://github.com/prometheus/consul_exporter
+Architecture: amd64
+Depends: vitam-user-vitam
+Description: Monitoring consul by prometheus
+Version: 0.8.0

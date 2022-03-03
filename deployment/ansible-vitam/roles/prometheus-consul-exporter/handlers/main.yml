@@ -1,0 +1,12 @@
+---
+
+# handlers for prometheus consul_exporter
+- name: reload consul configuration
+  service:
+    name: vitam-consul
+    state: reloaded
+
+- name: restart prometheus consul exporter
+  service:
+    name: vitam-consul-exporter
+    state: restarted
