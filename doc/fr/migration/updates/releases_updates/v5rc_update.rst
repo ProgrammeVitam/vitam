@@ -1,6 +1,28 @@
 Notes et procédures spécifiques V5RC
 ####################################
 
+Supprimer les indexes de configuration kibana
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée avant la montée de version vers la V5RC.
+
+.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam   
+
+Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec
+une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement 
+la montée de version est bloquée.
+
+Executez le playbook suivant:
+
+.. code-block:: bash
+
+     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/remove_old_kibana_indexes.yml.yml --ask-vault-pass
+
+Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont 
+conservés.  
+
+La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
+
 Migration des unités archivistiques
 -----------------------------------
 
