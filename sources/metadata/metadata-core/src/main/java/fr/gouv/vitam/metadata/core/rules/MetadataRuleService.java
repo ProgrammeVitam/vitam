@@ -41,14 +41,13 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitRuleModel;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
-import fr.gouv.vitam.common.model.rules.UnitRuleModel;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,7 +90,7 @@ public class MetadataRuleService {
      * @param selectQuery the query DSL
      * @return the selected units with there inherited rules
      */
-    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
+    public MetadataResult selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException, VitamDBException,
         MetaDataNotFoundException, MetaDataDocumentSizeException {
         LOGGER.debug("selectUnitsWithInheritedRules / selectQuery: " + selectQuery);
@@ -117,13 +116,12 @@ public class MetadataRuleService {
             fieldsProjection.put(VitamFieldsHelper.id(), 1);
         }
 
-        RequestResponseOK<JsonNode> unitsRequestResponseOK =
-            (RequestResponseOK<JsonNode>) metaData.selectUnitsByQuery(request.getFinalSelect());
+        final MetadataResult metadataResult = metaData.selectUnitsByQuery(request.getFinalSelect());
 
         // Compute inherited rules
-        computeInheritedRulesForUnits(unitsRequestResponseOK.getResults());
+        computeInheritedRulesForUnits(metadataResult.getResults());
 
-        return unitsRequestResponseOK;
+        return metadataResult;
     }
 
     private void computeInheritedRulesForUnits(List<JsonNode> results)
@@ -209,11 +207,10 @@ public class MetadataRuleService {
             VitamFieldsHelper.originatingAgency(),
             VitamFieldsHelper.management());
 
-        RequestResponseOK<JsonNode> response =
-            (RequestResponseOK<JsonNode>) metaData.selectUnitsByQuery(select.getFinalSelect());
+        final MetadataResult metadataResult = metaData.selectUnitsByQuery(select.getFinalSelect());
 
         List<UnitRuleModel> unitRules = new ArrayList<>();
-        for (JsonNode unitRuleJsonNode : response.getResults()) {
+        for (JsonNode unitRuleJsonNode : metadataResult.getResults()) {
             unitRules.add(JsonHandler.getFromJsonNode(unitRuleJsonNode, UnitRuleModel.class));
         }
 

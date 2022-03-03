@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamClientAccessUnavailableDataFromAsyncO
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.BasicClient;
+import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -61,6 +62,17 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException;
+
+    /**
+     * streamUnits /units
+     *
+     * @param vitamContext the vitam context
+     * @param selectQuery the select query
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException;
 
     /**

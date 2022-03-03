@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -50,6 +51,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
@@ -72,11 +75,15 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.INVALID_METADATA_VALUE;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.INVALID_PARSE_OPERATION;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.NOT_FOUND;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL;
-import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK_NULL;
+import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
+import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -534,6 +541,30 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataNotFoundException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response streamUnits(JsonNode selectQuery)
+        throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException {
+        try {
+            Response response = make(get().withJsonContentType().withOctetAccept().withPath("/units/stream")
+                .withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()));
+
+            Status status = response.getStatusInfo().toEnum();
+            if (CLIENT_ERROR.equals(status.getFamily()) || SERVER_ERROR.equals(status.getFamily())) {
+                switch (status) {
+                    case CONFLICT:
+                        throw new MetadataScrollThresholdExceededException(status.toString());
+                    case UNAUTHORIZED:
+                        throw new MetadataScrollLimitExceededException(status.toString());
+                    default:
+                        throw new MetaDataClientServerException(status.toString());
+                }
+            }
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
     }

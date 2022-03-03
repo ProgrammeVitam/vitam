@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class JsonLineWriter implements AutoCloseable {
 
@@ -67,9 +69,18 @@ public class JsonLineWriter implements AutoCloseable {
         writer.append(JsonHandler.unprettyPrint(line));
     }
 
+    public void addEntries(List<?> lines) throws IOException {
+        if (!isEmpty) {
+            writer.append("\n");
+        }
+        isEmpty = false;
+        final String objects = lines.stream().map(JsonHandler::unprettyPrint).collect(Collectors.joining("\n"));
+        writer.append(objects);
+    }
+
     @Override
     public void close() throws IOException {
-        if(isClosed) {
+        if (isClosed) {
             return;
         }
         writer.flush();

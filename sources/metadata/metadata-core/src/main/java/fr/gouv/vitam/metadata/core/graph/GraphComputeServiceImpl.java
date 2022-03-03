@@ -61,6 +61,7 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -94,9 +95,9 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     private static GraphComputeService instance;
 
     private final Map<Integer, AtomicBoolean> lockers = new HashMap<>();
-    private VitamCache<String, Document> cache;
-    private VitamRepositoryProvider vitamRepositoryProvider;
-    private MetaDataImpl metaData;
+    private final VitamCache<String, Document> cache;
+    private final VitamRepositoryProvider vitamRepositoryProvider;
+    private final MetaDataImpl metaData;
     private final ElasticsearchMetadataIndexManager indexManager;
 
     private String currentOperation = null;
@@ -224,12 +225,11 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         return new ScrollSpliterator<>(request,
             query -> {
                 try {
-                    RequestResponseOK<JsonNode> response =
-                        (RequestResponseOK<JsonNode>) metaData.selectUnitsByQuery(query.getFinalSelect());
+                    final MetadataResult metadataResult = metaData.selectUnitsByQuery(query.getFinalSelect());
 
                     final RequestResponseOK<Set<String>> rr = new RequestResponseOK<>();
                     Set<String> ids = new HashSet<>();
-                    Iterator<JsonNode> it = response.getResults().iterator();
+                    Iterator<JsonNode> it = metadataResult.getResults().iterator();
                     while (it.hasNext()) {
                         String id = it.next().get(VitamFieldsHelper.id()).asText();
                         ids.add(id);

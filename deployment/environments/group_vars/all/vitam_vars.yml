@@ -359,6 +359,8 @@ vitam:
         dipTimeToLiveInMinutes: 10080 # 7 days
         criticalDipTimeToLiveInMinutes: 1440 # 1 day
         transfersSIPTimeToLiveInMinutes: 10080 # 7 days
+        unitsStreamThreshold: 1000000 # 1 million
+        streamExecutionLimit: 3 # 3 times
         workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
         elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
         #### Audit data consistency MongoDB-ES ####

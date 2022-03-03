@@ -36,7 +36,10 @@ import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.core.Response;
@@ -193,4 +196,8 @@ public interface AccessInternalModule {
 
     void removeAccessRequest(String storageStrategyId, String accessRequestId)
         throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
+
+    Response streamUnits(JsonNode applyAccessContractRestrictionForUnitForSelect)
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
+        MetadataScrollThresholdExceededException;
 }

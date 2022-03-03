@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
@@ -65,6 +64,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
@@ -92,7 +92,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -342,11 +341,9 @@ public class MetaDataImplTest {
         result.addId("ogId", 1f);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(any(), anyList())).thenReturn(result);
-        RequestResponse<JsonNode> requestResponse =
+        final MetadataResult metadataResult =
             metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
-        assertTrue(requestResponse.isOk());
-        RequestResponseOK<JsonNode> jsonNode = (RequestResponseOK<JsonNode>) requestResponse;
-        final JsonNode objectGroupDocument = jsonNode.getResults().iterator().next();
+        final JsonNode objectGroupDocument = metadataResult.getResults().iterator().next();
         boolean different = false;
         Iterator<Entry<String, JsonNode>> fields = objectGroupDocument.fields();
         while (fields.hasNext()) {

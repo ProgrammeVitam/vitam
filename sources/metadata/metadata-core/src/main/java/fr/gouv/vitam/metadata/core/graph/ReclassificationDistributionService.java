@@ -40,12 +40,13 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -142,7 +143,11 @@ public class ReclassificationDistributionService {
         ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
             query -> {
                 try {
-                    return metaData.selectUnitsByQuery(query.getFinalSelect());
+                    final MetadataResult metadataResult = metaData.selectUnitsByQuery(query.getFinalSelect());
+                    return new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                        .addAllResults(metadataResult.getResults())
+                        .addAllFacetResults(metadataResult.getFacetResults())
+                        .setHits(metadataResult.getHits());
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
                     throw new IllegalStateException(e);
                 }

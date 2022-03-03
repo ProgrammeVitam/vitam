@@ -30,17 +30,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -57,6 +57,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -117,14 +118,16 @@ public class ReclassificationDistributionServiceTest {
         String unitsToUpdateJsonLineFileName = "UnitsToUpdate.jsonl";
         String objectGroupsToUpdateJsonLineFileName = "ObjectGroupsToUpdate.jsonl";
 
-        RequestResponseOK<JsonNode> results = new RequestResponseOK<JsonNode>()
-            .addAllResults(Arrays.asList(
-                JsonHandler.createObjectNode().put("#id", "id1").put("#object", "og1"),
-                JsonHandler.createObjectNode().put("#id", "id2"),
-                JsonHandler.createObjectNode().put("#id", "id3-1").put("#object", "og3"),
-                JsonHandler.createObjectNode().put("#id", "id3-2").put("#object", "og3"),
-                JsonHandler.createObjectNode().put("#id", "id4").put("#object", "og4")
-            ));
+        final List<JsonNode> resultList = Arrays.asList(
+            JsonHandler.createObjectNode().put("#id", "id1").put("#object", "og1"),
+            JsonHandler.createObjectNode().put("#id", "id2"),
+            JsonHandler.createObjectNode().put("#id", "id3-1").put("#object", "og3"),
+            JsonHandler.createObjectNode().put("#id", "id3-2").put("#object", "og3"),
+            JsonHandler.createObjectNode().put("#id", "id4").put("#object", "og4")
+        );
+        MetadataResult results =
+            new MetadataResult(JsonHandler.createObjectNode(), resultList, Collections.emptyList(), resultList.size(),
+                null, new DatabaseCursor(resultList.size(), 0, 0));
 
         doReturn(results).when(metaData).selectUnitsByQuery(any());
 

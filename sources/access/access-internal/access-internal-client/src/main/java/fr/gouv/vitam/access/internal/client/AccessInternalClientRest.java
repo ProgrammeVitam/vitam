@@ -112,6 +112,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String UNITS_ATOMIC_BULK = "units/atomicbulk/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
+    private static final String UNITS_STREAM = "/units/stream";
 
     private static final Runnable CHECK_REQUEST_ID = () -> VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -132,6 +133,30 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new BadRequestException(e);
         } catch (NoWritingPermissionException | BadRequestException e) {
             throw new InvalidParseOperationException(e);
+        }
+    }
+
+    @Override
+    public Response streamUnits(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException, AccessUnauthorizedException {
+        try {
+            Response response =
+                make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS_STREAM).withBody(selectQuery, BLANK_DSL).
+                    withJsonContentType().withOctetAccept());
+            Status status = response.getStatusInfo().toEnum();
+            if (!SUCCESSFUL.equals(status.getFamily()) && !REDIRECTION.equals(status.getFamily())) {
+                switch (status) {
+                    case EXPECTATION_FAILED:
+                        throw new ExpectationFailedClientException(REQUEST_PRECONDITION_FAILED);
+                    case UNAUTHORIZED:
+                        throw new AccessUnauthorizedException(status.toString());
+                    default:
+                        throw new AccessInternalClientServerException(status.toString());
+                }
+            }
+            return response;
+        } catch (VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(e);
         }
     }
 

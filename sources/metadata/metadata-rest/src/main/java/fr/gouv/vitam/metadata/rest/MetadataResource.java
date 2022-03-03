@@ -28,11 +28,16 @@ package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.utils.ArrayListScrollSpliterator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -40,7 +45,9 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -48,21 +55,28 @@ import fr.gouv.vitam.common.model.BatchRulesUpdateInfo;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.io.FileUtils;
 import org.elasticsearch.ElasticsearchParseException;
 
 import javax.ws.rs.Consumes;
@@ -75,11 +89,19 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
+import static fr.gouv.vitam.common.GlobalDataRest.X_UNITS_COUNT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
@@ -97,6 +119,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     private final MetaDataImpl metaData;
     private final MetadataRuleService metadataRuleService;
+    private final MetaDataConfiguration configuration;
 
     /**
      * MetaDataResource constructor
@@ -106,17 +129,12 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService,
         MetaDataConfiguration configuration) {
-        this(metaData,
-            metadataRuleService
-        );
-        LOGGER.info("init MetaData Resource server");
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
-    }
-
-    private MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService) {
         this.metaData = metaData;
         this.metadataRuleService = metadataRuleService;
+        this.configuration = configuration;
+        LOGGER.info("init MetaData Resource server");
     }
+
 
     /**
      * Insert unit with json request
@@ -306,9 +324,10 @@ public class MetadataResource extends ApplicationStatusResource {
     private RequestResponse<?> selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
         try {
-            RequestResponse<JsonNode> result;
-            result = metaData.selectUnitsByQuery(selectRequest);
-            return result;
+            final MetadataResult metadataResult = metaData.selectUnitsByQuery(selectRequest);
+            return new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                .addAllResults(metadataResult.getResults()).addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits());
 
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
@@ -406,10 +425,11 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response selectObjectgroupsByQuery(JsonNode selectRequest) {
         Status status;
         try {
-            RequestResponse<JsonNode> result;
-            result = metaData.selectObjectGroupsByQuery(selectRequest);
-            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result.setHttpCode(st)).build();
+            final MetadataResult metadataResult = metaData.selectObjectGroupsByQuery(selectRequest);
+
+            return Response.ok().entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                .addAllResults(metadataResult.getResults()).addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits())).build();
 
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
@@ -559,11 +579,11 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result;
-            result = metaData.selectUnitsById(selectRequest, unitId);
+            final MetadataResult metadataResult = metaData.selectUnitsById(selectRequest, unitId);
 
-            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result.setHttpCode(st)).build();
+            return Response.status(Status.FOUND.getStatusCode()).entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                .addAllResults(metadataResult.getResults()).addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits())).build();
 
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
@@ -831,10 +851,11 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result;
-            result = metaData.selectObjectGroupById(selectRequest, objectGroupId);
-            int st = result.isOk() ? OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result.setHttpCode(OK.getStatusCode())).build();
+            final MetadataResult metadataResult = metaData.selectObjectGroupById(selectRequest, objectGroupId);
+
+            return Response.ok().entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                .addAllResults(metadataResult.getResults()).addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits())).build();
 
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
@@ -1036,10 +1057,12 @@ public class MetadataResource extends ApplicationStatusResource {
 
         Status status;
         try {
-            RequestResponse<JsonNode> result = metadataRuleService.selectUnitsWithInheritedRules(selectRequest);
+            final MetadataResult metadataResult = metadataRuleService.selectUnitsWithInheritedRules(selectRequest);
 
-            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result.setHttpCode(st)).build();
+            return Response.status(Status.FOUND.getStatusCode()).entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
+                .addAllResults(metadataResult.getResults())
+                .addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits())).build();
 
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
@@ -1165,5 +1188,78 @@ public class MetadataResource extends ApplicationStatusResource {
                 .setHits(ids.size(), 0, 1)
                 .setHttpCode(Status.OK.getStatusCode()))
             .build();
+    }
+
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
+    @Path("/units/stream")
+    public Response streamUnits(JsonNode request) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        try {
+            metaData.checkStreamUnits(tenantId, configuration.getStreamExecutionLimit());
+        } catch (MetaDataException e) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        long threshold = configuration.getUnitsStreamThreshold();
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+        Histogram.Timer unitStreamDuration =
+            CommonMetadataMetrics.UNIT_SCROLL_DURATION_HISTOGRAM.labels(requestId).startTimer();
+        File file = null;
+        try {
+            file = FileUtil.createFileInTempDirectoryWithPathCheck(requestId, VitamConstants.JSONL_EXTENSION);
+            long documentCount;
+            try (OutputStream out = new FileOutputStream(file);
+                JsonLineWriter writer = new JsonLineWriter(out)) {
+                SelectParserMultiple parser = new SelectParserMultiple();
+                parser.parse(request);
+                final SelectMultiQuery selectQuery = parser.getRequest();
+                if(selectQuery.getThreshold() != null) {
+                    threshold = Math.min(threshold, selectQuery.getThreshold());
+                }
+                ArrayListScrollSpliterator<JsonNode> scrollRequest = new ArrayListScrollSpliterator<>(parser.getRequest(),
+                    query -> {
+                        try {
+                            final MetadataResult metadataResult = metaData.selectUnitsByQuery(query.getFinalSelect());
+
+                            CommonMetadataMetrics.UNIT_SCROLL_COUNTER.labels(requestId).inc(metadataResult.getResults().size());
+
+                            return new RequestResponseOK<List<JsonNode>>(metadataResult.getQuery())
+                                .addResult(metadataResult.getResults())
+                                .addAllFacetResults(metadataResult.getFacetResults())
+                                .setHits(metadataResult.getHits());
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
+                            throw new VitamRuntimeException(e);
+                        }
+                    }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                    VitamConfiguration.getElasticSearchScrollLimit());
+
+                documentCount = scrollRequest.estimateSize();
+
+                if(documentCount > threshold) {
+                    return Response.status(Status.CONFLICT).build();
+                }
+
+                final SpliteratorIterator<List<JsonNode>> jsonNodeSpliteratorIterator =
+                    new SpliteratorIterator<>(scrollRequest);
+
+                while (jsonNodeSpliteratorIterator.hasNext()) {
+                    writer.addEntries(jsonNodeSpliteratorIterator.next());
+                }
+            }
+            metaData.updateParameterStreamUnits(tenantId);
+
+            InputStream is = new FileInputStream(file);
+            return Response.ok(new ExactSizeInputStream(is, file.length()))
+                .header(X_UNITS_COUNT, documentCount)
+                .header(X_CONTENT_LENGTH, file.length())
+                .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            unitStreamDuration.observeDuration();
+            FileUtils.deleteQuietly(file);
+        }
     }
 }

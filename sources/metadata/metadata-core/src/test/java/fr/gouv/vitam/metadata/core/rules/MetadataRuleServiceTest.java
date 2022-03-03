@@ -32,10 +32,10 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;
@@ -44,6 +44,7 @@ import org.junit.Test;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -99,24 +100,25 @@ public class MetadataRuleServiceTest {
 
         // When
         MetadataRuleService instance = new MetadataRuleService(computeInheritedRuleService, metadata);
-        RequestResponseOK<JsonNode> response =
-            (RequestResponseOK<JsonNode>) instance.selectUnitsWithInheritedRules(selectDsl);
+        final MetadataResult metadataResult = instance.selectUnitsWithInheritedRules(selectDsl);
 
         // Then
         JsonAssert.assertJsonEquals(
-            JsonHandler.unprettyPrint(response.getResultsAsJsonNodes()),
+            JsonHandler.unprettyPrint(metadataResult.getResults()),
             IOUtils.toString(PropertiesUtils.getResourceAsStream("MetadataRuleService/expectedResponse.json"),
                 StandardCharsets.UTF_8)
             , JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private RequestResponseOK<JsonNode> responseFromResource(String filename)
+    private MetadataResult responseFromResource(String filename)
         throws IOException, InvalidParseOperationException {
-        return new RequestResponseOK<>().addAllResults(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename), List.class, JsonNode.class));
+        final List<JsonNode> list =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename), List.class, JsonNode.class);
+        return new MetadataResult(JsonHandler.createObjectNode(), list, Collections.emptyList(), list.size(), null,
+            new DatabaseCursor(list.size(), 0, 0));
     }
 
-    private Map computedRulesFromResource(String resourcesFile)
+    private Map<String, UnitInheritedRulesResponseModel> computedRulesFromResource(String resourcesFile)
         throws InvalidParseOperationException, FileNotFoundException {
         return JsonHandler
             .getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile),

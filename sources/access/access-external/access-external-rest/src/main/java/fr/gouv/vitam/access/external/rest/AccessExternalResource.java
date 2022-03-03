@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -112,12 +113,15 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
+import static fr.gouv.vitam.common.GlobalDataRest.X_UNITS_COUNT;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESS_REQUESTS_CHECK;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESS_REQUESTS_REMOVE;
@@ -145,6 +149,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_READ_JSON;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_RULES_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_STREAM;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_UPDATE;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
@@ -162,6 +167,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String OBJECT_TAG = "#object";
     private static final String REQUEST_UNAUTHORIZED = "Request unauthorized ";
     private static final String NO_SEARCH_QUERY = "No search query specified, this is mandatory";
+    private static final String UNITS_COUNT_EXCEED_THRESHOLD = "The number of units exceed threshold";
+    private static final String STREAM_UNITS_LIMIT_REACHED = "You reach the limit of stream units. try next day";
     private static final String TECHNICAL_EXCEPTION = "Technical Exception ";
     private static final String COULD_NOT_VALIDATE_REQUEST = "Could not validate request";
     private static final String REQUEST_RESOURCES_DOES_NOT_EXISTS = "Request resources does not exits";
@@ -286,6 +293,68 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
+        }
+    }
+
+
+    /**
+     * get units list by query
+     *
+     * @param queryJson the query to get units
+     * @return Response
+     */
+    @GET
+    @Path("/units/stream")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = UNITS_STREAM, description = "Récupérer la liste des unités archivistiques")
+    @Operation(
+        description = "Requête qui retourne un stream des résultats contenant des Unités d'archives. La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.",
+        requestBody = @RequestBody(description = "A SELECT MULTIPLE query.", content = @Content(examples = @ExampleObject("{\"$projection\":{\"$fields\":{\"#id\":1}}}"))),
+        parameters = {
+            @Parameter(name = "X-Access-Contract-Id", in = HEADER, description = "The contract name", required = true, example = "ACC-0001"),
+            @Parameter(name = "X-Tenant-Id", in = HEADER, description = "The tenant id", required = true, example = "1")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Renvoie un stream contient la liste des résultats d'Unités d'archives correspondant à la requête DSL", content = @Content(examples = @ExampleObject("{\"httpCode\":200,\"$hits\":{\"total\":1,\"offset\":0,\"limit\":125,\"size\":1},\"$results\":[{\"#id\":\"aeaqaaaaaahftfesaabpcalqddm7ndiaaacq\"}],\"$facetResults\":[],\"$context\":{\"$roots\":[],\"$query\":[{\"$or\":[{\"$match\":{\"Title\":\"ratp\"}},{\"$match\":{\"Title_.fr\":\"ratp\"}},{\"$match\":{\"Description\":\"ratp\"}}]}],\"$filter\":{\"$orderby\":{\"TransactedDate\":1}},\"$projection\":{\"$fields\":{\"#id\":1}},\"$facets\":[]}}"))),
+            @ApiResponse(responseCode = "417", description = "Expectation Failed."),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error.")
+        }
+    )
+    public Response streamUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
+
+            SelectMultipleSchemaValidator.validateStreamQuery(queryJson);
+
+            final Response response = client.streamUnits(queryJson);
+
+            final HashMap<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(X_UNITS_COUNT, response.getHeaderString(X_UNITS_COUNT));
+            headers.put(X_CONTENT_LENGTH, response.getHeaderString(X_CONTENT_LENGTH));
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
+        } catch (ValidationException e) {
+            LOGGER.error(UNAUTHORIZED_DSL_PARAMETER, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).build();
+        } catch (ExpectationFailedClientException e) {
+            LOGGER.error(UNITS_COUNT_EXCEED_THRESHOLD, e);
+            status = Status.EXPECTATION_FAILED;
+            return Response.status(status).build();
+        }catch (AccessUnauthorizedException e) {
+            LOGGER.error(STREAM_UNITS_LIMIT_REACHED, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error(REQUEST_UNAUTHORIZED, e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).build();
         }
     }
 

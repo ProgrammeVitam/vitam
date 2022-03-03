@@ -31,6 +31,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -85,6 +90,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoa
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
@@ -93,9 +99,11 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -113,6 +121,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -128,6 +137,7 @@ import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -142,6 +152,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Updates.inc;
+import static com.mongodb.client.model.Updates.set;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
@@ -164,6 +176,7 @@ public class MetaDataImpl {
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     public static final int MAX_PRECISION_THRESHOLD = 40000;
+    public static final          String SNAPSHOT_COLLECTION = "Snapshot";
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -593,7 +606,7 @@ public class MetaDataImpl {
             .subAggregation(operationAgg);
     }
 
-    public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
+    public MetadataResult selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
@@ -601,7 +614,7 @@ public class MetaDataImpl {
 
     }
 
-    public RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
+    public MetadataResult selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("selectObjectGroupsByQuery/ selectQuery: " + selectQuery);
@@ -609,14 +622,14 @@ public class MetaDataImpl {
 
     }
 
-    public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
+    public MetadataResult selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, unitId, singletonList(BuilderToken.FILTERARGS.UNITS));
     }
 
-    public RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
+    public MetadataResult selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
@@ -625,7 +638,7 @@ public class MetaDataImpl {
             singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
-    private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
+    private MetadataResult selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
@@ -699,8 +712,7 @@ public class MetaDataImpl {
         String scrollId = (result != null) ? result.getScrollId() : null;
         DatabaseCursor hits = (scrollId != null) ? new DatabaseCursor(total, offset, limit, res.size(), scrollId)
             : new DatabaseCursor(total, offset, limit, res.size());
-        return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(res).addAllFacetResults(facetResults).setHits(hits);
+        return new MetadataResult(queryCopy, res, facetResults, total, scrollId, hits);
     }
 
     public void updateObjectGroupId(JsonNode updateQuery, String objectId, boolean forceUpdate)
@@ -885,10 +897,10 @@ public class MetaDataImpl {
             unitParentIdList.add(currentUnitId);
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
-        RequestResponseOK<JsonNode> unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
+        final MetadataResult metadataResult = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
             singletonList(BuilderToken.FILTERARGS.UNITS));
 
-        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents.getResults());
+        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(metadataResult.getResults());
         UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
         unitNode.buildAncestors(unitMap, allUnitNode, rootList);
         unitNode.computeRule();
@@ -1017,5 +1029,71 @@ public class MetaDataImpl {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName);
             throw exc;
         }
+    }
+
+    /*
+     * this is an evolution requested by the client
+     */
+    public void checkStreamUnits(int tenantId, short streamExecutionLimit) throws MetaDataException {
+        final MongoCollection<MetadataSnapshot> snapshotCollection =
+            mongoDbAccess.getMongoDatabase().getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
+
+        boolean newDay = false;
+
+        final Bson scrollRequestDateFilter = Filters.and(
+            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
+            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.LastScrollRequestDate.name())
+        );
+
+        final Bson scrollFilter = Filters.and(
+            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
+            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.Scroll.name())
+        );
+
+        final MetadataSnapshot lastScrollRequestDate = snapshotCollection.find(scrollRequestDateFilter).first();
+        if (lastScrollRequestDate != null) {
+            final LocalDate value =  LocalDateUtil.parseMongoFormattedDate(lastScrollRequestDate.getValue(String.class)).toLocalDate();
+            if (value.plusDays(1).isEqual(LocalDate.now())) {
+                newDay = true;
+                snapshotCollection
+                    .updateOne(scrollRequestDateFilter, set(MetadataSnapshot.VALUE, LocalDateUtil.now()));
+                snapshotCollection.updateOne(scrollFilter, set(MetadataSnapshot.VALUE, 0));
+            }
+        }
+
+
+        final MetadataSnapshot scroll = snapshotCollection.find(scrollFilter).first();
+        if (streamExecutionLimit != 0 && scroll != null) {
+            if (scroll.getValue(Integer.class) == streamExecutionLimit && !newDay) {
+                throw new MetaDataException("Scroll execution limit reached, please re-try next day");
+            }
+        }
+
+    }
+
+    /*
+     * this is an evolution requested by the client
+     */
+    public void updateParameterStreamUnits(int tenantId) {
+        final MongoCollection<MetadataSnapshot> snapshotCollection =
+            mongoDbAccess.getMongoDatabase().getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
+        final Bson scrollRequestDateFilter = Filters.and(
+            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
+            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.LastScrollRequestDate.name())
+        );
+
+        final Bson scrollFilter = Filters.and(
+            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
+            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.Scroll.name())
+        );
+
+        snapshotCollection.updateOne(scrollFilter, Updates
+            .combine(Updates.setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
+                inc(MetadataSnapshot.VALUE, 1)), new UpdateOptions().upsert(true));
+
+        snapshotCollection.updateOne(scrollRequestDateFilter, Updates
+                .combine(Updates.setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
+                    set(MetadataSnapshot.VALUE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))),
+            new UpdateOptions().upsert(true));
     }
 }

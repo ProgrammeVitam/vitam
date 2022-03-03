@@ -160,6 +160,15 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         @Override
         @GET
+        @Path("/units/stream")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response streamUnits(JsonNode queryDsl) {
+            return expectedResponse.post();
+        }
+
+        @Override
+        @GET
         @Path("/unitsWithInheritedRules")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)

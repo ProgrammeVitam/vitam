@@ -73,6 +73,15 @@ documentation:
       X-Http-Method-Override:
         required: false
 
+  /stream:
+    get:
+        description: |
+          Requête qui déclenche la récupération de toutes les unités d'archives dans un Json Stream.
+
+          Permissions requises:
+            - units:stream
+
+        is: [AccessTraits.AccessUnitStreamResponse]
 
   /rules:
     post:

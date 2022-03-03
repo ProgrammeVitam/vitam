@@ -14,6 +14,12 @@ types:
       description: Requête DSL multiple Vitam externe pour Access
       example: !include examples/accessUnitQuery.json
 
+  AccessStreamResponse:
+      type: DslTypes.JsonListResponse
+      displayName: Requête DSL multiple pour Access
+      description: Requête DSL multiple Vitam externe pour Access
+      example: !include examples/streamUnitResponse.jsonl
+
   EliminationRequest:
       displayName: Requête DSL multiple de traitement de masse pour élimination
       description: Requête DSL multiple Vitam de traitement de masse pour élimination
@@ -423,7 +429,7 @@ types:
             Si l'objet est persisté sur une offre de stockage « chaude », aucune demande d'accès n'est renvoyée.
           type: array
           items:
-            type: accessRequestReference
+            type: AccessRequestReference
 
   AccessRequestReference:
       displayName: Les références d'une demande d'accès d'une stratégie stockage « froide »

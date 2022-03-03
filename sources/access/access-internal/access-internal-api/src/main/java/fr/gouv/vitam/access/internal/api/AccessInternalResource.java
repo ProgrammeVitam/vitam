@@ -37,7 +37,12 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
@@ -55,6 +60,8 @@ public interface AccessInternalResource {
      */
     Response getUnits(JsonNode dslQuery)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
+
+    Response streamUnits(JsonNode queryDsl);
 
     Response selectUnitsWithInheritedRules(JsonNode queryDsl);
 

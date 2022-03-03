@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -73,6 +74,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+    }
+
+    @Override
+    public Response streamUnits(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException {
+        return null;
     }
 
     @Override

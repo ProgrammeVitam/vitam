@@ -16,6 +16,10 @@ criticalDipTimeToLiveInMinutes: {{ vitam.metadata.criticalDipTimeToLiveInMinutes
 # TRANSFER purge service (in minutes)
 transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinutes }}
 
+# Units Stream Threshold
+unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1000000) }}
+streamExecutionLimit: {{ vitam.metadata.streamExecutionLimit | default(3) }}
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}

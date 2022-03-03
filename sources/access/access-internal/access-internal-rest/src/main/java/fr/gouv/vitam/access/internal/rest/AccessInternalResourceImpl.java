@@ -114,6 +114,8 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -302,6 +304,33 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         }
         return Response.status(Status.OK).entity(result).build();
+    }
+
+    /**
+     * get Archive Unit list by query based on identifier
+     *
+     * @param queryDsl as JsonNode
+     * @return an archive unit result list
+     */
+    @Override
+    @GET
+    @Path("/units/stream")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response streamUnits(JsonNode queryDsl) {
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+            return accessModule
+                .streamUnits(applyAccessContractRestrictionForUnitForSelect(queryDsl, getVitamSession().getContract()));
+        } catch (final MetadataScrollThresholdExceededException e) {
+            return Response.status(Status.EXPECTATION_FAILED).build();
+        }catch (final MetadataScrollLimitExceededException e) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        } catch (final Exception ve) {
+            LOGGER.error(ve);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
