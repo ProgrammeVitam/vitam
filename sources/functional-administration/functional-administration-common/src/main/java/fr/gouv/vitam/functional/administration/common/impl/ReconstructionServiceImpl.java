@@ -77,6 +77,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import io.prometheus.client.Histogram;
+import org.apache.shiro.util.CollectionUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -231,9 +232,10 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 restoreSequence(sequenceRepository, collectionBackup.get().getBackupSequence());
 
                 // saving the backup collection in mongoDB and elasticSearch.
-                mongoRepository.save(collectionBackup.get().getDocuments());
-                elasticsearchRepository.save(collectionBackup.get().getDocuments());
-
+                if(!CollectionUtils.isEmpty(collectionBackup.get().getDocuments())) {
+                    mongoRepository.save(collectionBackup.get().getDocuments());
+                    elasticsearchRepository.save(collectionBackup.get().getDocuments());
+                }
                 // log the reconstruction of Vitam collection.
                 LOGGER.debug(String
                     .format(
@@ -241,7 +243,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                         collectionBackup, Arrays.toString(tenants), LocalDateUtil.now()));
             }
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
-            LOGGER.error("ERROR: Exception has been thrown when trying to get Referent offer :", e);;
+            LOGGER.error("ERROR: Exception has been thrown when trying to get Referent offer :", e);
         }  finally {
             timer.observeDuration();
         }

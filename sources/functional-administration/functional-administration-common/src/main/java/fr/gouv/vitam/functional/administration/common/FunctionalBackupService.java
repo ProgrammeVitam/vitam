@@ -174,8 +174,9 @@ public class FunctionalBackupService {
                     case ACCESSION_REGISTER_SYMBOLIC:
                         storeBackupFileInStorage(fileName, is, DataCategory.ACCESSION_REGISTER_SYMBOLIC);
                         break;
-                        default:
-                            storeBackupFileInStorage(fileName, is, DataCategory.BACKUP);
+                    default:
+                        storeBackupFileInStorage(fileName, is, DataCategory.BACKUP);
+                        break;
                 }
 
 
