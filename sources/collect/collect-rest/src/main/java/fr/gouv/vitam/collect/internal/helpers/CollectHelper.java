@@ -90,12 +90,6 @@ public class CollectHelper {
         final String dataObjectVersion = usage.getName() + "_" + version;
 
         return dbObjectGroupModel.getQualifiers().stream()
-            // TODO : virer le traitement du peek et tester
-            .peek(dbQualifiersModel -> {
-                if (dbQualifiersModel.getQualifier() != null && dbQualifiersModel.getQualifier().contains("_")) {
-                    dbQualifiersModel.setQualifier(dbQualifiersModel.getQualifier().split("_")[0]);
-                }
-            })
             .filter(dbQualifiersModel -> usage.getName().equals(dbQualifiersModel.getQualifier()))
             .flatMap(dbQualifiersModel -> dbQualifiersModel.getVersions().stream())
             .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion()))

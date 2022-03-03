@@ -263,3 +263,22 @@ Données gérées :
 
 * Aucune
 
+Connecteur générique
+=====================================
+
+Rôle :
+
+* Permettre aux applications tierces de s’intégrer plus facilement dans Vitam via une API constructive d'un :term:`SIP`
+
+Fonctions :
+
+* Exposer des :term:`API` de construction de SIP
+
+Contraintes techniques :
+
+* Référentiels techniques et métiers de VITAM à respecter (Formats, Règles de gestion, Contrats (d'entrée, d'accès), Contextes ...)
+
+Données gérées :
+
+* Données temporaires qui devraient servir à construire un :term:`SIP` ingérable par VITAM
+

@@ -4,7 +4,8 @@
 # You can set these variables from the command line.
 SHELL         = /bin/bash
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+# SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = /home/passam/bin/sphinx-docker
 MAKE	      = make
 PAPER         =
 LANGUAGE      = fr

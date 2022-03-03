@@ -400,6 +400,10 @@ public class TransactionService {
             File tmpFile = path.toFile();
             final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
             final FormatIdentifierResponse format = CollectHelper.getFirstPronomFormat(formats);
+            if(format == null) {
+                LOGGER.error("Can't not found format !");
+                throw new CollectException("Can't not found format !");
+            }
             DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
             formatIdentificationModel.setFormatId(format.getPuid());
             formatIdentificationModel.setMimeType(format.getMimetype());

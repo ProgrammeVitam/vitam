@@ -1,0 +1,108 @@
+### Configuration
+@transaction-id = aeeaaaaaachbhdsaaa2zaal7jikjazyaaaaq
+@unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
+@tenant = 0
+@access-contract = ContratTNR
+
+### Création d'une nouvelle transaction
+POST  {{url}}/collect/v1/transactions
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "ArchivalAgreement": "IC-000001",
+  "MessageIdentifier": "Transaction de test",
+  "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
+  "TransferingAgencyIdentifier": "TransferingAgencyIdentifier5",
+  "OriginatingAgencyIdentifier": "FRAN_NP_009913",
+  "SubmissionAgencyIdentifier": "FRAN_NP_005761",
+  "ArchiveProfile": "ArchiveProfile5",
+  "Comment": "Commentaires"
+}
+
+### Création et rattachement d'une nouvelle unité archivistique à la transaction
+POST  {{url}}/collect/v1/transactions/{{transaction-id}}/units
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "DescriptionLevel": "Item",
+  "Title": "My title3",
+  "Description": "Allemant. - Au chemin des Dames : le chateau et la ferme de la Motte totalement detruits.",
+  "Descriptions": {
+    "fr": "La legendes traduites en anglais."
+  },
+  "Status": "Pret",
+  "Tag": ["Grande Collecte"],
+  "Source": "Famille Herve, CP1",
+  "CreatedDate": "2014-06-12T09:31:00",
+  "TransactedDate": "2014-06-12T09:31:00",
+  "#management": {
+  }
+}
+
+### Création et rattachement d'un usage(BinaryMaster)/version(1) à l'unité archivistique
+POST  {{url}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/1
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "fileInfo": {
+    "filename": "binaire_test.txt"
+  }
+}
+
+### Rattachement d'un binaire à un usage(BinaryMaster)/version(1)
+POST  {{url}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/1/binary
+Accept: application/json
+Content-Type: application/octet-stream
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+< /path_tobinary/binaire_test.txt
+
+### Possibilité de création et rattachement d'une version 2 à un usage existant --> vérifier la prise en compte d'un tel scénario dans VITAM
+POST  {{url}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/2
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "fileInfo": {
+    "filename": "binary_version_2.txt"
+  }
+}
+
+### Rattachement d'un binaire à l'usage(BinaryMaster)/version(2)
+POST  {{url}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/2/binary
+Accept: application/json
+Content-Type: application/octet-stream
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+< /path_tobinary/binary_version_2.txt
+
+### Fermeture de la transaction
+POST  {{url}}/collect/v1/transactions/{{transaction-id}}/close
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{}
+
+### Génération et envoi du SIP vers VITAM
+POST  {{url}}/collect/v1/transactions/{{transaction-id}}/send
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{}
