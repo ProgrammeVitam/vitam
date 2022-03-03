@@ -90,6 +90,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
  */
 @Ignore("Will not work if no tape library connected with a good configuration file")
 public class TapeLibraryIT {
+
+    private static final int FULL_CARTRIDGE_THRESHOLD = 2_000_000;
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
     public static final Integer SLOT_INDEX = 3;
@@ -461,14 +463,14 @@ public class TapeLibraryIT {
                 new ReadTask(
                     new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, null), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             ReadTask readTask2 =
                 new ReadTask(
                     new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, null), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             // Classical read

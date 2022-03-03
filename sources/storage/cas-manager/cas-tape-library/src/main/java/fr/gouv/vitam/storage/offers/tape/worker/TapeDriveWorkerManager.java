@@ -40,7 +40,6 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -82,12 +81,17 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
         ArchiveCacheStorage archiveCacheStorage,
         TapeCatalogService tapeCatalogService,
-        CartridgeCapacityHelper cartridgeCapacityHelper
+        Integer fullCartridgeDetectionThresholdInMB
     ) {
 
         ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService,
-            cartridgeCapacityHelper);
+            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService);
+
+        if(fullCartridgeDetectionThresholdInMB == null ||
+            fullCartridgeDetectionThresholdInMB <= 0 || fullCartridgeDetectionThresholdInMB > 1_000_000_000) {
+            throw new IllegalArgumentException("Invalid fullCartridgeDetectionThresholdInMB param");
+        }
+
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
@@ -96,7 +100,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeCatalogService,
                     this, archiveReferentialRepository, accessRequestManager,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, archiveCacheStorage, cartridgeCapacityHelper);
+                    forceOverrideNonEmptyCartridges, archiveCacheStorage, fullCartridgeDetectionThresholdInMB);
             workers.add(tapeDriveWorker);
         }
     }

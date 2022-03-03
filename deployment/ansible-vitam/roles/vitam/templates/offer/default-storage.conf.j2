@@ -94,12 +94,7 @@ tapeLibraryConfiguration:
           ddPath: "{{ drive.ddPath }}"
           timeoutInMilliseconds: {{ drive.timeoutInMilliseconds }}
 {% endfor %}
-      cartridgeCapacities:
-{% for cartridgeCapacity in library.cartridgeCapacities %}
-        -
-          type: {{ cartridgeCapacity.type }}
-          capacityInMB: {{ cartridgeCapacity.capacityInMB }}
-{% endfor %}
-      fullCartridgeDetectionThresholdInPercentage: {{ library.fullCartridgeDetectionThresholdInPercentage | default(90) }}
+      fullCartridgeDetectionThresholdInMB: {{ library.fullCartridgeDetectionThresholdInMB }}
+
 {% endfor %}
 {% endif %}

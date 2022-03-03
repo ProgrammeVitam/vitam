@@ -46,7 +46,6 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
 import fr.gouv.vitam.storage.offers.tape.cas.IncompleteWriteOrderBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
@@ -202,8 +201,6 @@ public class TapeLibraryFactory {
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
 
-            CartridgeCapacityHelper cartridgeCapacityHelper = new CartridgeCapacityHelper(tapeLibraryConf);
-
             BlockingQueue<TapeRobotService> robotServices =
                 new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
             ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
@@ -252,7 +249,7 @@ public class TapeLibraryFactory {
                 new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, accessRequestManager,
                     libraryPool, driveTape, configuration.getInputTarStorageFolder(),
                     configuration.isForceOverrideNonEmptyCartridges(), archiveCacheStorage, tapeCatalogService,
-                    cartridgeCapacityHelper);
+                    tapeLibraryConf.getFullCartridgeDetectionThresholdInMB());
 
             // Initialize drives on bootstrap
             tapeDriveWorkerManager.initializeOnBootstrap();

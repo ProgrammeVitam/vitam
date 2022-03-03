@@ -31,8 +31,7 @@ import java.util.List;
 public class TapeLibraryConf {
     private List<TapeRobotConf> robots;
     private List<TapeDriveConf> drives;
-    private Integer fullCartridgeDetectionThresholdInPercentage;
-    private List<CartridgeCapacityConfiguration> cartridgeCapacities;
+    private Integer fullCartridgeDetectionThresholdInMB;
 
     public List<TapeRobotConf> getRobots() {
         return robots;
@@ -50,23 +49,12 @@ public class TapeLibraryConf {
         this.drives = drives;
     }
 
-    public Integer getFullCartridgeDetectionThresholdInPercentage() {
-        return fullCartridgeDetectionThresholdInPercentage;
+    public Integer getFullCartridgeDetectionThresholdInMB() {
+        return fullCartridgeDetectionThresholdInMB;
     }
 
-    public TapeLibraryConf setFullCartridgeDetectionThresholdInPercentage(
-        Integer fullCartridgeDetectionThresholdInPercentage) {
-        this.fullCartridgeDetectionThresholdInPercentage = fullCartridgeDetectionThresholdInPercentage;
-        return this;
-    }
-
-    public List<CartridgeCapacityConfiguration> getCartridgeCapacities() {
-        return cartridgeCapacities;
-    }
-
-    public TapeLibraryConf setCartridgeCapacities(
-        List<CartridgeCapacityConfiguration> cartridgeCapacities) {
-        this.cartridgeCapacities = cartridgeCapacities;
+    public TapeLibraryConf setFullCartridgeDetectionThresholdInMB(Integer fullCartridgeDetectionThresholdInMB) {
+        this.fullCartridgeDetectionThresholdInMB = fullCartridgeDetectionThresholdInMB;
         return this;
     }
 }

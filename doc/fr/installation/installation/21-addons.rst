@@ -517,10 +517,11 @@ Enfin, la définition des équipements robotiques proprement dite doit être ré
 *   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
 *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
 
-* **cartridgeCapacities** Définition des types de cartouches de la librairie et de leur capacité théorique. Ce seuil permet à Vitam de détecter les fins de bandes versus les erreurs d'écriture sur bandes.
-*   **type**: Type de cartouche (tel que décrits par la commande *mtx status*).
-*   **capacityInMB** Capacité de stockage théorique (en Mo) de la bande (hors éventuelle compression).
-* **fullCartridgeDetectionThresholdInPercentage** Pourcentage de remplissage d'une bande par rapport à sa capacité théorique. Si une erreur d'écriture sur bande avant ce seuil, la bande est supposée corrompue (CONFLICT), sinon, une fin de bande est présupposée. Par défaut 90 (%).
+* **fullCartridgeDetectionThresholdInMB** Seuil de détection de bande pleine (en Mo)
+* Permet pour détecter en cas d'erreur d'écriture sur bande, la cause probable de l'erreur :
+*   - Si le volume des données écrites sur bande > seuil : La bande est considérée comme pleine
+*   - Si le volume des données écrites sur bande < seuil : La bande est considérée comme corrompue
+* Typiquement, 90% de la capacité théorique de stockage des cartouches (hors compression).
 
 Exemple:
 
@@ -559,16 +560,7 @@ Exemple:
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
 
-            cartridgeCapacities:
-              - type: LTO-6
-                capacityInMB: 2_500_000
-              - type: LTO-7
-                capacityInMB: 6_000_000
-              - type: LTO-8
-                capacityInMB: 12_000_000
-              - type: LTO-9
-                capacityInMB: 18_000_000
-            fullCartridgeDetectionThresholdInPercentage: 90
+            fullCartridgeDetectionThresholdInMB : 2_000_000
 ..
 
 Sécurisation SELinux
