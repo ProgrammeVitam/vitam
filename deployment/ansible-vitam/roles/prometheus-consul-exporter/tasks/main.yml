@@ -1,0 +1,7 @@
+---
+
+- include_tasks: prometheus_consul_exporter_enabled.yml
+  when: prometheus.consul_exporter.enabled | default(true) | bool == true
+
+- include_tasks: prometheus_consul_exporter_disabled.yml
+  when: prometheus.consul_exporter.enabled | default(true) | bool == false

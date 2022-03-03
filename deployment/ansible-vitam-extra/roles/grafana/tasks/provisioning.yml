@@ -9,20 +9,26 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
   notify: restart grafana
 
-- name: Copy vitam dashboard json file to provisioning dashboard folder
+- name: Copy dashboard json files to provisioning dashboard folder
   copy:
-    src: vitam_standard_dashboard.json
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    src: "{{ item }}.json"
+    dest: "{{ grafana_path_provisioning }}/dashboards/{{ item }}.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+  with_items:
+    - vitam_standard_dashboard
+    - vitam_consul_exporter_dashboard
 
 - name: Set the correct data source name in the dashboard for prometheus
   replace:
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    dest: "{{ grafana_path_provisioning }}/dashboards/{{ item }}.json"
     regexp: '"(?:\${)?DS_PROMETHEUS+(?:})?"'
     replace: '"Prometheus"'
   changed_when: false
+  with_items:
+    - vitam_standard_dashboard
+    - vitam_consul_exporter_dashboard
   when: grafana.grafana_dashboards | length > 0
 
 - name: Set the correct data source name in the dashboard for alertmanager

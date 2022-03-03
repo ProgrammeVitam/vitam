@@ -32,6 +32,16 @@ scrape_configs:
 {% endfor %}
 {% endif %}
 
+{% if prometheus.consul_exporter.enabled | default(true) | bool == true %}
+  - job_name: vitam-consul_exporter-exporter
+    metrics_path: {{ prometheus.consul_exporter.metrics_path | default('/metrics') }}
+    static_configs:
+    - targets:
+{% for host in groups['vitam'] %}
+      - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}
+{% endfor %}
+{% endif %}
+
 {% if (groups['hosts_access_internal']|length >0) %}
   - job_name: vitam-access-internal
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}

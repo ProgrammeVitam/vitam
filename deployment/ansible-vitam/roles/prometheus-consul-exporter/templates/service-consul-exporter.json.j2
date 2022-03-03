@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "consul_exporter",
+    "port": {{ prometheus.consul_exporter.port | default(9107) }},
+    "address": "{{ ip_admin }}",
+    "tags": ["monitor", "prometheus","consul-exporter","vitam-consul-exporter"],
+    "checks": [
+        {
+          "name": "Prometheus consul_exporter : TCP check",
+          "notes": "Status consul_exporter",
+          "tcp": "{{ ip_admin }}:{{ prometheus.consul_exporter.port | default(9107) }}",
+          "interval": "{{ prometheus.check_consul | default(10) }}s"
+        }
+    ]
+  }
+}

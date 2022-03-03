@@ -87,6 +87,13 @@
   roles:
     - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled | default(true) | bool == true )" }
 
+### PROMETHEUS CONSUL EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - { role: prometheus-consul-exporter, tags: install_consul_exporter, when: "( prometheus.consul_exporter.enabled | default(true) | bool == true ) and ( consul_disabled | default(false) | bool != true )" }
+
 ### CEREBRO INSTALLATION ###
 - hosts: hosts_cerebro
   gather_facts: no

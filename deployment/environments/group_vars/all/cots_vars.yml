@@ -171,6 +171,10 @@ prometheus:
         enabled: true
         port: 9101
         metrics_path: /metrics
+    consul_exporter:
+        enabled: true
+        port: 9107
+        metrics_path: /metrics
     alertmanager:
         api_port: 9093
         cluster_port: 9094
@@ -217,7 +221,6 @@ grafana:
           path: "/etc/grafana/provisioning/dashboards"
     grafana_plugins:
       - camptocamp-prometheus-alertmanager-datasource
-      - Vonage-Grafana_Status_panel
 
 # Curator units: days
 curator:

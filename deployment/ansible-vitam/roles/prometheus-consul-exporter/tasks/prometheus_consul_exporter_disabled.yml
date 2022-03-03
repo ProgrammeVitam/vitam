@@ -1,0 +1,10 @@
+---
+
+- name: Remove vitam-consul-exporter package
+  package:
+    name: vitam-consul-exporter
+    state: absent
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"

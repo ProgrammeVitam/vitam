@@ -1,5 +1,13 @@
 ---
 
+- name: Ensure grafana plugin directory is present
+  file:
+    path: "{{ grafana_data_dir }}/plugins"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
 - name: Check which plugins are installed (find in plugins dir)
   find:
     file_type: directory
@@ -176,5 +184,5 @@
     file:
       path: "{{ grafana_data_dir }}/plugins"
       recurse: yes
-      owner: grafana
-      group: grafana
+      owner: "{{ grafana_user }}"
+      group: "{{ grafana_group }}"

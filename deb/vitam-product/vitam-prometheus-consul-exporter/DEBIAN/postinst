@@ -1,0 +1,17 @@
+#!/bin/bash
+
+chmod 750 -R /vitam/conf/consul_exporter
+chown -R vitam:vitam /vitam/conf/consul_exporter
+chmod 640 /vitam/conf/consul_exporter/sysconfig/consul_exporter
+
+chmod 750 /vitam/bin/consul_exporter
+chmod 755 /vitam/bin/consul_exporter/consul_exporter
+chown -R vitam:vitam /vitam/bin/consul_exporter
+
+chmod 750 /vitam/app/consul_exporter
+chown -R vitam:vitam /vitam/app/consul_exporter
+
+chmod 755 /vitam/data/consul_exporter
+chown -R vitam:vitam /vitam/data/consul_exporter
+
+systemctl daemon-reload

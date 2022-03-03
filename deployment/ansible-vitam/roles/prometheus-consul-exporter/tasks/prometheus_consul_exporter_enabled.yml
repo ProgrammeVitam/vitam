@@ -1,0 +1,79 @@
+---
+#### Installation ####
+- name: Install vitam-consul-exporter package
+  package:
+    name: vitam-consul-exporter
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
+  notify: restart prometheus consul exporter
+
+#### Configuration ####
+- name: Check that consul_exporter directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/consul_exporter"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log
+    - data
+    - tmp
+  notify: restart prometheus consul exporter
+
+- name: Apply consul_exporter sysconfig settings
+  template:
+    src: "consul_exporter.j2"
+    dest: "{{ prometheus_consul_exporter_config_path }}/sysconfig/consul_exporter"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - update_consul_exporter_configuration
+  notify: restart prometheus consul exporter
+
+#### Consul configuration ####
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-consul-exporter.json.j2"
+    dest: "{{ consul_folder_conf }}/service-consul-exporter.json"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - consul_conf
+    - update_consul_exporter_configuration
+  notify: reload consul configuration
+
+# Ensure that the installation is complete
+- meta: flush_handlers
+  tags:
+    - update_consul_exporter_configuration
+
+- name: Ensure vitam-consul-exporter service is started and enabled at boot
+  service:
+    name: vitam-consul-exporter
+    state: started
+    enabled: true
+
+- name: Wait for consul_exporter port {{ prometheus.consul_exporter.port | default(9107) }} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.consul_exporter.port | default(9107) }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"

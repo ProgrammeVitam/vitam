@@ -1,7 +1,7 @@
 <VirtualHost *:{{ reverse_proxy_port }}>
 
     DocumentRoot "/var/www/html-{{ vitam_site_name }}"
-    ProxyPreserveHost off
+    ProxyPreserveHost {{ vitam_proxypreservehost | default('on') }}
     ServerName {{ vitam_reverse_external_dns }}
 
     # Enable SSL for the Reverse proxy

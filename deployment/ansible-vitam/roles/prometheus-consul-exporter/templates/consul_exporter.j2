@@ -1,0 +1,5 @@
+{% if inventory_hostname in groups['hosts_consul_server'] %}
+CONSUL_EXPORTER_OPTS='--consul.server={{ ip_admin }}:8500'
+{% else %}
+CONSUL_EXPORTER_OPTS='--consul.server=127.0.0.1:8500'
+{% endif %}
