@@ -1,0 +1,17 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$gt": {
+        "#approximate_creation_date": "2022-01-01"
+      }
+    }
+  ],
+  "$filter": {},
+  "$projection": {
+    "$fields": {
+    }
+  },
+  "$facets": [],
+  "$threshold": 500000
+}

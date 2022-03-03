@@ -35,15 +35,19 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.jboss.resteasy.core.interception.jaxrs.PostMatchContainerRequestContext;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Filter checker for body json
@@ -65,15 +69,25 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
             requestContext.setEntityStream(bout.toInputStream());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
-            requestContext.abortWith(
-                Response.status(Status.PRECONDITION_FAILED)
+            if (Arrays.asList(((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces())
+                .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
+                // no entity
+                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
+            }else {
+                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
+            }
         } catch (InvalidParseOperationException exc) {
             LOGGER.error(exc);
             alertService.createAlert("Json invalid: " + exc.getMessage());
-            requestContext.abortWith(
-                Response.status(Status.PRECONDITION_FAILED)
+            if (Arrays.asList(((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces())
+                .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
+                // no entity
+                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
+            }else {
+                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
+            }
         }
     }
 

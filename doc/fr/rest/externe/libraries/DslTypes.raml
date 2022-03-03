@@ -434,3 +434,11 @@ types:
         },
         "$results": []
       }
+
+  JsonListResponse:
+    type: object[]
+    displayName: un Json Stream
+    description: Réponse flux de json pour la
+    example:
+      { "myField1": "myValue1", "myField2.mySubField": "mySubValue1" }
+      { "myField1": "myValue2", "myField2.mySubField": "mySubValue2" }

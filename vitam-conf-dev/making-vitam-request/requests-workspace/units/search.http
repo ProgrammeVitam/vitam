@@ -177,3 +177,29 @@ X-Tenant-Id: {{tenant}}
   },
   "$projection": {}
 }
+
+
+### Recherche des unités archivestique en mode scroll
+GET {{url-access}}/access-external/v1/units/stream
+Accept: application/octet-stream
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#id": "aeaqaaaaaaga3nz4acpm4al7baut7qaaaaaq"
+      }
+    }
+  ],
+  "$filter": {},
+  "$projection": {
+    "$fields": {
+      "#id": 1
+    }
+  },
+  "$facets": []
+}

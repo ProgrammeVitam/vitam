@@ -85,8 +85,8 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -117,6 +117,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -716,6 +718,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (StorageIllegalOperationClientException e) {
             throw new AccessInternalIllegalOperationException("Illegal Access Request operation on synchronous offer",
                 e);
+        }
+    }
+
+    @Override
+    public Response streamUnits(JsonNode query)
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
+        MetadataScrollThresholdExceededException {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            return metaDataClient.streamUnits(query);
+        } catch (MetaDataClientServerException e) {
+            throw new AccessInternalExecutionException(e);
         }
     }
 

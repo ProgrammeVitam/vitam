@@ -36,6 +36,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
@@ -74,6 +75,9 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
+
+    Response streamUnits(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException, AccessUnauthorizedException;
 
     /**
      * select Unit By Id

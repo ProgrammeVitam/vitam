@@ -44,10 +44,13 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
+import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
+import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -381,4 +384,6 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
     void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
+
+    Response streamUnits(JsonNode selectQuery) throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException;
 }

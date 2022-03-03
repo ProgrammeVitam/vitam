@@ -34,6 +34,24 @@ import io.prometheus.client.Histogram;
 public class CommonMetadataMetrics {
 
     /**
+     * Compute metadata stream document duration.
+     */
+    public static final Histogram UNIT_SCROLL_DURATION_HISTOGRAM = Histogram.build()
+        .name(VitamMetricsNames.VITAM_METADATA_UNIT_SCROLL_DURATION)
+        .labelNames("requestId")
+        .help("Vitam metadata stream histogram duration metric")
+        .register();
+
+    /**
+     * Count metadata stream documents
+     */
+    public static final Counter UNIT_SCROLL_COUNTER = Counter.build()
+        .name(VitamMetricsNames.VITAM_METADATA_UNIT_SCROLL_TOTAL)
+        .labelNames("requestId")
+        .help("Vitam metadata stream document counter")
+        .register();
+
+    /**
      * Compute metadata log shipping duration.
      * This will count number of events and sum durations
      * This will only count effective log shipping and do not count the number off calls ended with (log shipping already running)

@@ -59,6 +59,12 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
 
+    @JsonProperty("unitsStreamThreshold")
+    private long unitsStreamThreshold = 1_000_000;
+
+    @JsonProperty("streamExecutionLimit")
+    private short streamExecutionLimit = 3;
+
     @JsonProperty("elasticsearchTenantIndexation")
     private MetadataIndexationConfiguration indexationConfiguration;
 
@@ -67,7 +73,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     @JsonProperty("dataConsistencyAuditOplogMaxSize")
     private Integer dataConsistencyAuditOplogMaxSize;
     @JsonProperty("mongodShardsConf")
-    private MongoDbShardConf mongodShardsConf;
+    private MongoDbShardConf mongodShardsConf;;
 
     /**
      * MetaDataConfiguration constructor
@@ -233,6 +239,22 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public void setElasticsearchExternalMetadataMappings(
         List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
         this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
+    }
+
+    public long getUnitsStreamThreshold() {
+        return unitsStreamThreshold;
+    }
+
+    public void setUnitsStreamThreshold(long unitsStreamThreshold) {
+        this.unitsStreamThreshold = unitsStreamThreshold;
+    }
+
+    public short getStreamExecutionLimit() {
+        return streamExecutionLimit;
+    }
+
+    public void setStreamExecutionLimit(short streamExecutionLimit) {
+        this.streamExecutionLimit = streamExecutionLimit;
     }
 
     public MetadataIndexationConfiguration getIndexationConfiguration() {

@@ -298,4 +298,9 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public void deleteObjectGroupBulk(Collection<String> listIds) {
         throw new IllegalStateException("Stop using mocks in production");
     }
+
+    @Override
+    public Response streamUnits(JsonNode selectQuery) throws MetaDataClientServerException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

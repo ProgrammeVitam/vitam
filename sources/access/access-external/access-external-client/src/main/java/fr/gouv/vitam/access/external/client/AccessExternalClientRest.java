@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOn
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -59,6 +60,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -101,6 +103,17 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
+    }
+
+    @Override
+    public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        VitamRequestBuilder request =
+            get().withPath("/units/stream").withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
+                .withJsonContentType().withOctetAccept();
+        Response response = make(request);
+        check(response);
+        return JsonLineIterator.parseFromResponse(response, JsonNode.class);
     }
 
     @Override

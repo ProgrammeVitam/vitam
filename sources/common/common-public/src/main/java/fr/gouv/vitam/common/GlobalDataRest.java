@@ -198,6 +198,11 @@ public class GlobalDataRest {
     public static final String TRANSFER_ENCODING_HEADER = "Transfer-Encoding";
 
     /**
+     * Units Count Header
+     */
+    public static final String X_UNITS_COUNT = "X-Units-Count";
+
+    /**
      * FIRST_PRIORITY_FILTER
      */
     public static final int FIRST_PRIORITY_FILTER = 1000;

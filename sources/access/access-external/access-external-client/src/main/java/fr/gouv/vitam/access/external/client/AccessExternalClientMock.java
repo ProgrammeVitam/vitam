@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -56,6 +57,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(selectQuery);
+    }
+
+    @Override
+    public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        return null;
     }
 
     @Override

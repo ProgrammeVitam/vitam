@@ -35,6 +35,7 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
@@ -71,6 +72,8 @@ public class MongoDbAccessMetadataFactory {
         for (final MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());
         }
+
+        classList.add(MetadataSnapshot.class);
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
