@@ -26,33 +26,32 @@
  */
 package fr.gouv.vitam.common.security;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class SanityCheckerTest {
 
@@ -285,5 +284,21 @@ public class SanityCheckerTest {
         final String bad = "aa<![CDATA[bb";
         map.add("test", bad);
         SanityChecker.checkHeaders(headers);
+    }
+
+    @Test
+    public void test_should_failed_when_input_is_too_large() throws Exception {
+        final String textContent = new String(Files.readAllBytes(
+            PropertiesUtils.getResourceFile("text-content.txt").toPath()));
+        assertThatCode(() ->
+        SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(20)))
+        ).isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void test_should_success_when_input_is_not_too_large() throws Exception {
+        final String textContent = new String(Files.readAllBytes(
+            PropertiesUtils.getResourceFile("text-content.txt").toPath()));
+        SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(19)));
     }
 }
