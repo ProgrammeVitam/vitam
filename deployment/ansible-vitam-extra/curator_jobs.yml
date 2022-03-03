@@ -2,4 +2,4 @@
 
 - hosts: hosts_elasticsearch_log
   roles:
-    - curator
+    - { role: curator, when: "(metricbeat.enabled | default(false) | bool == true) or (packetbeat.enabled | default(false) | bool == true)" }

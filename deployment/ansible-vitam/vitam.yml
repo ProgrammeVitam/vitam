@@ -71,14 +71,14 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
+    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled | default(false) | bool == false )" }
 
 ### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: vitam
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
+    - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled | default(true) | bool == true )" }
 
 ### CEREBRO INSTALLATION ###
 - hosts: hosts_cerebro
