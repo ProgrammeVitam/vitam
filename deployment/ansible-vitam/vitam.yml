@@ -63,7 +63,7 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - check_ontologies
+    - role: check_ontologies
   vars:
     vitam_struct: "{{ vitam.functional_administration }}"
 
