@@ -1,6 +1,27 @@
 Notes et procédures spécifiques R16
 ###################################
 
+Supprimer les indexes de configuration kibana
+---------------------------------------------
+
+.. caution:: Cette opération doit être effectuée avant la montée de version vers la R16 sur l'ensemble des sites.
+
+.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
+
+Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
+
+- Arrêt de Kibana (ne doit pas être relancé avant la fin de la procédure de montée de version).
+
+.. code-block:: bash
+
+  ansible hosts_kibana_log,hosts_kibana_data --vault-password-file vault_pass.txt -v -a "systemctl stop kibana" -i environments/<inventaire>
+
+..
+
+- Supprimer les indexes `.kibana*` via cerebro dans les clusters `elasticsearch-log` & `elasticsearch-data`.
+
+Attention, ils faut cocher la case `.special` dans l'interface pour les voir.
+
 Étapes préalables à la montée de version
 ========================================
 
