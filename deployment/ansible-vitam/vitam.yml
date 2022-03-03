@@ -84,8 +84,6 @@
 - hosts: vitam
   gather_facts: no
   any_errors_fatal: true
-  async: 600
-  poll: 0
   roles:
     - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled | default(true) | bool == true )" }
 
