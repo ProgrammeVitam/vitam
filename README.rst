@@ -192,7 +192,7 @@ Pré-requis
 * sphinx-build (ainsi que le thème rtd)
 * Pour construire le pdf : une distribution latex (Miktex, texlive, mactex, ...)
 * make
-* raml2html (version minimale : ``raml2html@4.0.0``)
+* raml2html (version : ``raml2html@7.8.0``)
 
 .. tip:: Sur Centos 7, pour l'installation de sphinx, il faut installer les 2 packages ``python-sphinx`` et ``python-sphinx_rtd_theme`` puis créer le lien symbolique : ``ln -s /usr/lib/python2.7/site-packages/sphinx_rtd_theme /usr/lib/python2.7/site-packages/sphinx/themes/``.
 

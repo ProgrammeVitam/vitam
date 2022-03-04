@@ -1,8 +1,8 @@
 
-// Switch to metadata database
+// Switch to metadataCollect database
 db = db.getSiblingDB('metadataCollect')
 
-// Create metadata user
+// Create metadataCollect user
 
 if (! db.getUser("{{ mongodb[mongo_cluster_name].metadataCollect.user }}")) {
     db.createUser(
@@ -27,7 +27,7 @@ else {
     )
 }
 
-// Create admin user
+// Create metadataCollect admin user
 
 if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
     db.createUser(

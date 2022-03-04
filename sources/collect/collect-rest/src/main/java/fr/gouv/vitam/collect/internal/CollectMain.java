@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 
 /**
- * launch internal-security server
+ * launch collect server
  */
 public class CollectMain {
 

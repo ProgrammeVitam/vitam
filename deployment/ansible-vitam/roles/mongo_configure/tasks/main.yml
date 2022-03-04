@@ -237,7 +237,6 @@
         - metadata
         - identity
         - report
-        - collect
         - metadata-collect
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"

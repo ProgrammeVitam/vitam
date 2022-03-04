@@ -127,3 +127,4 @@ V	250111161303Z		0140	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=vitam-admin-int
 V	250111161304Z		0141	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
 V	250111161306Z		0142	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
 V	250111161308Z		0143	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect
+V	99991231235959Z		0144	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect

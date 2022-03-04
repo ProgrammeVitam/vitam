@@ -1,7 +1,7 @@
 // Switch to collect database
 db = db.getSiblingDB('collect')
 
-// Create security-internal user
+// Create collect user
 
 if (! db.getUser("{{ mongodb[mongo_cluster_name].collect.user }}")) {
     db.createUser(
@@ -26,7 +26,7 @@ else {
     )
 }
 
-// Create admin user
+// Create collect admin user
 
 if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
     db.createUser(

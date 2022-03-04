@@ -90,6 +90,10 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect
+hosts_metadata_collect
+hosts_workspace_collect
+
 
 [hosts_security_internal]
 # TODO: Put here servers where this service will be deployed : security-internal
@@ -136,6 +140,20 @@ hosts_security_internal
 [hosts_worker]
 # TODO: Put here servers where this service will be deployed : worker
 # Optional parameter after each host : vitam_worker_capacity=<integer> ; please refer to your infrastructure for defining this number ; default is ansible_processor_vcpus value (cpu number in /proc/cpuinfo file)
+
+
+[hosts_collect]
+# TODO: Put here servers where this service will be deployed : collect
+
+
+[hosts_metadata_collect]
+# TODO: Put here servers where this service will be deployed : metadata_collect
+
+
+[hosts_workspace_collect]
+# TODO: Put the server where this service will be deployed : workspace_collect
+# WARNING: put only one server for this service, not more !
+
 
 
 ##### Zone storage

@@ -79,25 +79,18 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceType;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -135,7 +128,8 @@ public class SipService {
         File localDirectory = PropertiesUtils.fileFromTmpFolder(collectModel.getId());
 
         File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(MANIFEST_FILE_NAME));
-        boolean isCreated = manifestFile.getParentFile().mkdirs();
+
+        boolean isCreated = manifestFile.getParentFile().mkdir();
         if (!isCreated) {
             LOGGER.debug("An error occurs when trying to create manifest parent directory");
             throw new CollectException("An error occurs when trying to create manifest parent directory");
@@ -235,6 +229,7 @@ public class SipService {
         }
 
         try (InputStream inputStream = Files.newInputStream(manifestFile.toPath())) {
+            FileUtils.deleteDirectory(manifestFile.getParentFile());
             return saveManifestInWorkspace(collectModel, inputStream);
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage());

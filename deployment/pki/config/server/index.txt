@@ -125,3 +125,4 @@ V	250111161248Z		011F	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer-fs-1.service
 V	250111161250Z		0120	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.fulllocal.consul
 V	250111161252Z		0121	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.fulllocal.consul
 V	250111161253Z		0122	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect.service.fulllocal.consul
+V	99991231235959Z		0123	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect.service.fulllocal.consul

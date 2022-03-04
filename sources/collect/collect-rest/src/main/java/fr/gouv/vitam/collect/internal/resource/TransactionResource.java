@@ -142,7 +142,7 @@ public class TransactionResource extends ApplicationStatusResource {
                 LOGGER.error(ERROR_WHILE_TRYING_TO_SAVE_UNITS);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, ERROR_WHILE_TRYING_TO_SAVE_UNITS);
             }
-            return CollectRequestResponse.toResponseOK(savedUnitJsonNode);
+            return CollectRequestResponse.toResponseOK(unitObjectNode);
         } catch (CollectException | InvalidParseOperationException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
