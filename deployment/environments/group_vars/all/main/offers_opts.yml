@@ -49,7 +49,7 @@ vitam_strategy:
 #      rank: 0
 #    - name: offer-s3-1
 #      referent: false
-#      referent: 1
+#      rank: 1
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
@@ -177,6 +177,7 @@ vitam_offers:
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
 ################################################################################
+  # WARNING: Swift V1 is deprecated
   # example_swift_v1:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0

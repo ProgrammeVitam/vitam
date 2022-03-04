@@ -1,0 +1,26 @@
+# For CentOS
+# vitam_repositories:
+# - key: repo 1
+#   value: "file:///code"
+#   proxy: http://proxy
+# - key: repo 2
+#   value: "http://www.programmevitam.fr"
+#   proxy: _none_
+# - key: repo 3
+#   value: "ftp://centos.org"
+#   proxy:
+
+# For Debian
+# vitam_repositories:
+# - key: repo 1
+#   value: "file:///code"
+#   subtree: "./"
+#   trusted: "[trusted=yes]"
+# - key: repo 2
+#   value: "http://www.programmevitam.fr"
+#   subtree: "./"
+#   trusted: "[trusted=yes]"
+# - key: repo 3
+#   value: "ftp://centos.org"
+#   subtree: "binary"
+#   trusted: "[trusted=yes]"

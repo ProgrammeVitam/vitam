@@ -5,15 +5,6 @@ consul:
     check_interval: 10 # in seconds
     check_timeout: 5 # in seconds
     log_level: WARN # Available log_level are: TRACE, DEBUG, INFO, WARN or ERR
-    network: "ip_admin" # Which network to use for consul communications ? ip_admin or ip_service ?
-
-consul_remote_sites:
-    # wan contains the wan addresses of the consul server instances of the external vitam sites
-    # Exemple, if our local dc is dc1, we will need to set dc2 & dc3 wan conf:
-    # - dc2:
-    #   wan: ["10.10.10.10","1.1.1.1"]
-    # - dc3:
-    #   wan: ["10.10.10.11","1.1.1.1"]
 
 # Please uncomment and fill values if you want to connect VITAM to external SIEM
 # external_siem:
@@ -36,9 +27,6 @@ elasticsearch:
         dynamic_timeout: 30s
         # default index template
         index_templates:
-            default:
-                shards: 1
-                replica: 1
             packetbeat:
                 shards: 5
         log_appenders:
@@ -92,9 +80,6 @@ elasticsearch:
         dynamic_timeout: 30s
         # default index template
         index_templates:
-            default:
-                shards: 1
-                replica: 2
         log_appenders:
             root:
                 log_level: "info"
@@ -225,12 +210,6 @@ grafana:
 # Curator units: days
 curator:
     log:
-        metrics:
-            close: 7
-            delete: 30
-        logstash:
-            close: 7
-            delete: 30
         metricbeat:
             close: 5
             delete: 10

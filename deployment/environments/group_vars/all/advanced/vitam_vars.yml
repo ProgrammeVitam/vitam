@@ -1,9 +1,6 @@
 ---
 ### global ###
 
-# Disable epel or Debian backports repositories install
-disable_internet_repositories_install: false
-
 # TODO MAYBE : permettre la surcharge avec une syntax du genre vitamopts.folder_root | default(vitam_default.folder_root) dans les templates ?
 droid_filename: "DROID_SignatureFile_V97.xml"
 droid_container_filename: "container-signature-20201001.xml"
@@ -55,17 +52,6 @@ vitam_defaults:
     # consul_business_check: 10 # value in seconds
     # consul_admin_check: 10 # value in seconds
 
-
-    # access_retention_days: 30 # Number of days for file retention
-    # access_total_size_cap: "10GB" # total acceptable size
-    # logback_max_file_size: "10MB"
-    # logback_total_size_cap:
-    #   file:
-    #     history_days: 30
-    #     totalsize: "5GB"
-    #   security:
-    #     history_days: 30
-    #     totalsize: "5GB"
 
 ### Logs configuration for reconstruction services (INFO or DEBUG for active logs).
 ### Logs will be present only on secondary site.
@@ -170,11 +156,6 @@ vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administ
 
 # containers list
 containers_list: ['units', 'objects', 'objectgroups', 'logbooks', 'reports', 'manifests', 'profiles', 'storagelog', 'storageaccesslog', 'storagetraceability', 'rules', 'dip', 'agencies', 'backup', 'backupoperations', 'unitgraph', 'objectgroupgraph', 'distributionreports', 'accessionregistersdetail', 'accessionregisterssymbolic', 'tmp', 'archivaltransferreply']
-
-# Vitams griffins required to launch preservation scenario
-# Example:
-# vitam_griffins: ["vitam-imagemagick-griffin", "vitam-libreoffice-griffin", "vitam-jhove-griffin", "vitam-odfvalidator-griffin", "vitam-siegfried-griffin", "vitam-tesseract-griffin", "vitam-verapdf-griffin", "vitam-ffmpeg-griffin"]
-vitam_griffins: []
 
 ### Composants Vitam ###
 vitam:
@@ -525,24 +506,6 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         context_path: "/workspace-collect"
-
-# for functional-administration, manage master/slave tenant configuration
-# http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#passage-des-identifiants-des-referentiels-en-mode-esclave
-vitam_tenants_usage_external:
-  - name: 0
-    identifiers:
-        - INGEST_CONTRACT
-        - ACCESS_CONTRACT
-        - MANAGEMENT_CONTRACT
-        - ARCHIVE_UNIT_PROFILE
-  - name: 1
-    identifiers:
-      - INGEST_CONTRACT
-      - ACCESS_CONTRACT
-      - MANAGEMENT_CONTRACT
-      - PROFILE
-      - SECURITY_PROFILE
-      - CONTEXT
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:

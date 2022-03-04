@@ -7,7 +7,7 @@ REPERTOIRE_CA="${REPERTOIRE_ROOT}/pki/ca"
 REPERTOIRE_CONFIG="${REPERTOIRE_ROOT}/pki/config"
 TEMP_CERTS="${REPERTOIRE_ROOT}/pki/tempcerts"
 PARAM_KEY_CHIFFREMENT="rsa:4096"
-VAULT_KEYSTORES="${REPERTOIRE_ROOT}/environments/group_vars/all/vault-keystores.yml"
+VAULT_KEYSTORES="${REPERTOIRE_ROOT}/environments/group_vars/all/main/vault-keystores.yml"
 
 if [ -f "${REPERTOIRE_ROOT}/vault_pass.txt" ]; then
     ANSIBLE_VAULT_PASSWD="--vault-password-file ${REPERTOIRE_ROOT}/vault_pass.txt"
