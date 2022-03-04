@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
@@ -58,17 +59,17 @@ public class CollectServiceTest {
     @Test
     public void createCollectTest() throws CollectException {
         // Given
-        CollectModel collectModel = new CollectModel("XXXX00000111111", "archival", null, null, null, null, null);
+        TransactionDto transactionDto = new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
 
         // When
-        collectService.createCollect(collectModel);
+        collectService.createCollect(transactionDto);
 
         // Then
         ArgumentCaptor<CollectModel> collectModelCaptor = ArgumentCaptor.forClass(CollectModel.class);
         then(collectRepository).should().createCollect(collectModelCaptor.capture());
         CollectModel collectModelAdded = collectModelCaptor.getValue();
         Assertions.assertThat(collectModelAdded.getId()).isEqualTo(
-                collectModel.getId());
+            transactionDto.getId());
 
     }
 
@@ -76,8 +77,8 @@ public class CollectServiceTest {
     public void testFindCollect() throws CollectException {
         final String idCollect = "XXXX000002222222";
         // Given
-        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null);
-        doReturn(Optional.of(collectModel)).when(collectRepository).findCollect(any());
+        TransactionDto transactionDto = new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
+        doReturn(Optional.of(transactionDto)).when(collectRepository).findCollect(any());
 
         // When
         collectService.findCollect(idCollect);
@@ -89,26 +90,28 @@ public class CollectServiceTest {
 
     @Test
     public void testCheckStatus_OK() throws CollectException {
-        final String idCollect = "XXXX000002222222";
         // Given
-        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, TransactionStatus.OPEN);
+        final String idCollect = "XXXX000002222222";
+        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+
         // When
         boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
 
+        // Then
         Assertions.assertThat(checkStatus).isTrue();
-
     }
 
     @Test
     public void testCheckStatus_KO() throws InvalidParseOperationException {
-        final String idCollect = "XXXX000002222222";
         // Given
-        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, TransactionStatus.OPEN);
+        final String idCollect = "XXXX000002222222";
+        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+
         // When
         boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
 
+        // Then
         Assertions.assertThat(checkStatus).isFalse();
-
     }
 
 }

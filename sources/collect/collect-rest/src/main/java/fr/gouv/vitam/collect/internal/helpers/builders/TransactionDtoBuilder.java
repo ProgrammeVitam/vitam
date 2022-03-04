@@ -30,14 +30,27 @@ import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 
 public class TransactionDtoBuilder {
     private String id;
+    private String archivalAgreement;
+    private String messageIdentifier;
     private String archivalAgencyIdentifier;
     private String transferingAgencyIdentifier;
     private String originatingAgencyIdentifier;
+    private String submissionAgencyIdentifier;
     private String archivalProfile;
     private String comment;
 
-    public TransactionDtoBuilder setId(String id) {
+    public TransactionDtoBuilder withId(String id) {
         this.id = id;
+        return this;
+    }
+
+    public TransactionDtoBuilder withArchivalAgreement(String archivalAgreement) {
+        this.archivalAgreement = archivalAgreement;
+        return this;
+    }
+
+    public TransactionDtoBuilder withMessageIdentifier(String messageIdentifier) {
+        this.messageIdentifier = messageIdentifier;
         return this;
     }
 
@@ -56,6 +69,11 @@ public class TransactionDtoBuilder {
         return this;
     }
 
+    public TransactionDtoBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
+        return this;
+    }
+
     public TransactionDtoBuilder withArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
         return this;
@@ -67,6 +85,8 @@ public class TransactionDtoBuilder {
     }
 
     public TransactionDto build() {
-        return new TransactionDto(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier, archivalProfile, comment);
+        return new TransactionDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
+            transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
+            comment);
     }
 }

@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.builders.CollectModelBuilder;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
@@ -55,7 +57,19 @@ public class CollectService {
      * @param collectModel collection model to create
      * @throws CollectException exception thrown in case of error
      */
-    public void createCollect(CollectModel collectModel) throws CollectException {
+    public void createCollect(TransactionDto transactionDto) throws CollectException {
+        CollectModel collectModel = new CollectModelBuilder()
+            .withId(transactionDto.getId())
+            .withArchivalAgreement(transactionDto.getArchivalAgreement())
+            .withMessageIdentifier(transactionDto.getMessageIdentifier())
+            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
+            .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(transactionDto.getArchivalProfile())
+            .withComment(transactionDto.getComment())
+            .withStatus(TransactionStatus.OPEN)
+            .build();
         collectRepository.createCollect(collectModel);
     }
 

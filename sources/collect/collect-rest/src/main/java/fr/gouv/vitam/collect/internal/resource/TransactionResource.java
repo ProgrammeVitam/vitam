@@ -34,7 +34,6 @@ import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
-import fr.gouv.vitam.collect.internal.helpers.builders.CollectModelBuilder;
 import fr.gouv.vitam.collect.internal.model.CollectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.service.CollectService;
@@ -106,16 +105,7 @@ public class TransactionResource extends ApplicationStatusResource {
 
             String requestId = collectService.createRequestId();
             transactionDto.setId(requestId);
-            CollectModel collectModel = new CollectModelBuilder()
-                .withId(transactionDto.getId())
-                .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
-                .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
-                .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
-                .withArchivalProfile(transactionDto.getArchivalProfile())
-                .withComment(transactionDto.getComment())
-                .withStatus(TransactionStatus.OPEN)
-                .build();
-            collectService.createCollect(collectModel);
+            collectService.createCollect(transactionDto);
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

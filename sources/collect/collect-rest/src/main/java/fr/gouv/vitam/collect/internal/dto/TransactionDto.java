@@ -71,12 +71,16 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
-    public TransactionDto(String id, String archivalAgencyIdentifier, String transferingAgencyIdentifier,
-        String originatingAgencyIdentifier, String archivalProfile, String comment) {
+    public TransactionDto(String id, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
+        String archivalProfile, String comment) {
         this.id = id;
+        this.archivalAgreement = archivalAgreement;
+        this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
         this.comment = comment;
     }

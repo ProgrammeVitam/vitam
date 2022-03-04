@@ -31,15 +31,28 @@ import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 
 public class CollectModelBuilder {
     private String id;
+    private String archivalAgreement;
+    private String messageIdentifier;
     private String archivalAgencyIdentifier;
     private String transferingAgencyIdentifier;
     private String originatingAgencyIdentifier;
+    private String submissionAgencyIdentifier;
     private String archivalProfile;
     private String comment;
     private TransactionStatus status;
 
     public CollectModelBuilder withId(String id) {
         this.id = id;
+        return this;
+    }
+
+    public CollectModelBuilder withArchivalAgreement(String archivalAgreement) {
+        this.archivalAgreement = archivalAgreement;
+        return this;
+    }
+
+    public CollectModelBuilder withMessageIdentifier(String messageIdentifier) {
+        this.messageIdentifier = messageIdentifier;
         return this;
     }
 
@@ -55,6 +68,11 @@ public class CollectModelBuilder {
 
     public CollectModelBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        return this;
+    }
+
+    public CollectModelBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         return this;
     }
 
@@ -74,8 +92,8 @@ public class CollectModelBuilder {
     }
 
     public CollectModel build() {
-        // TODO : Vérifier les champs obligatoires
-        return new CollectModel(id, archivalAgencyIdentifier, transferingAgencyIdentifier, originatingAgencyIdentifier,
-            archivalProfile, comment, status);
+        return new CollectModel(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
+            transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
+            comment, status);
     }
 }
