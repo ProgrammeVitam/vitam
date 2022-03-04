@@ -68,6 +68,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -77,10 +78,10 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +89,7 @@ import java.util.stream.Collectors;
  */
 public class FakeDriverImpl extends AbstractDriver {
 
-    private final Map<String, FakeConnectionImpl> fakeConnection = new HashMap<>();
+    private final Map<String, FakeConnectionImpl> fakeConnection = new ConcurrentHashMap<>();
 
     @Override
     protected VitamClientFactoryInterface<FakeConnectionImpl> addInternalOfferAsFactory(final StorageOffer offer,
@@ -108,10 +109,7 @@ public class FakeDriverImpl extends AbstractDriver {
 
             @Override
             public FakeConnectionImpl getClient() {
-                if (!fakeConnection.containsKey(offer.getId())) {
-                    fakeConnection.put(offer.getId(), new FakeConnectionImpl(offer.getId()));
-                }
-                return fakeConnection.get(offer.getId());
+                return fakeConnection.computeIfAbsent(offer.getId(), FakeConnectionImpl::new);
             }
 
             @Override
@@ -174,14 +172,12 @@ public class FakeDriverImpl extends AbstractDriver {
     }
 
     @Override
+    @Nonnull
     public Connection connect(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
             throw new StorageDriverException(getName(), "Intentionaly thrown", false);
         }
-        if (!fakeConnection.containsKey(offerId)) {
-            fakeConnection.put(offerId, new FakeConnectionImpl(offerId));
-        }
-        return fakeConnection.get(offerId);
+        return fakeConnection.computeIfAbsent(offerId, FakeConnectionImpl::new);
     }
 
     @Override

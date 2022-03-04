@@ -32,6 +32,8 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
+import javax.annotation.Nonnull;
+
 /**
  * Driver interface that all storage offer drivers MUST implement to be
  * discovered by the Vitam driver manager. </br>
@@ -54,6 +56,7 @@ public interface Driver extends VitamAutoCloseable {
      * @throws StorageDriverException
      *             if any problem occurs during connection
      */
+    @Nonnull
     Connection connect(String offerId) throws StorageDriverException;
 
     /**
