@@ -50,6 +50,8 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
+import javax.annotation.Nonnull;
+
 /**
  * Workspace Driver Implementation
  */
@@ -95,13 +97,12 @@ public class DriverImpl extends AbstractDriver {
 
 
     @Override
-    protected VitamClientFactoryInterface addInternalOfferAsFactory(StorageOffer offer, Properties parameters) {
-        DriverClientFactory factory =
-            new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
-        return factory;
+    protected VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters) {
+        return new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
     }
 
     @Override
+    @Nonnull
     public Connection connect(String offerId) throws StorageDriverException {
         ParametersChecker.checkParameter("The parameter offer is required", offerId);
 
@@ -118,7 +119,6 @@ public class DriverImpl extends AbstractDriver {
     }
 
     private static ClientConfiguration changeConfigurationFile(StorageOffer offer) {
-        ClientConfiguration configuration = null;
         ParametersChecker.checkParameter("StorageOffer cannot be null", offer);
         try {
             final URI url = new URI(offer.getBaseUrl());
@@ -128,15 +128,14 @@ public class DriverImpl extends AbstractDriver {
                 List<SSLKey> truststoreList = new ArrayList<>();
                 keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
-                configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
+                return new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
                     new SSLConfiguration(keystoreList, truststoreList));
             } else {
-                configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
+                return new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
         } catch (final URISyntaxException e) {
             throw new IllegalStateException("Cannot parse the URI: ", e);
         }
-        return configuration;
     }
 
     @Override

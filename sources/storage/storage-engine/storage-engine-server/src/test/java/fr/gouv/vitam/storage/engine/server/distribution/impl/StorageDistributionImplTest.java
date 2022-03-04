@@ -138,7 +138,7 @@ public class StorageDistributionImplTest {
     public static final String DUPLICATED_OR_MISSING_RANK =
         "A duplicated or missing rank have been detected in offers configuration.";
 
-    private static StorageDistribution simpleDistribution;
+    private StorageDistribution simpleDistribution;
     private StorageDistribution customDistribution;
 
     @Mock
