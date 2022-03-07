@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.dip;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,11 +45,13 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.manifest.ExportException;
+import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -66,6 +69,11 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -102,6 +110,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -113,6 +122,8 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
+import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -132,7 +143,12 @@ public class CreateManifest extends ActionHandler {
     private static final String JSONL_EXTENSION = ".jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+        LogbookLifeCyclesClientFactory.getInstance();
+
     private final ObjectNode projection;
+    private final ObjectMapper objectMapper;
+
 
     /**
      * constructor use for plugin instantiation
@@ -153,6 +169,7 @@ public class CreateManifest extends ActionHandler {
 
         this.projection = JsonHandler.createObjectNode();
         this.projection.set(FIELDS.exactToken(), fields);
+        this.objectMapper = buildObjectMapper();
     }
 
     @Override
@@ -166,7 +183,9 @@ public class CreateManifest extends ActionHandler {
             FileOutputStream fileOutputStream = new FileOutputStream(report);
             FileInputStream reportFile = new FileInputStream(report);
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
-            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
+            LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
+            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             ExportRequest exportRequest = JsonHandler
                 .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
@@ -252,11 +271,35 @@ public class CreateManifest extends ActionHandler {
 
 
                 for (JsonNode object : objects) {
-                    List<String> linkedUnits = unitsForObjectGroupId.get(
-                        object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
+                    String id = object.get(ID.exactToken()).textValue();
+                    List<String> linkedUnits = unitsForObjectGroupId.get(id);
+                    JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
+
+                    AccessContractModel accessContract = getAccessContractModel(adminManagementClient);
+
+                    ObjectGroupResponse objectGroup = objectMapper.treeToValue(object, ObjectGroupResponse.class);
+
+                    List<QualifiersModel> qualifiersToRemove;
+                    if (Boolean.FALSE.equals(accessContract.isEveryDataObjectVersion())) {
+                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                            .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                            .collect(Collectors.toList());
+                        objectGroup.getQualifiers().removeAll(qualifiersToRemove);
+                    }
+
+                    if (!dataObjectVersions.isEmpty()) {
+                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                            .filter(qualifier -> !dataObjectVersions.contains(qualifier.getQualifier()))
+                            .collect(Collectors.toList());
+                        objectGroup.getQualifiers().removeAll(qualifiersToRemove);
+                    }
+
+                    Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
+                        .getResults()
+                        .stream()
+                        .map(LogbookLifeCycleObjectGroup::new);
                     idBinaryWithFileName.putAll(manifestBuilder
-                        .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), dataObjectVersions,
-                            exportWithLogBookLFC));
+                        .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), logbookLifeCycleObjectGroupStream));
                     exportSize += computeSize(object, dataObjectVersions);
                 }
             }
@@ -278,8 +321,22 @@ public class CreateManifest extends ActionHandler {
             StreamSupport.stream(scrollRequest, false)
                 .forEach(result -> {
                     try {
-                        ArchiveUnitModel unit =
-                            manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
+                        ArchiveUnitModel unit;
+                        ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
+                        if (exportWithLogBookLFC) {
+                            JsonNode response = logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
+                                                                                                select.getFinalSelect());
+                            if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
+                                JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
+                                LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
+
+                                unit = manifestBuilder.writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
+                            } else {
+                                unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
+                            }
+                        } else {
+                            unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
+                        }
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                             List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
                             TransferStatus status = opts.isEmpty()?
@@ -301,9 +358,7 @@ public class CreateManifest extends ActionHandler {
                             buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
                             buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                         }
-                    } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException |
-                        InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException |
-                        MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+                    } catch (JAXBException | DatatypeConfigurationException | IOException | InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | LogbookClientException e) {
                         throw new IllegalArgumentException(e);
                     }
                 });
@@ -368,12 +423,33 @@ public class CreateManifest extends ActionHandler {
             infoNode.put(REASON_FIELD, e.getMessage());
             String evDetData = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evDetData);
-        } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException
-            | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException e) {
+        } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException | XMLStreamException | JAXBException | LogbookClientException | MetaDataDocumentSizeException | InvalidParseOperationException | InternalServerException e) {
             throw new ProcessingException(e);
         }
-
         return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
+    }
+
+    private AccessContractModel getAccessContractModel(AdminManagementClient adminManagementClient)
+        throws ProcessingException {
+        AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
+
+        if (accessContractModel == null) {
+            Select accessContractSelect = new Select();
+
+            try {
+                Query query =
+                    QueryHelper.eq(AccessContract.IDENTIFIER,
+                        VitamThreadUtils.getVitamSession().getContractId());
+                accessContractSelect.setQuery(query);
+                accessContractModel =
+                    ((RequestResponseOK<AccessContractModel>) adminManagementClient.findAccessContracts(
+                        accessContractSelect.getFinalSelect()))
+                        .getResults().get(0);
+            } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+                throw new ProcessingException(e.getMessage(), e.getCause());
+            }
+        }
+        return accessContractModel;
     }
 
     private void checkSize(ItemStatus itemStatus, long exportSize, long threshold, int tenant) throws ExportException {

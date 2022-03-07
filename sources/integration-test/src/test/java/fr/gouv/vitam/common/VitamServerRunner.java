@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
@@ -36,6 +35,8 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
+import fr.gouv.vitam.collect.external.client.CollectClientFactory;
+import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -44,8 +45,6 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,10 +53,7 @@ import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
@@ -74,6 +70,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetadataType;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
@@ -92,6 +89,7 @@ import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceType;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
@@ -106,8 +104,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
@@ -123,12 +119,17 @@ public class VitamServerRunner extends ExternalResource {
     public static final long NB_TRY = 18000;
 
 
+    public static final int PORT_SERVICE_COLLECT = 8422;
+    public static final int PORT_SERVICE_COLLECT_ADMIN = 28022;
     public static final int PORT_SERVICE_IDENTITY = 8005;
     public static final int PORT_SERVICE_IDENTITY_ADMIN = 28005;
     public static final int PORT_SERVICE_WORKSPACE = 8094;
+    public static final int PORT_SERVICE_WORKSPACE_COLLECT= 8091;
     public static final int PORT_SERVICE_WORKSPACE_ADMIN = 28094;
-    public static final int PORT_SERVICE_METADATA = 8098;
+    public static final int PORT_SERVICE_METADATA = 8020;
+    public static final int PORT_SERVICE_METADATA_COLLECT = 8029;
     public static final int PORT_SERVICE_METADATA_ADMIN = 28098;
+    public static final int PORT_SERVICE_METADATA_COLLECT_ADMIN = 28099;
     public static final int PORT_SERVICE_LOGBOOK = 8099;
     public static final int PORT_SERVICE_LOGBOOK_ADMIN = 28099;
     public static final int PORT_SERVICE_STORAGE = 8193;
@@ -149,6 +150,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_BATCH_REPORT = 8089;
 
 
+    public static final String WORKSPACE_COLLECT_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE_COLLECT;
     public static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     public static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
     public static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
@@ -158,8 +160,10 @@ public class VitamServerRunner extends ExternalResource {
     public static final String LOGBOOK_CONF = "common/logbook.conf";
     public static final String STORAGE_CONF = "common/storage-engine.conf";
     public static final String WORKSPACE_CONF = "common/workspace.conf";
+    public static final String WORKSPACE_COLLECT_CONF = "common/workspace-collect.conf";
     public static final String IDENTITY_CONF = "common/security-internal.conf";
     public static final String METADATA_CONF = "common/metadata.conf";
+    public static final String METADATA_COLLECT_CONF = "common/metadata-collect.conf";
     public static final String ADMIN_MANAGEMENT_CONF = "common/functional-administration.conf";
     public static final String ACCESS_INTERNAL_CONF = "common/access-internal.conf";
     public static final String ACCESS_EXTERNAL_CONF = "common/access-external.conf";
@@ -172,6 +176,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
+    public static final String COLLECT_CONF = "common/collect.conf";
+    public static final String COLLECT_CLIENT_CONF = "common/collect-client.conf";
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
 
@@ -189,8 +195,10 @@ public class VitamServerRunner extends ExternalResource {
 
     private static IdentityMain identityMain;
     private static MetadataMain metadataMain;
+    private static MetadataMain metadataCollectMain;
     private static ProcessManagementMain processManagementMain;
     private static WorkspaceMain workspaceMain;
+    private static WorkspaceMain workspaceCollectMain;
     private static LogbookMain logbookMain;
     private static DefaultOfferMain defaultOfferMain;
     private static StorageMain storageMain;
@@ -201,6 +209,7 @@ public class VitamServerRunner extends ExternalResource {
     private static AccessExternalMain accessExternalMain;
     private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
+    private static CollectMain collectMain;
 
     public final static TempFolderRule tempFolderRule = new TempFolderRule();
 
@@ -389,6 +398,14 @@ public class VitamServerRunner extends ExternalResource {
                 AdminExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
+            // ColelctMain
+            if (servers.contains(CollectMain.class)) {
+                startCollectServer();
+            } else {
+                CollectClientFactory.getInstance()
+                        .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+
             waitServerStart();
         } catch (IOException | VitamApplicationServerException e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
@@ -830,7 +847,7 @@ public class VitamServerRunner extends ExternalResource {
         writeYaml(workspaceConfigFile, workspaceConfiguration);
 
         LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL, WorkspaceType.VITAM);
         workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
@@ -883,6 +900,34 @@ public class VitamServerRunner extends ExternalResource {
             InternalSecurityClientFactory.changeMode(null);
         }
 
+    }
+
+
+    public void startCollectServer() throws IOException, VitamApplicationServerException {
+        startMetadataCollectServer();
+        startWorkspaceCollectServer();
+        if (null != collectMain) {
+            CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
+            return;
+        }
+        SystemPropertyUtil.set(CollectMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_COLLECT));
+      /*  File collectConfigurationFile = PropertiesUtils.findFile(COLLECT_CONF);
+        final CollectConfiguration collectConfiguration =
+                readYaml(collectConfigurationFile, CollectConfiguration.class);
+        collectConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
+        writeYaml(collectConfigurationFile, collectConfiguration);*/
+
+        LOGGER.warn("=== VitamServerRunner start  Collect");
+
+        CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
+        collectMain = new CollectMain(COLLECT_CONF);
+        collectMain.start();
+        CollectClientFactory.changeMode(COLLECT_CLIENT_CONF);
+        SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
+
+        //waitServerStart(CollectClientFactory.getInstance().getClient());
+        SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
     public void startMetadataServer()
@@ -1175,6 +1220,103 @@ public class VitamServerRunner extends ExternalResource {
 
     public static String getOfferPath() {
         return VitamConfiguration.getVitamDataFolder() + "/offer/";
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void startMetadataCollectServer()
+            throws IOException, VitamApplicationServerException {
+        if (null != metadataCollectMain) {
+            MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA_COLLECT));
+            return;
+        }
+
+        List<ElasticsearchNode> esNodes =
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
+        SystemPropertyUtil
+                .set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA_COLLECT));
+        SystemPropertyUtil
+                .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                        Integer.toString(PORT_SERVICE_METADATA_COLLECT_ADMIN));
+        final File metadataConfig = PropertiesUtils.findFile(METADATA_COLLECT_CONF);
+        final MetaDataConfiguration realMetadataConfig =
+                readYaml(metadataConfig, MetaDataConfiguration.class);
+        realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
+        realMetadataConfig.setDbName(dbname);
+        realMetadataConfig.setElasticsearchNodes(esNodes);
+        realMetadataConfig.setClusterName(cluster);
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
+
+        if (this.customMetadataIndexationConfiguration != null) {
+            realMetadataConfig.setIndexationConfiguration(this.customMetadataIndexationConfiguration);
+        } else {
+            realMetadataConfig.setIndexationConfiguration(new MetadataIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                            new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                                    .setUnit(new CollectionConfiguration(1, 0))
+                                    .setObjectgroup(new CollectionConfiguration(1, 0))));
+        }
+        writeYaml(metadataConfig, realMetadataConfig);
+
+        LOGGER.warn("=== VitamServerRunner start  MetadataMain Collect");
+        MetaDataClientFactory.getInstance(MetadataType.COLLECT).changeServerPort(PORT_SERVICE_METADATA_COLLECT);
+        metadataCollectMain = new MetadataMain(metadataConfig.getAbsolutePath());
+        metadataCollectMain.start();
+        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
+        waitServerStart(MetaDataClientFactory.getInstance(MetadataType.COLLECT).getClient());
+    }
+
+    public void stopMetadataCollectServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == metadataCollectMain) {
+            if (mockWhenStop) {
+                MetaDataClientFactory.changeMode(null);
+            }
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner stop  MetadataMain");
+        metadataCollectMain.stop();
+        metadataCollectMain = null;
+        MetaDataClientFactory.getInstance().changeServerPort(PORT_SERVICE_METADATA_COLLECT);
+        waitServerStop(MetaDataClientFactory.getInstance().getClient());
+        if (mockWhenStop) {
+            MetaDataClientFactory.changeMode(null);
+        }
+    }
+
+    public void startWorkspaceCollectServer() throws IOException, VitamApplicationServerException {
+        if (null != workspaceCollectMain) {
+            WorkspaceClientFactory.changeMode(WORKSPACE_COLLECT_URL);
+            return;
+        }
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_WORKSPACE_COLLECT));
+
+        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_COLLECT_CONF);
+
+        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
+                readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
+
+        writeYaml(workspaceConfigFile, workspaceConfiguration);
+
+        LOGGER.warn("=== VitamServerRunner start  WorkspaceMain Collect");
+        WorkspaceClientFactory.changeMode(WORKSPACE_COLLECT_URL, WorkspaceType.COLLECT);
+        workspaceCollectMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
+        workspaceCollectMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
+    }
+
+
+    private void stopWorkspaceCollectServer() throws VitamApplicationServerException {
+        if (null == workspaceCollectMain) {
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner stop  WorkspaceMain Collect");
+        workspaceCollectMain.stop();
+        workspaceCollectMain = null;
     }
 
 }

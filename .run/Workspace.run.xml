@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Workspace" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <log_file alias="Logs" path="$vitamLocalShareFolder$/log/workspace/workspace.*.log" />
+    <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/workspace/accesslog-workspace.*.log" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.workspace.rest.WorkspaceMain" />
+    <module name="workspace-rest" />
+    <option name="PROGRAM_PARAMETERS" value="$vitamLocalShareFolder$/conf/workspace/workspace.conf" />
+    <option name="VM_PARAMETERS" value="-Dlogback.configurationFile=$vitamLocalShareFolder$/conf/workspace/logback.xml -Dvitam.tmp.folder=$vitamLocalShareFolder$/tmp -Dvitam.config.folder=$vitamLocalShareFolder$/conf -Dvitam.data.folder=$vitamLocalShareFolder$/data -Dvitam.log.folder=$vitamLocalShareFolder$/log" />
+    <option name="WORKING_DIRECTORY" value="$vitamLocalShareFolder$/conf/workspace/" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

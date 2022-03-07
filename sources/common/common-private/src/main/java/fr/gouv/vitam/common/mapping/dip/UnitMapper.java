@@ -27,21 +27,13 @@
 package fr.gouv.vitam.common.mapping.dip;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.KeywordTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.TextTypeDeSerializer;
+import fr.gouv.culture.archivesdefrance.seda.v2.*;
+import fr.gouv.vitam.common.mapping.deserializer.*;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
 /**
@@ -55,6 +47,7 @@ public interface UnitMapper {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         SimpleModule module = new SimpleModule();
 

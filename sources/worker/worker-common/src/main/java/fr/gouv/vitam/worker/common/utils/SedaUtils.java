@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.utils.SedaUtilsVersion;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -88,7 +89,7 @@ public class SedaUtils {
     public static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 
     public static final String SEDA_VITAM_XSD_FILE = "seda-vitam/seda-vitam-2.1-main.xsd";
-    public static final String SEDA_XSD_VERSION = "seda/seda-2.1-main.xsd";
+    public static final String SEDA_XSD_VERSION = SedaUtilsVersion.SEDA_XSD_VERSION_V2_1;
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
 

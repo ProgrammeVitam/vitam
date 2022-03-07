@@ -111,6 +111,13 @@
             <artifactId>json-unit</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -154,7 +154,13 @@ public enum SecurityProfilePermissions {
     TRANSFERS_REPLY("transfers:reply"),
     STORAGEACCESSLOG_READ_BINARY("storageaccesslog:read:binary"),
     AUDIT_DATA_CONSISTENCY("audit:data:consistency"),
-    ACCESSIONREGISTER_DETAILS_READ("accessionregisterdetails:read");
+    ACCESSIONREGISTER_DETAILS_READ("accessionregisterdetails:read"),
+    TRANSACTION_CREATE("transaction:create"),
+    TRANSACTION_CLOSE("transaction:close"),
+    TRANSACTION_SEND("transaction:send"),
+    TRANSACTION_UNIT_CREATE("transaction:unit:create"),
+    TRANSACTION_OBJECT_UPSERT("transaction:object:upsert"),
+    TRANSACTION_BINARY_UPSERT("transaction:binary:upsert");
 
 
     private final String permission;

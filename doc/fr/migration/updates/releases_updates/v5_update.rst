@@ -89,3 +89,13 @@ Ci-dessous un exemple de déclaration de stratégie de stockage et ses offres, d
                 provider: filesystem
             offer-3:
                 provider: filesystem
+
+Ajout d'un nouveau module VITAM : Module de collecte
+----------------------------------------------------
+
+Ce module a pour but de faciliter l'intégration d'archives dans Vitam via une API constructive de SIP.
+
+Le module de `collect` nécessite la configuration et l'ajout d'une
+- autre instance de metadata appelée `metadata-collect`
+- autre instance de workspace appelée `workspace-collect`
+

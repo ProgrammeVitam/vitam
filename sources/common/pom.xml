@@ -24,6 +24,7 @@
         <module>common-security</module>
         <module>fake-storage-drivers</module>
         <module>common-public-client</module>
+        <module>common-manifest</module>
     </modules>
 
     <build>

@@ -24,6 +24,11 @@ echo "Begin"
 curl -d '{ "contextId" : "CT-000001" , "certificate" : "'$(keytool -keystore ../conf/ihm-recette/keystore_ihm-recette.p12 -storetype pkcs12 -storepass azerty5 -exportcert -alias ihm-recette | base64 -w 0)'"}' -H "Content-Type: application/json" -X POST http://security-internal.service.consul:28005/v1/api/identity
 echo "End"
 
+echo "Import collect certificate"
+echo "Begin"
+curl -d '{ "contextId" : "CT-000001" , "certificate" : "'$(keytool -keystore ../conf/collect/keystore_collect.p12 -storetype pkcs12 -storepass azerty4 -exportcert -alias collect | base64 -w 0)'"}' -H "Content-Type: application/json" -X POST http://security-internal.service.consul:28005/v1/api/identity
+echo "End"
+
 echo "Import personal certificate"
 echo "Begin"
 curl -XPOST -H "Content-type: application/octet-stream" --data-binary @../../deployment/environments/certs/client-vitam-users/clients/userOK.crt 'http://security-internal.service.consul:28005/v1/api/personalCertificate'

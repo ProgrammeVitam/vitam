@@ -1,0 +1,64 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global types for Collect
+
+uses:
+    StandardTypes: StandardTypes.raml
+    DslTypes: DslTypes.raml
+
+types:
+  TransactionRequest:
+    displayName: Transaction Request Information
+    description: Description of one Transaction Request
+    type: object
+    properties:
+      id:
+        type: string
+      ArchivalAgencyIdentifier:
+        type: string
+      TransferingAgencyIdentifier:
+        type: string
+      OriginatingAgencyIdentifier:
+        type: string
+      ArchiveProfile:
+        type: string
+      Comment:
+        type: string
+
+  TransactionResponse:
+    displayName: Transaction Response Information
+    description: Description of one Transaction Response
+    type: object
+    properties:
+      httpCode:
+        description: Short code as in RFC 7231 (Http Status Codes).
+        type: integer
+      $hits:
+        properties:
+          total:
+            description: Total estimated possible answears
+            type: integer
+          offset:
+            description: Offset on possible answears
+            type: integer
+          limit:
+            description: Limit specified in the request (or implicit) from Offset
+            type: integer
+          size:
+            description: Number of currently returned answears
+            type: integer
+          time_out?:
+            description: True means the request was too long and so only partial result could be retrieved
+            type: boolean
+      $context:
+        required: true
+        description: Contains Request related to this to reply
+        type: object
+
+      $results:
+        required: true
+        description: Contains list of items
+        type: TransactionRequest[]
+
+    example: !include ../../interne/libraries/examples/transactionInitObjectResponse.json

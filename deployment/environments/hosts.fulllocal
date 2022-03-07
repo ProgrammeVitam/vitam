@@ -73,6 +73,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 localhost
@@ -105,6 +108,15 @@ localhost
 localhost
 
 [hosts_worker]
+localhost
+
+[hosts_collect]
+localhost
+
+[hosts_metadata_collect]
+localhost
+
+[hosts_workspace_collect]
 localhost
 
 

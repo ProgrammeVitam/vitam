@@ -88,7 +88,7 @@ public class WorkspaceResourceTest {
 
     private static WorkspaceMain workspaceMain;
 
-    private static final String RESOURCE_URI = "/workspace/v1";
+    private static final String RESOURCE_URI = "/v1";
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";

@@ -62,7 +62,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
         RequestResponseOK r = new RequestResponseOK<>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
-        r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
+        r.addHeader(X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
         return r;
     }

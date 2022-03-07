@@ -243,6 +243,7 @@ generateHostCertAndStorePassphrase          access-external          hosts_acces
 generateHostCertAndStorePassphrase          offer                    hosts_storage_offer_default
 generateHostCertAndStorePassphrase          ihm-recette              hosts_ihm_recette
 generateHostCertAndStorePassphrase          ihm-demo                 hosts_ihm_demo
+generateHostCertAndStorePassphrase          collect                  hosts_collect
 
 # Generate timestamp certificates
 pki_logger "Génération des certificats timestamping"
@@ -258,6 +259,7 @@ generateClientCertAndStorePassphrase        gatling                  client-exte
 generateClientCertAndStorePassphrase        vitam-admin-int          client-external
 generateClientCertAndStorePassphrase        ihm-recette              client-external
 generateClientCertAndStorePassphrase        reverse                  client-external
+generateClientCertAndStorePassphrase        collect                  client-external
 
 # Generate storage certificates
 pki_logger "Génération des certificats storage"

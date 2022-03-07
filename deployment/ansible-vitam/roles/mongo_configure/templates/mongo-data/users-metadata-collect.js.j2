@@ -1,0 +1,55 @@
+
+// Switch to metadataCollect database
+db = db.getSiblingDB('metadataCollect')
+
+// Create metadataCollect user
+
+if (! db.getUser("{{ mongodb[mongo_cluster_name].metadataCollect.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb[mongo_cluster_name].metadataCollect.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].metadataCollect.password }}",
+            roles: [
+                { role: "readWrite", db: "metadataCollect" }
+            ]
+        }
+    )
+}
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name].metadataCollect.user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name].metadataCollect.password }}",
+            roles: [
+                { role: "readWrite", db: "metadataCollect" }
+            ]
+        }
+    )
+}
+
+// Create metadataCollect admin user
+
+if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb[mongo_cluster_name].admin.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
+            roles: [
+                { role: "readWrite", db: "metadataCollect" },
+                { role: "dbAdmin", db: "metadataCollect" }
+            ]
+        }
+    )
+}
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name].admin.user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
+            roles: [
+                { role: "readWrite", db: "metadataCollect" },
+                { role: "dbAdmin", db: "metadataCollect" }
+            ]
+        }
+    )
+}

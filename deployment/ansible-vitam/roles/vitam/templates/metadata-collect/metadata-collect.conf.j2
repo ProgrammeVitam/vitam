@@ -1,0 +1,135 @@
+workspaceUrl: {{vitam.workspace_collect | client_url}}
+urlProcessing: {{vitam.processing | client_url}}
+contextPath: {{ vitam_struct.context_path }}
+collectModule: true
+
+# Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+archiveUnitProfileCacheMaxEntries: {{ vitam.metadata_collect.archiveUnitProfileCacheMaxEntries }}
+archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata_collect.archiveUnitProfileCacheTimeoutInSeconds }}
+
+# Schema validator cache settings (max entries in cache & retention timeout in seconds)
+schemaValidatorCacheMaxEntries: {{ vitam.metadata_collect.schemaValidatorCacheMaxEntries }}
+schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata_collect.schemaValidatorCacheTimeoutInSeconds }}
+
+# DIP purge service (in minutes)
+dipTimeToLiveInMinutes: {{ vitam.metadata_collect.dipTimeToLiveInMinutes }}
+criticalDipTimeToLiveInMinutes: {{ vitam.metadata_collect.criticalDipTimeToLiveInMinutes }}
+
+# TRANSFER purge service (in minutes)
+transfersSIPTimeToLiveInMinutes: {{ vitam.metadata_collect.transfersSIPTimeToLiveInMinutes }}
+
+# Configuration MongoDB
+mongoDbNodes:
+{% for server in groups['hosts_mongos_data'] %}
+- dbHost: {{ hostvars[server]['ip_service'] }}
+  dbPort: {{ mongodb.mongos_port }}
+{% endfor %}
+dbName: metadataCollect
+dbAuthentication: {{ mongodb.mongo_authentication }}
+dbUserName: {{ mongodb['mongo-data'].metadataCollect.user }}
+dbPassword: {{ mongodb['mongo-data'].metadataCollect.password }}
+
+jettyConfig: jetty-config.xml
+
+# ElasticSearch
+clusterName: {{ vitam_struct.cluster_name }}
+elasticsearchNodes:
+{% for server in groups['hosts_elasticsearch_data'] %}
+- hostName: {{ hostvars[server]['ip_service'] }}
+  httpPort: {{ elasticsearch.data.port_http }}
+{% endfor %}
+
+# ElasticSearch External Metadata Mapping
+elasticsearchExternalMetadataMappings:
+- collection: Unit
+  mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/unit-es-mapping.json
+- collection: ObjectGroup
+  mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/og-es-mapping.json
+
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+
+  default_config:
+    unit:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_replicas }}
+    objectgroup:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_replicas }}
+
+{% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
+  dedicated_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
+{% if (entry.unit is defined and (entry.unit.number_of_shards is defined or entry.unit.number_of_replicas is defined)) or
+      (entry.objectgroup is defined and (entry.objectgroup.number_of_shards is defined or entry.objectgroup.number_of_replicas is defined)) %}
+  - tenants: '{{ entry.tenants }}'
+{% if entry.unit is defined %}
+    unit:
+{% if entry.unit.number_of_shards is defined %}
+      number_of_shards: {{ entry.unit.number_of_shards }}
+{% endif %}
+{% if entry.unit.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.unit.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% if entry.objectgroup is defined %}
+    objectgroup:
+{% if entry.objectgroup.number_of_shards is defined %}
+      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+{% endif %}
+{% if entry.objectgroup.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
+  grouped_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
+{% if (entry.unit is defined and (entry.unit.number_of_shards is defined or entry.unit.number_of_replicas is defined)) or
+      (entry.objectgroup is defined and (entry.objectgroup.number_of_shards is defined or entry.objectgroup.number_of_replicas is defined)) %}
+  - name: '{{ entry.name }}'
+    tenants: '{{ entry.tenants }}'
+{% if entry.unit is defined %}
+    unit:
+{% if entry.unit.number_of_shards is defined %}
+      number_of_shards: {{ entry.unit.number_of_shards }}
+{% endif %}
+{% if entry.unit.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.unit.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% if entry.objectgroup is defined %}
+    objectgroup:
+{% if entry.objectgroup.number_of_shards is defined %}
+      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+{% endif %}
+{% if entry.objectgroup.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+#Basic Authentication
+adminBasicAuth:
+- userName: {{ admin_basic_auth_user }}
+  password: {{ admin_basic_auth_password }}
+
+isDataConsistencyAuditRunnable: {{ vitam.metadata_collect.isDataConsistencyAuditRunnable }}
+dataConsistencyAuditOplogMaxSize: {{ vitam.metadata_collect.dataConsistencyAuditOplogMaxSize }}
+mongodShardsConf:
+ dbUserName: {{ mongodb['mongo-data']['localadmin']['user'] }}
+ dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}
+ mongoDbShards:
+{% for shard in groups['hosts_mongod_data'] %}
+   - shardName: shard{{ hostvars[shard]['mongo_shard_id']}}
+     mongoDbNodes:
+{% for server in groups['hosts_mongod_data'] %}
+      - dbHost: {{ hostvars[server]['ip_service'] }}
+        dbPort: {{ mongodb.mongod_port }}
+{% endfor %}
+{% endfor %}

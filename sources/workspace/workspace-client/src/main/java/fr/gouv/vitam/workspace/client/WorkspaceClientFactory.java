@@ -37,19 +37,32 @@ import java.net.URI;
  * WorkspaceClient factory for creating workspace client
  */
 public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> {
-    private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory();
-    private static final String RESOURCE_PATH = "/workspace/v1";
+    private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory("/workspace/v1");
+    private static final WorkspaceClientFactory WORKSPACE_COLLECT_CLIENT_FACTORY =
+        new WorkspaceClientFactory("/workspace-collect/v1");
 
-    private WorkspaceClientFactory() {
-        super(null, RESOURCE_PATH);
+    private WorkspaceClientFactory(String resourcePath) {
+        super(null, resourcePath);
     }
 
     /**
-     *
      * @return the instance
      */
-    public static final WorkspaceClientFactory getInstance() {
-        return WORKSPACE_CLIENT_FACTORY;
+    public static WorkspaceClientFactory getInstance() {
+        return getInstance(WorkspaceType.VITAM);
+    }
+
+    /**
+     * @param workspaceType type of workspace VITAM | COLLECT
+     * @return an instance of WorkspaceClientFactory based on the type of workspace
+     */
+    public static WorkspaceClientFactory getInstance(WorkspaceType workspaceType) {
+        if (workspaceType == WorkspaceType.VITAM) {
+            return WORKSPACE_CLIENT_FACTORY;
+        } else if (workspaceType == WorkspaceType.COLLECT) {
+            return WORKSPACE_COLLECT_CLIENT_FACTORY;
+        }
+        return null;
     }
 
     @Override
@@ -70,10 +83,31 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
     }
 
     /**
+     * change mode client by server url
      *
+     * @param serviceUrl as String
+     */
+    public static void changeMode(String serviceUrl, WorkspaceType workspaceType) {
+        ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);
+        final URI uri = URI.create(serviceUrl);
+        final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
+        changeMode(configuration, workspaceType);
+    }
+
+
+    /**
      * @param configuration null for MOCK
      */
     private static void changeMode(ClientConfiguration configuration) {
-        getInstance().initialisation(configuration, getInstance().getResourcePath());
+        for (WorkspaceType type : WorkspaceType.values()) {
+            getInstance(type).initialisation(configuration, getInstance(type).getResourcePath());
+        }
+    }
+
+    /**
+     * @param configuration null for MOCK
+     */
+    private static void changeMode(ClientConfiguration configuration, WorkspaceType workspaceType) {
+        getInstance(workspaceType).initialisation(configuration, getInstance(workspaceType).getResourcePath());
     }
 }

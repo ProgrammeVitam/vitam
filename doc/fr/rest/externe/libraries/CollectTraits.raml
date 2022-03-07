@@ -1,0 +1,27 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global headers for Collect
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  CollectTypes: CollectTypes.raml
+
+traits:
+
+  TransactionResponse:
+    description: Request that will return the response model for Collect listing
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.PaginationRequestHeader,StandardTraits.StandardHeader401,
+       StandardTraits.StandardHeader404, StandardTraits.StandardHeader412,  ]
+    body:
+      application/json:
+        description: Body containing a Json object
+        type: CollectTypes.TransactionRequest
+    responses:
+      200:
+        description: Returns the saved transaction
+        body:
+          application/json:
+            description: Saved transaction
+            type: CollectTypes.TransactionResponse

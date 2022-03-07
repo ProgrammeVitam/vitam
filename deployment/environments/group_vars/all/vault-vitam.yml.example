@@ -36,6 +36,12 @@ mongodb:
     securityInternal:
       user: security-internal
       password: change_it_m39XvRQWixyDX566
+    collect:
+      user: collect
+      password: change_it_m39XvRQWixyDX566
+    metadataCollect:
+      user: metadata-collect
+      password: change_it_37b97KVaDV8YbCwt
   offer-fs-1:
     passphrase: changeitmB5rnk1M5TY61PqZ
     admin:

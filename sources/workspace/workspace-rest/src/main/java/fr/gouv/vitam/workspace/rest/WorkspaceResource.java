@@ -86,7 +86,7 @@ import java.util.Map;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
-@Path("/workspace/v1")
+@Path("/v1")
 @Tag(name="Worker")
 public class WorkspaceResource extends ApplicationStatusResource {
 

@@ -84,28 +84,28 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         this.indexManager = indexManager;
     }
 
-    public void createIndexesAndAliases() {
+    public void createIndexesAndAliases(MetadataCollections objectCollection, MetadataCollections unitCollection) {
 
         try {
-
-            createIndexesAndAliasesForDedicatedTenants();
-            createIndexesAndAliasesForTenantGroups();
-
+            createIndexesAndAliasesForDedicatedTenants(objectCollection, unitCollection);
+            createIndexesAndAliasesForTenantGroups(unitCollection, objectCollection);
         } catch (final Exception e) {
             throw new RuntimeException("Could not create indexes and aliases", e);
         }
     }
 
-    private void createIndexesAndAliasesForDedicatedTenants() throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForDedicatedTenants(MetadataCollections objectCollection,
+        MetadataCollections unitCollection) throws MetaDataExecutionException {
         Collection<Integer> dedicatedTenants = this.indexManager.getDedicatedTenants();
 
         for (int tenantId : dedicatedTenants) {
-            createIndexAndAliasIfAliasNotExists(MetadataCollections.UNIT, tenantId);
-            createIndexAndAliasIfAliasNotExists(MetadataCollections.OBJECTGROUP, tenantId);
+            createIndexAndAliasIfAliasNotExists(unitCollection, tenantId);
+            createIndexAndAliasIfAliasNotExists(objectCollection, tenantId);
         }
     }
 
-    private void createIndexesAndAliasesForTenantGroups() throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForTenantGroups(MetadataCollections unitCollection,
+        MetadataCollections objectCollection) throws MetaDataExecutionException {
         Collection<String> tenantGroups = this.indexManager.getTenantGroups();
         for (String tenantGroup : tenantGroups) {
 
@@ -115,8 +115,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             int tenantId = tenantGroupTenants.iterator().next();
-            createIndexAndAliasIfAliasNotExists(MetadataCollections.UNIT, tenantId);
-            createIndexAndAliasIfAliasNotExists(MetadataCollections.OBJECTGROUP, tenantId);
+            createIndexAndAliasIfAliasNotExists(unitCollection, tenantId);
+            createIndexAndAliasIfAliasNotExists(objectCollection, tenantId);
         }
     }
 

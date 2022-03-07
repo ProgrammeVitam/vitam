@@ -1,0 +1,177 @@
+#%RAML 1.0
+
+title: API-Vitam Version Alpha - Collect
+version: v1
+baseUri: https://api.vitam.gouv.fr/collect/{version}
+protocols: [ HTTP ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+  CollectTraits: libraries/CollectTraits.raml
+
+
+securitySchemes:
+  VitamPlatform: !include ../interne/securitySchemes/SecuritySchemeVitamInternal.raml
+
+securedBy: [ VitamPlatform ]
+
+mediaType: application/json
+
+types:
+  _reserved:
+    type: string
+
+documentation:
+  - title: Avertissements
+    content: !include ../interne/docs-fr/avertissement.md
+
+  - title: Licence
+    content: !include ../interne/docs-fr/license.md
+
+  - title: API Collect
+    content: API Collect
+
+/transactions:
+  displayName: Transactions
+  description: |
+    API de collecte. Ce point d'entrée permet de créer une transaction de versement.
+
+    Crée une transaction d'entrée :
+    - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
+      - ArchivalAgencyIdentifier
+      - TransferingAgencyIdentifier
+      - OriginatingAgencyIdentifier
+      - ArchiveProfile
+      - Comment
+  post:
+    description: |
+      - request body : JSON object
+      - response : JSON of saved transaction / HTTP CODE 200
+    is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    headers:
+     x-tenant-id:
+        required: true
+
+/transaction:
+  # root endpoint request
+  displayName: Operations
+  description: |
+    Ajouter une unité archivistique.
+  is: [ StandardTraits.StandardOptionalHeader,
+  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+  /{id}/units:
+    displayName: Ajout d'une unité archivistique
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+    post:
+     description: |
+       Permet de soumettre une unité archivistique
+     body:
+      application/json:
+        type: object
+        example: !include libraries/examples/CollectUnitObjectRequest.json
+     headers:
+      X-tenant-Id:
+       required: true
+     responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include ../interne/libraries/examples/transactionInitObjectResponse.json
+
+  /{id}/close:
+        displayName: Fermer une transaction -> statut Close
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+        post:
+         description: |
+           Permet de fermer une transaction
+         body:
+          application/json:
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
+
+  /{id}/send:
+            displayName: Générer un SIP et envoyer le SIP a Vitam (Ingest)
+            is: [ StandardTraits.StandardOptionalHeader,
+                  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+                   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+            post:
+             description: |
+               Permet de génerer un SIP et l'envoyer a Vitam (Ingest)
+             body:
+              application/json:
+             headers:
+              X-tenant-Id:
+               required: true
+             responses:
+                200:
+                  body:
+                    application/json:
+                      type: object
+                      example: !include libraries/examples/CollectIngestObjectResponse.json
+
+/units:
+  # root endpoint request
+  displayName: Operations
+  description: |
+    Ajouter un groupe d'objects.
+  is: [ StandardTraits.StandardOptionalHeader,
+  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+  /{id}/objects//{usage}//{version}:
+    displayName: Ajout d'un groupe d'objects
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+    post:
+     description: |
+       Permet de rajouter un groupe d'objects
+     body:
+      application/json:
+        type: object
+        example: !include libraries/examples/CollectObjectGroupObjectRequest.json
+     headers:
+      X-tenant-Id:
+       required: true
+     responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/CollectObjectGroupObjectResponse.json
+
+  /{id}/objects//{usage}//{version}/binary:
+        displayName: Ajout d'un binaire
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+        post:
+         description: |
+           Permet de rajouter un binaire
+         body:
+           application/octet-stream:
+             description: Binary object as a file
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectBinaryObjectResponse.json

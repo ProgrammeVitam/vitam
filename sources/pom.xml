@@ -53,6 +53,7 @@
         <module>elastic-kibana-interceptor</module>
         <module>batch-report</module>
         <module>hello-world-plugin</module>
+        <module>collect</module>
     </modules>
 
 

@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Cucumber init" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="cucumber.api.cli.Main" />
+    <module name="functional-test" />
+    <option name="PROGRAM_PARAMETERS" value="-g fr.gouv.vitam.functionaltest.cucumber -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:report.json ${vitamItests}/audit.feature" />
+    <option name="VM_PARAMETERS" value="-DtnrBaseDirectory=${vitamItests}" />
+    <option name="WORKING_DIRECTORY" value="$vitamLocalShareFolder$/conf/ihm-recette" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

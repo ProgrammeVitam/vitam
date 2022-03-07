@@ -39,6 +39,8 @@ import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
 import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
+import fr.gouv.vitam.collect.external.client.CollectClient;
+import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -165,6 +167,11 @@ public class World {
     private final String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
     /**
+     * Collect client
+     */
+    private CollectClient collectClient;
+
+    /**
      * initialization of client
      *
      * @throws IOException
@@ -179,6 +186,7 @@ public class World {
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
         adminClientV2 = AccessExternalClientV2Factory.getInstance().getClient();
+        collectClient = CollectClientFactory.getInstance().getClient();
 
         storageClient = StorageClientFactory.getInstance().getClient();
         WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
@@ -412,6 +420,7 @@ public class World {
         storageClient.close();
         workspaceClient.close();
         logbookOperationsClient.close();
+        collectClient.close();
     }
 
     /**
@@ -483,6 +492,10 @@ public class World {
 
     public AccessExternalClientV2 getAdminClientV2() {
         return adminClientV2;
+    }
+
+    public CollectClient getCollectClient() {
+        return collectClient;
     }
 
     public Path getDipFile() {

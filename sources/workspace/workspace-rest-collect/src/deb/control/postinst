@@ -1,0 +1,3 @@
+#!/bin/sh
+
+systemctl enable vitam-${unix.name}.service >/dev/null 2>&1 || true

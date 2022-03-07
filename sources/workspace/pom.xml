@@ -16,5 +16,6 @@
 		<module>workspace-rest</module>
 		<module>workspace-client</module>
 		<module>workspace-common</module>
-	</modules>
+        <module>workspace-rest-collect</module>
+    </modules>
 </project>

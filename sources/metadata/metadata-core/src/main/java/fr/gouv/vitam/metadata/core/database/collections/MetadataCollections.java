@@ -54,6 +54,7 @@ public enum  MetadataCollections {
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private final VitamCollection<? extends  MetadataDocument<?>> vitamCollection;
+    private String prefix = "";
 
     MetadataCollections(final Class<? extends MetadataDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
@@ -96,7 +97,11 @@ public enum  MetadataCollections {
      * @return the name of the collection
      */
     public String getName() {
-        return vitamCollection.getName();
+        return this.prefix + vitamCollection.getName();
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 
     /**

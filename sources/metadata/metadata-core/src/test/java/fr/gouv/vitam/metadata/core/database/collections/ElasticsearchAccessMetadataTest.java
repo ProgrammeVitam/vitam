@@ -103,7 +103,7 @@ public class ElasticsearchAccessMetadataTest {
         MetadataCollections.OBJECTGROUP.getVitamCollection()
             .setName(prefix + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
 
-        elasticsearchAccessMetadata.createIndexesAndAliases();
+        elasticsearchAccessMetadata.createIndexesAndAliases(OBJECTGROUP, UNIT);
     }
 
     @AfterClass
