@@ -304,23 +304,11 @@ vitam_offers:
 
           # Tape library cartridge configuration
           # ====================================
-          # Storage capacity (in MB, without compression) of cartridge formats supported by the tape library
-          cartridgeCapacities:
-            # "type": Cartridge type (as reported by "mt status" command)
-            # "capacityInMB": Raw storage capacity (in MB) of the cartridges
-            - type: LTO-6
-              capacityInMB: 2_500_000
-            - type: LTO-7
-              capacityInMB: 6_000_000
-            - type: LTO-8
-              capacityInMB: 12_000_000
-            - type: LTO-9
-              capacityInMB: 18_000_000
-          # Full cartridge detection threshold. Default is 90%.
-          # Vitam uses an optimistic heuristic to "detect" full tapes based of current capacity usage of the tape
-          #   When a write error occurs on a tape whose capacity usage exceeds this threshold, the tape is considered as "FULL", and data is written to another tape
-          #   When a write error occurs on a tape whose capacity usage is bellow this threshold, the tape is considered as corrupted, and its status is set to "CONFLICT"
-          fullCartridgeDetectionThresholdInPercentage: 90
+          # Full cartridge detection threshold in MB.
+          # When a write error occurs on a tape whose current space usage exceeds this threshold, the tape is considered as "FULL", and data will be written to another tape
+          # When a write error occurs on a tape whose current space usage is bellow this threshold, the tape is considered as "CORRUPTED", and its status is set to "CONFLICT"
+          # Typically, to be set to 90% of theoretical tape capacity (excluding compression) of the tape library
+          fullCartridgeDetectionThresholdInMB : 2_000_000
 
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted

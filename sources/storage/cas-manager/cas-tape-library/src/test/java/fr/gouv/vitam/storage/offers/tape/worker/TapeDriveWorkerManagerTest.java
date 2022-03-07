@@ -43,10 +43,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
-import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import org.junit.After;
 import org.junit.Before;
@@ -80,6 +76,9 @@ import static org.mockito.Mockito.when;
 
 
 public class TapeDriveWorkerManagerTest {
+
+    private static final int FULL_CARTRIDGE_THRESHOLD = 2_000_000;
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -119,9 +118,6 @@ public class TapeDriveWorkerManagerTest {
     @Mock
     private TapeDriveCommandService tapeDriveCommandService1;
 
-    @Mock
-    private CartridgeCapacityHelper cartridgeCapacityHelper;
-
     private TapeDriveWorkerManager tapeDriveWorkerManager;
     private File inputTarDir;
 
@@ -146,7 +142,7 @@ public class TapeDriveWorkerManagerTest {
 
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
             queueRepository, archiveReferentialRepository, accessRequestManager, tapeLibraryPool, driveTape,
-            "", false, archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper);
+            "", false, archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD);
 
         inputTarDir = temporaryFolder.newFolder("inputTars");
     }
@@ -161,61 +157,73 @@ public class TapeDriveWorkerManagerTest {
         assertThatCode(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper)
+                false, archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).doesNotThrowAnyException();
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), null, inputTarDir.getAbsolutePath(), false,
-                archiveCacheStorage, tapeCatalogService, cartridgeCapacityHelper)
+                archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, null, mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, cartridgeCapacityHelper)
+                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, cartridgeCapacityHelper)
+                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, cartridgeCapacityHelper)
+                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, cartridgeCapacityHelper)
+                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
                 mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, cartridgeCapacityHelper)
+                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, null, tapeCatalogService, cartridgeCapacityHelper)
+                false, null, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, null, cartridgeCapacityHelper)
+                false, archiveCacheStorage, null, FULL_CARTRIDGE_THRESHOLD)
         ).isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() ->
             new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
                 accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
                 false, archiveCacheStorage, tapeCatalogService, null)
+        ).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() ->
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage, tapeCatalogService, 0)
+        ).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() ->
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage, tapeCatalogService, 1_000_000_001)
         ).isInstanceOf(IllegalArgumentException.class);
     }
 

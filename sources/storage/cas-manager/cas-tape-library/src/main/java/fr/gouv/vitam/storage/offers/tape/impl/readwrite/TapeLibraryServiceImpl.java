@@ -37,7 +37,6 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
@@ -58,18 +57,19 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryServiceImpl.class);
     private static final long SLEEP_TIME = 20L;
+    private static final long MB_TO_BYTES = 1_000_000;
 
     private final TapeDriveService tapeDriveService;
     private final TapeRobotPool tapeRobotPool;
-    private final CartridgeCapacityHelper cartridgeCapacityHelper;
+    private final int fullCartridgeDetectionThresholdInMB;
 
     public final String MSG_PREFIX;
 
     public TapeLibraryServiceImpl(TapeDriveService tapeDriveService, TapeRobotPool tapeRobotPool,
-        CartridgeCapacityHelper cartridgeCapacityHelper) {
+        int fullCartridgeDetectionThresholdInMB) {
         this.tapeDriveService = tapeDriveService;
         this.tapeRobotPool = tapeRobotPool;
-        this.cartridgeCapacityHelper = cartridgeCapacityHelper;
+        this.fullCartridgeDetectionThresholdInMB = fullCartridgeDetectionThresholdInMB;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
     }
@@ -154,10 +154,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
                 String cartridgeType = status.getCartridge();
                 long tapeOccupation = tape.getWrittenBytes() + writtenBytes;
-                Long fullTapeOccupationThreshold =
-                    cartridgeCapacityHelper.getFullTapeOccupationThreshold(cartridgeType);
 
-                if (fullTapeOccupationThreshold != null && tapeOccupation >= fullTapeOccupationThreshold) {
+                if (tapeOccupation >= fullCartridgeDetectionThresholdInMB * MB_TO_BYTES) {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
                         " Action : Write, Drive Status: " + JsonHandler.unprettyPrint(status) +
                         ", Error: End Of Tape, Tape Occupation: " + tapeOccupation + " (bytes)" +
@@ -172,8 +170,7 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     ", Error: Tape is CORRUPTED" +
                     ", Cartridge type: '" + cartridgeType + "'" +
                     ", Tape space usage: " + tapeOccupation + " (bytes)" +
-                    ", Full tape threshold: "
-                    + (fullTapeOccupationThreshold == null ? " UNKNOWN" : fullTapeOccupationThreshold + " (bytes)"),
+                    ", Full tape threshold: " + (fullCartridgeDetectionThresholdInMB * MB_TO_BYTES) + " (bytes)",
                     ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE, e);
             }
 

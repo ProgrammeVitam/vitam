@@ -41,7 +41,6 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
@@ -82,6 +81,9 @@ import static org.mockito.Mockito.when;
 
 
 public class TapeDriveWorkerTest {
+
+    private static final int FULL_CARTRIDGE_THRESHOLD = 2_000_000;
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -106,9 +108,6 @@ public class TapeDriveWorkerTest {
 
     @Mock
     private ArchiveCacheStorage archiveCacheStorage;
-
-    @Mock
-    private CartridgeCapacityHelper cartridgeCapacityHelper;
 
     @Spy
     private TapeDriveOrderConsumer tapeDriveOrderConsumer;
@@ -145,12 +144,12 @@ public class TapeDriveWorkerTest {
     public void test_constructor() {
         new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
             archiveReferentialRepository, accessRequestManager, null,
-            inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
+            inputTarDir.getAbsolutePath(), false, archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         try {
             new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, cartridgeCapacityHelper);
+                false, archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -159,7 +158,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, cartridgeCapacityHelper);
+                false, archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -168,7 +167,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, inputTarDir.getAbsolutePath(), false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -177,7 +176,8 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository,
                 accessRequestManager,
-                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
+                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
+                FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -186,7 +186,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null,
                 accessRequestManager, null,
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail archiveReferentialRepository required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -195,7 +195,7 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, null, null,
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, cartridgeCapacityHelper);
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail accessRequestManager required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -204,21 +204,11 @@ public class TapeDriveWorkerTest {
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null,
-                inputTarDir.getAbsolutePath(), false, null, cartridgeCapacityHelper);
+                inputTarDir.getAbsolutePath(), false, null, FULL_CARTRIDGE_THRESHOLD);
             Assertions.fail("Should fail archiveOutputRetentionPolicy required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-
-        try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                archiveReferentialRepository, accessRequestManager, null,
-                inputTarDir.getAbsolutePath(), false, archiveCacheStorage, null);
-            Assertions.fail("Should fail archiveOutputRetentionPolicy required");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
     }
 
     @Test
@@ -232,7 +222,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         tapeDriveWorker.stop();
@@ -242,11 +232,11 @@ public class TapeDriveWorkerTest {
     }
 
     @Test
-    public void stop_no_wait() throws QueueException, InterruptedException, TimeoutException {
+    public void stop_no_wait() throws QueueException, InterruptedException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 100, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(20);
@@ -270,7 +260,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
         when(tapeDriveConf.getIndex()).thenReturn(1);
         when(tapeDriveOrderConsumer.consume(eq(tapeDriveWorker))).thenAnswer(o -> {
             Thread.sleep(5);
@@ -291,7 +281,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(5);
@@ -312,7 +302,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
@@ -335,7 +325,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, null, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         TapeDriveSpec driveStatus = new TapeDriveState();
         driveStatus.getDriveStatuses().add(TapeDriveStatus.DR_OPEN);
@@ -367,7 +357,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         TapeDriveSpec driveStatus = new TapeDriveState();
         driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
@@ -410,7 +400,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         TapeDriveState driveStatus = new TapeDriveState();
         driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
@@ -458,7 +448,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         TapeDriveSpec driveStatus = new TapeDriveState();
         driveStatus.getDriveStatuses().add(TapeDriveStatus.ONLINE);
@@ -507,7 +497,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, accessRequestManager, tapeCatalog, null, 1000, false,
-                archiveCacheStorage, cartridgeCapacityHelper);
+                archiveCacheStorage, FULL_CARTRIDGE_THRESHOLD);
 
         TapeDriveSpec driveStatus = new TapeDriveState();
         driveStatus.getDriveStatuses().add(TapeDriveStatus.DR_OPEN);

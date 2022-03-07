@@ -39,7 +39,6 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialException;
@@ -101,6 +100,7 @@ public class ReadTaskTest {
     private static final String FAKE_BUCKET = "fakeBucket";
     private static final String FAKE_FILE_BUCKET_ID = "fakeFileBucketId";
     private static final long FILE_SIZE = 1_234_567_890_123L;
+    private static final int FULL_CARTRIDGE_THRESHOLD = 2_000_000;
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -129,9 +129,6 @@ public class ReadTaskTest {
     @Mock
     private ArchiveCacheStorage archiveCacheStorage;
 
-    @Mock
-    private CartridgeCapacityHelper cartridgeCapacityHelper;
-
     private Path fileTest;
     private String fileName;
     private File tmpTarOutputDir;
@@ -156,7 +153,6 @@ public class ReadTaskTest {
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-        verifyZeroInteractions(cartridgeCapacityHelper);
     }
 
     @Test
@@ -212,7 +208,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -296,7 +292,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -405,7 +401,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -515,7 +511,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -614,7 +610,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -700,7 +696,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -755,7 +751,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -809,7 +805,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -871,7 +867,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -935,7 +931,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -1002,7 +998,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
@@ -1067,7 +1063,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -1148,7 +1144,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, null,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
@@ -1248,7 +1244,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
@@ -1308,7 +1304,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
                 tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doAnswer((args) -> {

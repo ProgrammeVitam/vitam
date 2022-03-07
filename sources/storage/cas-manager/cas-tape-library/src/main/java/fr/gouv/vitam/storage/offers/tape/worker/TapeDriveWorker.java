@@ -45,7 +45,6 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
-import fr.gouv.vitam.storage.offers.tape.cas.CartridgeCapacityHelper;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
@@ -108,11 +107,10 @@ public class TapeDriveWorker implements Runnable {
         AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, long sleepTime, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage, CartridgeCapacityHelper cartridgeCapacityHelper) {
+        ArchiveCacheStorage archiveCacheStorage, int fullCartridgeDetectionThresholdInMB) {
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
-                archiveReferentialRepository, accessRequestManager, tapeCatalogService, receiver, archiveCacheStorage,
-                cartridgeCapacityHelper);
+                archiveReferentialRepository, accessRequestManager, tapeCatalogService, receiver, archiveCacheStorage);
 
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.accessRequestManager = accessRequestManager;
@@ -121,7 +119,7 @@ public class TapeDriveWorker implements Runnable {
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;
-        this.tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, cartridgeCapacityHelper);
+        this.tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, fullCartridgeDetectionThresholdInMB);
 
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         this.archiveCacheStorage = archiveCacheStorage;
@@ -148,10 +146,10 @@ public class TapeDriveWorker implements Runnable {
         AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage, CartridgeCapacityHelper cartridgeCapacityHelper) {
+        ArchiveCacheStorage archiveCacheStorage, int fullCartridgeDetectionThresholdInMB) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository,
             accessRequestManager, currentTape,
-            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage, cartridgeCapacityHelper);
+            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage, fullCartridgeDetectionThresholdInMB);
     }
 
     @Override
