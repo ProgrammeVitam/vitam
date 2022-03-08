@@ -39,7 +39,7 @@ Rajouter le nom "Consul" avec le nom du datacenter dedans peut par exemple servi
 
 Les variables pouvant impacter les noms d'hosts :term:`DNS` sur *Consul* sont:
 
-* ``consul_domain`` dans le fichier ``environments/group_vars/all/vitam_vars.yml`` --> <domain_consul>
+* ``consul_domain`` dans le fichier ``environments/group_vars/all/advanced/vitam_vars.yml`` --> <domain_consul>
 * ``vitam_site_name`` dans le fichier d'inventaire ``environments/hosts`` (variable globale) --> <dc_consul>
 * Service offer seulement: ``offer_conf`` dans le fichier d'inventaire ``environments/hosts`` (différente pour chaque instance du composant offer) --> <nom_service>
 

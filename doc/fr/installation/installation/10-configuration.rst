@@ -47,13 +47,29 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 
 .. note:: Il est possible de multi-instancier le composant "storage-offer-default" dans le cas d'un *provider* de type objet (s3, swift). Il faut ajouter ``offer_conf=<le nom>``.
 
+Fichier ``main.yml``
+-------------------
+
+La configuration des principaux paramètres est réalisée dans le fichier |repertoire_inventory|``group_vars/all/main/main.yml``, comme suit :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/main/main.yml
+     :language: yaml
+     :linenos:
+
+Une attention particulère doit être portée à la configuration du nombre de shards et de replicas dans le paramètre ``vitam_elasticsearch_tenant_indexation.default_config``.
+
+.. seealso:: Se référer au chapitre "Gestion des indexes Elasticseach dans un contexte massivement multi-tenants" du :term:`DEX` pour plus d'informations sur cette fonctionnalité.
+
+.. warning:: Attention, en cas de modification de la distribution des tenants, une procédure de réindexation de la base elasticsearch-data est nécessaire. Cette procédure est à la charge de l'exploitation et nécessite un arrêt de service sur la plateforme. La durée d'exécution de cette réindexation dépend de la quantité de données à traiter.
+.. seealso:: Se référer au chapitre "Réindexation" du :term:`DEX` pour plus d'informations.
+
 Fichier ``vitam_security.yml``
--------------------------------
+------------------------------
 .. _VitamSecurityAnchor:
 
-La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory|``group_vars/all/vitam_security.yml``, comme suit :
+La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory|``group_vars/all/advanced/vitam_security.yml``, comme suit :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_security.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/vitam_security.yml
      :language: yaml
      :linenos:
 
@@ -62,13 +78,11 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
 .. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`.
 
 Fichier ``offers_opts.yml``
-----------------------------
+---------------------------
 
-.. hint:: Fichier à créer depuis ``offers_opts.yml.example`` et à paramétrer selon le besoin.
+La déclaration de configuration des offres de stockage associées se fait dans le fichier |repertoire_inventory|``group_vars/all/main/offers_opts.yml`` :
 
-La déclaration de configuration des offres de stockage associées se fait dans le fichier |repertoire_inventory|``group_vars/all/offers_opts.yml`` :
-
- .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml.example
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/offers_opts.yml
      :language: yaml
      :linenos:
 
@@ -81,11 +95,11 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la :term:`CA` du keystone.
 
 Fichier ``cots_vars.yml``
-----------------------------
+-------------------------
 
-La configuration s'effectue dans le fichier |repertoire_inventory|``group_vars/all/cots_vars.yml`` :
+La configuration s'effectue dans le fichier |repertoire_inventory|``group_vars/all/advanced/cots_vars.yml`` :
 
- .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/cots_vars.yml
      :language: yaml
      :linenos:
 
@@ -96,17 +110,13 @@ Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, 
 Fichier ``tenants_vars.yml``
 ----------------------------
 
-.. hint:: Fichier à créer depuis ``tenants_vars.yml.example`` et à paramétrer selon le besoin.
+Le fichier |repertoire_inventory|``group_vars/all/advanced/tenants_vars.yml`` permet de gérer les configurations spécifiques associés aux tenants de la plateforme (liste des tenants, regroupement de tenants, configuration du nombre de shards et replicas, etc...).
 
-Le fichier |repertoire_inventory|``group_vars/all/tenants_vars.yml`` permet de gérer les configurations spécifiques associés aux tenants de la plateforme (liste des tenants, regroupement de tenants, configuration du nombre de shards et replicas, etc...).
-
- .. literalinclude:: ../../../../deployment/environments/group_vars/all/tenants_vars.yml
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/tenants_vars.yml
      :language: yaml
      :linenos:
 
 Se référer aux commentaires dans le fichier pour le renseigner correctement.
-
-Une attention particulère doit être porté à la configuration du nombre de shards et de replicas dans le paramètre ``vitam_elasticsearch_tenant_indexation.default_config`` (le fichier ``tenants_vars.yml.example`` représente les valeurs recommandées par Vitam dans le cadre d'un déploiement en production). Ce paramètre est obligatoire.
 
 .. seealso:: Se référer au chapitre "Gestion des indexes Elasticseach dans un contexte massivement multi-tenants" du :term:`DEX` pour plus d'informations sur cette fonctionnalité.
 
@@ -135,32 +145,32 @@ La première étape consiste à changer les mots de passe de tous les vaults pr�
 
 Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de passe:
 
-* ``environments/group_vars/all/vault-vitam.yml``
-* ``environments/group_vars/all/vault-keystores.yml``
-* ``environments/group_vars/all/vault-extra.yml``
+* ``environments/group_vars/all/main/vault-vitam.yml``
+* ``environments/group_vars/all/main/vault-keystores.yml``
+* ``environments/group_vars/all/main/vault-extra.yml``
 * ``environments/certs/vault-certs.yml``
 
 2 vaults sont principalement utilisés dans le déploiement d'une version :
 
 .. warning:: Leur contenu est donc à modifier avant tout déploiement.
 
-* Le fichier |repertoire_inventory|``group_vars/all/vault-vitam.yml`` contient les secrets généraux :
+* Le fichier |repertoire_inventory|``group_vars/all/main/vault-vitam.yml`` contient les secrets généraux :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.yml.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/vault-vitam.yml.plain
      :language: ini
      :linenos:
 
 .. caution:: Seuls les caractères alphanumériques sont valides pour les directives ``passphrase``.
 
-.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
+.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `swift`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion `swift` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift `offer-swift-1`.
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `s3`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et l'access key secret `s3` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre s3 `offer-s3-1`.
 
-* Le fichier |repertoire_inventory|``group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
+* Le fichier |repertoire_inventory|``group_vars/all/main/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.yml.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/vault-keystores.yml.plain
      :language: ini
      :linenos:
 
@@ -169,9 +179,9 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 Cas des extras
 --------------
 
-* Le fichier |repertoire_inventory|``group_vars/all/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
+* Le fichier |repertoire_inventory|``group_vars/all/main/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.yml.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/vault-extra.yml.plain
      :language: ini
      :linenos:
 
@@ -179,23 +189,23 @@ Cas des extras
 
 
 Commande ansible-vault
------------------------
+----------------------
 
-Certains fichiers présents sous |repertoire_inventory|``group_vars/all`` commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
+Certains fichiers présents sous |repertoire_inventory|``group_vars/all`` commençant par **vault-** doivent être protégés (chiffrés) avec l'utilitaire ``ansible-vault``.
 
 .. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt``
 
 Générer des fichiers *vaultés* depuis des fichier en clair
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Exemple du fichier ``vault-cots.example`` ::
+Exemple du fichier ``vault-cots.yml`` ::
 
-   cp vault-cots.example vault-cots.yml
+   cp vault-cots.yml.plain vault-cots.yml
    ansible-vault encrypt vault-cots.yml
 
 
-Ré-encoder un fichier *vaulté*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Re-chiffrer un fichier *vaulté* avec un nouveau mot de passe
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Exemple du fichier ``vault-cots.yml`` ::
 

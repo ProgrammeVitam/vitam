@@ -102,11 +102,11 @@
                 <exclude>environments/hosts.local</exclude>
                 <exclude>environments/hosts.fulllocal</exclude>
                 <exclude>environments/hosts.cots</exclude>
-                <exclude>environments/group_vars/all/vault-extra.example</exclude>
-                <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
-                <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
-                <exclude>environments/group_vars/all/offers_opts.yml</exclude>
-                <exclude>environments/group_vars/all/tenants_vars.yml</exclude>
+                <exclude>environments/group_vars/all/main/vault-extra.plain</exclude>
+                <exclude>environments/group_vars/all/main/vault-keystores.yml</exclude>
+                <exclude>environments/group_vars/all/main/vault-vitam.yml</exclude>
+                <exclude>environments/group_vars/all/main/offers_opts.yml</exclude>
+                <exclude>environments/group_vars/all/advanced/tenants_vars.yml</exclude>
                 <exclude>environments/certs/vault-certs.yml</exclude>
                 <exclude>environments/certs/vault-ca.yml</exclude>
                 <exclude>vitam-conf-dev</exclude>

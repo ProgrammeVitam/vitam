@@ -347,7 +347,7 @@ restic:
         # - name: mongo-vitamui
         #   type: mongodb
         #   host: mongo-vitamui-mongod.service.consul:{{ mongodb.mongod_port }}
-        #   # Add the following params on environments/group_vars/all/vault-vitam.yml
+        #   # Add the following params on environments/group_vars/all/main/vault-vitam.yml
         #   # They can be found under vitamui's deployment sources on environments/group_vars/all/vault-mongodb.yml
         #   user: "{{ mongodb['mongo-vitamui'].admin.user }}"
         #   password: "{{ mongodb['mongo-vitamui'].admin.password }}"

@@ -30,18 +30,9 @@ Mise en place des repositories VITAM (optionnel)
 :term:`VITAM` fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à :term:`VITAM` :
 
 
-Editer le fichier |repertoire_inventory|``group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
+Editer le fichier |repertoire_inventory|``group_vars/all/main/repositories.yml`` à partir du modèle suivant (décommenter également les lignes) :
 
-Pour une cible de déploiement CentOS :
-
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_centos.yml.example
-   :language: yaml
-   :linenos:
-
-
-Pour une cible de déploiement Debian :
-
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_debian.yml.example
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/main/repositories.yml
    :language: yaml
    :linenos:
 
