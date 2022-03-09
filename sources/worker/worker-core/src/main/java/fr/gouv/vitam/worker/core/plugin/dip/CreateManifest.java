@@ -273,7 +273,8 @@ public class CreateManifest extends ActionHandler {
                 for (JsonNode object : objects) {
                     String id = object.get(ID.exactToken()).textValue();
                     List<String> linkedUnits = unitsForObjectGroupId.get(id);
-                    JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
+                    JsonNode selectObjectGroupLifeCycleById =
+                        logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
 
                     AccessContractModel accessContract = getAccessContractModel(adminManagementClient);
 
@@ -282,7 +283,8 @@ public class CreateManifest extends ActionHandler {
                     List<QualifiersModel> qualifiersToRemove;
                     if (Boolean.FALSE.equals(accessContract.isEveryDataObjectVersion())) {
                         qualifiersToRemove = objectGroup.getQualifiers().stream()
-                            .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                            .filter(
+                                qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
                             .collect(Collectors.toList());
                         objectGroup.getQualifiers().removeAll(qualifiersToRemove);
                     }
@@ -294,28 +296,36 @@ public class CreateManifest extends ActionHandler {
                         objectGroup.getQualifiers().removeAll(qualifiersToRemove);
                     }
 
-                    Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
-                        .getResults()
-                        .stream()
-                        .map(LogbookLifeCycleObjectGroup::new);
+                    JsonNode currentObject = JsonHandler.toJsonNode(objectGroup);
+
+                    Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream =
+                        (exportRequest.isExportWithLogBookLFC()) ?
+                            RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
+                                .getResults()
+                                .stream()
+                                .map(LogbookLifeCycleObjectGroup::new) :
+                            Stream.empty();
+
                     idBinaryWithFileName.putAll(manifestBuilder
-                        .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), logbookLifeCycleObjectGroupStream));
-                    exportSize += computeSize(object, dataObjectVersions);
+                        .writeGOT(currentObject, linkedUnits.get(linkedUnits.size() - 1),
+                            logbookLifeCycleObjectGroupStream));
+                    exportSize += computeSize(currentObject, dataObjectVersions);
                 }
             }
 
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-                scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
-                    query -> {
-                        try {
-                            JsonNode node = client.selectUnits(query.getFinalSelect());
-                            return RequestResponseOK.getFromJsonNode(node);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+            scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
+                query -> {
+                    try {
+                        JsonNode node = client.selectUnits(query.getFinalSelect());
+                        return RequestResponseOK.getFromJsonNode(node);
+                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit());
 
             manifestBuilder.startDescriptiveMetadata();
             StreamSupport.stream(scrollRequest, false)
@@ -324,13 +334,15 @@ public class CreateManifest extends ActionHandler {
                         ArchiveUnitModel unit;
                         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
                         if (exportWithLogBookLFC) {
-                            JsonNode response = logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
-                                                                                                select.getFinalSelect());
+                            JsonNode response =
+                                logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
+                                    select.getFinalSelect());
                             if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
                                 JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
                                 LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
 
-                                unit = manifestBuilder.writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
+                                unit = manifestBuilder
+                                    .writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
                             } else {
                                 unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                             }
@@ -339,8 +351,8 @@ public class CreateManifest extends ActionHandler {
                         }
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                             List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
-                            TransferStatus status = opts.isEmpty()?
-                                TransferStatus.OK:
+                            TransferStatus status = opts.isEmpty() ?
+                                TransferStatus.OK :
                                 TransferStatus.ALREADY_IN_TRANSFER;
                             opts.add(param.getContainerName());
                             ObjectNode updateMultiQuery = getUpdateQuery(opts);
@@ -414,7 +426,9 @@ public class CreateManifest extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                handlerIO.transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile, null, false);
+                handlerIO
+                    .transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile, null,
+                        false);
             }
 
         } catch (ExportException e) {

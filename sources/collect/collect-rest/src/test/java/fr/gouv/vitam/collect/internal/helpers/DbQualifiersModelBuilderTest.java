@@ -54,7 +54,7 @@ public class DbQualifiersModelBuilderTest {
 
         // THEN
         assertThat(qualifiersModel).isNotNull();
-        assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(usage+"_"+version);
+        assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(usage.getName() + "_" + version);
     }
 
     @Test

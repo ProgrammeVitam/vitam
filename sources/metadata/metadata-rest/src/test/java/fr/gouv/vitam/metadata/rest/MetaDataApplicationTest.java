@@ -94,6 +94,7 @@ public class MetaDataApplicationTest {
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
         config.setUrlProcessing("http://processing.service.consul:8203/");
+        config.setContextPath("/metadata");
     }
 
     @Test

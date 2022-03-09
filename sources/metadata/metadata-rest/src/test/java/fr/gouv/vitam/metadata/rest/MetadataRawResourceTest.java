@@ -123,7 +123,7 @@ public class MetadataRawResourceTest {
                 mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
-
+        configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
                 .setUnit(new CollectionConfiguration(2, 1))

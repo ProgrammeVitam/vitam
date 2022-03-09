@@ -65,7 +65,7 @@ public class QueryHandlerTest {
             .withVersion(VERSION_ID, FILE_NAME, USAGE, QUALIFIER_VERSION_1)
             .withNbc(1)
             .build();
-        List<DbQualifiersModel > qualifiers = new ArrayList<>();
+        List<DbQualifiersModel> qualifiers = new ArrayList<>();
         qualifiers.add(qualifiersModel);
 
         DbObjectGroupModel objectGroup = new DbObjectGroupModelBuilder()
@@ -88,7 +88,8 @@ public class QueryHandlerTest {
         // THEN
         JsonNode expectedJsonNode = qualifiersAddMultiQuery();
         assertThat(qualifiersAddMultiQuery).isNotNull();
-        assertThat(qualifiersAddMultiQuery.getFinalUpdate().toPrettyString()).hasToString(expectedJsonNode.toPrettyString());
+        assertThat(qualifiersAddMultiQuery.getFinalUpdate().toPrettyString()).hasToString(
+            expectedJsonNode.toPrettyString());
     }
 
     static class TestDummyData {
@@ -113,28 +114,28 @@ public class QueryHandlerTest {
                 "      \"$set\": {\n" +
                 "        \"#qualifiers\": [\n" +
                 "          {\n" +
-                "            \"qualifier\": \""+USAGE+"\",\n" +
+                "            \"qualifier\": \"" + USAGE.getName() + "\",\n" +
                 "            \"_nbc\": 1,\n" +
                 "            \"versions\": [\n" +
                 "              {\n" +
-                "                \"_id\": \""+VERSION_ID+"\",\n" +
-                "                \"DataObjectVersion\": \""+USAGE+"_"+QUALIFIER_VERSION_1+"\",\n" +
+                "                \"_id\": \"" + VERSION_ID + "\",\n" +
+                "                \"DataObjectVersion\": \"" + USAGE.getName() + "_" + QUALIFIER_VERSION_1 + "\",\n" +
                 "                \"FileInfo\": {\n" +
-                "                  \"Filename\": \""+FILE_NAME+"\"\n" +
+                "                  \"Filename\": \"" + FILE_NAME + "\"\n" +
                 "                },\n" +
                 "                \"Size\": 0\n" +
                 "              }\n" +
                 "            ]\n" +
                 "          },\n" +
                 "          {\n" +
-                "            \"qualifier\": \""+USAGE+"\",\n" +
+                "            \"qualifier\": \"" + USAGE.getName() + "\",\n" +
                 "            \"_nbc\": 1,\n" +
                 "            \"versions\": [\n" +
                 "              {\n" +
-                "                \"_id\": \""+VERSION_ID+"\",\n" +
-                "                \"DataObjectVersion\": \""+USAGE+"_"+QUALIFIER_VERSION_1+"\",\n" +
+                "                \"_id\": \"" + VERSION_ID + "\",\n" +
+                "                \"DataObjectVersion\": \"" + USAGE.getName() + "_" + QUALIFIER_VERSION_1 + "\",\n" +
                 "                \"FileInfo\": {\n" +
-                "                  \"Filename\": \""+FILE_NAME+"\"\n" +
+                "                  \"Filename\": \"" + FILE_NAME + "\"\n" +
                 "                },\n" +
                 "                \"Size\": 0\n" +
                 "              }\n" +
