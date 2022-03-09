@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.storage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.storage.swift.VitamCustomizedHeader;
@@ -517,6 +518,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         this.customHeaders = customHeaders;
     }
 
+    @JsonIgnore
     @Override
     public String getBaseUrl() {
         return contextPath;

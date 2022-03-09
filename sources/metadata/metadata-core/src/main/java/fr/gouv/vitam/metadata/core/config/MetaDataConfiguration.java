@@ -322,6 +322,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         return new TimeToLiveConfiguration(dipTimeToLiveInMinutes, criticalDipTimeToLiveInMinutes,
             transfersSIPTimeToLiveInMinutes);
     }
+
+    @JsonIgnore
     @Override
     public String getBaseUrl() {
         return contextPath;

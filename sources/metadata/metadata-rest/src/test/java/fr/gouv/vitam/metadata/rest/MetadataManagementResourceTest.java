@@ -104,6 +104,7 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+        configuration.setContextPath("/metadata");
         exportsPurgeService = mock(ExportsPurgeService.class);
         reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService,

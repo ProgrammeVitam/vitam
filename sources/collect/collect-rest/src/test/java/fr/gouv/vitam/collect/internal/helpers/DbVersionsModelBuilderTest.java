@@ -49,7 +49,7 @@ public class DbVersionsModelBuilderTest {
 
         // THEN
         assertThat(versionsModel).isNotNull();
-        assertThat(versionsModel.getDataObjectVersion()).isEqualTo(usage+"_"+version);
+        assertThat(versionsModel.getDataObjectVersion()).isEqualTo(usage.getName() + "_" + version);
     }
 
     @Test

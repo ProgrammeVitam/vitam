@@ -188,7 +188,7 @@ public class UpdateUnitResourceTest {
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
-
+        configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
                 .setUnit(new CollectionConfiguration(2, 1))

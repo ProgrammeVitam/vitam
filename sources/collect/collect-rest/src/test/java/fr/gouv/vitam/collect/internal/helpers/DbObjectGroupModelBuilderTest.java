@@ -57,7 +57,8 @@ public class DbObjectGroupModelBuilderTest {
         // THEN
         assertThat(dbObjectGroupModel).isNotNull();
         assertThat(dbObjectGroupModel.getNbc()).isEqualTo(1);
-        assertThat(dbObjectGroupModel.getQualifiers().get(0).getVersions().get(0).getDataObjectVersion()).isEqualTo(usage+"_"+version);
+        assertThat(dbObjectGroupModel.getQualifiers().get(0).getVersions().get(0).getDataObjectVersion()).isEqualTo(
+            usage.getName() + "_" + version);
     }
 
     @Test

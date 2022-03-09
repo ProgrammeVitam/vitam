@@ -152,7 +152,7 @@ public class SelectUnitResourceTest {
 
     private static final String BAD_QUERY_DSL_TEST =
             "{\"$query\": {\"$eq\": \"data2\" }, \"$projection\": {}, \"$filter\": {}}";
-    
+
     private static final String SERVER_HOST = "localhost";
 
     private static final String SEARCH_QUERY =
@@ -229,7 +229,7 @@ public class SelectUnitResourceTest {
         VitamConfiguration.setTenants(tenantList);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
-
+        configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
                 .setUnit(new CollectionConfiguration(2, 1))
@@ -652,7 +652,7 @@ public class SelectUnitResourceTest {
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getValue()).isEqualTo("str0");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void given_2units_insert_when_twoBulkSearchValid_thenReturn_TwoResults() throws Exception {
@@ -665,7 +665,7 @@ public class SelectUnitResourceTest {
             .body(bulkInsertRequest(DATA_0)).when()
             .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
-        
+
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -676,7 +676,7 @@ public class SelectUnitResourceTest {
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_0));
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_1));
-        
+
         InputStream stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -706,7 +706,7 @@ public class SelectUnitResourceTest {
         assertThat(secondApproximateUD.isBefore(LocalDateUtil.now())).isTrue();
 
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void given_2units_insert_when_twoBulkSearchValidByField_thenReturn_TwoResults() throws Exception {
@@ -717,18 +717,18 @@ public class SelectUnitResourceTest {
             .body(bulkInsertRequest(PropertiesUtils.getResourceAsString("unit_1.json"))).when()
             .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
-        
+
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkInsertRequest(PropertiesUtils.getResourceAsString("unit_2.json"))).when()
             .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
-        
+
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_1.json")));
         bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_2.json")));;
-        
+
         InputStream stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -744,9 +744,9 @@ public class SelectUnitResourceTest {
         assertThat(firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value1");
         RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
         assertThat(secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value2");
-        
+
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void given_1unit_insert_when_twoValidQueriesBulkSelect_thenReturn_OneResultEmpty() throws Exception {
@@ -761,7 +761,7 @@ public class SelectUnitResourceTest {
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_0));
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_1));
-        
+
         InputStream stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -777,9 +777,9 @@ public class SelectUnitResourceTest {
         assertThat(firstResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
         RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
         assertThat(secondResultVitam.getResults().size()).isEqualTo(0);
-        
+
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void given_1unit_insert_when_noQueryBulkSelect_thenReturn_ZeroResults() throws Exception {
@@ -792,7 +792,7 @@ public class SelectUnitResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
-        
+
         InputStream stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -804,9 +804,9 @@ public class SelectUnitResourceTest {
         assertThat(responseVitam.isOk()).isTrue();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(0);
-        
+
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void given_1unit_insert_when_oneBadQueryDSLOneValidDSLBulkSelect_thenReturn_BadQueryResultAndValidResult() throws Exception {
@@ -820,7 +820,7 @@ public class SelectUnitResourceTest {
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(BAD_QUERY_DSL_TEST));
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_0));
-        
+
         InputStream stream = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -832,9 +832,9 @@ public class SelectUnitResourceTest {
         assertThat(responseVitam.isOk()).isFalse();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
-        
+
     }
-    
+
 
     @Test
     @RunWithCustomExecutor
@@ -846,16 +846,16 @@ public class SelectUnitResourceTest {
             .body(BAD_QUERY_TEST).when()
             .get("/units/bulk").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(SEARCH_QUERY_BY_GUID_0).when()
             .get("/units/bulk").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
     }
-    
+
 
     @Test
     @RunWithCustomExecutor
@@ -863,19 +863,19 @@ public class SelectUnitResourceTest {
 
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_0));
-        
+
         given()
             .contentType(ContentType.JSON)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, "TOTO")
             .body(bulkSearch).when()
             .get("/units/bulk").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        
+
     }
 }
