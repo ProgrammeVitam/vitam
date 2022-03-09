@@ -6,11 +6,9 @@ Supprimer les indexes de configuration kibana
 
 .. caution:: Cette opération doit être effectuée avant la montée de version vers la V5RC.
 
-.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam   
+.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
 
-Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec
-une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement 
-la montée de version est bloquée.
+Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
 
 Executez le playbook suivant:
 
@@ -18,15 +16,14 @@ Executez le playbook suivant:
 
      ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/remove_old_kibana_indexes.yml.yml --ask-vault-pass
 
-Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont 
-conservés.  
+Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
 
 La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
 
 Migration des unités archivistiques
 -----------------------------------
 
-.. caution:: Cette migration doit être effectuée avant la montée de version vers la V5RC. Une fois appliquée, il ne faut pas redémarrer Vitam avant d'avoir terminé la montée de version.
+.. caution:: Cette migration doit être effectuée après la montée de version V5RC mais avant la réouverture du service aux utilisateurs.
 
 .. caution:: Ne pas appliquer cette migration en cas de montée de version vers la V5. Suivez le chapitre équivalent dans la procédure V5.
 
