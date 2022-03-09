@@ -733,3 +733,13 @@ Configuration
 -------------
 
 Les paramères de configuration de ce composant se trouvent dans les fichiers ``environments/group_vars/all/advanced/cots_vars.yml`` et ``environments/group_vars/all/main/vault-cots.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+
+Limitations actuelles
+---------------------
+	
+restic est fourni en tant que fonctionnalité beta. À ce titre, il ne peut se substituer à des vérifications régulières de l'état des sauvegardes de vos bases.
+
+restic ne fonctionne pas avec les providers `openstack-swift`, `openstack-swift-v2` et `tape-library`.
+
+
+restic ne fonctionne pas avec un cluster mongo multi-shardé. Ainsi, mongo-data ne peut être sauvegardé via restic que dans de petites instances de Vitam.
