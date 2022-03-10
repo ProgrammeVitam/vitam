@@ -6,7 +6,7 @@ Notes et procédures spécifiques V5
 Migration des unités archivistiques
 -----------------------------------
 
-.. caution:: Cette migration doit être effectuée avant la montée de version V5. Une fois appliquée, il ne faut pas redémarrer Vitam avant d'avoir terminé la montée de version.
+.. caution:: Cette migration doit être effectuée après la montée de version V5 mais avant la réouverture du service aux utilisateurs.
 
 Cette migration de données consiste à :
 
