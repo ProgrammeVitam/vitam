@@ -235,13 +235,13 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response atomicUpdateBulk(List<JsonNode> updateQueries) {
-        final List<RequestResponse<?>> results = new ArrayList<>();
+        final List<RequestResponse<UpdateUnit>> results = new ArrayList<>();
         updateQueries.forEach(updateQuery -> {
             try {
                 results.add(metaData.updateUnits(updateQuery, false).setHttpCode(OK.getStatusCode()));
             } catch (InvalidParseOperationException e) {
                 Status status = Status.BAD_REQUEST;
-                results.add(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                results.add(new VitamError<UpdateUnit>(status.name()).setHttpCode(status.getStatusCode())
                                 .setContext(ACCESS)
                                 .setState(CODE_VITAM)
                                 .setMessage(status.getReasonPhrase())
@@ -249,7 +249,7 @@ public class MetadataResource extends ApplicationStatusResource {
             }
         });
 
-        RequestResponseOK<RequestResponse<?>> updateRequestResponse = new RequestResponseOK<RequestResponse<?>>().addAllResults(results).setHttpCode(OK.getStatusCode());
+        RequestResponseOK<RequestResponse<UpdateUnit>> updateRequestResponse = new RequestResponseOK<RequestResponse<UpdateUnit>>().addAllResults(results).setHttpCode(OK.getStatusCode());
 
         return Response.status(OK)
                 .entity(updateRequestResponse)

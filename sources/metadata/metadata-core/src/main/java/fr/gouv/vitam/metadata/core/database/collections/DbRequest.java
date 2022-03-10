@@ -1045,6 +1045,8 @@ public class DbRequest {
                 .filter(line -> !(line.contains("\"" + MetadataDocument.ATOMIC_VERSION + "\"")))
                 .filter(line -> !(line.contains("\"" + MetadataDocument.GRAPH_LAST_PERSISTED_DATE + "\"")))
                 .filter(line -> !(line.contains("\"" + MetadataDocument.OPS + "\"")))
+                .filter(line -> !(line.contains("\"" + Unit.APPROXIMATE_CREATION_DATE + "\"")))
+                .filter(line -> !(line.contains("\"" + Unit.APPROXIMATE_UPDATE_DATE + "\"")))
                 .filter(line -> !(line.contains("\"_history\"")))
             .count();
         

@@ -77,7 +77,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -183,7 +182,7 @@ public class UpdateUnitResourceTest {
         MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             esClient);
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
+        mongo_nodes.add(new MongoDbNode(HOST_NAME, MongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
@@ -428,14 +427,17 @@ public class UpdateUnitResourceTest {
                 .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // We get a RequestResponseOK object, either updates fail or succeed
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
-        List<JsonNode> results = responseOK.getResults();
+        RequestResponseOK<RequestResponseOK<UpdateUnit>> responseOK =
+            JsonHandler.getFromInputStreamAsTypeReference(stream,
+                new TypeReference<>() {
+                });
+        final List<RequestResponseOK<UpdateUnit>> results = responseOK.getResults();
 
         // We get one result per request
         assertThat(results.size()).isEqualTo(2);
 
         // We get one hit for each request which succeeded
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse = results.get(0);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // The response contains the id of the updated object
@@ -445,7 +447,7 @@ public class UpdateUnitResourceTest {
         assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
 
         // Same for the second request
-        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(results.get(1), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> secondResponse = results.get(1);
         assertThat(secondResponse.getHits().getSize()).isEqualTo(1);
 
         List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
