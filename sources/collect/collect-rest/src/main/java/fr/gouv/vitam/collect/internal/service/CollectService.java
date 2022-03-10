@@ -54,7 +54,6 @@ public class CollectService {
     /**
      * create a collect model
      *
-     * @param collectModel collection model to create
      * @throws CollectException exception thrown in case of error
      */
     public void createCollect(TransactionDto transactionDto) throws CollectException {

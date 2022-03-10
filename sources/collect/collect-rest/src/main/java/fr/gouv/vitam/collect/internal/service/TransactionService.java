@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
@@ -88,9 +90,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,13 +97,12 @@ import java.util.Map;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 
 public class TransactionService {
 
-    public static final String SHA_512 = "SHA-512";
-    private static final String FOLDER_CONTENT = "Content";
     private static final String TAG_STATUS = "#status";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
     public static final String UNABLE_TO_FIND_ARCHIVE_UNIT_ID = "Unable to find archiveUnit Id";
@@ -331,9 +329,9 @@ public class TransactionService {
         int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
         int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
         dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
-        dbVersionsModel.setUri(FOLDER_CONTENT + "/" + fileName);
+        dbVersionsModel.setUri(CONTENT_FOLDER + "/" + fileName);
         dbVersionsModel.setMessageDigest(digest);
-        dbVersionsModel.setAlgorithm(SHA_512);
+        dbVersionsModel.setAlgorithm(DigestType.SHA512.getName());
         dbVersionsModel.setSize(countingInputStream.getByteCount());
 
         qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
@@ -355,22 +353,20 @@ public class TransactionService {
     public String pushStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName)
         throws CollectException {
         LOGGER.debug("Try to push stream to workspace...");
-        String digest;
         try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             if (!workspaceClient.isExistingContainer(containerName)) {
                 workspaceClient.createContainer(containerName);
-                workspaceClient.createFolder(containerName, FOLDER_CONTENT);
+                workspaceClient.createFolder(containerName, CONTENT_FOLDER);
             }
-            MessageDigest messageDigest = MessageDigest.getInstance(SHA_512);
-            uploadedInputStream = new DigestInputStream(uploadedInputStream, messageDigest);
-            workspaceClient.putObject(containerName, FOLDER_CONTENT.concat("/").concat(fileName), uploadedInputStream);
-            digest = CollectHelper.readMessageDigestReturn(messageDigest.digest());
-        } catch (ContentAddressableStorageException | NoSuchAlgorithmException e) {
+            Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+            InputStream digestInputStream = digest.getDigestInputStream(uploadedInputStream);
+            workspaceClient.putObject(containerName, CONTENT_FOLDER.concat("/").concat(fileName), digestInputStream);
+            LOGGER.debug("Push stream to workspace finished");
+            return digest.digestHex();
+        } catch (ContentAddressableStorageException e) {
             LOGGER.error("Error when trying to push stream to workspace: {} ", e);
             throw new CollectException("Error when trying to push stream to workspace: " + e);
         }
-        LOGGER.debug("Push stream to workspace finished");
-        return digest;
     }
 
     public JsonNode saveArchiveUnitInMetaData(JsonNode unitJsonDto) throws CollectException {
@@ -394,7 +390,8 @@ public class TransactionService {
                 return null;
             }
             InputStream is =
-                workspaceClient.getObject(transactionId, FOLDER_CONTENT + "/" + objectName).readEntity(InputStream.class);
+                workspaceClient.getObject(transactionId, CONTENT_FOLDER + "/" + objectName)
+                    .readEntity(InputStream.class);
             Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), objectName);
             Files.copy(is, path);
             File tmpFile = path.toFile();
