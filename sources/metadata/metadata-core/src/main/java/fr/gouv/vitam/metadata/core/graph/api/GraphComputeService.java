@@ -228,7 +228,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         throws VitamRuntimeException {
 
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
-        List<String> up = document.get(Unit.UP, List.class);
+        List<String> up = document.getList(Unit.UP, String.class);
         String unitId = document.get(Unit.ID, String.class);
         String originatingAgency = document.get(Unit.ORIGINATING_AGENCY, String.class);
 
@@ -239,7 +239,6 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         Set<String> graph = new HashSet<>();
         Set<String> us = new HashSet<>();
         Set<String> sps = new HashSet<>();
-        Map<String, Set<String>> us_sp = new HashMap<>();
         MultiValuedMap<Integer, String> uds = new HashSetValuedHashMap<>();
 
         if (StringUtils.isNotEmpty(originatingAgency)) {
@@ -255,13 +254,6 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
 
             if (StringUtils.isNotEmpty(parentOriginatingAgency)) {
                 sps.add(parentOriginatingAgency);
-                Set<String> ussp = us_sp.get(parentOriginatingAgency);
-                if (null == ussp) {
-                    ussp = new HashSet<>();
-                    us_sp.put(parentOriginatingAgency, ussp);
-                }
-
-                ussp.add(ugr.getParent());
             }
 
             /*
@@ -274,7 +266,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         Map<String, Collection<String>> parentsDepths = new HashMap<>();
         Map<Integer, Collection<String>> udsMap = uds.asMap();
         Integer min = 1;
-        Integer max_minus_one = 0;
+        int max_minus_one = 0;
         for (Integer o : udsMap.keySet()) {
             Collection<String> currentParents = udsMap.get(o);
             if (!currentParents.isEmpty()) {
