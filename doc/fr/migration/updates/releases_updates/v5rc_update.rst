@@ -43,6 +43,12 @@ Après le passage du script de migration, il faut procéder à la réindexation 
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --tags unit --ask-vault-pass
 
+Puis redémarrer les externals qui ont été coupés durant la migration :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
+
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
 
