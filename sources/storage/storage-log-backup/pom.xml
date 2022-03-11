@@ -68,7 +68,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.storage.log.traceability.StorageLogBackup</mainClass>
+                            <mainClass>fr.gouv.vitam.storage.log.backup.StorageLogBackup</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
