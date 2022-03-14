@@ -256,6 +256,7 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
+    - siegfried
     - vitam
   vars:
     vitam_struct: "{{ vitam.collect }}"

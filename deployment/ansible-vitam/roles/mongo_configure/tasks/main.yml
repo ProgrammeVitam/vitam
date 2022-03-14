@@ -115,10 +115,18 @@
         - metadata
         - identity
         - report
+      no_log: "{{ hide_passwords_during_deploy }}"
+      when: "mongo_cluster_name == 'mongo-data'"
+      tags:
+        - update_mongodb_configuration
+
+    - name: Create collect module user
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
+      with_items:
         - collect
         - metadata-collect
       no_log: "{{ hide_passwords_during_deploy }}"
-      when: "mongo_cluster_name == 'mongo-data'"
+      when: "mongo_cluster_name == 'mongo-data' and groups['hosts_collect'] is defined and groups['hosts_collect']|length > 0 and groups['hosts_metadata_collect'] is defined and groups['hosts_metadata_collect']|length > 0"
       tags:
         - update_mongodb_configuration
 
@@ -237,9 +245,15 @@
         - metadata
         - identity
         - report
-        - metadata-collect
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"
+      tags:
+        - update_mongodb_configuration
+
+    - name: Initiate metadata-collect database
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-metadata-collect-database.js"
+      no_log: "{{ hide_passwords_during_deploy }}"
+      when: "mongo_cluster_name == 'mongo-data' and groups['hosts_metadata_collect'] is defined and groups['hosts_metadata_collect']|length > 0"
       tags:
         - update_mongodb_configuration
 
