@@ -87,21 +87,6 @@ public class LogbookCheckConsistencyStep extends CommonStep {
             "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
             .isNullOrEmpty();
     }
-
-    /**
-     * runInVitamThread.
-     *
-     * @param
-     */
-    private void runInVitamThread(Runnable r) {
-        Thread thread = VitamThreadFactory.getInstance().newThread(r);
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    
 }
 

@@ -95,6 +95,10 @@ public class ProbativeCreateReport extends ActionHandler {
         throws ProcessingException {
 
         try {
+            if(!handler.isExistingFileInWorkspace("distributionFile.jsonl")) {
+                return buildItemStatus(HANDLER_ID, StatusCode.WARNING);
+            }
+
             String reportFileName = param.getContainerName() + JSON;
 
             generateReportToWorkspace(param, handler, reportFileName);
@@ -117,6 +121,7 @@ public class ProbativeCreateReport extends ActionHandler {
             // Report already stored in workspace (idempotency)
             return;
         }
+        
 
         File reportFile = handler.getNewLocalFile(reportFileName);
         try (InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");

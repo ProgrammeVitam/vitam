@@ -183,26 +183,6 @@ public class StorageStep extends CommonStep{
     }
 
     /**
-     * @param r runnable
-     */
-    private void runInVitamThread(Runnable r) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
-            try {
-                r.run();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        }, executorService).exceptionally((e) -> {
-            fail("Test failed with error", e);
-            return null;
-        });
-        task.join();
-    }
-
-
-
-    /**
      * Check that the file is stored in the offers
      *
      * @param dataTable the datatable
