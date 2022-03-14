@@ -226,12 +226,18 @@ Offre de stockage par défaut (storage-offer-default)
 
 Rôle :
 
-* Fournir une offre de stockage par défaut permettant la persistance des objets sur un système de fichiers local
+* Fournir une offre de stockage par défaut permettant la persistance des données
 
 Fonctions :
 
 * Offre de stockage fournie par défaut
-* Stockage simple des objets numériques sur un système de fichiers local ou sur un stockage objet Swift ou sur stockage objet S3
+* Plusieurs modes de persistence sont supportés :
+
+  * sur système de fichiers local
+  * sur service de stockage objet compatible protocole Swift
+  * sur service de stockage objet compatible protocole S3
+  * sur bandes magnétiques (stockage dit *froid*)
+
 * Log des écritures dans l'offre en permettant le rejeu
 
 Données gérées :
@@ -264,7 +270,7 @@ Données gérées :
 * Aucune
 
 Connecteur générique
-=====================================
+====================
 
 Rôle :
 

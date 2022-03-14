@@ -10,7 +10,7 @@ Se référer également aux :term:`DEX` pour plus de procédures.
 Cas d'une modification du nombre de tenants
 ===========================================
 
-Modifier dans le fichier d'inventaire  la directive ``vitam_tenant_ids``
+Modifier dans le fichier d'inventaire la directive ``vitam_tenant_ids``, et dans toutes les directives concernées (ex. ``api_output_index_tenants``, ``rules_index_tenants``, ``vitam_removed_tenants``, ``dedicated_tenants``, ``grouped_tenants``...)
 
 Exemple :
 
@@ -27,6 +27,7 @@ Exemple:
       ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_vitam_configuration
       ansible-playbook ansible-vitam-extra/extra.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_vitam_configuration
 
+.. note:: Si une offre froide est configurée, la liste des buckets configurés doit être mise à jour en conséquence.
 
 Cas d'une modification des paramètres :term:`JVM`
 =================================================

@@ -2,7 +2,7 @@
 
 export RESTIC_PASSWORD={{ restic.password | default('vitam') }}
 
-{% if vitam_offers[offer_conf]["provider"] in ["filesystem", "filesystem-hash", "tape-library"] %}
+{% if vitam_offers[offer_conf]["provider"] in ["filesystem", "filesystem-hash"] %}
 # PARAMETERS FOR FILESYSTEM & TAPE OFFERS
 export RESTIC_CONTAINER=/vitam/data/offer/container/{{ vitam_prefix_offer | default(vitam_site_name) }}_restic
 {% endif %}

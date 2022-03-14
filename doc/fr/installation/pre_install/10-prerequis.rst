@@ -110,11 +110,9 @@ Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été dé
 * solution de centralisation des logs (`cluster` elasticsearch de log)
 * workspace
 * worker (temporairement, lors du traitement de chaque fichier à traiter)
-* `cluster` elasticsearch des données :term:`VITAM`
+* `cluster` elasticsearch et mongodb des données :term:`VITAM`
 
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
-
-.. _prerequisoffrefroide:
 
 Librairie de cartouches pour offre froide
 =========================================
@@ -122,4 +120,5 @@ Librairie de cartouches pour offre froide
 Des prérequis sont à réunir pour utiliser l'offre froide de stockage "tape-library" définie dans le :term:`DAT`.
 
 * La librairie de cartouches doit être opérationnelle et chargée en cartouches.
-* La librairie et les lecteurs doivent déjà être disponibles sur la machine devant supporter une instance de ce composant. La commande ``lsscsi -g`` peut permettre de vérifier si des périphériques sont détectés.
+* La librairie et les lecteurs doivent déjà être configurés sur la machine devant supporter une instance de ce composant. La commande ``lsscsi -g`` peut permettre de vérifier si des périphériques sont détectés.
+* Le dossier ``/vitam/data/offer/`` doit correspondre à une seule partition de système de fichiers (i.e. tout le contenu du dossier ``/vitam/data/offer`` doit appartenir au même point de montage). Le système de fichiers doit supporter les opérations de atomiques (type atomic rename / move) et la création de liens symboliques (ex. XFS, EXT4...)
