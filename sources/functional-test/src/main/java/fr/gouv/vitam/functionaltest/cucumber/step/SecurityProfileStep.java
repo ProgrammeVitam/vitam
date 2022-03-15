@@ -57,14 +57,13 @@ import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 /**
  * Security Profile Step
  */
-public class SecurityProfileStep {
+public class SecurityProfileStep extends CommonStep{
 
-    private World world;
     private String fileName;
     private String securityProfileName;
 
     public SecurityProfileStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

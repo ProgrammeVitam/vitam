@@ -44,17 +44,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Step defining Accession register behavior
  */
-public class AccessionRegisterStep {
+public class AccessionRegisterStep extends CommonStep {
 
     private static final String ACCESSION_REGISTER_SUMMARY_ERROR_MESSAGE =
         "no accession register summary in result since an error occured: ";
     private static final String ACCESSION_REGISTER_DETAIL_ERROR_MESSAGE =
         "no accession register detail in result since an error occured: ";
-    private World world;
     private RequestResponse requestResponse;
 
     public AccessionRegisterStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

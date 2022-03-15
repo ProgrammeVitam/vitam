@@ -76,15 +76,14 @@ import static org.assertj.core.api.Java6Assertions.fail;
 /**
  * PreservationStep class
  */
-public class PreservationStep {
+public class PreservationStep extends CommonStep{
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStep.class);
 
-    private World world;
 
     public static final String EMPTY_JSON_FILE = "empty.json";
 
     public PreservationStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^j'importe le griffon nommé (.*)$")

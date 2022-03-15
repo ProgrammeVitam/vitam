@@ -70,12 +70,10 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class TransferStep {
-
-    private World world;
-
+public class TransferStep extends CommonStep{
+    
     public TransferStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^je lance un transfert$")

@@ -53,14 +53,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OntologyStep {
+public class OntologyStep extends CommonStep {
 
 
     public OntologyStep(World world) {
-        this.world = world;
+        super(world);
     }
-
-    private World world;
+    
     private Path fileName;
 
     private OntologyModel ontologyModel;

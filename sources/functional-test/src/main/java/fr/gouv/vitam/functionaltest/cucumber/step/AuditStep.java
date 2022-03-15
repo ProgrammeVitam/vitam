@@ -49,16 +49,14 @@ import static org.assertj.core.api.Java6Assertions.fail;
 /**
  * AuditStep class
  */
-public class AuditStep {
+public class AuditStep extends CommonStep {
 
     private final static String AUDIT_QUERY = "{auditActions:\"%s\",auditType:\"originatingagency\",objectId:\"%s\"}";
-
-    private final World world;
-
+    
     private Status auditStatus;
 
     public AuditStep(World world) {
-        this.world = world;
+        super(world);
     }
 
 

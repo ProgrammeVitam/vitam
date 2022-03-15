@@ -27,19 +27,21 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -55,10 +57,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import javax.ws.rs.core.Response;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,22 +65,31 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Storage step
  */
-public class StorageStep {
+public class StorageStep extends CommonStep{
     private String fileName;
-    private final World world;
     private static final String TEST_URI = "testStorage";
-    private String guid;
+    private final String guid;
     private StoredInfoResult info;
     private Response.StatusType responseStatus;
 
     public StorageStep(World world) throws FileNotFoundException, InvalidParseOperationException {
-        this.world = world;
+        super(world);
         guid = GUIDFactory.newStorageOperationGUID(world.getTenantId(), true).getId();
     }
 
@@ -103,6 +111,65 @@ public class StorageStep {
         assertThat(info.getId()).isEqualTo(guid);
     }
 
+
+    @When("^je lance une sauvegarde des journaux des écritures")
+    public void storage_backup() throws IOException {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
+                RequestResponseOK<StorageLogBackupResult> response =
+                    world.getStorageClient().storageLogBackup(Collections.singletonList(world.getTenantId()));
+
+                StorageLogBackupResult storageLogTraceabilityResult = response.getResults().get(0);
+
+                assertThat(storageLogTraceabilityResult.getOperationId())
+                    .as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                world.setOperationId(storageLogTraceabilityResult.getOperationId());
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+    @When("^je lance une sauvegarde des journaux des logs d'accès")
+    public void storage_accesslog_backup() throws IOException {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
+                RequestResponseOK<StorageLogBackupResult> response =
+                    world.getStorageClient().storageAccessLogBackup(Collections.singletonList(world.getTenantId()));
+
+                StorageLogBackupResult storageLogTraceabilityResult = response.getResults().get(0);
+
+                assertThat(storageLogTraceabilityResult.getOperationId()).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                world.setOperationId(storageLogTraceabilityResult.getOperationId());
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+    @When("^je lance une sécurisation du journal des écritures")
+    public void storage_log_traceability() throws IOException {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
+                RequestResponseOK<StorageLogTraceabilityResult> response =
+                    world.getStorageClient().storageLogTraceability(Collections.singletonList(world.getTenantId()));
+
+                StorageLogTraceabilityResult storageLogTraceabilityResult = response.getResults().get(0);
+
+                assertThat(storageLogTraceabilityResult.getOperationId()).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                world.setOperationId(storageLogTraceabilityResult.getOperationId());
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
+    }
+
     private void save(String strategy) {
         runInVitamThread(() -> {
             Path sip = Paths.get(world.getBaseDirectory(), fileName);
@@ -119,13 +186,18 @@ public class StorageStep {
      * @param r runnable
      */
     private void runInVitamThread(Runnable r) {
-        Thread thread = VitamThreadFactory.getInstance().newThread(r);
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
+            try {
+                r.run();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, executorService).exceptionally((e) -> {
+            fail("Test failed with error", e);
+            return null;
+        });
+        task.join();
     }
 
 
@@ -165,7 +237,7 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 try {
-                    result.set(world.storageClient.listContainer(strategy, null, DataCategory.OBJECT));
+                    result.set(world.getStorageClient().listContainer(strategy, null, DataCategory.OBJECT));
                 } catch (StorageServerClientException e) {
                     throw new RuntimeException(e);
                 }
@@ -184,14 +256,14 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 response =
-                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                    world.getStorageClient().getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
 
             } catch (Exception | AssertionError e) {
 
                 throw new RuntimeException(e);
             } finally {
-                world.storageClient.consumeAnyEntityAndClose(response);
+                world.getStorageClient().consumeAnyEntityAndClose(response);
             }
         });
     }

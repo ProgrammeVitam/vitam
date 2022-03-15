@@ -44,12 +44,11 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class RevertUpdateStep {
+public class RevertUpdateStep extends CommonStep{
 
-    World world;
 
     public RevertUpdateStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @Quand("^je lance la restauration des métadonnées essentielles des AU$")

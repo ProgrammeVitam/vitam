@@ -51,14 +51,12 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * Class for ATR tests.
  */
-public class IngestATRStep {
+public class IngestATRStep extends CommonStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestATRStep.class);
 
-    private World world;
-
     public IngestATRStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

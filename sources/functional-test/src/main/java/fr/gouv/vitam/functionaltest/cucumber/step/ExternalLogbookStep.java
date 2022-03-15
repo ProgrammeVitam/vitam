@@ -52,16 +52,15 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 /**
  * External Logbook Step
  */
-public class ExternalLogbookStep {
+public class ExternalLogbookStep extends CommonStep{
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExternalLogbookStep.class);
 
     public ExternalLogbookStep(World world) {
-        this.world = world;
+        super(world);
     }
 
-    private World world;
     private String fileName;
 
     /**

@@ -57,11 +57,8 @@ public class TraceabilityStorageService {
      * @return list of last saved files as iterator
      */
     public Iterator<OfferLog> getLastSavedStorageLogIterator(String strategyId) {
-        Iterator<OfferLog> offerLogIterator =
-            new OfferLogIterator(
-                strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
-
-        return offerLogIterator;
+        return new OfferLogIterator(
+            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
     }
 
     /**
