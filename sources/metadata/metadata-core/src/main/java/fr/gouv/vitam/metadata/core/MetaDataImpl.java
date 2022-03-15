@@ -1038,8 +1038,6 @@ public class MetaDataImpl {
         final MongoCollection<MetadataSnapshot> snapshotCollection =
             mongoDbAccess.getMongoDatabase().getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
 
-        boolean newDay = false;
-
         final Bson scrollRequestDateFilter = Filters.and(
             Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
             Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.LastScrollRequestDate.name())
@@ -1053,18 +1051,16 @@ public class MetaDataImpl {
         final MetadataSnapshot lastScrollRequestDate = snapshotCollection.find(scrollRequestDateFilter).first();
         if (lastScrollRequestDate != null) {
             final LocalDate value =  LocalDateUtil.parseMongoFormattedDate(lastScrollRequestDate.getValue(String.class)).toLocalDate();
-            if (value.plusDays(1).isEqual(LocalDate.now())) {
-                newDay = true;
-                snapshotCollection
-                    .updateOne(scrollRequestDateFilter, set(MetadataSnapshot.VALUE, LocalDateUtil.now()));
+            if (value.isBefore(LocalDate.now())) {
                 snapshotCollection.updateOne(scrollFilter, set(MetadataSnapshot.VALUE, 0));
+                return;
             }
         }
 
 
         final MetadataSnapshot scroll = snapshotCollection.find(scrollFilter).first();
         if (streamExecutionLimit != 0 && scroll != null) {
-            if (scroll.getValue(Integer.class) == streamExecutionLimit && !newDay) {
+            if (scroll.getValue(Integer.class) >= streamExecutionLimit) {
                 throw new MetaDataException("Scroll execution limit reached, please re-try next day");
             }
         }
