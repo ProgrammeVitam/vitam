@@ -79,11 +79,12 @@ PACKAGE_URL=${PROMETHEUS_NODE_EXPORTER_URL}
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/*
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/*
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/data/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/*
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/data/${PACKAGE_NAME}
-
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/${PACKAGE_NAME}/sysconfig
 
 pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
@@ -124,10 +125,12 @@ PACKAGE_URL=${PROMETHEUS_CONSUL_EXPORTER_URL}
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/*
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/*
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/data/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/*
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/data/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/${PACKAGE_NAME}/sysconfig
 
 
 pushd ${WORKING_FOLDER}/sources/
