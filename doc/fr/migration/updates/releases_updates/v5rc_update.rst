@@ -25,8 +25,6 @@ Migration des unités archivistiques
 
 .. caution:: Cette migration doit être effectuée après la montée de version V5RC mais avant la réouverture du service aux utilisateurs.
 
-.. caution:: Ne pas appliquer cette migration en cas de montée de version vers la V5. Suivez le chapitre équivalent dans la procédure V5.
-
 Cette migration de données consiste à :
 
 - Supprimer le champ ``us_sp`` et rendre inactive l'indexation des champs dynamiques créés au niveau des régles de gestion héritées au niveau de la propriété ``endDates``.
@@ -35,7 +33,7 @@ Elle est réalisée en exécutant la commande suivante (sur le site primaire uni
 
 .. code-block:: bash
 
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5rc.yml --ask-vault-pass
 
 Après le passage du script de migration, il faut procéder à la réindexation de toutes les unités archivistiques :
 
