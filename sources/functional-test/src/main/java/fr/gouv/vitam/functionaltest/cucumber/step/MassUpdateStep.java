@@ -50,12 +50,10 @@ import static org.assertj.core.api.Java6Assertions.fail;
 /**
  * MassUpdateStep class
  */
-public class MassUpdateStep {
-
-    World world;
-
+public class MassUpdateStep extends CommonStep {
+    
     public MassUpdateStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^je lance la mise à jour de masse des units$")

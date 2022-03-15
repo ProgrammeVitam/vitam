@@ -46,12 +46,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 /**
  * Logbook check consistency step.
  */
-public class LogbookCheckConsistencyStep {
+public class LogbookCheckConsistencyStep extends CommonStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookCheckConsistencyStep.class);
     public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
-    private final World world;
     private LogbookCheckResult result;
 
     /**
@@ -60,7 +59,7 @@ public class LogbookCheckConsistencyStep {
      * @param world
      */
     public LogbookCheckConsistencyStep(World world) {
-        this.world = world;
+        super(world);
         new VitamContext(world.getTenantId());
     }
 

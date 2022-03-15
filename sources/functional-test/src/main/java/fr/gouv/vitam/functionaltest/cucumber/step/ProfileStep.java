@@ -58,16 +58,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Profile Step
  */
-public class ProfileStep {
+public class ProfileStep extends CommonStep{
 
     public ProfileStep(World world) {
-        this.world = world;
+        super(world);
     }
-
-    /**
-     * ★★★ The world ★★★
-     */
-    private World world;
+    
     /**
      * ★★★ The file name ★★★
      */

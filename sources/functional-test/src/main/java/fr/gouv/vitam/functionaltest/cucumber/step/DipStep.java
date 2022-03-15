@@ -64,12 +64,10 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class DipStep {
-
-    private World world;
-
+public class DipStep extends CommonStep{
+    
     public DipStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^j'exporte le dip$")

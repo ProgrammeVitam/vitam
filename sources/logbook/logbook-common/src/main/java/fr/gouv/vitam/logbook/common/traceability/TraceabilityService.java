@@ -142,6 +142,9 @@ public class TraceabilityService {
                 // do nothing, nothing to be handled
                 LOGGER.warn("No entries to be processed");
                 helper.saveEmpty(tenantId);
+                if (!zipFile.delete()) {
+                    LOGGER.error("Unable to delete zipFile");
+                }
                 return;
             }
 

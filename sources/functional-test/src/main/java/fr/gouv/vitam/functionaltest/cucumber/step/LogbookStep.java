@@ -63,16 +63,15 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * step defining logbook behaviors
  */
-public class LogbookStep {
+public class LogbookStep extends CommonStep{
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookStep.class);
 
-    private World world;
     private boolean isRequestResponseLifecycle;
     private RequestResponse requestResponse;
 
     public LogbookStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^je recherche le journal des opérations")

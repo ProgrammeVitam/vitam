@@ -60,9 +60,8 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 /**
  * Context Step
  */
-public class ContextStep {
+public class ContextStep extends CommonStep {
 
-    private World world;
     private String fileName;
     private String query;
 
@@ -75,7 +74,7 @@ public class ContextStep {
      */
     private JsonNode model;
     public ContextStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

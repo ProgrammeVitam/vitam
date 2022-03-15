@@ -44,16 +44,13 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class ProbativeStep {
+public class ProbativeStep extends CommonStep{
 
     public static final String CONTEXT_IDENTIFIER = "CT-000001";
 
     public ProbativeStep(World world) {
-        this.world = world;
+        super(world);
     }
-
-    private World world;
-
 
 
     /**

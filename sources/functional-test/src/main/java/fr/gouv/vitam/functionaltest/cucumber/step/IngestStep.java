@@ -62,7 +62,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
 
-public class IngestStep {
+public class IngestStep extends CommonStep{
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestStep.class);
     public static final String ID = "ID";
@@ -70,12 +70,11 @@ public class IngestStep {
 
     private Path sip;
 
-    private World world;
     private static boolean deleteSip = false;
     private static boolean attachMode = false;
 
     public IngestStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

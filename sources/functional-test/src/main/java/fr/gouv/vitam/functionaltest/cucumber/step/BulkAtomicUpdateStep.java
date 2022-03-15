@@ -46,12 +46,10 @@ import static org.assertj.core.api.Java6Assertions.fail;
 /**
  * BulkAtomicUpdateStep class
  */
-public class BulkAtomicUpdateStep {
-
-    World world;
-
+public class BulkAtomicUpdateStep extends CommonStep {
+    
     public BulkAtomicUpdateStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     @When("^je lance la mise à jour unitaire de masse des units$")

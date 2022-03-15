@@ -110,7 +110,7 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * step defining access glue
  */
-public class AccessStep {
+public class AccessStep extends CommonStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
     public static final String CONTEXT_IDENTIFIER = "CT-000001";
@@ -143,13 +143,11 @@ public class AccessStep {
 
     private List<FacetResult> facetResults;
 
-    private final World world;
-
     private static String savedUnit;
     private RequestResponse<?> requestResponse;
 
     public AccessStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

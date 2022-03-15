@@ -44,12 +44,10 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class LogbookInternalStep {
-
-    private World world;
-
+public class LogbookInternalStep extends CommonStep{
+    
     public LogbookInternalStep(World world) {
-        this.world = world;
+        super(world);
     }
 
     /**

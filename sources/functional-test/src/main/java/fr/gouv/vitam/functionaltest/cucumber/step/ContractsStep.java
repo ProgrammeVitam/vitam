@@ -70,16 +70,15 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContractsStep {
+public class ContractsStep extends CommonStep{
 
     public static final String CONTEXT_IDENTIFIER = "CT-000001";
     public static final String INGEST_CONTRACT_NOT_IN_CONTEXT = "IngestContractNotInContext";
 
     public ContractsStep(World world) {
-        this.world = world;
+        super(world);
     }
 
-    private World world;
     private String fileName;
 
     /**

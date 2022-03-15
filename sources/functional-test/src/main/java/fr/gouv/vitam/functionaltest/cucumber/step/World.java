@@ -150,7 +150,7 @@ public class World {
     /**
      * Storage Client
      */
-    StorageClient storageClient;
+    private StorageClient storageClient;
     /**
      * tnr configuration
      */
@@ -283,6 +283,15 @@ public class World {
      */
     public LogbookOperationsClient getLogbookOperationsClient() {
         return logbookOperationsClient;
+    }
+
+    /**
+     * Storage client
+     *
+     * @return storageClient
+     */
+    public StorageClient getStorageClient() {
+        return storageClient;
     }
 
     /**

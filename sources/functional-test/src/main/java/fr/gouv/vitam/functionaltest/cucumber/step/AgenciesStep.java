@@ -60,13 +60,12 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  *
  */
-public class AgenciesStep {
+public class AgenciesStep extends CommonStep {
 
     public AgenciesStep(World world) {
-        this.world = world;
+        super(world);
     }
 
-    private World world;
     private String fileName;
 
     /**
