@@ -51,22 +51,6 @@
   notify:
     - restart logstash
 
-## log4j-core cleanup; remove this block when logstash will be completely free from this bug !
-- block:
-
-  - name: Install zip package to clean log4j-core
-    package:
-      name: zip
-      state: latest
-
-  - name: Remove JndiLookup.class from log4j-core
-    command: "bash -c 'zip -q -d /usr/share/logstash/logstash-core/lib/jars/log4j-core-2.* org/apache/logging/log4j/core/lookup/JndiLookup.class'"
-    ignore_errors: true # correct rc are 0 or 12 (if already removed)
-    notify: restart logstash
-
-  tags: log4j_security
-##
-
 ## Logstash configuration
 
 - name: Ensure logstash directories exist
