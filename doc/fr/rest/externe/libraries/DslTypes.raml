@@ -166,6 +166,38 @@ types:
         }
       }
 
+  DslStreamMultipleQuery:
+      displayName: Requête DSL multiple (SELECT MULTIPLE)
+      description: Requête DSL Vitam externe multi-requête pour la recherche par flux de ressources
+      type: object
+      properties:
+        $roots:
+          description: Contient les racines de la recherche
+          type: array
+          items:
+            type: string
+        $query:
+          description: Contient plusieurs requêtes
+          type: array
+          items:
+            type: object
+        $projection:
+          description: Contient la projection à appliquer
+          type: Projection
+
+      example: {
+        "$roots": ["guid1","guid2"],
+        "$query": [
+          {
+            "$eq": { "myField1": "myValue" },
+            "$depth": 4
+          }
+        ],
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
+      }
+
   DslGetByIdQuery:
       displayName: Requête DSL unitaire (GET BY ID)
       description: Requête DSL Vitam externe pour la récupération d'une ressources
