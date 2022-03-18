@@ -93,6 +93,7 @@ tapeLibraryConfiguration:
           mtPath: "{{ drive.mtPath }}"
           ddPath: "{{ drive.ddPath }}"
           timeoutInMilliseconds: {{ drive.timeoutInMilliseconds }}
+          readWritePriority: {{ drive.readWritePriority | default('WRITE') }}
 {% endfor %}
       fullCartridgeDetectionThresholdInMB: {{ library.fullCartridgeDetectionThresholdInMB }}
 
