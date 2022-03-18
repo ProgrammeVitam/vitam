@@ -4,6 +4,7 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
+    asyncRead: false
     rank: 0
 
 # Optional params for each offers in vitam_strategy. If not set, the default values are applied.
@@ -16,7 +17,6 @@ vitam_strategy:
 #    rank: 0                      # Integer that indicates in ascending order the priority of the offer in the strategy
 
 # Example for tape offer:
-# Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
 #  - name: offer-tape-1
 #    referent: false
 #    asyncRead: true
@@ -33,22 +33,26 @@ vitam_strategy:
 # More strategies can be added but are optional
 # Strategy name must only use [a-z][a-z0-9-]* pattern
 # Any strategy must contain at least one offer
-# This list of offers is ordered. It can and has to be completed if more offers are necessary
+# This list of offers is ordered (by strictly-incremental "rank"). It can and has to be completed if more offers are necessary
 # Every strategy can define at most one referent offer.
 # other_strategies:
 #  metadata:
 #    - name: offer-fs-1
 #      referent: true
+#      asyncRead: false
 #      rank: 0
 #    - name: offer-fs-2
 #      referent: false
+#      asyncRead: false
 #      rank: 1
 #  binary:
-#    - name: offer-fs-2
-#      referent: false
-#      rank: 0
 #    - name: offer-s3-1
+#      referent: true
+#      asyncRead: false
+#      rank: 0
+#    - name: offer-tape-1
 #      referent: false
+#      asyncRead: true
 #      rank: 1
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
@@ -179,12 +183,13 @@ vitam_offers:
       #   - TAR archives containing all persisted metadata to Vitam (about 10 Kb per archival unit or object group, including updates & eliminated objects)
       #   - TAR archives containing all system objects persisted by Vitam (traceability files, reports...)
       #   - TAR archives containing all binaries being actively used (being accessed by a workflow requiring access to binaries : DIP, transfer request, preservation & corrective audit)
-      # Disk space usage must be monitored periodically to ensure enough space is available
-      cachedTarMaxStorageSpaceInMB: 1_000_000
+      # /!\ Currently, tape storage offer only support soft deletes (no physical delete from archives on tapes). Tape library & cache capacity must be sized to persist all versions of written objects for the whole system life-time.
+      # /!\ Important : Disk space usage must be monitored periodically to ensure enough space is available
+      cachedTarMaxStorageSpaceInMB: 10_000_000
       # High disk cache level. When reached, least recently used TAR archives are evicted, until enough space (cachedTarSafeStorageSpaceThresholdInMB) is available
-      cachedTarEvictionStorageSpaceThresholdInMB: 800_000
+      cachedTarEvictionStorageSpaceThresholdInMB: 8_000_000
       # Safe disk cache level. TAR archive eviction stops when disk space usage is bellow this threshold
-      cachedTarSafeStorageSpaceThresholdInMB: 700_000
+      cachedTarSafeStorageSpaceThresholdInMB: 7_00_000
 
       # Maximum objects to fetch by access request. Cannot exceed 100_000.
       maxAccessRequestSize: 10_000

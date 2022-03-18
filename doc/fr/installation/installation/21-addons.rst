@@ -372,15 +372,17 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 Paramétrage de l'Offre Froide ( librairies de cartouches )
 ==========================================================
 
-Suite à l'introduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
-De nouvelles entrées ont été ajoutées pour décrire d'une part le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les éléments de configuration doivent être renseignés par l'exploitant.
+.. seealso:: Les principes de fonctionnement de l'offre froide sont décrits dans la documentation externe dédiée ("Archivage sur Offre Froide").
 
-* Lecture asynchrone
+La librairie et les lecteurs doivent déjà être configurés sur la machine devant supporter une instance de ce composant (avec login automatique en cas de reboot).
 
-Un paramètre a été ajouté aux définitions de stratégie.
-`AsyncRead` permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
-Une offre froide "offer-tape" **doit** être configurée en lecture asynchrone.
-La valeur par défaut pour `asyncRead` est False.
+La commande ``lsscsi -g`` peut permettre de vérifier si des périphériques sont détectés.
+
+.. note:: Une offre froide est mono-instantiable uniquement. Elle ne peut être déployée en haut-disponibilité.
+
+Le paramétrage de l'offre froide se fait via la configuration du fichier ``deployment/environments/group_vars/all/offer_opts.yml``. L'ensemble des clés disponibles est listé dans le fichier ``deployment/environments/group_vars/all/offer_opts.yml.example``
+
+L'offre froide doit être configurée avec le flag ``AsyncRead`` défini à `True` dans la stratégie par défaut de Vitam via ``vitam_strategy`` ou dans une stratégie additionnelle ``other_strategies``.
 
 Exemple:
 
@@ -389,39 +391,13 @@ Exemple:
         vitam_strategy:
           - name: offer-tape-1
             referent: false
-            asyncRead: **true**
+            asyncRead: true
           - name: offer-fs-2
             referent: true
             asyncRead: false
+..
 
-
-* Périphériques liés à l'usage des bandes magnétiques
-
-**Terminologie**:
-
-        * **tapeLibrary**  une librairie de bande dans son ensemble. Une *tapeLibrary* est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
-
-        .. note:: Seule une librairie de bandes doit être configurée par offre froide. La configuration de plusieurs librairies pour une même offre froide n'est actuellement PAS supportée.
-
-        * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
-
-        .. note:: Seul un robot doit être configuré pour piloter une librairie de bandes. La configuration de plusieurs robots pour une même librairie de bandes n'est actuellement PAS supportée.
-
-        .. note:: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur
-
-        Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
-        L'usage de ``/dev/st0`` indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
-        A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utilisé par l'exécution de la commande appelante.
-
-        .. important:: Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
-
-        .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistance de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définir les drives.
-
-        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une *tapeLibrary*, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots.
-
-**Définition d'une offre froide:**
-
-        Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type *tape-library*
+Une offre froide doit être définie dans la rubrique ``vitam_offers`` avec un provider de type *tape-library*
 
 Exemple:
 
@@ -431,32 +407,36 @@ Exemple:
           offer-tape-1:
             provider: tape-library
             tapeLibraryConfiguration:
+              ...
 ..
 
-La description "tapeLibraryConfiguration" débute par la définition des paramètres globaux de l'offre froide :
+La section ``tapeLibraryConfiguration`` décrit le paramétrage général de l'offre froide.
 
-* **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'offre froide
-* **inputTarStorageFolder** Répertoire où seront générés et stockés les `tars` avant transfert sur bandes
-* **tmpTarOutputStorageFolder** Répertoire temporaire où seront rapatriés les `tars` depuis les bandes durant leur écriture.
-* **cachedTarStorageFolder** Répertoire de cache de où seront stockées une copie disque des `tars` archivés sur bandes.
-* **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
-* **maxTarFileSize** Taille maximale des `tars` à constituer, en octets.
+* **maxTarEntrySize** Taille maximale (en octets) au-delà de la laquelle les fichiers entrants seront découpés en segments. Typiquement 1 Go, maximum 8 Go.
+* **maxTarFileSize** Taille maximale (en octets) des `tars` à constituer. Typiquement 10 Go.
 * **forceOverrideNonEmptyCartridges** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*. Ne doit être défini à *true* que sur un environnement de recette où l'écrasement d'une bande de test est sans risque.
-* **cachedTarMaxStorageSpaceInMB** Permet de définir la taille maximale du cache disque (en Mo)
-* **cachedTarEvictionStorageSpaceThresholdInMB** Permet de définir la taille critique du cache disque (en Mo). Une fois ce seuil atteint, les archives non utilisées sont purgées (selon la date de dernier accès). Doit être plus petit que la taille maximale **cachedTarMaxStorageSpaceInMB**.
-* **cachedTarSafeStorageSpaceThresholdInMB** Seuil "confortable" d'utilisation du cache (en Mo). Le processus d'éviction des archives du cache s'arrête lorsque ce seuil est atteint. Doit être plus petit que la taille critique **cachedTarEvictionStorageSpaceThresholdInMB**.
-* **maxAccessRequestSize** Définit un seuil technique du nombre d'objets que peut cibler une demande d'accès. Par défaut de 10000. À Ne pas modifier.
-* **readyAccessRequestExpirationDelay** Valeur du délais d'expiration des demandes d'accès. Une fois une demande d'accès à des objets est prête, l'accès immédiat aux objets est garantie durant cette période.
-* **readyAccessRequestExpirationUnit** Unité du délais d'expiration des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
-* **readyAccessRequestPurgeDelay** Valeur du délais de purge complète des demandes d'accès.
-* **readyAccessRequestPurgeUnit** Unité du délais de purge complète des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
-* **accessRequestCleanupTaskIntervalDelay** Valeur de la fréquence de nettoyage des demandes d'accès.
-et **accessRequestCleanupTaskIntervalUnit** Unité de la fréquence de nettoyage des demandes d'accès (une valeur parmi "SECONDS"/"MINUTES"/"HOURS"/"DAYS"/"MONTHS").
 
-.. note:: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
+* **cachedTarMaxStorageSpaceInMB** Permet de définir la taille maximale du cache disque (en Mo) (Ex. 10 To pour un env de production)
+* **cachedTarEvictionStorageSpaceThresholdInMB** Permet de définir la taille critique du cache disque (en Mo). Une fois ce seuil atteint, les archives non utilisées sont purgées (selon la date de dernier accès). Doit être plus petit que la taille maximale **cachedTarMaxStorageSpaceInMB**. (Ex. 8 To pour un env de production)
+* **cachedTarSafeStorageSpaceThresholdInMB** Seuil "confortable" d'utilisation du cache (en Mo). Le processus d'éviction des archives du cache s'arrête lorsque ce seuil est atteint. Doit être plus petit que la taille critique **cachedTarEvictionStorageSpaceThresholdInMB**. (Ex. 6 To pour un env de production)
+
+* **maxAccessRequestSize** Définit un seuil technique du nombre d'objets que peut cibler une demande d'accès. Par défaut de 10000. À ne pas modifier.
+
+* **readyAccessRequestExpirationDelay** Valeur du délais d'expiration des demandes d'accès. Une fois une demande d'accès à des objets est prête, l'accès immédiat aux objets est garantie durant cette période.
+* **readyAccessRequestExpirationUnit** Unité du délais d'expiration des demandes d'accès (une valeur parmi "SECONDS" / "MINUTES" / "HOURS" / "DAYS" / "MONTHS").
+
+* **readyAccessRequestPurgeDelay** Valeur du délais de purge complète des demandes d'accès.
+* **readyAccessRequestPurgeUnit** Unité du délais de purge complète des demandes d'accès (une valeur parmi "SECONDS" / "MINUTES" / "HOURS" / "DAYS" / "MONTHS").
+
+* **accessRequestCleanupTaskIntervalDelay** Valeur de la fréquence de nettoyage des demandes d'accès.
+* **accessRequestCleanupTaskIntervalUnit** Unité de la fréquence de nettoyage des demandes d'accès (une valeur parmi "SECONDS" / "MINUTES" / "HOURS" / "DAYS" / "MONTHS").
+
+.. note:: maxTarEntrySize doit être strictement inférieur à maxTarFileSize
 .. note:: cachedTarEvictionStorageSpaceThresholdInMB doit être strictement inférieur à cachedTarMaxStorageSpaceInMB
 .. note:: cachedTarSafeStorageSpaceThresholdInMB doit être strictement inférieur à cachedTarEvictionStorageSpaceThresholdInMB
-.. note:: La durée de purge des demandes d'accès readyAccessRequestPurgeDelay/readyAccessRequestPurgeUnit doit être strictement supérieure à leur durée d'expiration readyAccessRequestExpirationDelay/readyAccessRequestExpirationUnit.
+.. note:: Se référer à la documentation :term:`DAT` pour les éléments de dimensionnement du cache.
+.. note:: La durée de purge des demandes d'accès doit être strictement supérieure à leur durée d'expiration.
+.. note:: Le monitoring de l'offre froide est for est **fortement recommandé** afin de s'assurer du bon fonctionnement de l'offre, et du dimensionnement du disque local. Un dashboard dédié à l'offre froide de Vitam est déployé avec les composants "extra" ``prometheus`` et ``grafana``.
 
 Exemple:
 
@@ -479,12 +459,17 @@ Exemple:
         readyAccessRequestPurgeUnit: DAYS
         accessRequestCleanupTaskIntervalDelay: 15
         accessRequestCleanupTaskIntervalUnit: MINUTES
+
+        topology:
+          ...
+        tapeLibraries:
+          ...
 ..
 
-Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
+Le paragraphe ``topology`` décrit la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
 
 * **tenants** tableau de 1 à n identifiants de tenants au format [1,...,n]
-* **tarBufferingTimeoutInMinutes** Valeur en minutes durant laquelle un tar peut rester ouvert
+* **tarBufferingTimeoutInMinutes** Valeur en minutes durant laquelle une archive TAR peut rester ouverte (durée maximale d'accumulation des objets dans un TAR) avant que le TAR soit finalisé / planifié pour écriture sur bande.
 
 Exemple:
 
@@ -503,25 +488,60 @@ Exemple:
               tarBufferingTimeoutInMinutes: 60
 ..
 
-Enfin, la définition des équipements robotiques proprement dite doit être réalisée dans le paragraphe "tapeLibraries".
+.. note:: Tous les tenants doivent être affectés à un et un seul bucket.
+.. caution:: L’affectation d’un tenant à un bucket est définitive. i.e. Il est impossible de modifier le bucket auquel un tenant a été déjà affecté car les données ont déjà été écrites sur bandes. Il est possible cependant, lors de l’ajout d’un tout nouveau tenant à Vitam, d’affecter ce nouveau tenant à un bucket existant.
+
+La section ``tapeLibraries`` permet de définir le paramétrage des bibliothèques de bandes pilotées par l'offre froide.
+
+.. note:: Une offre de stockage Vitam ne peut manipuler qu’une seule bibliothèque de bandes. Afin de piloter plusieurs bibliothèques de bandes, il convient d’utiliser des offres Vitam différentes.
+
+Une bibliothèque de bandes est composée d'un robot (bras articulé), et d'un ensemble de lecteurs.
+
+.. note:: Seul un robot doit être configuré pour piloter une librairie de bandes. La configuration de plusieurs robots pour une même librairie de bandes n'est actuellement PAS supportée.
+
+La commande ``ls -l /dev/tape/by-id/`` permet de lister les chemins des périphériques (lecteurs et bras articulés) à configurer.
+
+Exemple:
+
+.. code-block:: bash
+
+  $ ls -l /dev/tape/by-id/
+  total 0
+  lrwxrwxrwx 1 root root  9 Mar  7 11:07 scsi-1HP_EML_E-Series_B4B0AC0000 -> ../../sg1
+  lrwxrwxrwx 1 root root  9 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00001 -> ../../st0
+  lrwxrwxrwx 1 root root 10 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00001-nst -> ../../nst0
+  lrwxrwxrwx 1 root root  9 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00002 -> ../../st1
+  lrwxrwxrwx 1 root root 10 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00002-nst -> ../../nst1
+  lrwxrwxrwx 1 root root  9 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00003 -> ../../st2
+  lrwxrwxrwx 1 root root 10 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00003-nst -> ../../nst2
+  lrwxrwxrwx 1 root root  9 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00004 -> ../../st3
+  lrwxrwxrwx 1 root root 10 Mar  7 11:07 scsi-SHP_DLT_VS80_B4B0A00004-nst -> ../../nst3
+
+.. caution:: Ne pas utiliser les chemins ``/dev/*`` dont l'index peut changer en cas de redémarrage. Utiliser les chemins ``/dev/tape/by-id/*`` (qui utilisent le numéro de série du device cible).
+
+.. caution:: Seuls les devices de lecteurs de type ``/dev/nstX`` (par exemple : ``/dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00001-nst -> /dev/nst0``) peuvent être utilisés dans Vitam. Les devices de lecteurs de type ``/dev/stX`` (par exemple : ``/dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00001 -> /dev/st0``) ne doivent PAS être utilisés (car ils causent à rebobinage automatique de la bande après chaque opération).
 
 * **robots:** Définition du bras robotique de la librairie.
-*   **device:** Chemin du fichier de périphérique scsi générique associé au bras.
-*   **mtxPath:** Chemin vers la commande Linux de manipulation du bras.
-*   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
+
+  *   **device:** Chemin du fichier de périphérique scsi générique associé au bras. (ex. ``/dev/tape/by-id/scsi-1HP_EML_E-Series_B4B0AC0000``)
+  *   **mtxPath:** Chemin vers la commande Linux de manipulation du bras.
+  *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
 
 * **drives:** Définition du/ou des lecteurs de cartouches de la librairie.
-*   **index:** Numéro de lecteur, valeur débutant à 0.
-*   **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
-*   **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
-*   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
-*   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
+
+  *   **index:** Numéro de lecteur, valeur débutant à 0.
+  *   **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur. (ex. ``/dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00001-nst``)
+  *   **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
+  *   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
+  *   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
 
 * **fullCartridgeDetectionThresholdInMB** Seuil de détection de bande pleine (en Mo)
-* Permet pour détecter en cas d'erreur d'écriture sur bande, la cause probable de l'erreur :
-*   - Si le volume des données écrites sur bande > seuil : La bande est considérée comme pleine
-*   - Si le volume des données écrites sur bande < seuil : La bande est considérée comme corrompue
-* Typiquement, 90% de la capacité théorique de stockage des cartouches (hors compression).
+  Permet pour détecter en cas d'erreur d'écriture sur bande, la cause probable de l'erreur :
+
+  - Si le volume des données écrites sur bande > seuil : La bande est considérée comme pleine
+  - Si le volume des données écrites sur bande < seuil : La bande est considérée comme corrompue
+
+  Typiquement, 90% de la capacité théorique de stockage des cartouches (hors compression).
 
 Exemple:
 
@@ -531,31 +551,31 @@ Exemple:
           TAPE_LIB_1:
             robots:
               -
-                device: /dev/tape/by-id/scsiQUANTUM_10F73224E6664C84A1D00000
+                device: /dev/tape/by-id/scsi-1HP_EML_E-Series_B4B0AC0000
                 mtxPath: "/usr/sbin/mtx"
                 timeoutInMilliseconds: 3600000
             drives:
               -
                 index: 0
-                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+                device: /dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00001-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
               -
                 index: 1
-                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+                device: /dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00002-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
               -
                 index: 2
-                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+                device: /dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00003-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
               -
                 index: 3
-                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+                device: /dev/tape/by-id/scsi-SHP_DLT_VS80_B4B0A00004-nst
                 mtPath: "/bin/mt"
                 ddPath: "/bin/dd"
                 timeoutInMilliseconds: 3600000
@@ -713,6 +733,6 @@ Limitations actuelles
 
 restic est fourni en tant que fonctionnalité beta. À ce titre, il ne peut se substituer à des vérifications régulières de l'état des sauvegardes de vos bases.
 
-restic ne fonctionne pas avec les providers `openstack-swift` et `openstack-swift-v2`. Pour le provider `tape-library`, il écrira au même endroit qu'un provider de type `filesystem` (sous /vitam/data/offer/container/).
+restic ne fonctionne pas avec les providers `openstack-swift`, `openstack-swift-v2` et `tape-library`.
 
 restic ne fonctionne pas avec un cluster mongo multi-shardé. Ainsi, mongo-data ne peut être sauvegardé via restic que dans de petites instances de Vitam.

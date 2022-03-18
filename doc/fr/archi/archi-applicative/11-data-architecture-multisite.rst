@@ -147,10 +147,9 @@ Flux de stockage :
 Mode avancé: exemple d'architecture multi-stratégie orienté Offres objets
 -------------------------------------------------------------------------
 
-Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparée dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:`VITAM`. Ce type de déploiement offre donc la possibilité de stocker les objets techniques uniquement sur des offres dites *froides*.
+Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparée dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:`VITAM`. Ce type de déploiement d'offre peut être particulièrement adapté pour stocker des objets techniques uniquement sur des offres dites *froides* (sur bandes magnétiques).
 
-Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparées dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:`VITAM`.  Ce type de déploiement offre également la possibilité de stocker les objets binaires uniquement sur des offres dites *froides*(sur bande par exemple), mais il est fortement conseillé d’y stocker également les métadonnées associées aux objets.
-Une offre dite *référente* doit être une offre de type synchrone (offre dite *chaude*). Elle ne peut pas être un offre de type asynchrone (offre dite *froide*).
+Une offre dite *référente* peut être une offre de type synchrone (offre dite *chaude*) ou asynchrone (offre *froide*).
 
 Stratégies du site principal :
 

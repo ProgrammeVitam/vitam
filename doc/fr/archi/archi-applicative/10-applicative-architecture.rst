@@ -55,7 +55,7 @@ Les schémas suivants présentent l'architecture applicative et les flux d'infor
 
 Les services sont organisés en zones logiques :
 
-* Les :term:`API` externes contiennent les services exposés aux clients (ex: à un :term:`SIA`) ; tout accès externe à la solution logicielle :term:`VITAM` doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux :terme: `API` internes et de l'appel des :terme: `API` internes (principe d':terme: `API`-Gateway);
+* Les :term:`API` externes contiennent les services exposés aux clients (ex: à un :term:`SIA`) ; tout accès externe à la solution logicielle :term:`VITAM` doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux :term:`API` internes et de l'appel des :term:`API` internes (principe d':term:`API`-Gateway);
 * Les services métiers internes hébergent la logique métier de gestion des archives ; ils se subdivisent en :
 
     - Les services de traitement des archives : ils effectuent tous les traitements concernant les archives (unitaires ou de masse) ;
