@@ -16,4 +16,5 @@ Montées de version mineure
    r13_update.rst
    r15_updates.rst
    r16_update.rst
+   v5rc_update.rst
    v5_update.rst
