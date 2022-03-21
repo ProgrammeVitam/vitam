@@ -203,117 +203,117 @@ vitam_offers:
       accessRequestCleanupTaskIntervalDelay: 15
       accessRequestCleanupTaskIntervalUnit: MINUTES
 
-      # Bucket configuration
-      # ====================
-      # Bucket allows physical separation of data written to the tapes by tenant(s).
-      # Data of tenants of the same bucket can be written on the same tape.
-      # Data of tenants of different buckets cannot be written to the same tape.
-      #
-      # "name": the name of the bucket
-      #    Should be unique
-      #    Can only contain alphanumerical only characters (a-z, A-Z, 0-9)
-      #    Do not use "backup" as a bucket name (reserved internally for DB backup)
-      # "tenants": The list of tenants of the bucket.
-      #    Every bucket contins 1 or multiple tenants.
-      #    Every tenant should belong to exactly 1 bucket (no duplicates, no missing tenants)
-      #    The affectation of a tenant to a bucket is definitive and CANNOT be changed later
-      #    When adding new tenants to Vitam, they can be added to an existing bucket OR to a new bucket
-      # "tarBufferingTimeoutInMinutes":
-      #    Max buffering delay before a TAR archive is sealed and scheduled for archival on tape.
-      #    A TAR archive is sealed once it reaches a critical size ("maxTarFileSize") OR buffering delay expired, whatever occurs first
-      topology:
-        buckets:
-          -
-            name: test
-            tenants: [0]
-            tarBufferingTimeoutInMinutes: 60
-          -
-            name: admin
-            tenants: [1]
-            tarBufferingTimeoutInMinutes: 60
-          -
-            name: prod
-            tenants: [2,3,4,5,6,7,8,9]
-            tarBufferingTimeoutInMinutes: 60
-
-      # Tape library configuration :
-      # ============================
-      # /!\ Only a single tape library is supported per offer instance. Do NOT configure multiple tape libraries.
-
-      tapeLibraries:
+    # Bucket configuration
+    # ====================
+    # Bucket allows physical separation of data written to the tapes by tenant(s).
+    # Data of tenants of the same bucket can be written on the same tape.
+    # Data of tenants of different buckets cannot be written to the same tape.
+    #
+    # "name": the name of the bucket
+    #    Should be unique
+    #    Can only contain alphanumerical only characters (a-z, A-Z, 0-9)
+    #    Do not use "backup" as a bucket name (reserved internally for DB backup)
+    # "tenants": The list of tenants of the bucket.
+    #    Every bucket contins 1 or multiple tenants.
+    #    Every tenant should belong to exactly 1 bucket (no duplicates, no missing tenants)
+    #    The affectation of a tenant to a bucket is definitive and CANNOT be changed later
+    #    When adding new tenants to Vitam, they can be added to an existing bucket OR to a new bucket
+    # "tarBufferingTimeoutInMinutes":
+    #    Max buffering delay before a TAR archive is sealed and scheduled for archival on tape.
+    #    A TAR archive is sealed once it reaches a critical size ("maxTarFileSize") OR buffering delay expired, whatever occurs first
+    topology:
+      buckets:
         -
-          name: TAPE_LIB_1
+          name: test
+          tenants: [0]
+          tarBufferingTimeoutInMinutes: 60
+        -
+          name: admin
+          tenants: [1]
+          tarBufferingTimeoutInMinutes: 60
+        -
+          name: prod
+          tenants: [2,3,4,5,6,7,8,9]
+          tarBufferingTimeoutInMinutes: 60
 
-          # Tape changer configuration
-          # ==========================
-          # "device": changer device path.
-          #    Device path should be referenced using /dev/tape/by-id/{device} alias. Do NOT use /dev/sg* devices.
-          #    Only a single changer is supported. Do NOT configure multiple changers.
-          # "mtxPath": path to mtx linux utility (usually /usr/sbin/mtx)
-          # "timeoutInMilliseconds": Timeout (in MS) for mtx command execution.
-          #    Timeout should be large enough to handle all long-running operations (full tape library status, tape loading & unloading...).
-          #
-          robots:
-            -
-              device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
-              mtxPath: "/usr/sbin/mtx"
-              timeoutInMilliseconds: 3600000
+    # Tape library configuration :
+    # ============================
+    # /!\ Only a single tape library is supported per offer instance. Do NOT configure multiple tape libraries.
 
-          # Drive configuration
-          # ===================
-          # Multiple devices can be defined.
-          #
-          # index: 0-based drive index is the same order as reported in "mtx status"
-          # device: drive device path
-          #    Only use "nst" devices. Do NOT use "st" devices.
-          #    Device path should be referenced using /dev/tape/by-id/{device}-nst alias. Do NOT use /dev/nst* devices.
-          # mtPath: path to mt linux utility (usually /bin/mt)
-          # ddPath: path to dd linux utility (usually /bin/dd)
-          # timeoutInMilliseconds: Timeout (in MS) for mt & dd command execution.
-          #    Should be large enough to handle all long-running operations on drives (status, move, rewind, ejection, read & write...).
-          # readWritePriority: Defined the processing priority of read, write and backup orders. Should be one of
-          #    - "BACKUP" : Drive executes DB backup write orders, then regular data write orders, then read orders.
-          #    - "WRITE" : Drive executes regular data write orders, then read orders.
-          #    - "READ" : Drive executes data read orders, then regular data write orders.
-          #    /!\ At least one drive with BACKUP priority is required to handle DB backups.
+    tapeLibraries:
+      -
+        name: TAPE_LIB_1
 
-          drives:
-            -
-              index: 0
-              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
-              mtPath: "/bin/mt"
-              ddPath: "/bin/dd"
-              timeoutInMilliseconds: 3600000
-              readWritePriority: BACKUP
-            -
-              index: 1
-              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
-              mtPath: "/bin/mt"
-              ddPath: "/bin/dd"
-              timeoutInMilliseconds: 3600000
-              readWritePriority: READ
-            -
-              index: 2
-              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
-              mtPath: "/bin/mt"
-              ddPath: "/bin/dd"
-              timeoutInMilliseconds: 3600000
-              readWritePriority: READ
-            -
-              index: 3
-              device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
-              mtPath: "/bin/mt"
-              ddPath: "/bin/dd"
-              readWritePriority: WRITE
-              timeoutInMilliseconds: 3600000
+        # Tape changer configuration
+        # ==========================
+        # "device": changer device path.
+        #    Device path should be referenced using /dev/tape/by-id/{device} alias. Do NOT use /dev/sg* devices.
+        #    Only a single changer is supported. Do NOT configure multiple changers.
+        # "mtxPath": path to mtx linux utility (usually /usr/sbin/mtx)
+        # "timeoutInMilliseconds": Timeout (in MS) for mtx command execution.
+        #    Timeout should be large enough to handle all long-running operations (full tape library status, tape loading & unloading...).
+        #
+        robots:
+          -
+            device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
+            mtxPath: "/usr/sbin/mtx"
+            timeoutInMilliseconds: 3600000
 
-          # Tape library cartridge configuration
-          # ====================================
-          # Full cartridge detection threshold in MB.
-          # When a write error occurs on a tape whose current space usage exceeds this threshold, the tape is considered as "FULL", and data will be written to another tape
-          # When a write error occurs on a tape whose current space usage is bellow this threshold, the tape is considered as "CORRUPTED", and its status is set to "CONFLICT"
-          # Typically, to be set to 90% of theoretical tape capacity (excluding compression) of the tape library
-          fullCartridgeDetectionThresholdInMB : 2_000_000
+        # Drive configuration
+        # ===================
+        # Multiple devices can be defined.
+        #
+        # index: 0-based drive index is the same order as reported in "mtx status"
+        # device: drive device path
+        #    Only use "nst" devices. Do NOT use "st" devices.
+        #    Device path should be referenced using /dev/tape/by-id/{device}-nst alias. Do NOT use /dev/nst* devices.
+        # mtPath: path to mt linux utility (usually /bin/mt)
+        # ddPath: path to dd linux utility (usually /bin/dd)
+        # timeoutInMilliseconds: Timeout (in MS) for mt & dd command execution.
+        #    Should be large enough to handle all long-running operations on drives (status, move, rewind, ejection, read & write...).
+        # readWritePriority: Defined the processing priority of read, write and backup orders. Should be one of
+        #    - "BACKUP" : Drive executes DB backup write orders, then regular data write orders, then read orders.
+        #    - "WRITE" : Drive executes regular data write orders, then read orders.
+        #    - "READ" : Drive executes data read orders, then regular data write orders.
+        #    /!\ At least one drive with BACKUP priority is required to handle DB backups.
+
+        drives:
+          -
+            index: 0
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            timeoutInMilliseconds: 3600000
+            readWritePriority: BACKUP
+          -
+            index: 1
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            timeoutInMilliseconds: 3600000
+            readWritePriority: READ
+          -
+            index: 2
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            timeoutInMilliseconds: 3600000
+            readWritePriority: READ
+          -
+            index: 3
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            readWritePriority: WRITE
+            timeoutInMilliseconds: 3600000
+
+        # Tape library cartridge configuration
+        # ====================================
+        # Full cartridge detection threshold in MB.
+        # When a write error occurs on a tape whose current space usage exceeds this threshold, the tape is considered as "FULL", and data will be written to another tape
+        # When a write error occurs on a tape whose current space usage is bellow this threshold, the tape is considered as "CORRUPTED", and its status is set to "CONFLICT"
+        # Typically, to be set to 90% of theoretical tape capacity (excluding compression) of the tape library
+        fullCartridgeDetectionThresholdInMB : 2_000_000
 
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted
