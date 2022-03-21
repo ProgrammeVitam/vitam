@@ -111,14 +111,14 @@ public class AdminMetadataApplication extends Application {
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 
-            final MetadataManagementResource metadataReconstructionResource =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository,
+            final AdminMetadataManagementResource adminMetadataReconstructionResource =
+                new AdminMetadataManagementResource(vitamRepositoryProvider, offsetRepository,
                     metadata, metaDataConfiguration, indexManager);
             final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
-            singletons.add(metadataReconstructionResource);
+            singletons.add(adminMetadataReconstructionResource);
             singletons.add(new BasicAuthenticationFilter(metaDataConfiguration));
             singletons.add(new AdminRequestIdFilter());
             singletons.add(metadataAuditResource);
