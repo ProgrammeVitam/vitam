@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -40,10 +40,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReport.ReportVersion2;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportV2;
@@ -101,7 +101,7 @@ public class ProbativeCreateReportTest {
     @InjectMocks
     private ProbativeCreateReport probativeCreateReport;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final String DISTRIBUTION_FILE = "distributionFile.jsonl";
 
     @Test
     @RunWithCustomExecutor
@@ -118,6 +118,8 @@ public class ProbativeCreateReportTest {
                 "groupId", "objectId", "usageVersion");
 
         HandlerIO handlerIO = mock(HandlerIO.class);
+        when(handlerIO.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenReturn(true);
+
         when(handlerIO.getInputStreamFromWorkspace(any()))
             .thenReturn(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         when(handlerIO.getFileFromWorkspace(eq("request"))).thenReturn(pojoToFile(request));
@@ -162,6 +164,8 @@ public class ProbativeCreateReportTest {
         String containerName = "MyContainerName";
 
         HandlerIO handler = mock(HandlerIO.class);
+        when(handler.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenReturn(true);
+
         doReturn(false).when(handler).isExistingFileInWorkspace(containerName + JSON);
         doReturn(containerName).when(handler).getContainerName();
         doReturn(tempFolder.newFile(GUIDFactory.newGUID().getId())).when(handler).getNewLocalFile(anyString());
@@ -199,7 +203,8 @@ public class ProbativeCreateReportTest {
         String containerName = "MyContainerName";
 
         HandlerIO handler = mock(HandlerIO.class);
-        doReturn(true).when(handler).isExistingFileInWorkspace(containerName + JSON);
+        when(handler.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenReturn(true);
+        when(handler.isExistingFileInWorkspace(containerName + JSON)).thenReturn(true);
         doReturn(containerName).when(handler).getContainerName();
 
         WorkerParameters build = workerParameterBuilder()
@@ -228,12 +233,21 @@ public class ProbativeCreateReportTest {
             .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
                 "groupId", "objectId", "usageVersion");
 
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
+        HandlerIO handler = mock(HandlerIO.class);
+        when(handler.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenReturn(true);
+
+        /*handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
         handler.setInputStreamFromWorkspace(
             writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(object), false, false);
-        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));*/
+
+        when(handler.getInputStreamFromWorkspace(any()))
+            .thenReturn(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        when(handler.getFileFromWorkspace(eq("request"))).thenReturn(pojoToFile(request));
+        when(handler.getNewLocalFile(any())).thenReturn(tempFolder.newFile(GUIDFactory.newGUID().getId()));
+        when(handler.getFileFromWorkspace(eq(probativeEntryIdInDistributionFile))).thenReturn(pojoToFile(object));
+
 
         String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
@@ -253,19 +267,8 @@ public class ProbativeCreateReportTest {
     @RunWithCustomExecutor
     public void should_return_item_status_FATAL_when_something_wrong() throws Exception {
         // Given
-        String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
-
-        PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = ProbativeReportEntry
-            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
-                "groupId", "objectId", "usageVersion");
-
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
-        handler.setInputStreamFromWorkspace(
-            writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
-        handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(object), false, false);
-        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
+        HandlerIO handler = mock(HandlerIO.class);
+        when(handler.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenThrow(new ProcessingException(""));
 
         String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
@@ -294,13 +297,22 @@ public class ProbativeCreateReportTest {
         notReportEntryObject.put("unitId", Arrays.asList(1, 2, 3));
         notReportEntryObject.put("objectGroupId", Arrays.asList(1, 2, 3));
 
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
+        HandlerIO handler = mock(HandlerIO.class);
+        when(handler.isExistingFileInWorkspace(eq(DISTRIBUTION_FILE))).thenReturn(true);
+        /*handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
         handler.setInputStreamFromWorkspace(
             writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(notReportEntryObject), false,
             false);
-        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));*/
+
+        when(handler.getInputStreamFromWorkspace(any()))
+            .thenReturn(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        when(handler.getFileFromWorkspace(eq("request"))).thenReturn(pojoToFile(request));
+        when(handler.getNewLocalFile(any())).thenReturn(tempFolder.newFile(GUIDFactory.newGUID().getId()));
+        when(handler.getFileFromWorkspace(eq(probativeEntryIdInDistributionFile)))
+            .thenReturn(pojoToFile(notReportEntryObject));
+
 
         String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
@@ -314,13 +326,13 @@ public class ProbativeCreateReportTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(FATAL);
     }
 
-    private File pojoToFile(Object object) throws IOException {
+    private File pojoToFile(Object object) throws IOException, InvalidParseOperationException {
         File file = tempFolder.newFile();
-        objectMapper.writeValue(file, object);
+        JsonHandler.writeAsFile(object, file);
         return file;
     }
 
-    private InputStream writeDistributionFile(JsonLineModel distribution) throws IOException {
-        return new ByteArrayInputStream(objectMapper.writeValueAsBytes(distribution));
+    private InputStream writeDistributionFile(JsonLineModel distribution) {
+        return new ByteArrayInputStream(JsonHandler.unprettyPrint(distribution).getBytes());
     }
 }

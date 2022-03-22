@@ -26,12 +26,21 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -45,7 +54,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class LogbookInternalStep extends CommonStep{
-    
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalStep.class);
+
     public LogbookInternalStep(World world) {
         super(world);
     }
@@ -63,7 +74,29 @@ public class LogbookInternalStep extends CommonStep{
                 RequestResponseOK<TenantLogbookOperationTraceabilityResult> response =
                     world.getLogbookOperationsClient().traceability(Collections.singletonList(world.getTenantId()));
 
-                String operationId = response.getResults().get(0).getOperationId();
+                VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+
+                String operationId;
+                if (response.getResults().isEmpty() || response.getResults().get(0).getOperationId() == null ) {
+                    LOGGER.info("no need to run traceability");
+                    RequestResponse<JsonNode> logbookResponse =
+                        world.getLogbookOperationsClient()
+                            .getLastOperationByType("STP_OP_SECURISATION");
+                    if (!logbookResponse.isOk()) {
+                        fail("no traceability operation found");
+                        return;
+                    }
+                    RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
+                    if (logbook.getFirstResult() == null) {
+                        fail("no traceability operation found");
+                        return;
+                    }
+
+                    operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
+                } else {
+                    operationId = response.getResults().get(0).getOperationId();
+                }
+
                 world.setOperationId(operationId);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
@@ -79,18 +112,34 @@ public class LogbookInternalStep extends CommonStep{
     @When("^je génère un journal des cycles de vie des unités archivistiques sécurisé")
     public void generate_secured_lfc_unit() {
         runInVitamThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<String> response =
-                    world.getLogbookOperationsClient().traceabilityLfcUnit();
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+            String operationId;
 
-                String operationId = response.getResults().get(0);
-                world.setOperationId(operationId);
-                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-            } catch (Exception e) {
-                throw new CompletionException(e);
+            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcUnit();
+
+            if (response.getResults().isEmpty()) {
+                LOGGER.info("no need to run traceability");
+                RequestResponse<JsonNode> logbookResponse =
+                    world.getLogbookOperationsClient()
+                        .getLastOperationByType(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
+                if (!logbookResponse.isOk()) {
+                    fail("no traceability operation found");
+                    return;
+                }
+                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
+                if (logbook.getFirstResult() == null) {
+                    fail("no traceability operation found");
+                    return;
+                }
+
+                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
+            } else {
+                checkTraceabilityLfcResponseOKOrWarn(response);
+
+                operationId = response.getResults().get(0);
             }
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         });
     }
 
@@ -101,30 +150,43 @@ public class LogbookInternalStep extends CommonStep{
     @When("^je génère un journal des cycles de vie des groupes d'objets sécurisé")
     public void generate_secured_lfc_objectgroup() {
         runInVitamThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<String> response =
-                    world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+            String operationId;
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-                String operationId = response.getResults().get(0);
-                world.setOperationId(operationId);
-                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-            } catch (Exception e) {
-                throw new CompletionException(e);
+            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+
+            if (response.getResults().isEmpty()) {
+                LOGGER.info("no need to run traceability");
+                RequestResponse<JsonNode> logbookResponse =
+                    world.getLogbookOperationsClient()
+                        .getLastOperationByType(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+                if (!logbookResponse.isOk()) {
+                    fail("no traceability operation found");
+                    return;
+                }
+                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
+                if (logbook.getFirstResult() == null) {
+                    fail("no traceability operation found");
+                    return;
+                }
+
+                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
+            }else {
+                checkTraceabilityLfcResponseOKOrWarn(response);
+
+                operationId = response.getResults().get(0);
             }
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         });
     }
 
-    /**
-     * @param r runnable
-     */
-    private void runInVitamThread(Runnable r) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> task = CompletableFuture.runAsync(r, executorService).exceptionally((e) -> {
-            fail("should not produce an exception ", e);
-            return null;
-        });
-        task.join();
+    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK<String> requestResponseOK) throws
+        VitamException {
+        assertThat(requestResponseOK.isOk()).isTrue();
+
+        final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        checkOperationStatus(traceabilityOperationId, StatusCode.OK, StatusCode.WARNING);
     }
 }

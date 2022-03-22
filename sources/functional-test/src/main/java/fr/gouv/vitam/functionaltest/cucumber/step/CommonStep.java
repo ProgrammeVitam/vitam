@@ -26,10 +26,79 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 public class CommonStep {
     protected final World world;
 
     public CommonStep(World world) {
         this.world = world;
+    }
+
+
+    protected void checkOperationStatus(String operationId, StatusCode... statuses) throws VitamException {
+
+        assertThat(operationId).isNotNull();
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L,
+                TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Operation " + operationId + " timed out.");
+        }
+
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<ItemStatus> operationProcessExecutionDetails =
+            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, operationId);
+
+        assertThat(operationProcessExecutionDetails.isOk()).isTrue();
+
+        assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
+            .getGlobalStatus()).isIn((Object[]) statuses);
+    }
+
+    /**
+     * runInVitamThread.
+     *
+     * @param
+     */
+    protected void runInVitamThread(MyRunnable r) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
+            try {
+                r.run();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, executorService).exceptionally((e) -> {
+            fail("Test failed with error", e);
+            return null;
+        });
+        task.join();
+    }
+
+
+    public interface MyRunnable {
+        void run() throws Exception;
     }
 }

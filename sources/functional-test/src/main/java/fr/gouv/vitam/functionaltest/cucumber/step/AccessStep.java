@@ -1189,75 +1189,6 @@ public class AccessStep extends CommonStep {
         checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
     }
 
-
-    @When("^on lance la traçabilité des journaux de cycles de vie des unités archivistiques$")
-    public void unit_lfc_traceability() {
-        runInVitamThread(() -> {
-            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-            String operationId;
-
-            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcUnit();
-
-            if (response.getResults().isEmpty()) {
-                LOGGER.info("no need to run traceability");
-                RequestResponse<JsonNode> logbookResponse =
-                    world.getLogbookOperationsClient()
-                        .getLastOperationByType(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
-                if (!logbookResponse.isOk()) {
-                    fail("no traceability operation found");
-                    return;
-                }
-                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
-                if (logbook.getFirstResult() == null) {
-                    fail("no traceability operation found");
-                    return;
-                }
-
-                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
-            } else {
-                checkTraceabilityLfcResponseOKOrWarn(response);
-
-                operationId = response.getResults().get(0);
-            }
-            world.setOperationId(operationId);
-            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-        });
-    }
-
-    @When("^on lance la traçabilité des journaux de cycles de vie des groupes d'objets$")
-    public void objectgroup_lfc_traceability() {
-        runInVitamThread(() -> {
-            String operationId;
-            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-
-            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
-
-            if (response.getResults().isEmpty()) {
-                LOGGER.info("no need to run traceability");
-                RequestResponse<JsonNode> logbookResponse =
-                    world.getLogbookOperationsClient()
-                        .getLastOperationByType(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
-                if (!logbookResponse.isOk()) {
-                    fail("no traceability operation found");
-                    return;
-                }
-                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
-                if (logbook.getFirstResult() == null) {
-                    fail("no traceability operation found");
-                    return;
-                }
-
-                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
-            }else {
-                checkTraceabilityLfcResponseOKOrWarn(response);
-
-                operationId = response.getResults().get(0);
-            }
-            world.setOperationId(operationId);
-            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-        });
-    }
-
     @When("^je lance la vérification des journaux de sécurisation$")
     public void linked_check_traceability() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
@@ -1323,58 +1254,6 @@ public class AccessStep extends CommonStep {
         });
     }
 
-    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK<String> requestResponseOK) throws VitamException {
-        assertThat(requestResponseOK.isOk()).isTrue();
-
-        final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-        checkOperationStatus(traceabilityOperationId, StatusCode.OK, StatusCode.WARNING);
-    }
-
-    private void checkOperationStatus(String operationId, StatusCode... statuses) throws VitamException {
-
-        assertThat(operationId).isNotNull();
-
-        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean process_timeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L,
-                TimeUnit.MILLISECONDS);
-        if (!process_timeout) {
-            fail("Operation " + operationId + " timed out.");
-        }
-
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse<ItemStatus> operationProcessExecutionDetails =
-            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, operationId);
-
-        assertThat(operationProcessExecutionDetails.isOk()).isTrue();
-
-        assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
-            .getGlobalStatus()).isIn((Object[]) statuses);
-    }
-
-    /**
-     * runInVitamThread.
-     *
-     * @param
-     */
-    private void runInVitamThread(MyRunnable r) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
-            try {
-                r.run();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        }, executorService).exceptionally((e) -> {
-            fail("Test failed with error", e);
-            return null;
-        });
-        task.join();
-    }
-
     @When("^je lance l'opération de reclassification$")
     public void reclassification() throws Exception {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
@@ -1399,9 +1278,5 @@ public class AccessStep extends CommonStep {
         if (!processTimeout) {
             fail("reclassification processing not finished. Timeout exceeded.");
         }
-    }
-
-    public interface MyRunnable {
-        void run() throws Exception;
     }
 }
