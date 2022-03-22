@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -85,29 +87,31 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
-import java.nio.file.Files;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
 public class SipService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SipService.class);
-    public static final String RESULTS = "$results";
-    private static final String SHA_512 = "SHA-512";
     private static final String SIP_EXTENSION = ".zip";
-    private static final String MANIFEST_FILE_NAME = "manifest.xml";
-    private static final String CONTENT = "Content";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
     private final IngestExternalClientFactory ingestExternalClientFactory;
@@ -127,7 +131,7 @@ public class SipService {
 
         File localDirectory = PropertiesUtils.fileFromTmpFolder(collectModel.getId());
 
-        File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(MANIFEST_FILE_NAME));
+        File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(SEDA_FILE));
 
         boolean isCreated = manifestFile.getParentFile().mkdir();
         if (!isCreated) {
@@ -174,7 +178,7 @@ public class SipService {
                 select.setQuery(in);
 
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
-                ArrayNode objects = (ArrayNode) response.get(RESULTS);
+                ArrayNode objects = (ArrayNode) response.get(RequestResponseOK.TAG_RESULTS);
                 for (JsonNode object : objects) {
                     List<String> linkedUnits =
                         unitsForObjectGroupId.get(object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
@@ -228,39 +232,43 @@ public class SipService {
             throw new CollectException(e);
         }
 
-        try (InputStream inputStream = Files.newInputStream(manifestFile.toPath())) {
-            FileUtils.deleteDirectory(manifestFile.getParentFile());
+        try (InputStream inputStream = new FileInputStream(manifestFile)) {
             return saveManifestInWorkspace(collectModel, inputStream);
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectException(e);
+        } finally {
+            try {
+                FileUtils.deleteDirectory(manifestFile.getParentFile());
+            } catch (IOException exception) {
+                throw new CollectException(exception);
+            }
         }
 
     }
 
     private String saveManifestInWorkspace(CollectModel collectModel, InputStream inputStream) throws CollectException {
         LOGGER.debug("Try to push manifest to workspace...");
-        String digest = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             if (workspaceClient.isExistingContainer(collectModel.getId())) {
-                MessageDigest messageDigest = MessageDigest.getInstance(SHA_512);
-                inputStream = new DigestInputStream(inputStream, messageDigest);
-                workspaceClient.putObject(collectModel.getId(), MANIFEST_FILE_NAME, inputStream);
-                digest = CollectHelper.readMessageDigestReturn(messageDigest.digest());
+                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+                InputStream digestInputStream = digest.getDigestInputStream(inputStream);
+                workspaceClient.putObject(collectModel.getId(), SEDA_FILE, digestInputStream);
+                LOGGER.debug(" -> push manifest to workspace finished");
                 // compress
                 CompressInformation compressInformation = new CompressInformation();
                 compressInformation.getFiles().add(SEDA_FILE);
-                compressInformation.getFiles().add(CONTENT);
+                compressInformation.getFiles().add(CONTENT_FOLDER);
                 compressInformation.setOutputFile(collectModel.getId() + SIP_EXTENSION);
                 compressInformation.setOutputContainer(collectModel.getId());
                 workspaceClient.compress(collectModel.getId(), compressInformation);
+                return digest.digestHex();
             }
-        } catch (NoSuchAlgorithmException | ContentAddressableStorageServerException e) {
+            throw new CollectException("Container already exists");
+        } catch (ContentAddressableStorageServerException e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectException(e);
         }
-        LOGGER.debug(" -> push manifest to workspace finished");
-        return digest;
     }
 
     public String ingest(CollectModel collectModel, String digest) throws CollectException {
@@ -273,7 +281,7 @@ public class SipService {
             }
             IngestRequestParameters ingestRequestParameters =
                 new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name())
-                    .setManifestDigestAlgo(SHA_512)
+                    .setManifestDigestAlgo(DigestType.SHA512.getName())
                     .setManifestDigestValue(digest);
 
             RequestResponse<Void> response =
