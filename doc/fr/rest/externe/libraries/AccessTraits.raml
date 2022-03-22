@@ -37,11 +37,20 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON. cette fonctionnalité ne supporte pas les facets et les filtres $limit et $offset
-        type: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessStreamMultipleQuery
         example: !include examples/streamUnitRequest.json
     responses:
       200:
         description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL
+        headers:
+          X-Units-Count:
+            type: number
+            description: nombre des unités archivestiques retournées dans le flux
+            example: 141202
+          X-Content-Length:
+            type: number
+            description: la taille du flux de données
+            example: 13978998
         body:
           application/octet-stream:
             description: Réponse un Json stream contenant les métadonnées des Unités d'archives
