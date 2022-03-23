@@ -30,7 +30,7 @@ pipeline {
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
-        ES_VERSION="7.16.2"
+        ES_VERSION="7.16.3"
         MONGO_VERSION="4.2.5"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
@@ -85,7 +85,7 @@ pipeline {
                 // OMA: evaluate project version ; write directly through shell as I didn't find anything else
                 sh "$MVN_BASE -q -f sources/pom.xml --non-recursive -Dexec.args='\${project.version}' -Dexec.executable=\"echo\" org.codehaus.mojo:exec-maven-plugin:1.3.1:exec > version_projet.txt"
                 echo "Changed VITAM : ${env.CHANGED_VITAM}"
-                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"		
+                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"
             }
         }
 
@@ -142,6 +142,9 @@ pipeline {
                     branch "master"
                     tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
+            }
+            options {
+                timeout(time: 3, unit: "HOURS")
             }
             environment {
                 LANG="fr_FR.UTF-8" // to bypass dateformat problem
