@@ -97,9 +97,68 @@ Ci-dessous un exemple de déclaration de stratégie de stockage et ses offres, d
 Ajout d'un nouveau module VITAM : Module de collecte
 ----------------------------------------------------
 
+.. caution:: À préparer dans les sources de déploiement AVANT le déploiement de la V5. Ce module est optionnel, si vous ne souhaitez pas l'activer, vous pouvez conserver vos sources de déploiement et ne pas appliquer la procédure suivante.
+
 Ce module a pour but de faciliter l'intégration d'archives dans Vitam via une API constructive de SIP.
 
 Le module de `collect` nécessite la configuration et l'ajout d'une
 - autre instance de metadata appelée `metadata-collect`
 - autre instance de workspace appelée `workspace-collect`
+
+Pour la mise en oeuvre de cette nouvelle application, veuillez éditer les paramètres suivants:
+
+- Ajout des groupes de hosts du module de collect à votre fichier d'inventaire (cf. fichier d'inventaire d'exemple: ``environments/hosts.example``).
+
+  .. code-block:: ini
+
+    [zone_applicative:children]
+    hosts_collect
+    hosts_metadata_collect
+    hosts_workspace_collect
+
+    [hosts_collect]
+    # TODO: Put here servers where this service will be deployed : collect
+
+
+    [hosts_metadata_collect]
+    # TODO: Put here servers where this service will be deployed : metadata_collect
+
+
+    [hosts_workspace_collect]
+    # TODO: Put the server where this service will be deployed : workspace_collect
+    # WARNING: put only one server for this service, not more !
+
+  ..
+
+- Ajout des bases mongo pour le module de collect dans le fichier ``environments/group_vars/all/vault-vitam.yml``:
+
+  .. caution:: Pensez à éditer les password avec des passwords sécurisés.
+
+  .. code-block:: yaml
+
+    mongodb:
+      mongo-data:
+        collect:
+          user: collect
+          password: change_it_m39XvRQWixyDX566
+        metadataCollect:
+          user: metadata-collect
+          password: change_it_37b97KVaDV8YbCwt
+
+  ..
+
+- Utilisation d'un certificat dédié au module de collecte:
+
+- Ajouter le contexte de sécurité pour le module de collecte dans le fichier ``environments/group_vars/all/vitam_security.yml``:
+
+  .. code-block:: yaml
+
+    admin_context_certs:
+      - "collect/collect.crt"
+
+  ..
+
+- Regénérer les certificats pour créer ceux du module de collect: ``./pki/scripts/generate_certs.sh <fichier_inventaire>``
+
+- Regénérer les stores: ``./generate_stores.sh``
 

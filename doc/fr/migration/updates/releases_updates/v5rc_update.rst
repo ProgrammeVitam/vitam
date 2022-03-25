@@ -4,7 +4,7 @@ Notes et procédures spécifiques V5RC
 Supprimer les indexes de configuration kibana
 ----------------------------------------------
 
-.. caution:: Cette opération doit être effectuée avant la montée de version vers la V5RC.
+.. caution:: Cette opération doit être effectuée avant la montée de version vers la V5RC et si la version R16 utilisée est < 4.0.5.
 
 .. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
 
