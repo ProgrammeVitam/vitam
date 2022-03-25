@@ -5,7 +5,7 @@
     <parent>
         <artifactId>common</artifactId>
         <groupId>fr.gouv.vitam</groupId>
-        <version>5.0-SNAPSHOT</version>
+        <version>6.rc.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>common-manifest</artifactId>
@@ -19,20 +19,20 @@
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-public</artifactId>
-            <version>5.0-SNAPSHOT</version>
+            <version>6.rc.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-private</artifactId>
-            <version>5.0-SNAPSHOT</version>
+            <version>6.rc.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>logbook-common-server</artifactId>
-            <version>5.0-SNAPSHOT</version>
+            <version>6.rc.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
