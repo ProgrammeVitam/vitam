@@ -11,7 +11,7 @@
 
 - name: Remove consul agent service declaration for consul-exporter
   file:
-    dest: "{{ consul_folder_conf }}/service-consul-exporter.json"
+    path: "{{ consul_folder_conf }}/service-consul-exporter.json"
     state: absent
   tags:
     - consul_conf
