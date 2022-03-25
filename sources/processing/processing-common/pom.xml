@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>5.0-SNAPSHOT</version>
+		<version>6.rc.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-common</artifactId>
 
