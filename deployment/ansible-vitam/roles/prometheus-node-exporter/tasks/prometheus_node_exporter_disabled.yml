@@ -8,3 +8,12 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
+
+- name: Remove consul agent service declaration for node-exporter
+  file:
+    dest: "{{ consul_folder_conf }}/service-node-exporter.json"
+    state: absent
+  tags:
+    - consul_conf
+    - update_node_exporter_configuration
+  notify: reload consul configuration
