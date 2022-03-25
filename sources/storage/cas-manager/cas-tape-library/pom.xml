@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>cas-manager</artifactId>
-        <version>5.0</version>
+        <version>5.1-SNAPSHOT</version>
     </parent>
     <artifactId>cas-tape-library</artifactId>
     <name>Storage Tape Library</name>

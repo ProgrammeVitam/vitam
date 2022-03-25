@@ -7,7 +7,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>internal-security</artifactId>
-        <version>5.0</version>
+        <version>5.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>internal-security-common</artifactId>
