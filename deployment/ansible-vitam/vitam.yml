@@ -78,7 +78,7 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled | default(true) | bool == true )" }
+    - prometheus-node-exporter
 
 ### CEREBRO INSTALLATION ###
 - hosts: hosts_cerebro
