@@ -19,7 +19,7 @@ pipeline {
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
         DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
-        SERVICE_SONAR_URL = credentials("service-sonar-url")
+        SERVICE_SONAR_URL = credentials("service-sonar-java11-url")
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
         SERVICE_CHECKMARX_URL = credentials("service-checkmarx-url")
         SERVICE_REPO_SSHURL = credentials("repository-connection-string")
@@ -166,7 +166,7 @@ pipeline {
                                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
                                                     sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
-                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/}-Ddownloader.quick.query.timestamp=false'
                                                 }
                                             }
                                         }
@@ -226,7 +226,7 @@ pipeline {
                                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
                                                     sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
-                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/} -Ddownloader.quick.query.timestamp=false'
                                                 }
                                             }
                                         }
@@ -249,7 +249,7 @@ pipeline {
 
                     )
                     updateGitlabCommitStatus name: 'mergerequest', state: "success"
-				    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+				    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.preprod.programmevitam.fr/dashboard?id=${gitlabSourceBranch}) de la branche"
                 }
                 failure {
                     updateGitlabCommitStatus name: 'mergerequest', state: "failed"
@@ -292,7 +292,7 @@ pipeline {
                                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
                                                     sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
-                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/}-Ddownloader.quick.query.timestamp=false'
                                                 }
                                             }
                                         }
