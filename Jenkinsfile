@@ -166,7 +166,7 @@ pipeline {
                                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
                                                     sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
-                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/}-Ddownloader.quick.query.timestamp=false'
+                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/} -Ddownloader.quick.query.timestamp=false'
                                                 }
                                             }
                                         }
@@ -292,7 +292,7 @@ pipeline {
                                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
                                                     sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
-                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/}-Ddownloader.quick.query.timestamp=false'
+                                                    sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=${GIT_BRANCH#*/} -Ddownloader.quick.query.timestamp=false'
                                                 }
                                             }
                                         }
