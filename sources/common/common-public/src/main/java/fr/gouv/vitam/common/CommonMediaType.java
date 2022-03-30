@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,6 @@ public class CommonMediaType extends MediaType {
 
     /**
      * A {@code String} constant representing {@value #BZIP2} media type.
-     *
      */
     public static final String BZIP2 = "application/x-bzip2";
 
@@ -135,10 +134,9 @@ public class CommonMediaType extends MediaType {
     /**
      * Checks archive type if is supported by Vitam.
      *
-     * @since 0.10.0
-     *
      * @param mimeType the mime type to check
      * @return boolean : true if archive type supported by Vitam.
+     * @since 0.10.0
      */
     public static boolean isSupportedFormat(String mimeType) {
 

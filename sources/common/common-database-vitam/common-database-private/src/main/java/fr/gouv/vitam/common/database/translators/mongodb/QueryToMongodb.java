@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,27 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.mongodb.BasicDBObject;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.BSON;
+import org.bson.conversions.Bson;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
@@ -41,32 +62,8 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Filters.size;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
-import org.bson.BSON;
-import org.bson.conversions.Bson;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.mongodb.BasicDBObject;
-
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
 /**
  * Query to MongoDB
- *
  */
 public class QueryToMongodb {
     private static final String INVALID_RANGE_REQUEST_COMMAND = "Invalid Range request command: ";
@@ -107,7 +104,6 @@ public class QueryToMongodb {
     }
 
     /**
-     *
      * @param query Query
      * @return the associated MongoDB BSON request
      * @throws InvalidParseOperationException if query could not parse to command
@@ -288,7 +284,7 @@ public class QueryToMongodb {
         final String var = element.getKey();
         final BasicDBObject range = new BasicDBObject();
         for (final Iterator<Entry<String, JsonNode>> iterator =
-            element.getValue().fields(); iterator.hasNext();) {
+             element.getValue().fields(); iterator.hasNext(); ) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             try {
                 final String key = requestItem.getKey();

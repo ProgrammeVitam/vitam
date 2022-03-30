@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
-import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -119,7 +118,8 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     public void addAppraisalRuleKoInvalidFieldDeleteHoldRuleField() throws Exception {
 
         // Given
-        givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidFieldDeleteHoldRuleField.json");
+        givenRuleActions(
+            "UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidFieldDeleteHoldRuleField.json");
 
         // When
         ItemStatus itemStatus =
@@ -624,7 +624,8 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     public void updateHoldRuleKoSetAndDeleteHoldReassessingDate() throws Exception {
 
         // Given
-        givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldReassessingDate.json");
+        givenRuleActions(
+            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldReassessingDate.json");
 
         // When
         ItemStatus itemStatus =
@@ -640,7 +641,8 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     public void updateHoldRuleKoSetAndDeletePreventRearrangement() throws Exception {
 
         // Given
-        givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeletePreventRearrangement.json");
+        givenRuleActions(
+            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeletePreventRearrangement.json");
 
         // When
         ItemStatus itemStatus =

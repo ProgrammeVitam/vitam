@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import org.eclipse.jetty.server.Handler;
-
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+import org.eclipse.jetty.server.Handler;
 
 /**
  * VitamApplication Interface
@@ -60,7 +59,6 @@ public interface VitamApplication<A extends VitamApplication<A, C>, C extends Vi
     void setConfiguration(C configuration);
 
     /**
-     *
      * @return the Configuration Class
      */
     Class<C> getConfigurationType();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -83,7 +82,7 @@ public class PurgeDetachObjectGroupPluginTest {
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("id_got_1")

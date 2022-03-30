@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,14 @@
  */
 package fr.gouv.vitam.batch.report.model.entry;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.batch.report.model.ReportStatus;
 import fr.gouv.vitam.batch.report.model.ReportItemStatus;
+import fr.gouv.vitam.batch.report.model.ReportStatus;
+
+import java.util.List;
 
 /**
  * AuditObjectVersion
- *
  */
 public class AuditObjectVersion {
 
@@ -57,8 +55,9 @@ public class AuditObjectVersion {
     public AuditObjectVersion() {
     }
 
-    public AuditObjectVersion(String id, String opi, String qualifier, String version, String strategyId, List<ReportItemStatus> offerStatuses,
-            ReportStatus status) {
+    public AuditObjectVersion(String id, String opi, String qualifier, String version, String strategyId,
+        List<ReportItemStatus> offerStatuses,
+        ReportStatus status) {
         super();
         this.id = id;
         this.opi = opi;
@@ -104,11 +103,11 @@ public class AuditObjectVersion {
     public String getStrategyId() {
         return strategyId;
     }
-    
+
     public void setStrategyId(String strategyId) {
         this.strategyId = strategyId;
     }
-    
+
     public List<ReportItemStatus> getOfferStatuses() {
         return offerStatuses;
     }

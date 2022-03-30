@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -139,7 +139,8 @@ public class TransactionService {
                 LOGGER.error("Can't get unit by ID: {}" + unitId);
                 throw new CollectException("Can't get unit by ID: " + unitId);
             }
-            ArchiveUnitModel archiveUnitModel = objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
+            ArchiveUnitModel archiveUnitModel =
+                objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
             if (archiveUnitModel == null) {
                 LOGGER.error(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
                 throw new CollectException(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
@@ -148,11 +149,12 @@ public class TransactionService {
         } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
             | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
-            throw new CollectException("Error when fetching unit by id("+ unitId +") " + e);
+            throw new CollectException("Error when fetching unit by id(" + unitId + ") " + e);
         }
     }
 
-    public ObjectGroupDto saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage, int version,
+    public ObjectGroupDto saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage,
+        int version,
         ObjectGroupDto objectGroupDto) throws CollectException {
 
         try {
@@ -250,7 +252,8 @@ public class TransactionService {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             String versionId = collectService.createRequestId();
             UpdateMultiQuery query =
-                QueryHandler.getQualifiersAddMultiQuery(usage, version, objectGroup.getQualifiers(), objectGroupDto, versionId,
+                QueryHandler.getQualifiersAddMultiQuery(usage, version, objectGroup.getQualifiers(), objectGroupDto,
+                    versionId,
                     objectGroup.getNbc());
             client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -397,7 +400,7 @@ public class TransactionService {
             File tmpFile = path.toFile();
             final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
             final FormatIdentifierResponse format = CollectHelper.getFirstPronomFormat(formats);
-            if(format == null) {
+            if (format == null) {
                 LOGGER.error("Can't not found format !");
                 throw new CollectException("Can't not found format !");
             }

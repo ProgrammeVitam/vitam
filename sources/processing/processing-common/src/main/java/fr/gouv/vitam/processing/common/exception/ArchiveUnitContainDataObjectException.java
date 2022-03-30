@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,6 +40,7 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      * the eventDetailData
      */
     private String eventDetailData;
+
     /**
      * @param message associated message
      * @param cause associated cause
@@ -69,7 +70,8 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      * @param gotId
      * @param eventDetailData
      */
-    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId,String eventDetailData) {
+    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId,
+        String eventDetailData) {
         super(message);
         this.unitId = unitId;
         this.gotId = gotId;
@@ -78,7 +80,6 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     }
 
     /**
-     * 
      * @return the bdo Id
      */
     public String getBdoId() {
@@ -86,7 +87,6 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     }
 
     /**
-     * 
      * @return the got Id
      */
     public String getGotId() {
@@ -94,7 +94,6 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     }
 
     /**
-     * 
      * @return the unit id
      */
     public String getUnitId() {

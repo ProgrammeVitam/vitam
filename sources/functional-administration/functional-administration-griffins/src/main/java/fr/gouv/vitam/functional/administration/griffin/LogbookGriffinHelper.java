@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,8 +47,8 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper.newLogbookOperationParameters;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.MASTERDATA;
 
 /**
@@ -92,7 +92,8 @@ class LogbookGriffinHelper {
         }
     }
 
-    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName, GriffinReport warnings)
+    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName,
+        GriffinReport warnings)
         throws LogbookClientBadRequestException, LogbookClientServerException,
         LogbookClientNotFoundException {
 

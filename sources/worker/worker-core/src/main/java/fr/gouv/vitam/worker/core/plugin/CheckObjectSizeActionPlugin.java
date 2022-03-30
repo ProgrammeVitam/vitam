@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,9 +84,11 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                Pair<Boolean, String> checkSizeDetailsPair = checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
-                                if(checkSizeDetailsPair.getRight() != null){
-                                    itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(checkSizeDetailsPair.getRight());
+                                Pair<Boolean, String> checkSizeDetailsPair =
+                                    checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
+                                if (checkSizeDetailsPair.getRight() != null) {
+                                    itemStatus.getSubTaskStatus().get(objectId)
+                                        .setEvDetailData(checkSizeDetailsPair.getRight());
                                 }
                                 // The operator OR is useful for multibinary objects in GOT
                                 isFileSizeChanged = isFileSizeChanged || checkSizeDetailsPair.getLeft();
@@ -114,7 +116,8 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_OBJECT_SIZE).setItemsStatus(CHECK_OBJECT_SIZE, itemStatus);
     }
 
-    private Pair<Boolean, String> checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version, ItemStatus itemStatus) {
+    private Pair<Boolean, String> checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
+        ItemStatus itemStatus) {
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
         Boolean isSizeChanged = Boolean.FALSE;
         String eventDetailData = null;
@@ -124,11 +127,12 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
             ObjectNode workNode = (ObjectNode) version.get(SedaConstants.PREFIX_WORK);
             // Check diffSizeJson
             if (workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON).size() > 0) {
-                JsonNode wrappingDiffJsonObject = JsonHandler.createObjectNode().set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
+                JsonNode wrappingDiffJsonObject =
+                    JsonHandler.createObjectNode().set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
                 eventDetailData = JsonHandler.unprettyPrint(wrappingDiffJsonObject);
             }
             // Check if Size is incorrect
-            if(workNode.get(IngestWorkflowConstants.IS_SIZE_INCORRECT).asBoolean()){
+            if (workNode.get(IngestWorkflowConstants.IS_SIZE_INCORRECT).asBoolean()) {
                 subTaskItemStatus.increment(StatusCode.WARNING);
                 itemStatus.increment(StatusCode.WARNING);
                 isSizeChanged = Boolean.TRUE;

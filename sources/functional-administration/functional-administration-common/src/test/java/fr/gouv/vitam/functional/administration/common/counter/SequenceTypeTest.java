@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,16 +42,19 @@ public class SequenceTypeTest {
     @Test
     public void fromFunctionalAdminCollections() {
 
-        List<FunctionalAdminCollections> collectionsWithoutSequence =  Arrays.asList(
+        List<FunctionalAdminCollections> collectionsWithoutSequence = Arrays.asList(
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
             FunctionalAdminCollections.VITAM_SEQUENCE);
 
         List<FunctionalAdminCollections> collectionsWithSequence =
-            Arrays.stream(FunctionalAdminCollections.values()).filter(i -> !collectionsWithoutSequence.contains(i)).collect(
-                Collectors.toList());
+            Arrays.stream(FunctionalAdminCollections.values()).filter(i -> !collectionsWithoutSequence.contains(i))
+                .collect(
+                    Collectors.toList());
 
         for (FunctionalAdminCollections functionalAdminCollection : collectionsWithSequence) {
-            assertThat(SequenceType.fromFunctionalAdminCollections(functionalAdminCollection).getCollection()).isEqualTo(functionalAdminCollection);
+            assertThat(
+                SequenceType.fromFunctionalAdminCollections(functionalAdminCollection).getCollection()).isEqualTo(
+                functionalAdminCollection);
         }
 
         for (FunctionalAdminCollections functionalAdminCollection : collectionsWithoutSequence) {

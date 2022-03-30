@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -61,17 +61,18 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
     public SwiftKeystoneFactoryV2(StorageConfiguration configuration) {
         configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
-                .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
-                .withReadTimeout(configuration.getSwiftReadTimeout())
-                .withMaxConnections(configuration.getSwiftMaxConnections())
-                .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
+            .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
+            .withReadTimeout(configuration.getSwiftReadTimeout())
+            .withMaxConnections(configuration.getSwiftMaxConnections())
+            .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
         this.configuration = configuration;
     }
 
     public OSClient.OSClientV2 get() {
         Access currentAccess = atomicAccess.get();
         // First call to we have to authenticate
-        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
+        Date nearTime = LocalDateUtil.getDate(
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
         if (currentAccess == null || currentAccess.getToken().getExpires().before(nearTime)) {
             synchronized (monitor) {
                 currentAccess = atomicAccess.get();
@@ -86,7 +87,8 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         }
 
         // Renew Access before expiration only one thread should re-authenticate
-        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
+        Date farTime = LocalDateUtil.getDate(
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
         if (currentAccess.getToken().getExpires().before(farTime)) {
             // Only one thread should re-authentication
             if (oneThread.compareAndSet(true, false)) {
@@ -102,7 +104,8 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         }
 
         // If current client already exists
-        OSClientSession.OSClientSessionV2 currentClient = (OSClientSession.OSClientSessionV2) OSClientSession.OSClientSessionV2.getCurrent();
+        OSClientSession.OSClientSessionV2 currentClient =
+            (OSClientSession.OSClientSessionV2) OSClientSession.OSClientSessionV2.getCurrent();
         if (null != currentClient && currentAccess.getToken().equals(currentClient.getAccess().getToken())) {
             return currentClient;
         }
@@ -117,10 +120,11 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         try {
             return OSFactory.builderV2().endpoint(configuration.getSwiftKeystoneAuthUrl()).tenantName(configuration
                     .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())
-                    .withConfig(configOS4J)
-                    .authenticate();
+                .withConfig(configOS4J)
+                .authenticate();
         } finally {
-            PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "AUTHENTICATE", "RENEW_ACCESS", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log("STP_AUTHENTICATION", "AUTHENTICATE", "RENEW_ACCESS", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 }

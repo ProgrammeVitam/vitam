@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,8 +37,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -75,7 +75,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private static final String OBJ = "obj";
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID().getId()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
+            .newGUID().getId()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+        .setObjectName(OBJ)
         .setContainerName(OBJ)
         .setCurrentStep("TEST");
 
@@ -88,7 +89,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
     public static void setup() {
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
-        when(logbookLifeCyclesClientFactory.getClient()) .thenReturn(logbookLifeCycleClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCycleClient);
     }
 
     @Before

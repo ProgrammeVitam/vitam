@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+import fr.gouv.vitam.security.internal.rest.service.PermissionService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -39,10 +37,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
-import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
-import fr.gouv.vitam.security.internal.rest.service.PermissionService;
-import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PersonalCertificateResourceTest {
 

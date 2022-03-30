@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,17 @@
  */
 package fr.gouv.vitam.ihmdemo.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,19 +47,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * This class is used in order to make transformations on Json objects received from Vitam
@@ -105,7 +103,7 @@ public final class JsonTransformer {
 
     /**
      * Retrieve DataObject infos from object version.
-     * 
+     *
      * @param usages usage
      * @param object object
      * @return ObjectNode for DataObject version

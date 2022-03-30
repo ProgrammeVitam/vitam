@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,9 @@
  */
 package fr.gouv.vitam.batch.report.rest;
 
-import fr.gouv.vitam.batch.report.rest.server.BusinessApplication;
+import fr.gouv.vitam.batch.report.rest.server.AdminBatchReportApplication;
 import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
+import fr.gouv.vitam.batch.report.rest.server.BusinessApplication;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -37,7 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
-import fr.gouv.vitam.batch.report.rest.server.AdminBatchReportApplication;
 
 /**
  * MassReportMain
@@ -54,7 +54,7 @@ public class BatchReportMain {
     public BatchReportMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-         vitamStarter = new VitamStarter(BatchReportConfiguration.class, configurationFile,
+        vitamStarter = new VitamStarter(BatchReportConfiguration.class, configurationFile,
             BusinessApplication.class, AdminBatchReportApplication.class);
     }
 

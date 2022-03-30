@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
-import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -176,7 +175,7 @@ public class MetaDataImpl {
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     public static final int MAX_PRECISION_THRESHOLD = 40000;
-    public static final          String SNAPSHOT_COLLECTION = "Snapshot";
+    public static final String SNAPSHOT_COLLECTION = "Snapshot";
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -750,7 +749,7 @@ public class MetaDataImpl {
     }
 
     private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId,
-            boolean forceUpdate) {
+        boolean forceUpdate) {
 
         try {
 
@@ -1050,7 +1049,8 @@ public class MetaDataImpl {
 
         final MetadataSnapshot lastScrollRequestDate = snapshotCollection.find(scrollRequestDateFilter).first();
         if (lastScrollRequestDate != null) {
-            final LocalDate value =  LocalDateUtil.parseMongoFormattedDate(lastScrollRequestDate.getValue(String.class)).toLocalDate();
+            final LocalDate value =
+                LocalDateUtil.parseMongoFormattedDate(lastScrollRequestDate.getValue(String.class)).toLocalDate();
             if (value.isBefore(LocalDate.now())) {
                 snapshotCollection.updateOne(scrollFilter, set(MetadataSnapshot.VALUE, 0));
                 return;

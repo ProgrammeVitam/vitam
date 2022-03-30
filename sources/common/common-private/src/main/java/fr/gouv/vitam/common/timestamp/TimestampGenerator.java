@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,8 @@
  */
 package fr.gouv.vitam.common.timestamp;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.cert.CertificateEncodingException;
-
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.TimeStampException;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
@@ -40,8 +38,9 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.TimeStampException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.cert.CertificateEncodingException;
 
 /**
  * Generate a time stamp token for a specific hash

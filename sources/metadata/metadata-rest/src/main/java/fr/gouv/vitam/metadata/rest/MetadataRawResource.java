@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,14 +41,18 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataRepositoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
 @Path("/v1")
-@Tag(name="Metadata")
+@Tag(name = "Metadata")
 public class MetadataRawResource {
 
     /**
@@ -58,7 +62,7 @@ public class MetadataRawResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param vitamRepositoryProvider vitam repository provider
      */
     public MetadataRawResource(VitamRepositoryProvider vitamRepositoryProvider) {
@@ -102,16 +106,16 @@ public class MetadataRawResource {
             return Response.status(Status.OK).entity(responseOK).build();
         } catch (MetaDataNotFoundException e) {
             return VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, String
-                .format("Could not find document of type %s", collection.getName()))
+                    .format("Could not find document of type %s", collection.getName()))
                 .toResponse();
         } catch (DatabaseException e) {
             return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                .format("Technical error while trying to find document of type %s",
-                    collection.getName()))
+                    .format("Technical error while trying to find document of type %s",
+                        collection.getName()))
                 .toResponse();
         } catch (InvalidParseOperationException e) {
             return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                .format("Technical error while trying to parse document of type %s", collection.getName()))
+                    .format("Technical error while trying to parse document of type %s", collection.getName()))
                 .toResponse();
         }
     }
@@ -152,7 +156,7 @@ public class MetadataRawResource {
             return Response.status(Status.OK).entity(responseOK).build();
         } catch (InvalidParseOperationException e) {
             return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                .format("Technical error while trying to parse document of type %s", collection.getName()))
+                    .format("Technical error while trying to parse document of type %s", collection.getName()))
                 .toResponse();
         }
     }

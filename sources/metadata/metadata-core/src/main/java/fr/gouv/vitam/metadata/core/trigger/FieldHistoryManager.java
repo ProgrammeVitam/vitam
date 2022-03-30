@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,9 +48,11 @@ public class FieldHistoryManager {
 
     public FieldHistoryManager(String fileNameTriggersConfig) {
         try {
-            for (HistoryTriggerConfig config : JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(fileNameTriggersConfig), HistoryTriggerConfig[].class)) {
+            for (HistoryTriggerConfig config : JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(fileNameTriggersConfig), HistoryTriggerConfig[].class)) {
                 if (triggers.get(config.getFieldPathTriggeredForHistory()) == null) {
-                    triggers.put(config.getFieldPathTriggeredForHistory(), new ChangesHistory(config.getObjectPathForHistory()));
+                    triggers.put(config.getFieldPathTriggeredForHistory(),
+                        new ChangesHistory(config.getObjectPathForHistory()));
                 }
             }
         } catch (InvalidParseOperationException | FileNotFoundException e) {
@@ -61,7 +63,7 @@ public class FieldHistoryManager {
 
 
     public void trigger(JsonNode unitBeforeChanges, JsonNode unitAfterChanges) {
-        for(Map.Entry<String, ChangesHistory> trigger : triggers.entrySet()) {
+        for (Map.Entry<String, ChangesHistory> trigger : triggers.entrySet()) {
             if (isUpdatedFieldForHistory(trigger.getKey(), unitBeforeChanges, unitAfterChanges)) {
                 trigger.getValue().addHistory(unitBeforeChanges, unitAfterChanges);
             }
@@ -69,7 +71,8 @@ public class FieldHistoryManager {
     }
 
 
-    private boolean isUpdatedFieldForHistory(String fieldPathForHistory, JsonNode unitBeforeUpdate, JsonNode unitAfterUpdate) {
+    private boolean isUpdatedFieldForHistory(String fieldPathForHistory, JsonNode unitBeforeUpdate,
+        JsonNode unitAfterUpdate) {
         String valueBeforeUpdate = getValue(fieldPathForHistory, unitBeforeUpdate);
         String valueAfterUpdate = getValue(fieldPathForHistory, unitAfterUpdate);
 

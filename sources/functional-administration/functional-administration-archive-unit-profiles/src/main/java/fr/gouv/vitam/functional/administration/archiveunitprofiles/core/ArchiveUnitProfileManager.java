@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.archiveunitprofiles.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.HashMap;
-import java.util.Optional;
-
-import fr.gouv.vitam.common.json.InvalidJsonSchemaException;
-import fr.gouv.vitam.common.json.JsonSchemaValidator;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -52,7 +41,9 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.InvalidJsonSchemaException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.JsonSchemaValidator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -64,14 +55,21 @@ import fr.gouv.vitam.functional.administration.archiveunitprofiles.core.ArchiveU
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import org.bson.conversions.Bson;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class manage validation and log operation of profile service
@@ -419,7 +417,7 @@ public class ArchiveUnitProfileManager {
 
     /**
      * Check if the ArchiveUnitProfile is used in a ArchiveUnit
-     * 
+     *
      * @return
      */
     public ArchiveUnitProfileValidator createCheckUsedJsonSchema() {

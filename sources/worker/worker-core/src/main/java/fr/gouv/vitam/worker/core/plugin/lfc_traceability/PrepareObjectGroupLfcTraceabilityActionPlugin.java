@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -111,7 +111,8 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
             itemStatus);
     }
 
-    protected InputStream exportRawLifecyclesByLastPersistedDate(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+    protected InputStream exportRawLifecyclesByLastPersistedDate(
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         LocalDateTime startDate, LocalDateTime endDate, int maxEntries)
         throws LogbookClientException, InvalidParseOperationException, IOException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {

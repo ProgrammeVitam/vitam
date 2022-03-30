@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,6 +38,7 @@ public class Symbolic {
 
     /**
      * Constructor
+     *
      * @param agency originating agency
      * @param symbolic true symbolic agency
      */
@@ -48,6 +49,7 @@ public class Symbolic {
 
     /**
      * Getter
+     *
      * @return agency
      */
     public String getAgency() {
@@ -56,6 +58,7 @@ public class Symbolic {
 
     /**
      * Setter
+     *
      * @param agency
      */
     public void setAgency(String agency) {
@@ -64,6 +67,7 @@ public class Symbolic {
 
     /**
      * Getter
+     *
      * @return symbolic
      */
     public boolean isSymbolic() {
@@ -72,6 +76,7 @@ public class Symbolic {
 
     /**
      * Setter
+     *
      * @param symbolic
      */
     public void setSymbolic(boolean symbolic) {

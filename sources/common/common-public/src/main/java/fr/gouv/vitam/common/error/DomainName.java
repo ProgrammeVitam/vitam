@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -104,7 +104,7 @@ public enum DomainName {
      * @param code the code
      * @return the domain if exists
      * @throws IllegalArgumentException thrown if code is null or empty or if the attached domain to the code does not
-     *         exist
+     * exist
      */
     public static DomainName getFromCode(String code) {
         ParametersChecker.checkParameter("code is required", code);

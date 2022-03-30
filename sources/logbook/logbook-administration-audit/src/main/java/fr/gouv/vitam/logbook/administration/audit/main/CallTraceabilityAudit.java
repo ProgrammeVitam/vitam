@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.logbook.administration.audit.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.temporal.ChronoUnit;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
@@ -45,6 +40,11 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Utility to launch the audit for traceability through command line and external scheduler
@@ -64,7 +64,8 @@ public class CallTraceabilityAudit {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final TraceabilityAuditConfiguration conf = PropertiesUtils.readYaml(confFile, TraceabilityAuditConfiguration.class);
+            final TraceabilityAuditConfiguration conf =
+                PropertiesUtils.readYaml(confFile, TraceabilityAuditConfiguration.class);
             VitamThreadFactory instance = VitamThreadFactory.getInstance();
             Thread thread = instance.newThread(() -> {
                 conf.getTenants().forEach((v) -> {
@@ -99,7 +100,7 @@ public class CallTraceabilityAudit {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
             final LogbookOperationsClientFactory logbookOperationsClientFactory =
-                    LogbookOperationsClientFactory.getInstance();
+                LogbookOperationsClientFactory.getInstance();
 
             AuditLogbookOptions options = new AuditLogbookOptions(amount, unit, logbookType);
             try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
@@ -118,7 +119,7 @@ public class CallTraceabilityAudit {
         // Load Platform secret from vitam.conf file
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
             final VitamConfigurationParameters vitamConfigurationParameters =
-                    PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
 
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());

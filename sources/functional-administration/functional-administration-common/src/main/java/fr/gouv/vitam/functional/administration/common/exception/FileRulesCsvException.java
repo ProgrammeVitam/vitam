@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,7 @@ import java.util.Map;
 public class FileRulesCsvException extends FileRulesReadException {
     /**
      * @param message message to associate with the exception
-     * @param cause   cause to associate with the exception
+     * @param cause cause to associate with the exception
      */
     public FileRulesCsvException(String message, Throwable cause) {
         super(message, cause);

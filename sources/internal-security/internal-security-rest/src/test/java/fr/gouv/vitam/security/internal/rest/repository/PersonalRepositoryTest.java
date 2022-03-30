@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,12 +28,12 @@ package fr.gouv.vitam.security.internal.rest.repository;
 
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,7 +44,6 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -313,7 +313,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced, boolean crossTenant)
-            throws LogbookDatabaseException, VitamDBException {
+        throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
         // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to
@@ -524,13 +524,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    private <T extends VitamDocument<?>> VitamMongoCursor<T> select(final LogbookCollections collection, final JsonNode select,
+    private <T extends VitamDocument<?>> VitamMongoCursor<T> select(final LogbookCollections collection,
+        final JsonNode select,
         final ObjectNode slice)
         throws LogbookDatabaseException, VitamDBException {
         return select(collection, select, slice, false);
     }
 
-    private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(final MongoCollection<T> collection,
+    private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(
+        final MongoCollection<T> collection,
         SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
@@ -558,7 +560,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @return the Closeable MongoCursor on the find request based on the given collection
      * @throws InvalidParseOperationException
      */
-    private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(final LogbookCollections collection, Select select)
+    private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(
+        final LogbookCollections collection, Select select)
         throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
@@ -649,7 +652,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws LogbookNotFoundException {
         try {
             LogbookOperation oldValue =
-                LogbookCollections.OPERATION.<LogbookOperation>getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
+                LogbookCollections.OPERATION.<LogbookOperation>getCollection()
+                    .find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
             // the test shouldn't be necessary, but...
             if (oldValue != null) {
                 Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
@@ -715,10 +719,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Remove _id and events fields
             removeDuplicatedInformation(event);
 
-            final LogbookOperation result = LogbookCollections.OPERATION.<LogbookOperation>getCollection().findOneAndUpdate(
-                eq(LogbookDocument.ID, mainLogbookDocumentId),
-                combine(listUpdates),
-                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            final LogbookOperation result =
+                LogbookCollections.OPERATION.<LogbookOperation>getCollection().findOneAndUpdate(
+                    eq(LogbookDocument.ID, mainLogbookDocumentId),
+                    combine(listUpdates),
+                    new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
@@ -1351,7 +1356,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
 
             // Do not delete the temporary lifeCycle when it is on an INGEST process
-            List<Document> newEvents = logbookLifeCycleObjectGrouptInProcess.getList(LogbookDocument.EVENTS, Document.class);
+            List<Document> newEvents =
+                logbookLifeCycleObjectGrouptInProcess.getList(LogbookDocument.EVENTS, Document.class);
             if (newEvents != null && !newEvents.isEmpty()) {
                 LogbookTypeProcess typeProcess = LogbookTypeProcess
                     .valueOf(
@@ -1413,14 +1419,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         List<SortBuilder<?>> sorts =
             requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
         SearchResponse elasticSearchResponse;
-        if(isCrossTenant) {
+        if (isCrossTenant) {
             elasticSearchResponse = collection.getEsClient()
                 .searchCrossIndices(collection, ParameterHelper.getTenantParameter(),
                     requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
                     null,
                     sorts, requestToEs.getFinalOffset(),
                     requestToEs.getFinalLimit());
-        }else {
+        } else {
             elasticSearchResponse = collection.getEsClient()
                 .search(collection, ParameterHelper.getTenantParameter(),
                     requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,7 @@ public class EvidenceAuditReportEntry extends ReportEntry {
     @JsonCreator
     public EvidenceAuditReportEntry(
         @JsonProperty("identifier") String identifier,
-        @JsonProperty("status") String  evidenceStatus,
+        @JsonProperty("status") String evidenceStatus,
         @JsonProperty("message") String message,
         @JsonProperty("objectType") String objectType,
         @JsonProperty("objectsReports") ArrayList<EvidenceAuditReportObject> objectsReports,

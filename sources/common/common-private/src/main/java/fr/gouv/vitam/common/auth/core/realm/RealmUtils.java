@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,6 +29,19 @@
  */
 package fr.gouv.vitam.common.auth.core.realm;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.shiro.authz.Permission;
+import org.apache.shiro.authz.permission.WildcardPermissionResolver;
+import org.apache.shiro.config.Ini;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.realm.text.IniRealm;
+import org.apache.shiro.util.PermissionUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -44,19 +57,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.shiro.authz.Permission;
-import org.apache.shiro.authz.permission.WildcardPermissionResolver;
-import org.apache.shiro.config.Ini;
-import org.apache.shiro.crypto.hash.Sha256Hash;
-import org.apache.shiro.realm.text.IniRealm;
-import org.apache.shiro.util.PermissionUtils;
-
 /**
  * RealmUtils
  */
@@ -68,6 +68,7 @@ class RealmUtils {
 
     /**
      * load role declared in shiro.ini file
+     *
      * @return mapping role/permissions
      */
     static Map<String, String> getRoleDefs() {
@@ -85,6 +86,7 @@ class RealmUtils {
 
     /**
      * Get list of permissions for role
+     *
      * @param roleDefs
      * @param roleNames
      * @return list of permissions
@@ -113,7 +115,7 @@ class RealmUtils {
      * @param realmName
      * @return X509AuthenticationInfo
      */
-    static X509AuthenticationInfo getX509AuthenticationInfo (
+    static X509AuthenticationInfo getX509AuthenticationInfo(
         X509AuthenticationToken x509AuthenticationToken,
         String grantedKeyStoreName,
         String grantedKeyStorePassphrase,
@@ -127,7 +129,7 @@ class RealmUtils {
             ParametersChecker.checkParameter(trustedKeyStorePassphrase, "trustedKeyStorePassphrase cannot be null");
             final KeyStore trustedks = readAndLoadKeystore(trustedKeyStoreName, trustedKeyStorePassphrase);
             if (trustedks != null) {
-                for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
+                for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements(); ) {
                     final String alias = e.nextElement();
                     grantedIssuers.add((X509Certificate) trustedks.getCertificate(alias));
                 }
@@ -135,7 +137,7 @@ class RealmUtils {
 
             final KeyStore grantedks = readAndLoadKeystore(grantedKeyStoreName, grantedKeyStorePassphrase);
             if (grantedks != null) {
-                for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
+                for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements(); ) {
                     final String alias = e.nextElement();
                     final X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
                     if (new Sha256Hash(x509cert.getEncoded())

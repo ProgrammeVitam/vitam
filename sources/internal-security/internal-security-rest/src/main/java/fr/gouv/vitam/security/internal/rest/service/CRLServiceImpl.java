@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -80,7 +80,9 @@ public class CRLServiceImpl implements CRLService {
         X509CRL crl = X509PKIUtil.parseX509CRLCertificate(crlCert);
 
         if (!X509PKIUtil.validateX509CRL(crl)) {
-            String alertMessage = "CRL issued by " + crl.getIssuerDN().getName() + " has invalid dates (issued after now or expired before now) : thisUpdate=" + crl.getThisUpdate() + " ,nextUpdate=" + crl.getNextUpdate();
+            String alertMessage = "CRL issued by " + crl.getIssuerDN().getName() +
+                " has invalid dates (issued after now or expired before now) : thisUpdate=" + crl.getThisUpdate() +
+                " ,nextUpdate=" + crl.getNextUpdate();
             alertService.createAlert(alertMessage);
             throw new CRLException(
                 alertMessage);
@@ -115,7 +117,7 @@ public class CRLServiceImpl implements CRLService {
                     alertService.createAlert(VitamLogLevel.WARN,
                         "Certificate " + certificateModel.getSubjectDN() + " was revoked by CRL");
                 }
-            }catch (CertificateExpiredException e) {
+            } catch (CertificateExpiredException e) {
                 crtExpiredList.add(certificateModel.getId());
                 alertService.createAlert(VitamLogLevel.WARN,
                     "Certificate " + certificateModel.getSubjectDN() + " is expired");
@@ -123,11 +125,11 @@ public class CRLServiceImpl implements CRLService {
 
         }
 
-        if (!crtExpiredList.isEmpty()){
+        if (!crtExpiredList.isEmpty()) {
             crlCheckerRepositoryImplementer.updateCertificateState(crtExpiredList, CertificateStatus.EXPIRED);
         }
 
-        if (!crtRevocatedList.isEmpty()){
+        if (!crtRevocatedList.isEmpty()) {
             crlCheckerRepositoryImplementer.updateCertificateState(crtRevocatedList, CertificateStatus.REVOKED);
         }
 

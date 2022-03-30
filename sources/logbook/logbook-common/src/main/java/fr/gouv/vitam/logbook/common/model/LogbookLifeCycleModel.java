@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
-import java.util.Collection;
-
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+
+import java.util.Collection;
 
 /**
  * LogbookLifeCycleModel interface
@@ -37,7 +37,7 @@ public interface LogbookLifeCycleModel {
 
     /**
      * getLogbookLifeCycleParameters
-     * 
+     *
      * @return Lifecycle parameters
      */
     Collection<? extends LogbookLifeCycleParameters> getLogbookLifeCycleParameters();

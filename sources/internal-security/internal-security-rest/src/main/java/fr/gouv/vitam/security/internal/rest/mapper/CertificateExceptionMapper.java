@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,6 @@ public class CertificateExceptionMapper implements ExceptionMapper<CertificateEx
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CertificateExceptionMapper.class);
 
     /**
-     *
      * @param exception
      * @return
      */

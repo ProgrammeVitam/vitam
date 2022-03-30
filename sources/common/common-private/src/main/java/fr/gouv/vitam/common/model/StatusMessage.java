@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -38,7 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class StatusMessage {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusMessage.class);
-    
+
     private String name;
     private String role;
     private int pid;
@@ -62,7 +61,6 @@ public class StatusMessage {
     }
 
     /**
-     *
      * @return the server name
      */
     public final String getName() {
@@ -74,7 +72,6 @@ public class StatusMessage {
     }
 
     /**
-     *
      * @return the server role
      */
     public final String getRole() {
@@ -86,7 +83,6 @@ public class StatusMessage {
     }
 
     /**
-     *
      * @return the unique int identifier for this server
      */
     public final int getPid() {

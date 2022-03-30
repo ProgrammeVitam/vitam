@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1054,7 +1054,8 @@ public class QueryToElasticsearch {
         if (terms.has(FACETARGS.SIZE.exactToken())) {
             int size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
             termsBuilder.size(size);
-            termsBuilder.shardSize((int) min(Integer.MAX_VALUE, ((long)  size * 3 + 10))); // This is used to get accurate results
+            termsBuilder.shardSize(
+                (int) min(Integer.MAX_VALUE, ((long) size * 3 + 10))); // This is used to get accurate results
         }
 
         if (terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
@@ -1111,9 +1112,9 @@ public class QueryToElasticsearch {
     private static Object getAsObject(JsonNode value) {
         if (value.isBoolean()) {
             return value.asBoolean();
-        } else if(value.isInt() || value.isLong()) {
+        } else if (value.isInt() || value.isLong()) {
             return value.asLong();
-        } else if(value.isFloat() || value.isDouble()) {
+        } else if (value.isFloat() || value.isDouble()) {
             return value.asDouble();
         } else {
             return value.asText();

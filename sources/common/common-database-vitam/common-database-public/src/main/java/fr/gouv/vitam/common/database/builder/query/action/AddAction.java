@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,16 @@
  */
 package fr.gouv.vitam.common.database.builder.query.action;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+import java.util.Date;
+
 /**
  * Add Action: $add : { name : [ value, value, ... ] }
- *
  */
 public class AddAction extends Action {
     private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION =

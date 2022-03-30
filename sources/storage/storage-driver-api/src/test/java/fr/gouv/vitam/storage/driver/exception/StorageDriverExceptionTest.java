@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.storage.driver.exception;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * StorageDriverExceptionTest
@@ -40,7 +40,7 @@ public class StorageDriverExceptionTest {
         StorageDriverException exc =
             new StorageDriverException("drivername", "message", true);
         exc = new StorageDriverException("drivername", true, exc);
-        exc = new StorageDriverException("drivername","message", true, exc);
+        exc = new StorageDriverException("drivername", "message", true, exc);
         assertEquals("drivername", exc.getDriverInfo());
     }
 }

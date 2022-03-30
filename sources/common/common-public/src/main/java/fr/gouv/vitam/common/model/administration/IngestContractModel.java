@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,7 @@ public class IngestContractModel extends AbstractContractModel {
      */
     public static final String TAG_CHECK_PARENT_LINK = "CheckParentLink";
 
-    public static final String TAG_CHECK_PARENT_ID  = "CheckParentId";
+    public static final String TAG_CHECK_PARENT_ID = "CheckParentId";
 
     public static final String MASTER_MANDATORY = "MasterMandatory";
 
@@ -240,11 +240,11 @@ public class IngestContractModel extends AbstractContractModel {
     public void setCheckParentId(Set<String> checkParentId) {
         this.checkParentId = checkParentId;
     }
-    
+
     public String getManagementContractId() {
         return managementContractId;
     }
-    
+
     public void setManagementContractId(String managementContractId) {
         this.managementContractId = managementContractId;
     }

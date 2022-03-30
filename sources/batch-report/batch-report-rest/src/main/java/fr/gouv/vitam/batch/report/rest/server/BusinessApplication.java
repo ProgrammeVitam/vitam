@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,7 +55,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -94,15 +93,20 @@ public class BusinessApplication extends ConfigurationApplication {
                 new PreservationReportRepository(mongoDbAccess);
             AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
             UnitComputedInheritedRulesInvalidationRepository
-                unitComputedInheritedRulesInvalidationRepository = new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
+                unitComputedInheritedRulesInvalidationRepository =
+                new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
-            BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository = new BulkUpdateUnitMetadataReportRepository(mongoDbAccess);
-            EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
+            BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository =
+                new BulkUpdateUnitMetadataReportRepository(mongoDbAccess);
+            EvidenceAuditReportRepository evidenceAuditReportRepository =
+                new EvidenceAuditReportRepository(mongoDbAccess);
             TraceabilityReportRepository traceabilityReportRepository = new TraceabilityReportRepository(mongoDbAccess);
-            ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
-            DeleteGotVersionsReportRepository deleteGotVersionsReportRepository  = new DeleteGotVersionsReportRepository(mongoDbAccess);
+            ExtractedMetadataRepository extractedMetadataRepository =
+                new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
+            DeleteGotVersionsReportRepository deleteGotVersionsReportRepository =
+                new DeleteGotVersionsReportRepository(mongoDbAccess);
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
                     purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitReportRepository,

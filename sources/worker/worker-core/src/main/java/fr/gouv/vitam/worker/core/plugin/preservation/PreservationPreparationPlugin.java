@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
     private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationPreparationPlugin() {
-        this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -167,7 +168,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         );
     }
 
-    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient, PreservationRequest preservationRequest, String requestId) throws VitamException {
+    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient,
+        PreservationRequest preservationRequest, String requestId) throws VitamException {
 
         PreservationScenarioModel scenarioModel;
         Map<String, GriffinModel> griffinModelListForScenario;
@@ -191,13 +193,15 @@ public class PreservationPreparationPlugin extends ActionHandler {
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
-        Iterator<List<Pair<String, List<String>>>> bulksUnitsByObjectGroup = Iterators.partition(new GroupByObjectIterator(gotIdUnitIdIterator), VitamConfiguration.getBatchSize());
+        Iterator<List<Pair<String, List<String>>>> bulksUnitsByObjectGroup =
+            Iterators.partition(new GroupByObjectIterator(gotIdUnitIdIterator), VitamConfiguration.getBatchSize());
 
         HashMap<String, File> distributionFileByFormat = new HashMap<>();
 
         while (bulksUnitsByObjectGroup.hasNext()) {
             List<Pair<String, List<String>>> bulkUnitsByObjectGroup = bulksUnitsByObjectGroup.next();
-            processBulk(bulkUnitsByObjectGroup, preservationRequest, handler, distributionFileByFormat, scenarioModel, griffinModelListForScenario);
+            processBulk(bulkUnitsByObjectGroup, preservationRequest, handler, distributionFileByFormat, scenarioModel,
+                griffinModelListForScenario);
         }
 
         mergeDistributionFiles(handler, distributionFileByFormat);
@@ -209,7 +213,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         return getFromJsonNode(inputRequest, PreservationRequest.class);
     }
 
-    private void processBulk(List<Pair<String, List<String>>> bulkUnitsByObjectGroup, PreservationRequest preservationRequest,
+    private void processBulk(List<Pair<String, List<String>>> bulkUnitsByObjectGroup,
+        PreservationRequest preservationRequest,
         HandlerIO handler, HashMap<String, File> distributionFileByFormat, PreservationScenarioModel scenarioModel,
         Map<String, GriffinModel> griffinModelListForScenario) {
 
@@ -218,19 +223,24 @@ public class PreservationPreparationPlugin extends ActionHandler {
             unitsByObjectGroup.put(item.getKey(), new HashSet<>(item.getValue()));
         }
 
-        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(unitsByObjectGroup.keySet());
+        List<ObjectGroupResponse> objectModelsForUnitResults =
+            getObjectModelsForUnitResults(unitsByObjectGroup.keySet());
 
-        MultiValuedMap<String, PreservationDistributionLine> preservationDistributionsByFormatId = new ArrayListValuedHashMap<>();
+        MultiValuedMap<String, PreservationDistributionLine> preservationDistributionsByFormatId =
+            new ArrayListValuedHashMap<>();
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
             Set<String> unitIds = unitsByObjectGroup.get(objectGroup.getId());
 
             String unitId = unitIds.iterator().next();
 
-            PreservationDistributionLine preservationDistributionLine = createPreservationDistributionLine(preservationRequest, unitId, objectGroup, scenarioModel, griffinModelListForScenario, unitIds);
+            PreservationDistributionLine preservationDistributionLine =
+                createPreservationDistributionLine(preservationRequest, unitId, objectGroup, scenarioModel,
+                    griffinModelListForScenario, unitIds);
 
             if (preservationDistributionLine != null) {
-                preservationDistributionsByFormatId.put(preservationDistributionLine.getFormatId(), preservationDistributionLine);
+                preservationDistributionsByFormatId.put(preservationDistributionLine.getFormatId(),
+                    preservationDistributionLine);
             }
         }
 
@@ -339,7 +349,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
     private PreservationDistributionLine createLine(String objectGroupId, String unitId,
         VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
-        String targetQualifier, String sourceQualifier, String sourceStrategy, String scenarioId, Set<String> unitsForThisOG) {
+        String targetQualifier, String sourceQualifier, String sourceStrategy, String scenarioId,
+        Set<String> unitsForThisOG) {
         PreservationDistributionLine line = new PreservationDistributionLine();
         line.setId(objectGroupId);
         line.setFormatId(format);

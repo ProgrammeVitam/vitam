@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,15 +28,12 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -44,11 +41,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 
 /**
@@ -83,13 +77,13 @@ public class EliminationActionReportGenerationHandler extends GenericReportGener
 
 
     @Override
-    protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException{
+    protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {
         try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
             JsonNode response = logbookClient.selectOperationById(param.getContainerName());
             RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
             return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
         } catch (InvalidParseOperationException | LogbookClientException e) {
-             throw new ProcessingException(e);
+            throw new ProcessingException(e);
         }
     }
 

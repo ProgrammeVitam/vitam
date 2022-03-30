@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import org.bson.Document;
 
 /**
  * Logbook LifeCycle Unit In Process item
@@ -79,7 +77,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
     }
 
     public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(
-    		JsonNode content) {
-    	return new LogbookLifeCycleUnitInProcess(content);
+        JsonNode content) {
+        return new LogbookLifeCycleUnitInProcess(content);
     }
 }

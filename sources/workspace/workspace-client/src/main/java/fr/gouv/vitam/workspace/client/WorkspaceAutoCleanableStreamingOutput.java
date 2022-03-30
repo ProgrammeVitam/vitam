@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,19 +39,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class WorkspaceAutoCleanableStreamingOutput implements StreamingOutput {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceAutoCleanableStreamingOutput.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(WorkspaceAutoCleanableStreamingOutput.class);
 
     private final InputStream inputStream;
     private final WorkspaceClient workspaceClient;
     private final String containerName;
 
-    public WorkspaceAutoCleanableStreamingOutput(InputStream is, WorkspaceClient workspaceClient, String containerName) {
+    public WorkspaceAutoCleanableStreamingOutput(InputStream is, WorkspaceClient workspaceClient,
+        String containerName) {
         this.inputStream = is;
         this.workspaceClient = workspaceClient;
         this.containerName = containerName;
     }
 
-    @Override public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+    @Override
+    public void write(OutputStream outputStream) throws IOException, WebApplicationException {
         try {
 
             IOUtils.copy(inputStream, outputStream);

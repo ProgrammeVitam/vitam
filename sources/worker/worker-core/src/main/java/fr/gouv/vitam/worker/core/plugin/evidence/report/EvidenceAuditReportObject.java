@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public class EvidenceAuditReportObject {
     @JsonProperty("identifier")
-    private String identifier ;
+    private String identifier;
 
     @JsonProperty("status")
     private EvidenceStatus evidenceStatus;
@@ -54,17 +54,18 @@ public class EvidenceAuditReportObject {
     private String strategyId;
 
     @JsonProperty("offersHashes")
-    private Map<String,String>offersHashes;
+    private Map<String, String> offersHashes;
 
 
-    EvidenceAuditReportObject(){
+    EvidenceAuditReportObject() {
 
     }
-    
-    public EvidenceAuditReportObject(String id ){
+
+    public EvidenceAuditReportObject(String id) {
         this.identifier = id;
         evidenceStatus = EvidenceStatus.OK;
     }
+
     /**
      * getter for identifier
      **/

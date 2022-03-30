@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,21 +40,22 @@ final public class ProcessEngineFactory {
 
     private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
 
-    private ProcessEngineFactory(){}
+    private ProcessEngineFactory() {
+    }
 
     public static ProcessEngineFactory get() {
         return INSTANCE;
     }
 
     /**
-     *
      * @param processDistributor the wanted processDistributor
      * @return ProcessEngineImpl object created
      * @throws IllegalArgumentException if processDistributor is null
      */
     public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
         ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        return new ProcessEngineImpl(workParams, processDistributor, LogbookOperationsClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -62,6 +63,7 @@ final public class ProcessEngineFactory {
         LogbookOperationsClientFactory logbookOperationsClientFactory, WorkspaceClientFactory workspaceClientFactory) {
         ParametersChecker
             .checkParameter("Params cannot be null", processDistributor, logbookOperationsClientFactory);
-        return new ProcessEngineImpl(workParams, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
+        return new ProcessEngineImpl(workParams, processDistributor, logbookOperationsClientFactory,
+            workspaceClientFactory);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.builder.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -37,13 +36,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Insert: { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]
- *
  */
 public class InsertMultiQuery extends RequestMultiple {
     protected ObjectNode data;
 
     /**
-     *
      * @return this Insert
      */
     public final InsertMultiQuery resetData() {
@@ -90,7 +87,6 @@ public class InsertMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
@@ -121,7 +117,6 @@ public class InsertMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param dataContent json data
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
@@ -136,7 +131,6 @@ public class InsertMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param data string data
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
@@ -149,7 +143,6 @@ public class InsertMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return the Final Insert containing all 4 parts: roots, queries array, filter and data
      */
     public final ObjectNode getFinalInsert() {

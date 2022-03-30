@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StatusCodeTest {
 

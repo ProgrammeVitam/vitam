@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,19 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getOutcomeDetail;
 
 /**
- *
  * Logbook parameters factory </br>
  *
  * Factory to get LogbookParameters object </br>
@@ -170,7 +169,6 @@ public class LogbookParameterHelper {
      * @param outcome the outcome of LogbookOperationParameters to create
      * @param outcomeDetailMessage the outcome detail message of of LogbookOperationParameters to create
      * @param eventIdentifierRequest the event id request of LogbookOperationParameters to create
-     *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
@@ -188,18 +186,18 @@ public class LogbookParameterHelper {
         String personalCertificate = vitamSession.getPersonalCertificate();
 
         return (LogbookOperationParameters) parameters
-                .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-                .putParameterValue(LogbookParameterName.eventType, eventType)
-                .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-                .setTypeProcess(eventTypeProcess)
-                .setStatus(outcome)
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-                .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
-                .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
-                .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId())
-                .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
-                .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId)
-                .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate);        
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+            .putParameterValue(LogbookParameterName.eventType, eventType)
+            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
+            .setTypeProcess(eventTypeProcess)
+            .setStatus(outcome)
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
+            .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
+            .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId())
+            .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
+            .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId)
+            .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate);
     }
 
     /**
@@ -213,7 +211,6 @@ public class LogbookParameterHelper {
      * @param subtask may be null
      * @param appendedDetailMessage may be null, the detail message
      * @param eventIdentifierRequest the event id request of LogbookOperationParameters to create
-     *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
@@ -251,7 +248,6 @@ public class LogbookParameterHelper {
      * @param outcomeDetail the outcome detail of LogbookLifeCycleUnitParameters to create
      * @param outcomeDetailMessage the outcome detail message of LogbookLifeCycleUnitParameters to create
      * @param objectIdentifier the object id of LogbookLifeCycleUnitParameters to create
-     *
      * @return the LogbookLifeCycleUnitParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
@@ -286,7 +282,6 @@ public class LogbookParameterHelper {
      * @param outcomeDetail the outcome detail of LogbookLifeCycleObjectGroupParameters to create
      * @param outcomeDetailMessage the outcome detail message of LogbookLifeCycleObjectGroupParameters to create
      * @param objectIdentifier the object id of LogbookLifeCycleObjectGroupParameters to create
-     *
      * @return the LogbookLifeCycleObjectGroupParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
@@ -311,7 +306,6 @@ public class LogbookParameterHelper {
     }
 
     /**
-     *
      * @return the default Mandatory fields set for LifeCycle
      */
     public static Set<LogbookParameterName> getDefaultLifeCycleMandatory() {
@@ -319,7 +313,6 @@ public class LogbookParameterHelper {
     }
 
     /**
-     *
      * @param mandatoryFieldsToAdd
      * @return the new Set of parameter names
      */
@@ -333,7 +326,6 @@ public class LogbookParameterHelper {
     }
 
     /**
-     *
      * @param mandatoryFieldsToAdd
      * @return the new Set of parameter names
      */

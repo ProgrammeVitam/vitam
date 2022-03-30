@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,11 +28,9 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -60,12 +58,10 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.File;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -127,7 +123,7 @@ public class MigrationUnitsTest {
 
         RequestResponseOK<JsonNode> updateUnitRequestResponseOK = new RequestResponseOK<>();
         updateUnitRequestResponseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit(guid.getId(), StatusCode.OK,
-            UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "","")));
+            UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "", "")));
         when(metaDataClient.updateUnitBulk(any())).thenReturn(updateUnitRequestResponseOK);
 
         MigrationUnits migrationUnits =

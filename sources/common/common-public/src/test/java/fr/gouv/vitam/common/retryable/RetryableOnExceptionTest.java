@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,9 @@ public class RetryableOnExceptionTest {
         RetryableOnException<Void, VitamRuntimeException> retryable = new RetryableOnException<>(parameters);
 
         // When
-        ThrowingCallable runRetryable = () -> retryable.exec(() -> { throw new VitamRuntimeException("throw"); });
+        ThrowingCallable runRetryable = () -> retryable.exec(() -> {
+            throw new VitamRuntimeException("throw");
+        });
 
         // Then
         assertThatThrownBy(runRetryable).isInstanceOf(VitamRuntimeException.class);
@@ -128,7 +130,8 @@ public class RetryableOnExceptionTest {
 
         };
         RetryableParameters parameters = new RetryableParameters(3, 1, 1, 1, MILLISECONDS);
-        RetryableOnException<Void, VitamRuntimeException> retryable = new RetryableOnException<>(parameters, e -> false);
+        RetryableOnException<Void, VitamRuntimeException> retryable =
+            new RetryableOnException<>(parameters, e -> false);
 
         // When
         ThrowingCallable runRetryable = () -> retryable.execute(delegate);

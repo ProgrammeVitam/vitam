@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -72,7 +72,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -399,14 +398,15 @@ public class BatchReportResource extends ApplicationStatusResource {
     public Response readComputedDetailsFromReport(JsonNode body) {
         try {
             ReportBody reportBody = JsonHandler.getFromJsonNode(body, ReportBody.class);
-            if(reportBody == null) {
+            if (reportBody == null) {
                 throw new IllegalStateException("Incorrect body report!");
             }
             switch (reportBody.getReportType()) {
                 case DELETE_GOT_VERSIONS:
                     List<DeleteGotVersionsComputedDetails> results =
                         batchReportServiceImpl
-                            .readDeletedGotVersionsComputedDetailsFromReport(reportBody.getProcessId(), VitamThreadUtils.getVitamSession().getTenantId());
+                            .readDeletedGotVersionsComputedDetailsFromReport(reportBody.getProcessId(),
+                                VitamThreadUtils.getVitamSession().getTenantId());
                     return Response.ok().entity(results).build();
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());

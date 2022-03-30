@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -151,7 +150,7 @@ public class SelectUnitResourceTest {
             "   { \"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
     private static final String BAD_QUERY_DSL_TEST =
-            "{\"$query\": {\"$eq\": \"data2\" }, \"$projection\": {}, \"$filter\": {}}";
+        "{\"$query\": {\"$eq\": \"data2\" }, \"$projection\": {}, \"$filter\": {}}";
 
     private static final String SERVER_HOST = "localhost";
 
@@ -169,7 +168,7 @@ public class SelectUnitResourceTest {
     private static final String SEARCH_QUERY_BY_GUID_1 =
         "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_1 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_BY_GUID_0 =
-            "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_0 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
+        "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_0 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
     /**
      * @deprecated : obsolete $rules projection. Use /unitsWithInheritedRules API
      */
@@ -684,23 +683,29 @@ public class SelectUnitResourceTest {
             .get("/units/bulk").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
-        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseVitam =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
-        RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
+        RequestResponseOK<JsonNode> firstResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
         assertThat(firstResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
 
-        final LocalDateTime firstApproximateCD=
-                LocalDateTime.parse(firstResultVitam.getFirstResult()
-                        .get(VitamFieldsHelper.approximateCreationDate()).asText());
-        final LocalDateTime firstFuzzyUD= LocalDateTime.parse(firstResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
+        final LocalDateTime firstApproximateCD =
+            LocalDateTime.parse(firstResultVitam.getFirstResult()
+                .get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime firstFuzzyUD = LocalDateTime.parse(
+            firstResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
         assertThat(firstApproximateCD.isAfter(dateBeforeInsert)).isTrue();
         assertThat(firstFuzzyUD.isBefore(LocalDateUtil.now())).isTrue();
 
-        RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
-        final LocalDateTime secondApproximateCD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateCreationDate()).asText());
-        final LocalDateTime secondApproximateUD= LocalDateTime.parse(secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
+        RequestResponseOK<JsonNode> secondResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
+        final LocalDateTime secondApproximateCD = LocalDateTime.parse(
+            secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime secondApproximateUD = LocalDateTime.parse(
+            secondResultVitam.getFirstResult().get(VitamFieldsHelper.approximateUpdateDate()).asText());
         assertThat(secondResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_1);
         assertThat(secondApproximateCD.isAfter(dateBeforeInsert)).isTrue();
         assertThat(secondApproximateUD.isBefore(LocalDateUtil.now())).isTrue();
@@ -727,7 +732,7 @@ public class SelectUnitResourceTest {
 
         List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
         bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_1.json")));
-        bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_2.json")));;
+        bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_2.json")));
 
         InputStream stream = given()
             .contentType(ContentType.JSON)
@@ -736,14 +741,21 @@ public class SelectUnitResourceTest {
             .get("/units/bulk").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
-        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseVitam =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
-        RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
-        assertThat(firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value1");
-        RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
-        assertThat(secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value2");
+        RequestResponseOK<JsonNode> firstResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
+        assertThat(
+            firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo(
+            "Value1");
+        RequestResponseOK<JsonNode> secondResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
+        assertThat(
+            secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo(
+            "Value2");
 
     }
 
@@ -769,13 +781,16 @@ public class SelectUnitResourceTest {
             .get("/units/bulk").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
-        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseVitam =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
-        RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
+        RequestResponseOK<JsonNode> firstResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
         assertThat(firstResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
-        RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
+        RequestResponseOK<JsonNode> secondResultVitam =
+            RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
         assertThat(secondResultVitam.getResults().size()).isEqualTo(0);
 
     }
@@ -800,7 +815,8 @@ public class SelectUnitResourceTest {
             .get("/units/bulk").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
-        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseVitam =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(0);
@@ -809,7 +825,8 @@ public class SelectUnitResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_1unit_insert_when_oneBadQueryDSLOneValidDSLBulkSelect_thenReturn_BadQueryResultAndValidResult() throws Exception {
+    public void given_1unit_insert_when_oneBadQueryDSLOneValidDSLBulkSelect_thenReturn_BadQueryResultAndValidResult()
+        throws Exception {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

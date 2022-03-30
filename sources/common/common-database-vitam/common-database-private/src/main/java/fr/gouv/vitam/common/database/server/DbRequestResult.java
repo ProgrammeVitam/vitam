@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,21 @@
  */
 package fr.gouv.vitam.common.database.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.MongoCursor;
-
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
-import fr.gouv.vitam.common.model.DatabaseCursor;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * This class is the result of DbRequestSingle's execution
@@ -82,7 +81,6 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * @param count the count to set
-     *
      * @return this
      */
     public DbRequestResult setCount(long count) {
@@ -91,7 +89,6 @@ public class DbRequestResult implements VitamAutoCloseable {
     }
 
     /**
-     *
      * @return the possible total result (select)
      */
     public long getTotal() {
@@ -99,7 +96,6 @@ public class DbRequestResult implements VitamAutoCloseable {
     }
 
     /**
-     *
      * @param total the possible total result (select)
      * @return this
      */
@@ -124,7 +120,6 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * @param offset the offset to set
-     *
      * @return this
      */
     public DbRequestResult setOffset(long offset) {
@@ -141,7 +136,6 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * @param limit the limit to set
-     *
      * @return this
      */
     public DbRequestResult setLimit(long limit) {
@@ -151,16 +145,14 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * @param diffs the diffs to set
-     *
      * @return this
      */
     public DbRequestResult setDiffs(Map<String, List<String>> diffs) {
-        this.diffs.putAll(diffs); 
+        this.diffs.putAll(diffs);
         return this;
     }
 
     /**
-     * 
      * @return True if the query has at least one result
      */
     public boolean hasResult() {
@@ -169,10 +161,9 @@ public class DbRequestResult implements VitamAutoCloseable {
         }
         return count > 0;
     }
-    
+
     /**
      * @param cursor the cursor to set
-     *
      * @return this
      */
     public DbRequestResult setCursor(MongoCursor<VitamDocument<?>> cursor) {
@@ -182,7 +173,7 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * Returns directly the VitamDocuments list
-     * 
+     *
      * @param cls source class
      * @param <T> the original class used by the collection extending VitamCollection
      * @return the documents (copy)
@@ -200,13 +191,13 @@ public class DbRequestResult implements VitamAutoCloseable {
                 cursor = null;
             }
         }
-        count = documents.size();        
+        count = documents.size();
         return (List<T>) new ArrayList<>(documents);
     }
 
     /**
      * Return directly the clsFomJson items list
-     * 
+     *
      * @param cls source class
      * @param clsFromJson target class
      * @param <T> the original class used by the collection extending VitamCollection
@@ -244,7 +235,7 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * Return directly a RequestResponseOk from result using default VitamDocument
-     * 
+     *
      * @param cls Native MongoDb Class
      * @param <T> the original class used by the collection extending VitamCollection
      * @return a RequestResponseOK with Hits and Results sets (not request)
@@ -257,13 +248,14 @@ public class DbRequestResult implements VitamAutoCloseable {
         close();
         return response;
     }
+
     /**
      * This method will modify the document argument in order to filter as output all _varname to corresponding #varname
      * according to ParserTokens
      *
      * @param document of type Document to be modified
      */
-    public  final void filterFinalResponse(VitamDocument<?> document) {
+    public final void filterFinalResponse(VitamDocument<?> document) {
         for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
@@ -287,10 +279,11 @@ public class DbRequestResult implements VitamAutoCloseable {
             }
         }
     }
+
     /*
 
      */
-    private  final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
+    private final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
         final Object value = document.remove(originalFieldName);
         if (value != null) {
             document.append(targetFieldName, value);
@@ -299,7 +292,7 @@ public class DbRequestResult implements VitamAutoCloseable {
 
     /**
      * Return directly a RequestResponseOk from result using clsFromJson class
-     * 
+     *
      * @param cls Native MongoDb Class
      * @param clsFromJson target class
      * @param <T> the original class used by the collection extending VitamCollection
@@ -307,7 +300,8 @@ public class DbRequestResult implements VitamAutoCloseable {
      * @return a RequestResponseOK with Hits and Results sets (not request)
      * @throws InvalidParseOperationException
      */
-    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(JsonNode query, Class<T> cls, Class<V> clsFromJson)
+    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(JsonNode query, Class<T> cls,
+        Class<V> clsFromJson)
         throws InvalidParseOperationException {
         final RequestResponseOK<V> response = new RequestResponseOK<>(query);
         // Save before addAll
@@ -318,7 +312,6 @@ public class DbRequestResult implements VitamAutoCloseable {
     }
 
     /**
-     *
      * @return the corresponding DatabaseCursor
      */
     public DatabaseCursor getDatabaseCursor() {

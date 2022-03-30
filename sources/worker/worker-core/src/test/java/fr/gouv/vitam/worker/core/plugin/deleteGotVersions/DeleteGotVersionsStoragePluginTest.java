@@ -116,7 +116,7 @@ public class DeleteGotVersionsStoragePluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsStoragePlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(OK, itemStatusList.get(0).getGlobalStatus());
-        verify(storageClient, times(2)).delete(any(),any(), any());
+        verify(storageClient, times(2)).delete(any(), any(), any());
     }
 
     @Test
@@ -133,7 +133,7 @@ public class DeleteGotVersionsStoragePluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsStoragePlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(WARNING, itemStatusList.get(0).getGlobalStatus());
-        verify(storageClient, times(1)).delete(any(),any(), any());
+        verify(storageClient, times(1)).delete(any(), any(), any());
     }
 
     private RequestResponseOK<StorageStrategy> loadStorageStrategies()

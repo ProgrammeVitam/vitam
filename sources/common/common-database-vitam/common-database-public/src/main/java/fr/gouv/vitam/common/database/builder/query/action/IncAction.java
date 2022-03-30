@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 
 /**
  * Inc Action: $inc : { name : value }
- *
  */
 public class IncAction extends Action {
     protected IncAction() {

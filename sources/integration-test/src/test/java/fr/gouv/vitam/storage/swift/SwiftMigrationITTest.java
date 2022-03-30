@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -370,7 +370,8 @@ public class SwiftMigrationITTest {
     private void checkLargeObjectHeaders(String containerName, String objectName, boolean hasManifestHeader,
         boolean hasDigestMetadata)
         throws ContentAddressableStorageException {
-        Map<String, String> headers = vitamSwiftObjectStorageService.getMetadata(containerName, objectName, Collections.emptyMap());
+        Map<String, String> headers =
+            vitamSwiftObjectStorageService.getMetadata(containerName, objectName, Collections.emptyMap());
         if (hasManifestHeader) {
             assertThat(headers.get(X_OBJECT_MANIFEST)).isEqualTo(containerName + "/" + objectName + "/");
         } else {

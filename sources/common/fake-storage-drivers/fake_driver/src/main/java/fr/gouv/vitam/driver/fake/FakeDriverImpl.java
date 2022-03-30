@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -208,14 +208,15 @@ public class FakeDriverImpl extends AbstractDriver {
     }
 
     @FunctionalInterface
-    public interface ThrowableFunction<T,R> {
+    public interface ThrowableFunction<T, R> {
         R apply(T t) throws StorageDriverException;
     }
+
 
     public class FakeConnectionImpl extends AbstractConnection {
 
         private final String offerId;
-        private ThrowableFunction<StorageObjectRequest,StorageGetResult> getObjectFunction;
+        private ThrowableFunction<StorageObjectRequest, StorageGetResult> getObjectFunction;
 
         FakeConnectionImpl(String offerId) {
             super("FakeDriverName", new TestVitamClientFactory<>(1324, "/chemin/"));
@@ -279,7 +280,7 @@ public class FakeDriverImpl extends AbstractDriver {
             boolean adminCrossTenantAccessRequestAllowed) {
             if (this.offerId.equals("myTapeOffer1")) {
 
-                if(!adminCrossTenantAccessRequestAllowed) {
+                if (!adminCrossTenantAccessRequestAllowed) {
                     throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
                 }
 
@@ -290,7 +291,7 @@ public class FakeDriverImpl extends AbstractDriver {
             }
             if (this.offerId.equals("myTapeOffer2")) {
 
-                if(adminCrossTenantAccessRequestAllowed) {
+                if (adminCrossTenantAccessRequestAllowed) {
                     throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to not be set");
                 }
 
@@ -306,7 +307,7 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public void removeAccessRequest(String accessRequestId, int tenant,
             boolean adminCrossTenantAccessRequestAllowed) {
-            if(!adminCrossTenantAccessRequestAllowed) {
+            if (!adminCrossTenantAccessRequestAllowed) {
                 throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
             }
             if (this.offerId.equals("myTapeOffer1") || this.offerId.equals("myTapeOffer2")) {

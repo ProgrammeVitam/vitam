@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
-import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.stream.Collectors;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
 import gherkin.formatter.Formatter;
@@ -45,6 +39,12 @@ import gherkin.formatter.model.Result;
 import gherkin.formatter.model.Scenario;
 import gherkin.formatter.model.ScenarioOutline;
 import gherkin.formatter.model.Step;
+
+import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class VitamReporter implements Reporter, Formatter {
 
@@ -98,8 +98,10 @@ public class VitamReporter implements Reporter, Formatter {
         report = new Report();
         report.setDescription(scenario.getName());
         report.setFeature(currentFeature.getName());
-        report.setTags(scenario.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length())).collect(Collectors.toList()));
-        currentFeature.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length())).forEach(tagName -> report.addTag(tagName));
+        report.setTags(scenario.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length()))
+            .collect(Collectors.toList()));
+        currentFeature.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length()))
+            .forEach(tagName -> report.addTag(tagName));
         reports.add(report);
         steps.clear();
     }
@@ -138,7 +140,8 @@ public class VitamReporter implements Reporter, Formatter {
     public void result(Result result) {
 
         Step step = steps.poll();
-        System.out.printf("  * - %s - %s%s%n", Instant.now() ,result.getStatus().toUpperCase(), step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : "");
+        System.out.printf("  * - %s - %s%s%n", Instant.now(), result.getStatus().toUpperCase(),
+            step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : "");
 
         if (!result.getStatus().equals(Result.PASSED) && !result.getStatus().equals(Result.SKIPPED.getStatus())) {
             report.addError(result.getErrorMessage());

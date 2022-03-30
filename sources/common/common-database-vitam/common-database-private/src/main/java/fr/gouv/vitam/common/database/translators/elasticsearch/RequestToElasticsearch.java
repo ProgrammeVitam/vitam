@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -81,7 +81,6 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
     }
 
     /**
-     *
      * @param roots QueryBuilder
      * @param query QueryBuilder
      * @return the final request
@@ -99,7 +98,8 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      * @throws IllegalAccessError if nth exceed the size of list
      * @throws InvalidParseOperationException if could not get command by query
      */
-    public QueryBuilder getNthQueries(final int nth, VarNameAdapter adapter, DynamicParserTokens parserTokens) throws IllegalAccessError, InvalidParseOperationException {
+    public QueryBuilder getNthQueries(final int nth, VarNameAdapter adapter, DynamicParserTokens parserTokens)
+        throws IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
             throw new IllegalAccessError(

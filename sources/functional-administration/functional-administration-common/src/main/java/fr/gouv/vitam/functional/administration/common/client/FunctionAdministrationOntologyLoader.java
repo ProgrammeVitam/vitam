@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,9 +28,9 @@ package fr.gouv.vitam.functional.administration.common.client;
 
 import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.common.client.OntologyLoader;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;

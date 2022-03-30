@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -78,7 +78,7 @@ public class MappingLoaderTest {
     @Test
     public void testUnitMappingNotExistThenFail() throws Exception {
         fakeMappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-            fakeMappingLoader.getElasticsearchExternalMappings().get(0).setMappingFile(BAD_UNIT_MAPPING_PATH);
+        fakeMappingLoader.getElasticsearchExternalMappings().get(0).setMappingFile(BAD_UNIT_MAPPING_PATH);
         try {
             fakeMappingLoader.loadMapping(UNIT.toUpperCase());
             fail("should raise an exception");

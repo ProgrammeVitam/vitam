@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Utility class for Junit
@@ -69,7 +69,6 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     *
      * @return the GUID Properties File
      */
     public final File getGuidTestPropertiesFile() {
@@ -77,7 +76,6 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     *
      * @return the Json File
      */
     public final File getJsonTestJsonFile() {
@@ -85,7 +83,6 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     *
      * @return the Json2 File
      */
     public final File getJsonTest2JsonFile() {
@@ -102,7 +99,6 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     *
      * @return the Json3 Stream
      */
     public InputStream getJsonTest3JsonInputStream() {
@@ -110,7 +106,6 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     *
      * @return the Json empty Stream
      */
     public InputStream getJsonTestEmptyJsonInputStream() {
@@ -120,7 +115,6 @@ public class ResourcesPublicUtilTest {
 
 
     /**
-     *
      * @return the ResourcesPublicUtilTest instance
      */
     public static ResourcesPublicUtilTest getInstance() {

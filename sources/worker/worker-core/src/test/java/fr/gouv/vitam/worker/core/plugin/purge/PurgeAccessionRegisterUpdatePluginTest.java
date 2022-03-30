@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
-
 import java.io.File;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +89,8 @@ public class PurgeAccessionRegisterUpdatePluginTest {
     private HandlerIO handler;
 
     private WorkerParameters params;
-    private static final String ACCESSION_REGISTER_DETAIL = "EliminationAction/PurgeAccessionRegisterUpdatePlugin/accession-register.json";
+    private static final String ACCESSION_REGISTER_DETAIL =
+        "EliminationAction/PurgeAccessionRegisterUpdatePlugin/accession-register.json";
 
     @Before
     public void setUp() throws Exception {
@@ -102,7 +102,7 @@ public class PurgeAccessionRegisterUpdatePluginTest {
 
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
@@ -146,11 +146,13 @@ public class PurgeAccessionRegisterUpdatePluginTest {
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(ve);
         File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
-        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting = JsonHandler.getFromFileAsTypeReference(file,
-            new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
-            });
+        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting =
+            JsonHandler.getFromFileAsTypeReference(file,
+                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
+                });
         // When
-        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(accessionRegisterDetailExisting);
+        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(
+            accessionRegisterDetailExisting);
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -172,11 +174,13 @@ public class PurgeAccessionRegisterUpdatePluginTest {
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(resp);
         File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
-        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting = JsonHandler.getFromFileAsTypeReference(file,
-            new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
-            });
+        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting =
+            JsonHandler.getFromFileAsTypeReference(file,
+                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
+                });
         // When
-        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(accessionRegisterDetailExisting);
+        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(
+            accessionRegisterDetailExisting);
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);

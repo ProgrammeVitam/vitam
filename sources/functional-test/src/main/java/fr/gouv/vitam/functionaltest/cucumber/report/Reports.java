@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-
 /**
  * Class for reports
- * @author geled
  *
+ * @author geled
  */
 public class Reports {
 
@@ -77,39 +77,36 @@ public class Reports {
     }
 
     /**
-     *
      * @param tagName Tag Value
      * @return number of OK Test By TagName
      */
     public long numberOfTestOKByTagName(String tagName) {
         return reports.stream().
-                filter(report -> report.getTags().contains(tagName) && report.isOK())
-                .count();
+            filter(report -> report.getTags().contains(tagName) && report.isOK())
+            .count();
     }
 
     /**
-     *
      * @param tagName Tag value
      * @return number of KO Test By TagName
      */
     public long numberOfTestKOByTagName(String tagName) {
         return reports.stream().
-                filter(report -> report.getTags().contains(tagName) && !report.isOK())
-                .count();
+            filter(report -> report.getTags().contains(tagName) && !report.isOK())
+            .count();
     }
 
     /**
-     *
      * @return List of TagInfo
      */
     public List<TagInfo> getTags() {
         return reports.stream()
-                .map(report -> report.getTags())
-                .flatMap(List::stream)
-                .collect(Collectors.toSet())
-                .stream()
-                .map(tagName -> new TagInfo(tagName, numberOfTestOKByTagName(tagName), numberOfTestKOByTagName(tagName)))
-                .collect(Collectors.toList());
+            .map(report -> report.getTags())
+            .flatMap(List::stream)
+            .collect(Collectors.toSet())
+            .stream()
+            .map(tagName -> new TagInfo(tagName, numberOfTestOKByTagName(tagName), numberOfTestKOByTagName(tagName)))
+            .collect(Collectors.toList());
 
     }
 

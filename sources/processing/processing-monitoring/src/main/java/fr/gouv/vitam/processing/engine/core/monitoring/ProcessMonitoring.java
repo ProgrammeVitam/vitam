@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,8 +25,6 @@
  * accept its terms.
  */
 package fr.gouv.vitam.processing.engine.core.monitoring;
-
-import java.util.List;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;

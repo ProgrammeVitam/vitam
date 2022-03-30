@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,7 @@ public class AdminManagementClientFactoryTest {
     @Test
     public void getClientInstanceTest() {
         try {
-            AdminManagementClientFactory.changeMode(new ClientConfigurationImpl(null, 10));;
+            AdminManagementClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 

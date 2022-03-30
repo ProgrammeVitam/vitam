@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Search accession register summary by query
-     * 
+     *
      * @throws Throwable
      */
     @When("^je recherche les registres de fond$")
@@ -90,7 +90,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Search accession register detail by query in originating agency
-     * 
+     *
      * @param originatingAgency originating agency
      * @throws Throwable
      */
@@ -107,7 +107,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Count the number of results for accession register summary result
-     * 
+     *
      * @param numberOfResults number of results expected
      * @throws Throwable
      */
@@ -123,7 +123,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Count the number of results for accession details summary result
-     * 
+     *
      * @param numberOfResults number of results expected
      * @throws Throwable
      */
@@ -139,7 +139,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Check accession register summary data for first result
-     * 
+     *
      * @param dataTable expected results
      * @throws Throwable
      */
@@ -150,7 +150,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Check accession register detail data for first result
-     * 
+     *
      * @param dataTable expected results
      * @throws Throwable
      */
@@ -161,7 +161,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Check accession register summary data for result given
-     * 
+     *
      * @param resultNumber result number
      * @param dataTable expected results
      * @throws Throwable
@@ -180,7 +180,7 @@ public class AccessionRegisterStep extends CommonStep {
 
     /**
      * Check accession register detail data for result given
-     * 
+     *
      * @param resultNumber result number
      * @param dataTable expected results
      * @throws Throwable

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -816,7 +816,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_1"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA1"));
+                    Lists.newArrayList("OA1"));
 
         Document au4 = new Document(Unit.ID, "AU_4")
             .append(Unit.MAXDEPTH, 1)
@@ -853,7 +853,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_4"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                    Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au8 = new Document(Unit.ID, "AU_8")
             .append(Unit.MAXDEPTH, 1)
@@ -882,7 +882,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                    Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
@@ -931,7 +931,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
     }
 

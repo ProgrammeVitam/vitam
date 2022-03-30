@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -191,7 +191,7 @@ public class ContentLengthCountingMetricsFilterTest {
         captorOutput.getValue().close();
         verify(containerRequestContext, times(2)).getMethod();
 
-        
+
         Iterator<Collector.MetricFamilySamples> it =
             CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
 

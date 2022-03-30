@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,9 +31,9 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import org.bson.Document;
@@ -77,13 +77,15 @@ public class ExtractedMetadataRepository {
     }
 
     public MongoCursor<ExtractedMetadata> getExtractedMetadataByProcessId(String processId, int tenant) {
-        return extractedMetadataForAuCollection.find(and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)))
+        return extractedMetadataForAuCollection.find(
+                and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)))
             .map(this::bsonToPojo)
             .cursor();
     }
 
     public void deleteExtractedMetadataByProcessId(String processId, int tenant) {
-        extractedMetadataForAuCollection.deleteMany(and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)));
+        extractedMetadataForAuCollection.deleteMany(
+            and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)));
     }
 
     private Document pojoToBson(ExtractedMetadata metadata) {

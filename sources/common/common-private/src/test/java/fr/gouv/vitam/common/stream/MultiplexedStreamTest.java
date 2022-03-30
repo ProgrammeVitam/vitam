@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -102,7 +102,8 @@ public class MultiplexedStreamTest {
         appendEntries(instance, 100);
 
         // Then
-        try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(byteArrayOutputStream.toInputStream())) {
+        try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(
+            byteArrayOutputStream.toInputStream())) {
 
             readEntries(multiplexedStreamReader, 100);
 

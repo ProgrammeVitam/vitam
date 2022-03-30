@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.common.security.merkletree;
 
-import static fr.gouv.vitam.common.digest.DigestType.SHA512;
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import org.junit.Before;
-import org.junit.Test;
+import static fr.gouv.vitam.common.digest.DigestType.SHA512;
+import static org.apache.commons.codec.binary.Base64.decodeBase64;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MerkleTreeAlgoTest {
 

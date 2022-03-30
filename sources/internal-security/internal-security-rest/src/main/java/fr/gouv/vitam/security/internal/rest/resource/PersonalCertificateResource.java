@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/v1/api/personalCertificate")
-@Tag(name="Security")
+@Tag(name = "Security")
 public class PersonalCertificateResource {
 
     private final PermissionService permissionService;
@@ -55,7 +55,7 @@ public class PersonalCertificateResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param permissionService
      * @param personalCertificateService
      */
@@ -68,7 +68,7 @@ public class PersonalCertificateResource {
 
     /**
      * Check personal certificate
-     * 
+     *
      * @param certificate the certificate
      * @param permission the permission
      * @throws LogbookClientServerException

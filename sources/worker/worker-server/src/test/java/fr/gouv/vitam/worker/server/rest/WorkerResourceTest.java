@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -216,7 +216,8 @@ public class WorkerResourceTest {
                 }
             ));
 
-        accessRequestIdByContext.put(new AccessRequestContext("strategyId", "offerId"), List.of("AccessRequestId1", "AccessRequestId2"));
+        accessRequestIdByContext.put(new AccessRequestContext("strategyId", "offerId"),
+            List.of("AccessRequestId1", "AccessRequestId2"));
         accessRequestIdByContext.put(new AccessRequestContext("strategyId", null), List.of("AccessRequestId3"));
         ProcessingRetryAsyncException prae = new ProcessingRetryAsyncException(accessRequestIdByContext);
 

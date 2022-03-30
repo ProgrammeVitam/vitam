@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -236,7 +235,8 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
 
         verify(logbookOperations).create(any());
         verifyNoMoreInteractions(logbookOperations);
@@ -283,7 +283,8 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
 
         verify(logbookOperations).create(any());
         verifyNoMoreInteractions(logbookOperations);
@@ -396,7 +397,8 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
             false);
         verify(logbookOperations).create(any());
         verifyNoMoreInteractions(logbookOperations);
@@ -437,7 +439,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T04:42:32.308"), anyString());
+                eq("2020-06-26T04:42:32.308"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-26T04:47:31.865");
         LocalDateTime now = LocalDateUtil.now();
@@ -458,7 +460,8 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
@@ -492,7 +495,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T03:55:19.525"), anyString());
+                eq("2020-06-26T03:55:19.525"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-26T04:00:19.016");
         LocalDateTime now = LocalDateUtil.now();
@@ -513,7 +516,8 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
@@ -550,7 +554,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T04:42:32.308"), anyString());
+                eq("2020-06-26T04:42:32.308"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T05:01:16.878");
         LocalDateTime now = LocalDateUtil.now();
@@ -571,8 +575,10 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            true);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
@@ -609,7 +615,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T03:55:19.525"), anyString());
+                eq("2020-06-26T03:55:19.525"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T04:00:35.190");
         LocalDateTime now = LocalDateUtil.now();
@@ -630,8 +636,10 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
@@ -666,7 +674,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("1970-01-01T00:00:00.000"), anyString());
+                eq("1970-01-01T00:00:00.000"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T05:01:16.878");
         LocalDateTime now = LocalDateUtil.now();
@@ -687,8 +695,10 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            true);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
@@ -723,7 +733,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(false)
             .when(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-            eq("1970-01-01T00:00:00.000"), anyString());
+                eq("1970-01-01T00:00:00.000"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T04:00:35.190");
         LocalDateTime now = LocalDateUtil.now();
@@ -744,8 +754,10 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isFalse();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).close();
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
@@ -778,7 +790,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T04:42:32.308"), anyString());
+                eq("2020-06-26T04:42:32.308"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-26T04:47:31.865");
         LocalDateTime now = LocalDateUtil.now();
@@ -798,7 +810,8 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
@@ -841,7 +854,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T03:55:19.525"), anyString());
+                eq("2020-06-26T03:55:19.525"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-26T04:00:19.016");
         LocalDateTime now = LocalDateUtil.now();
@@ -861,7 +874,8 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
@@ -885,7 +899,8 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenRecentTraceabilityWithoutZipAndNewDataSinceLastTraceabilityWithZipThenGenerateUnitLfcTraceability() throws Exception {
+    public void givenRecentTraceabilityWithoutZipAndNewDataSinceLastTraceabilityWithZipThenGenerateUnitLfcTraceability()
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         doNothing().when(workspaceClient).createContainer(anyString());
@@ -907,7 +922,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T04:42:32.308"), anyString());
+                eq("2020-06-26T04:42:32.308"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T05:01:16.878");
         LocalDateTime now = LocalDateUtil.now();
@@ -928,8 +943,10 @@ public class LogbookLFCAdministrationTest {
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            true);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
@@ -953,7 +970,8 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenRecentTraceabilityWithoutZipAndNewDataSinceLastTraceabilityWithZipThenGenerateObjectGroupLfcTraceability() throws Exception {
+    public void givenRecentTraceabilityWithoutZipAndNewDataSinceLastTraceabilityWithZipThenGenerateObjectGroupLfcTraceability()
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         doNothing().when(workspaceClient).createContainer(anyString());
@@ -975,7 +993,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-            eq("2020-06-26T03:55:19.525"), anyString());
+                eq("2020-06-26T03:55:19.525"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T04:00:35.190");
         LocalDateTime now = LocalDateUtil.now();
@@ -995,8 +1013,10 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
@@ -1020,7 +1040,8 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenRecentTraceabilityWithoutZipAndNoExistingTraceabilityWithZipAndNewDataThenGenerateUnitLfcTraceability() throws Exception {
+    public void givenRecentTraceabilityWithoutZipAndNoExistingTraceabilityWithZipAndNewDataThenGenerateUnitLfcTraceability()
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         doNothing().when(workspaceClient).createContainer(anyString());
@@ -1041,7 +1062,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-            eq("1970-01-01T00:00:00.000"), anyString());
+                eq("1970-01-01T00:00:00.000"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T05:01:16.878");
         LocalDateTime now = LocalDateUtil.now();
@@ -1061,8 +1082,10 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+            true);
 
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
@@ -1086,7 +1109,8 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenRecentTraceabilityWithoutZipAndNoExistingTraceabilityWithZipAndNewDataThenGenerateObjectGroupLfcTraceability() throws Exception {
+    public void givenRecentTraceabilityWithoutZipAndNoExistingTraceabilityWithZipAndNewDataThenGenerateObjectGroupLfcTraceability()
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         doNothing().when(workspaceClient).createContainer(anyString());
@@ -1107,7 +1131,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(true)
             .when(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-            eq("1970-01-01T00:00:00.000"), anyString());
+                eq("1970-01-01T00:00:00.000"), anyString());
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-27T04:00:35.190");
         LocalDateTime now = LocalDateUtil.now();
@@ -1127,8 +1151,10 @@ public class LogbookLFCAdministrationTest {
         // Then
         assertThat(result).isTrue();
         verify(processingManagementClient).listOperationsDetails(any());
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
-        verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
+        verify(logbookOperations).findLastLifecycleTraceabilityOperation(
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), true);
 
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
@@ -1201,7 +1227,8 @@ public class LogbookLFCAdministrationTest {
 
         // When
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        assertThatThrownBy(() -> logbookAdministration.generateSecureLogbookLFC(operationGuid, LfcTraceabilityType.Unit))
+        assertThatThrownBy(
+            () -> logbookAdministration.generateSecureLogbookLFC(operationGuid, LfcTraceabilityType.Unit))
             .isInstanceOf(VitamClientException.class);
     }
 

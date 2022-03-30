@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,7 +107,8 @@ public class IdentityRepositoryTest {
         identityRepository.createIdentity(identityModel);
 
         // When
-        Optional<IdentityModel> result = identityRepository.findIdentity("distinguishedName", String.valueOf(BigInteger.TEN));
+        Optional<IdentityModel> result =
+            identityRepository.findIdentity("distinguishedName", String.valueOf(BigInteger.TEN));
 
         // Then
         assertThat(result).isPresent().hasValueSatisfying(identity -> {

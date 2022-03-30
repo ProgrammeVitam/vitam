@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * ObjectGroupDocumentHash class
  */
-public  class ObjectGroupDocumentHash {
+public class ObjectGroupDocumentHash {
     @JsonProperty("id")
     private String id;
     @JsonProperty("hObject")
@@ -39,16 +39,18 @@ public  class ObjectGroupDocumentHash {
     @JsonProperty("hDetails")
     private TraceabilityHashDetails traceabilityHashDetails;
 
-    public ObjectGroupDocumentHash(){
+    public ObjectGroupDocumentHash() {
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
+    public ObjectGroupDocumentHash(String id, String hObject, TraceabilityHashDetails traceabilityHashDetails) {
         this.hObject = hObject;
         this.id = id;
         this.traceabilityHashDetails = traceabilityHashDetails;
     }
+
     /**
      * return document object id
+     *
      * @return
      */
     public String getId() {
@@ -57,6 +59,7 @@ public  class ObjectGroupDocumentHash {
 
     /**
      * * return document object hash
+     *
      * @return
      */
     public String gethObject() {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,9 +57,9 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "PREPARE_STORAGE_STRATEGIES";
     private static final int STRATEGIES_OUT_RANK = 0;
-    
+
     private final StorageClientFactory storageClientFactory;
-    
+
     public PrepareStorageStrategiesPlugin() {
         this(StorageClientFactory.getInstance());
     }
@@ -68,7 +68,7 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
     PrepareStorageStrategiesPlugin(StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
     }
-    
+
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         try {
@@ -81,14 +81,15 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
             return buildItemStatus(PLUGIN_NAME, FATAL, error);
         }
     }
-    
+
     private void storeStrategies(HandlerIO handlerIO)
-            throws ProcessingException {
+        throws ProcessingException {
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             RequestResponse<StorageStrategy> storageStrategies = storageClient.getStorageStrategies();
             if (storageStrategies.isOk()) {
                 File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(STRATEGIES_OUT_RANK).getPath());
-                JsonHandler.writeAsFile(((RequestResponseOK<StorageStrategy>)storageStrategies).getResultsAsJsonNodes(), tempFile);
+                JsonHandler.writeAsFile(
+                    ((RequestResponseOK<StorageStrategy>) storageStrategies).getResultsAsJsonNodes(), tempFile);
                 handlerIO.addOutputResult(STRATEGIES_OUT_RANK, tempFile, true, false);
             } else {
                 throw new StorageServerClientException("Exception while retrieving storage strategies");
@@ -98,5 +99,5 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
             throw new ProcessingException(String.format("Storage server errors : %s", e));
         }
     }
-    
+
 }

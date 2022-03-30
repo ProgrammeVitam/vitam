@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ public class VarNameAdapterExternal extends VarNameAdapter {
     }
 
     /**
-     *
      * @return True if the adapter is a Internal VarnameAdapter
      */
     public boolean metadataAdapter() {

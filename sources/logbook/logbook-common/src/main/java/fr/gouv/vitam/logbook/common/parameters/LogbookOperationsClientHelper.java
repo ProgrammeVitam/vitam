@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.text.ParseException;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -40,6 +34,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+
+import java.text.ParseException;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Helper implementation of LogbookOperationsClient
@@ -51,7 +51,7 @@ public class LogbookOperationsClientHelper {
     private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientHelper.class);
-    
+
     /**
      * Constructor
      */
@@ -69,15 +69,16 @@ public class LogbookOperationsClientHelper {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
         if (!LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess())
-            || parameters.getParameterValue(LogbookParameterName.eventDateTime) == null ) {
+            || parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
             parameters.putParameterValue(LogbookParameterName.eventDateTime,
                 LocalDateUtil.now().toString());
         } else {
             try {
                 LocalDateUtil.getDate(parameters.getParameterValue(LogbookParameterName.eventDateTime));
-                LOGGER.warn("External date : "+ parameters.getParameterValue(LogbookParameterName.eventDateTime));
+                LOGGER.warn("External date : " + parameters.getParameterValue(LogbookParameterName.eventDateTime));
             } catch (ParseException e) {
-                throw new IllegalArgumentException("Wrong date format : "+ parameters.getParameterValue(LogbookParameterName.eventDateTime));
+                throw new IllegalArgumentException(
+                    "Wrong date format : " + parameters.getParameterValue(LogbookParameterName.eventDateTime));
             }
         }
         ParametersChecker
@@ -141,7 +142,6 @@ public class LogbookOperationsClientHelper {
     }
 
     /**
-     *
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for creation
      */
@@ -150,7 +150,6 @@ public class LogbookOperationsClientHelper {
     }
 
     /**
-     *
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */

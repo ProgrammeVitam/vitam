@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.junit.Assert.assertEquals;
-
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import static org.junit.Assert.assertEquals;
 
 public class MongoDbVarNameAdapterTest {
 

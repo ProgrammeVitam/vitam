@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,9 +29,9 @@ package fr.gouv.vitam.access.internal.common.exception;
 import fr.gouv.vitam.common.error.VitamCode;
 
 public class AccessInternalRuleExecutionException extends
-		AccessInternalException {
+    AccessInternalException {
 
-	private static final long serialVersionUID = 3507862590422500648L;
+    private static final long serialVersionUID = 3507862590422500648L;
 
     public AccessInternalRuleExecutionException(String message) {
         super(message);

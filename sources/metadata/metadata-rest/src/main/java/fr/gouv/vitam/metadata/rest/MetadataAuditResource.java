@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.metadata.rest;
 
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.audit.core.MetadataAuditService;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.audit.core.MetadataAuditService;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
@@ -51,22 +51,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/metadata/v1")
-@Tag(name="Metadata")
+@Tag(name = "Metadata")
 public class MetadataAuditResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataAuditResource.class);
 
     private final MetadataAuditService metadataAuditService;
 
-    public MetadataAuditResource( MetaDataConfiguration metaDataConfiguration) {
+    public MetadataAuditResource(MetaDataConfiguration metaDataConfiguration) {
         this.metadataAuditService = new MetadataAuditService(WorkspaceClientFactory.getInstance(),
-                LogbookOperationsClientFactory.getInstance(), VitamRepositoryFactory.get(),
-                new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
+            LogbookOperationsClientFactory.getInstance(), VitamRepositoryFactory.get(),
+            new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
                 new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings())),
-                metaDataConfiguration.getIsDataConsistencyAuditRunnable(),
-                metaDataConfiguration.getDataConsistencyAuditOplogMaxSize(),
-                metaDataConfiguration.getMongodShardsConf(),
-                metaDataConfiguration.isDbAuthentication());
+            metaDataConfiguration.getIsDataConsistencyAuditRunnable(),
+            metaDataConfiguration.getDataConsistencyAuditOplogMaxSize(),
+            metaDataConfiguration.getMongodShardsConf(),
+            metaDataConfiguration.isDbAuthentication());
         LOGGER.info("init MetaData Audit Resource server");
         ProcessingManagementClientFactory.changeConfigurationUrl(metaDataConfiguration.getUrlProcessing());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
 public @interface Dsl {
     /**
      * Get the DslSchema value
-     * 
+     *
      * @return value
      */
     DslSchema value();

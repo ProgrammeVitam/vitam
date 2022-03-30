@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,23 +37,19 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class LogbookInternalStep extends CommonStep{
+public class LogbookInternalStep extends CommonStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalStep.class);
 
@@ -63,7 +59,6 @@ public class LogbookInternalStep extends CommonStep{
 
     /**
      * call vitam to generate a secured logbook
-     * 
      */
     @When("^je génère un journal des opérations sécurisé")
     public void generate_secured_logbook() {
@@ -77,7 +72,7 @@ public class LogbookInternalStep extends CommonStep{
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
                 String operationId;
-                if (response.getResults().isEmpty() || response.getResults().get(0).getOperationId() == null ) {
+                if (response.getResults().isEmpty() || response.getResults().get(0).getOperationId() == null) {
                     LOGGER.info("no need to run traceability");
                     RequestResponse<JsonNode> logbookResponse =
                         world.getLogbookOperationsClient()
@@ -107,7 +102,6 @@ public class LogbookInternalStep extends CommonStep{
 
     /**
      * call vitam to generate a secured logbook
-     *
      */
     @When("^je génère un journal des cycles de vie des unités archivistiques sécurisé")
     public void generate_secured_lfc_unit() {
@@ -145,7 +139,6 @@ public class LogbookInternalStep extends CommonStep{
 
     /**
      * call vitam to generate a secured logbook
-     *
      */
     @When("^je génère un journal des cycles de vie des groupes d'objets sécurisé")
     public void generate_secured_lfc_objectgroup() {
@@ -171,7 +164,7 @@ public class LogbookInternalStep extends CommonStep{
                 }
 
                 operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
-            }else {
+            } else {
                 checkTraceabilityLfcResponseOKOrWarn(response);
 
                 operationId = response.getResults().get(0);

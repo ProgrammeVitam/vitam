@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,8 +28,6 @@ package fr.gouv.vitam.logbook.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.digest.DigestType;
-
-import java.util.List;
 
 /**
  * Class used to save traceability event to be store in logbook collection
@@ -135,10 +133,11 @@ public class TraceabilityEvent {
 
     /**
      * Constructor
+     *
      * @param logType logType
      * @param startDate startDate
      * @param endDate endDate
-     * @param hash  hash
+     * @param hash hash
      * @param timeStampToken timeStampToken
      * @param previousLogbookTraceabilityDate previousLogbookTraceabilityDate
      * @param minusOneMonthLogbookTraceabilityDate minusOneMonthLogbookTraceabilityDate
@@ -194,7 +193,8 @@ public class TraceabilityEvent {
     }
 
     /**
-     *  getter of numberOfElements
+     * getter of numberOfElements
+     *
      * @return numberOfElements
      */
     public long getNumberOfElements() {

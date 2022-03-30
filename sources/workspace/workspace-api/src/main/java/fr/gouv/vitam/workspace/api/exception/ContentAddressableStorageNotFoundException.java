@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,9 +36,8 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
 
     /**
      * Constructor
-     * 
-     * @param message to associate with a new ContentAddressableStorageNotFoundException
      *
+     * @param message to associate with a new ContentAddressableStorageNotFoundException
      */
     public ContentAddressableStorageNotFoundException(String message) {
         super(message);
@@ -46,7 +45,7 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
 
     /**
      * Constructor
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public ContentAddressableStorageNotFoundException(Throwable cause) {
@@ -55,7 +54,7 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

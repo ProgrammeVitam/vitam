@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -242,7 +242,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
             assertEquals(Status.OK,
-                    client.importRulesFile(new FakeInputStream(1), "jeu_donnees_KO_regles_CSV_StringToNumber.csv"));
+                client.importRulesFile(new FakeInputStream(1), "jeu_donnees_KO_regles_CSV_StringToNumber.csv"));
         }
     }
 
@@ -327,7 +327,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             int status = client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel()
-                .setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE).setLastUpdate(DATE))
+                    .setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE).setLastUpdate(DATE))
                 .getStatus();
             assertEquals(Status.CREATED, Status.fromStatusCode(status));
         }
@@ -344,7 +344,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
                 new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE)
                     .setEndDate(DATE)
                     .setLastUpdate(DATE)))
-            .isInstanceOf(AdminManagementClientServerException.class);
+                .isInstanceOf(AdminManagementClientServerException.class);
         }
     }
 
@@ -535,10 +535,10 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void importManagementContractsWithCorrectJsonReturnCreated()
-            throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED)
-                .entity(new RequestResponseOK<ManagementContractModel>().addAllResults(getManagementContracts())).build());
+            .entity(new RequestResponseOK<ManagementContractModel>().addAllResults(getManagementContracts())).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             Status resp = client.importManagementContracts(new ArrayList<>());
             assertEquals(resp, Status.CREATED);
@@ -555,7 +555,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.put()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<ManagementContractModel>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<ManagementContractModel> resp = client.updateManagementContract("fakeId", JsonHandler.createObjectNode());
+            RequestResponse<ManagementContractModel> resp =
+                client.updateManagementContract("fakeId", JsonHandler.createObjectNode());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
         }
     }
@@ -563,26 +564,26 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void findAllManagementContractsThenReturnFive()
-            throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK)
-                .entity(new RequestResponseOK<ManagementContractModel>().addAllResults(getManagementContracts())).build());
+            .entity(new RequestResponseOK<ManagementContractModel>().addAllResults(getManagementContracts())).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse resp = client.findManagementContracts(JsonHandler.createObjectNode());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK) resp).getResults()).hasSize(5);
             assertThat(((RequestResponseOK) resp).getResults().iterator().next())
-                    .isInstanceOf(ManagementContractModel.class);
+                .isInstanceOf(ManagementContractModel.class);
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void findAllManagementContractsThenReturnEmpty()
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get())
-                .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ManagementContractModel>()).build());
+            .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ManagementContractModel>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse resp = client.findManagementContracts(JsonHandler.createObjectNode());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
@@ -595,11 +596,12 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     public void findManagementContractByIdThenThrowReferentialNotFoundException() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get())
-                .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ManagementContractModel>()).build());
+            .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ManagementContractModel>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> {
                 RequestResponse resp = client.findManagementContractsByID("fakeId");
-            }).isInstanceOf(ReferentialNotFoundException.class).hasMessageContaining("Contract not found with id: fakeId");
+            }).isInstanceOf(ReferentialNotFoundException.class)
+                .hasMessageContaining("Contract not found with id: fakeId");
         }
     }
 
@@ -607,19 +609,23 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     private List<AccessContractModel> getAccessContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
+        });
     }
 
     private List<IngestContractModel> getIngestContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
+        });
     }
 
     private List<ManagementContractModel> getManagementContracts()
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok.json");
-        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<ManagementContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts,
+            new TypeReference<List<ManagementContractModel>>() {
+            });
     }
 
 
@@ -754,7 +760,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
-        return JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<List<ProfileModel>>() {
+        });
     }
 
     @Test
@@ -799,7 +806,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        return JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
+        });
     }
 
     @Test
@@ -949,7 +957,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws FileNotFoundException, InvalidParseOperationException {
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profile_ok.json");
         return JsonHandler
-            .getFromFileAsTypeReference(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            .getFromFileAsTypeReference(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {
+            });
     }
 
     @Test

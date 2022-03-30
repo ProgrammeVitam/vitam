@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
-import java.util.Collection;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+
+import java.util.Collection;
 
 /**
  * LogbookLifeCycleObjectGroupModel
@@ -44,13 +43,14 @@ public class LogbookLifeCycleObjectGroupModel implements LogbookLifeCycleModel {
 
     /**
      * Constructor
-     * 
+     *
      * @param id lfc id
      * @param logbookLifeCycleParameters lfc parameters
      */
     @JsonCreator
     public LogbookLifeCycleObjectGroupModel(@JsonProperty("id") String id,
-        @JsonProperty("logbookLifeCycleParameters") Collection<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleParameters) {
+        @JsonProperty("logbookLifeCycleParameters")
+            Collection<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleParameters) {
         this.id = id;
         this.logbookLifeCycleParameters = logbookLifeCycleParameters;
     }
@@ -62,7 +62,7 @@ public class LogbookLifeCycleObjectGroupModel implements LogbookLifeCycleModel {
 
     /**
      * Get id
-     * 
+     *
      * @return id
      */
     public String getId() {

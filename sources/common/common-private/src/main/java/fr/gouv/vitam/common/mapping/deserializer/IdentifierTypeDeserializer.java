@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import java.io.IOException;
  */
 public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
     /**
-     *
      * @param jp representation (json, xml, string)
      * @param ctxt
      * @return the identifier type

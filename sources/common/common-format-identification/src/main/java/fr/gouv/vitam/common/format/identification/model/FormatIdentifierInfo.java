@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,6 @@ public class FormatIdentifierInfo {
     }
 
     /**
-     *
      * @return the identifier version
      */
     public String getVersion() {
@@ -54,7 +53,6 @@ public class FormatIdentifierInfo {
     }
 
     /**
-     *
      * @return the identifier name
      */
     public String getSoftwareName() {

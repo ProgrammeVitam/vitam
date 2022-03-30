@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -79,7 +79,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
     @VisibleForTesting
     public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory,
-            StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.storageClientFactory = storageClientFactory;
     }
@@ -154,24 +154,27 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     break;
                 case MANAGEMENT_CONTRACT_UNKNOWN:
                     itemStatus
-                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN.toString());
-                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract not found");
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
-                itemStatus.increment(StatusCode.KO);
+                        .setGlobalOutcomeDetailSubcode(
+                            CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN.toString());
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract not found");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
                     break;
                 case MANAGEMENT_CONTRACT_INACTIVE:
                     itemStatus
-                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE.toString());
-                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract inactive");
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
-                itemStatus.increment(StatusCode.KO);
+                        .setGlobalOutcomeDetailSubcode(
+                            CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE.toString());
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract inactive");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
                     break;
                 case MANAGEMENT_CONTRACT_INVALID:
                     itemStatus
-                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID.toString());
-                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract invalid");
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
-                itemStatus.increment(StatusCode.KO);
+                        .setGlobalOutcomeDetailSubcode(
+                            CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID.toString());
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract invalid");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
                     break;
                 case FATAL:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.FATAL.toString());
@@ -209,7 +212,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             RequestResponse<IngestContractModel> referenceContracts =
                 adminManagementClient.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
-                List<IngestContractModel> results = ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                List<IngestContractModel> results =
+                    ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         ActivationStatus status = result.getStatus();
@@ -218,10 +222,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
                             CheckIngestContractStatus tempStatus = checkIngestContractInTheContext(contractIdentifier);
                             if (CheckIngestContractStatus.OK.equals(tempStatus)
-                                    && StringUtils.isNotBlank(result.getManagementContractId())) {
+                                && StringUtils.isNotBlank(result.getManagementContractId())) {
                                 ManagmentContractChecker managementContractChecker = new ManagmentContractChecker(
-                                        result.getManagementContractId(), adminManagementClientFactory,
-                                        storageClientFactory);
+                                    result.getManagementContractId(), adminManagementClientFactory,
+                                    storageClientFactory);
                                 return managementContractChecker.check();
                             } else {
                                 return tempStatus;

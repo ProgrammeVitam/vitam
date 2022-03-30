@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 
 /**
  * Correspond to an nop query (like "{{'$nop':'1'}}")
- *
  */
 public class NopQuery extends fr.gouv.vitam.common.database.builder.query.NopQuery {
 

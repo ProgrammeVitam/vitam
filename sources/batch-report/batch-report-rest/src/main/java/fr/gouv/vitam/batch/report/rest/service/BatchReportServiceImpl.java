@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -521,7 +521,8 @@ public class BatchReportServiceImpl {
         }
     }
 
-    public List<DeleteGotVersionsComputedDetails> readDeletedGotVersionsComputedDetailsFromReport(String processId, int tenantId)
+    public List<DeleteGotVersionsComputedDetails> readDeletedGotVersionsComputedDetailsFromReport(String processId,
+        int tenantId)
         throws InvalidParseOperationException {
         List<DeleteGotVersionsComputedDetails> deleteGotVersionsComputedDetails = new ArrayList<>();
         MongoCursor<Document> deleteGotVersionsIteratorComputed =

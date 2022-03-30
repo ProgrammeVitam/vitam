@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,7 +47,7 @@ public class VitamArchiveStreamFactory {
      * Create an archive input stream from an archiver name and an input stream.
      *
      * @param mediaType MediaType object {@link MediaType} the archive name, i.e. ZIP, TAR, or
-     *        GZIP
+     * GZIP
      * @param in the input stream
      * @return the archive input stream
      * @throws ArchiveException if the archiver name is not known

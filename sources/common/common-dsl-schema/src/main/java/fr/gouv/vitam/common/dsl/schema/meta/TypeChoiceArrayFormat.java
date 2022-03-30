@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,8 @@ import static fr.gouv.vitam.common.dsl.schema.meta.JsonTypeName.fromJsonNodeType
 
 public class TypeChoiceArrayFormat extends Format {
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         for (Format format : itemChoices.values()) {
             format.setReportingType(this);
         }
@@ -53,7 +54,8 @@ public class TypeChoiceArrayFormat extends Format {
         this.itemChoices = itemChoices;
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
 
         if (!node.isArray()) {
             validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
@@ -75,14 +77,16 @@ public class TypeChoiceArrayFormat extends Format {
         }
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
         for (Format format : itemChoices.values()) {
             format.walk(consumer);
         }
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
         boolean notFirst = false;

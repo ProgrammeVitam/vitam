@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,8 @@ public class StoreExports extends ActionHandler {
             String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             String zipFileName = params.getContainerName();
 
-            if (isTransferWorkflow(params) && handler.isExistingFileInWorkspace(params.getContainerName() + JSONL_EXTENSION)) {
+            if (isTransferWorkflow(params) &&
+                handler.isExistingFileInWorkspace(params.getContainerName() + JSONL_EXTENSION)) {
                 storeReportToOffers(params.getContainerName());
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.ingest.external.core;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * Archive Transfer Reply KO from primary Ingest external steps
@@ -74,7 +74,8 @@ public class AtrKoBuilder {
      * @throws IngestExternalException
      */
     public static String buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
-                                    String eventType, String addedMessage, StatusCode code, LocalDateTime eventDateTime) throws IngestExternalException {
+        String eventType, String addedMessage, StatusCode code, LocalDateTime eventDateTime)
+        throws IngestExternalException {
         String xmlDefault;
         try {
             xmlDefault = FileUtil.readInputStream(PropertiesUtils.getResourceAsStream(ATR_KO_DEFAULT_XML));
@@ -93,6 +94,6 @@ public class AtrKoBuilder {
                 .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
                 .replace(EVENT_DATE_TIME, eventDateTime.toString())
                 .replaceAll(OUTCOME, code.name())
-                .replace(OUTCOME_DETAIL, eventType +"."+ code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
+                .replace(OUTCOME_DETAIL, eventType + "." + code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
     }
 }

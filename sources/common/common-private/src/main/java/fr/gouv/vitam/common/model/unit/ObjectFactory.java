@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AgentTypeModel }
-     *
      */
     public AgentTypeModel createAgentTypeModel() {
         return new AgentTypeModel();
@@ -44,7 +43,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ValidatorOrSignerModel }
-     *
      */
     public ValidatorOrSignerModel createValidatorOrSignerModel() {
         return new ValidatorOrSignerModel();

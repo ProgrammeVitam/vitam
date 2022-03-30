@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -177,19 +177,22 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         }
 
         try {
-            storeUnitAndLfcToOffer(metaDataClient, logbookLifeCyclesClientFactoryClient, storageClient, handler, workerParameters, unitId, unitId + ".json");
+            storeUnitAndLfcToOffer(metaDataClient, logbookLifeCyclesClientFactoryClient, storageClient, handler,
+                workerParameters, unitId, unitId + ".json");
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(MIGRATION_UNITS, FATAL, EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+            return buildItemStatus(MIGRATION_UNITS, FATAL,
+                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
         }
         return buildItemStatus(MIGRATION_UNITS, OK, EventDetails.of("Update OK"));
     }
 
 
 
-    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId, String currentOperationId) throws VitamException {
+    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId,
+        String currentOperationId) throws VitamException {
         JsonNode lfc = lfcClient.getRawUnitLifeCycleById(unitId);
-        LogbookLifecycle unitLFC =  JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
+        LogbookLifecycle unitLFC = JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
         return unitLFC.getEvents().stream().anyMatch(e -> e.getEvIdProc().equals(currentOperationId));
     }
 
@@ -223,7 +226,9 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient, StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName) throws VitamException {
+    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
+        throws VitamException {
         // get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
@@ -250,7 +255,8 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         ObjectDescription description = new ObjectDescription(UNIT, params.getContainerName(), fileName, uri);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
+            description);
     }
 
 }

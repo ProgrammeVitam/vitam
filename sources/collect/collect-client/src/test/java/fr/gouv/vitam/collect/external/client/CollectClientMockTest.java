@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,10 +30,11 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.junit.Test;
 
-public class CollectClientMockTest  {
+public class CollectClientMockTest {
 
     @Test
-    public void mock_client_collect_init_transaction_should_return_an_transaction_id() throws InvalidParseOperationException {
+    public void mock_client_collect_init_transaction_should_return_an_transaction_id()
+        throws InvalidParseOperationException {
         //Given
         CollectClientFactory collectClientFactory = CollectClientFactory.getInstance();
         collectClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);

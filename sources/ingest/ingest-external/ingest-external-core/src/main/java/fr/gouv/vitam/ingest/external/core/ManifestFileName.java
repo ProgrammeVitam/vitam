@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,7 @@ public class ManifestFileName {
     }
 
     /**
-     * @param  fileName
+     * @param fileName
      */
     public void setFileName(String fileName) {
         this.fileName = fileName;
@@ -59,7 +59,7 @@ public class ManifestFileName {
     }
 
     /**
-     * @param  isManifestFile
+     * @param isManifestFile
      */
     public void setManifestFile(boolean isManifestFile) {
         this.isManifestFile = isManifestFile;

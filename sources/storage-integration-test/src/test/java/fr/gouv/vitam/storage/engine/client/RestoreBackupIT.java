@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,52 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static org.mockito.ArgumentMatchers.any;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
+import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,54 +85,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
 /**
  * Integration tests for the reconstruction services. <br/>
@@ -114,7 +111,7 @@ public class RestoreBackupIT {
     private static DefaultOfferMain defaultOfferApplication;
     private static StorageMain storageMain;
     private static StorageClient storageClient;
-    
+
     private static final String OFFER_FOLDER = "offer";
     private static final String BACKUP_COPY_FOLDER = "backup";
     private static final int TENANT_ID = 0;
@@ -126,7 +123,8 @@ public class RestoreBackupIT {
     private static RestoreBackupService recoverBackupService;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
@@ -147,7 +145,7 @@ public class RestoreBackupIT {
         workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
-        
+
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
@@ -182,7 +180,7 @@ public class RestoreBackupIT {
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
         writeYaml(storageConfigurationFile, serverConfiguration);
-        
+
         File staticOffersFile = PropertiesUtils.findFile("static-offer.json");
         ArrayNode staticOffers = (ArrayNode) JsonHandler.getFromFile(staticOffersFile);
         ObjectNode defaultOffer = (ObjectNode) staticOffers.get(0);
@@ -197,7 +195,7 @@ public class RestoreBackupIT {
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-        
+
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);
         storageClient = StorageClientFactory.getInstance().getClient();
@@ -263,7 +261,8 @@ public class RestoreBackupIT {
     public void testRetrievalLastBackupVersion_emptyResult() throws Exception {
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.RULES, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.RULES,
+                FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup version found.");
         Assert.assertEquals(Optional.empty(), lastBackupVersion);
@@ -278,7 +277,8 @@ public class RestoreBackupIT {
 
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP,
+                FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(lastBackupVersion.isPresent());
         LOGGER.debug(String.format("Last backup version -> %s", lastBackupVersion.get()));
@@ -337,7 +337,8 @@ public class RestoreBackupIT {
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(uri);
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP, uri, description);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP, uri,
+                description);
 
         } catch (Exception e) {
             LOGGER.error("ERROR: Exception has been thrown when storing the backup copy.", e);

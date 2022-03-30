@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,8 +55,8 @@ import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadata
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
@@ -589,7 +589,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-            OBJECT_ID)
+                OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -62,7 +62,8 @@ public class InternalActionKeysRetriever {
     }
 
     @VisibleForTesting
-    public InternalActionKeysRetriever(String internalPrefix, String internalPrefixFromAccess, String internalPrefixForMongo) {
+    public InternalActionKeysRetriever(String internalPrefix, String internalPrefixFromAccess,
+        String internalPrefixForMongo) {
         this.internalPrefix = internalPrefix;
         this.internalPrefixFromAccess = internalPrefixFromAccess;
         this.internalPrefixForMongo = internalPrefixForMongo;

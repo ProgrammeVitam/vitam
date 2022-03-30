@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,13 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import org.bson.Document;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import java.util.Set;
 
 /**
  * Defines an Ingest contract model for SIP transfer control. </BR>

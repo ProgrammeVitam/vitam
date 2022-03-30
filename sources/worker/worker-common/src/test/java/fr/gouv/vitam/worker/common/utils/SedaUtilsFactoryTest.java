@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-
+import fr.gouv.vitam.worker.common.HandlerIO;
 import org.junit.Test;
 
-import fr.gouv.vitam.worker.common.HandlerIO;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class SedaUtilsFactoryTest {
 

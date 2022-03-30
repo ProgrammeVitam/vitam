@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * VitamResourceMetadata interface describing a resource metadata
- * 
+ *
  * @param <T> the VitamResourceMetadata
  */
 public interface VitamResourceMetadata<T extends Enum<T>> extends Comparable<VitamResourceMetadata<T>> {

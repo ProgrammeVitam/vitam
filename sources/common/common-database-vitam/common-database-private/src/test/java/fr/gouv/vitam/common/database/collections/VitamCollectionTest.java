@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -72,7 +72,8 @@ public class VitamCollectionTest {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
+        new ElasticsearchRule(
+            ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
 
 
     @ClassRule
@@ -106,7 +107,8 @@ public class VitamCollectionTest {
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(Collections.emptyList());
         final VitamCollection vitamCollection =
             VitamCollectionHelper
-                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(), vitamDescriptionResolver);
+                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(),
+                    vitamDescriptionResolver);
 
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);

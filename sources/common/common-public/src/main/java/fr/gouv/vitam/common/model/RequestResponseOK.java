@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -128,7 +128,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param query
      */
     public RequestResponseOK(JsonNode query, List<T> results, int total, String scrollId) {
-        this(query,results,total);
+        this(query, results, total);
         hits = new DatabaseCursor(total, hits.getOffset(), hits.getLimit(), results.size(), scrollId);
     }
 
@@ -204,9 +204,9 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param total  of units inserted/modified as integer
+     * @param total of units inserted/modified as integer
      * @param offset of unit in database as integer
-     * @param limit  of unit per response as integer
+     * @param limit of unit per response as integer
      * @return the RequestReponseOK with the hits are setted
      */
     public RequestResponseOK<T> setHits(long total, int offset, int limit) {
@@ -216,10 +216,10 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
 
     /**
-     * @param total    of units inserted/modified as integer
-     * @param offset   of unit in database as integer
-     * @param limit    of unit per response as integer
-     * @param size     of unit per response
+     * @param total of units inserted/modified as integer
+     * @param offset of unit in database as integer
+     * @param limit of unit per response as integer
+     * @param size of unit per response
      * @param scrollId of response
      * @return the RequestReponseOK with the hits are setted
      */
@@ -229,10 +229,10 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param total  of units inserted/modified as integer
+     * @param total of units inserted/modified as integer
      * @param offset of unit in database as integer
-     * @param limit  of unit per response as integer
-     * @param size   of unit per response
+     * @param limit of unit per response as integer
+     * @param size of unit per response
      * @return the RequestReponseOK with the hits are setted
      */
     public RequestResponseOK<T> setHits(long total, int offset, int limit, int size) {
@@ -334,7 +334,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @throws InvalidParseOperationException if parse json object exception occurred
      */
     public static <T> RequestResponseOK<T> getFromJsonNode(JsonNode node, Class<T> clazz)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, clazz);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -110,7 +110,7 @@ import static org.mockito.Mockito.when;
 public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
 
     private static final TypeReference<LfcMetadataPair> LFC_METADATA_PAIR_TYPE_REFERENCE = new TypeReference<>() {
-        };
+    };
     private HandlerIOImpl handlerIO;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;

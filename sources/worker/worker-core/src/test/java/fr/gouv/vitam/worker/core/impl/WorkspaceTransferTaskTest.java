@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,20 +30,18 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkspaceAction;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.worker.core.impl.WorkspaceTransferTask;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import org.junit.Test;
 
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
+ *
  */
 public class WorkspaceTransferTaskTest {
 

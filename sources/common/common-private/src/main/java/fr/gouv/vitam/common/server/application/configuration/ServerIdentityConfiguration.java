@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ package fr.gouv.vitam.common.server.application.configuration;
  * <br>
  * <br>
  * Your configuration class must implement it
- *
  */
 public interface ServerIdentityConfiguration {
     /**
@@ -55,7 +54,7 @@ public interface ServerIdentityConfiguration {
      * @return the identity platform id value
      */
     int getIdentitySiteId();
-    
+
     /**
      * Must return the value of a 'identityRole' attribute
      *

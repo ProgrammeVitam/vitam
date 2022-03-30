@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
+import org.bson.Document;
 
 /**
  * Defines a Profile collection. </BR>
- *
  */
 public class Profile extends VitamDocument<Profile> {
 
@@ -121,7 +118,6 @@ public class Profile extends VitamDocument<Profile> {
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public Profile(Integer tenantId) {
@@ -145,7 +141,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile id
-     * 
+     *
      * @return the id of the profile
      */
     public String getIdentifier() {
@@ -154,7 +150,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile id, the identifier must be unique by tenant
-     * 
+     *
      * @param identifier
      * @return this
      */
@@ -165,7 +161,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Name of the profile
-     * 
+     *
      * @return name of profile
      */
     public String getName() {
@@ -174,7 +170,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile name
-     * 
+     *
      * @param name to set
      * @return this
      */
@@ -185,7 +181,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Get the profile description
-     * 
+     *
      * @return this
      */
     public String getDescription() {
@@ -194,7 +190,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile description
-     * 
+     *
      * @param description to set to contact
      * @return this
      */
@@ -206,7 +202,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Get the profile status If toJson called without MongoClient configuration this will thow codec exception
-     * 
+     *
      * @return status of ingest contact
      */
     public ProfileStatus getStatus() {
@@ -215,7 +211,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile status
-     * 
+     *
      * @param status to set
      * @return this
      */
@@ -227,7 +223,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile format (xsd, rng, ...)
-     * 
+     *
      * @param format
      * @return this
      */
@@ -238,7 +234,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile file path in storage
-     * 
+     *
      * @return the profile path
      */
     public String getPath() {
@@ -249,7 +245,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile path
-     * 
+     *
      * @param path
      * @return this
      */
@@ -260,7 +256,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile file format If toJson called without MongoClient configuration this will thow codec exception
-     * 
+     *
      * @return the profile format
      */
     public ProfileFormat getFormat() {

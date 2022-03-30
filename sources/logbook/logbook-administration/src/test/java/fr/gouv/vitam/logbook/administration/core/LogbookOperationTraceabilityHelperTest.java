@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -394,7 +394,8 @@ public class LogbookOperationTraceabilityHelperTest {
 
         // Then
         assertThat(traceabilityOperationRequired).isTrue();
-        verify(logbookOperations, never()).checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any());
+        verify(logbookOperations, never()).checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(),
+            any());
     }
 
     private MongoCursor<LogbookOperation> getMongoCursorFor(LogbookOperation logbookOperation) {

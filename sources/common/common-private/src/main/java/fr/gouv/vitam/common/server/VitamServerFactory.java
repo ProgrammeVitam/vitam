@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,6 @@ public class VitamServerFactory {
     }
 
     /**
-     *
      * @return a VitamServer with the default port
      */
     public static VitamServer newVitamServerOnDefaultPort() {
@@ -76,7 +75,6 @@ public class VitamServerFactory {
     }
 
     /**
-     *
      * @param port
      * @return a VitamServer with the specified port
      * @throws IllegalArgumentException if port &lt;= 0

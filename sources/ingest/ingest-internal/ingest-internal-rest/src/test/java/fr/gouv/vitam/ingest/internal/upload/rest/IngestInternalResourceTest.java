@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,8 +50,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -243,12 +243,12 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         given()
-                .headers(
-                        GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
-                        GlobalDataRest.X_ACTION, ProcessAction.INIT,
-                        GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT,
-                        GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT,
-                        GlobalDataRest.X_TYPE_PROCESS, "INGEST")
+            .headers(
+                GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
+                GlobalDataRest.X_ACTION, ProcessAction.INIT,
+                GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT,
+                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT,
+                GlobalDataRest.X_TYPE_PROCESS, "INGEST")
             .body(inputStreamZip).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());

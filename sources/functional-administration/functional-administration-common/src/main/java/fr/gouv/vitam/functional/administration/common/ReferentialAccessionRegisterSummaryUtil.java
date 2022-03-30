@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -37,6 +34,9 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ReferentialAccessionRegisterSummaryUtil
@@ -47,20 +47,20 @@ public class ReferentialAccessionRegisterSummaryUtil {
      * Init AccessionRegisterSummary
      *
      * @param originatingAgency originating Agency
-     * @param id                id
+     * @param id id
      * @return return AccessionRegisterSummary
      */
     public AccessionRegisterSummary initAccessionRegisterSummary(String originatingAgency, String id) {
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel();
         final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
         accessionRegister
-                .setId(id)
-                .setOriginatingAgency(originatingAgency)
-                .setTotalObjects(initialValue)
-                .setTotalObjectGroups(initialValue)
-                .setTotalUnits(initialValue)
-                .setObjectSize(initialValue)
-                .setCreationDate(LocalDateUtil.now().toString());
+            .setId(id)
+            .setOriginatingAgency(originatingAgency)
+            .setTotalObjects(initialValue)
+            .setTotalObjectGroups(initialValue)
+            .setTotalUnits(initialValue)
+            .setObjectSize(initialValue)
+            .setCreationDate(LocalDateUtil.now().toString());
         return accessionRegister;
     }
 
@@ -71,11 +71,12 @@ public class ReferentialAccessionRegisterSummaryUtil {
      * @return update query
      * @throws InvalidCreateOperationException parsing query exception
      */
-    public Update generateUpdateQuery(AccessionRegisterDetailModel registerDetail) throws InvalidCreateOperationException {
+    public Update generateUpdateQuery(AccessionRegisterDetailModel registerDetail)
+        throws InvalidCreateOperationException {
         List<Action> actions = createActions(registerDetail);
         Update update = new Update();
         update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
-                .getOriginatingAgency()));
+            .getOriginatingAgency()));
         update.addActions(actions.toArray(new IncAction[actions.size()]));
         return update;
     }
@@ -88,36 +89,36 @@ public class ReferentialAccessionRegisterSummaryUtil {
      * @throws InvalidCreateOperationException parsing query exception
      */
     public List<Action> createActions(AccessionRegisterDetailModel registerDetail)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         ArrayList<Action> actions = new ArrayList<>();
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
-                registerDetail.getTotalObjectsGroups().getIngested()));
+            registerDetail.getTotalObjectsGroups().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
-                registerDetail.getTotalObjectsGroups().getDeleted()));
+            registerDetail.getTotalObjectsGroups().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
-                registerDetail.getTotalObjectsGroups().getRemained()));
+            registerDetail.getTotalObjectsGroups().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
-                registerDetail.getTotalObjects().getIngested()));
+            registerDetail.getTotalObjects().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
-                registerDetail.getTotalObjects().getDeleted()));
+            registerDetail.getTotalObjects().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
-                registerDetail.getTotalObjects().getRemained()));
+            registerDetail.getTotalObjects().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
-                registerDetail.getTotalUnits().getIngested()));
+            registerDetail.getTotalUnits().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
-                registerDetail.getTotalUnits().getDeleted()));
+            registerDetail.getTotalUnits().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
-                registerDetail.getTotalUnits().getRemained()));
+            registerDetail.getTotalUnits().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
-                registerDetail.getObjectSize().getIngested()));
+            registerDetail.getObjectSize().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
-                registerDetail.getObjectSize().getDeleted()));
+            registerDetail.getObjectSize().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
-                registerDetail.getObjectSize().getRemained()));
+            registerDetail.getObjectSize().getRemained()));
         return actions;
     }
 }

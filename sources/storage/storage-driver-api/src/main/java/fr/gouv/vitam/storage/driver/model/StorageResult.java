@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,11 +38,9 @@ public class StorageResult {
 
     /**
      * Initialize the needed data for result.
-     * 
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
      */
     StorageResult(Integer tenantId, String type) {
         this.tenantId = tenantId;
@@ -51,7 +49,7 @@ public class StorageResult {
 
     /**
      * Gets the tenantId
-     * 
+     *
      * @return the tenantId
      */
     public Integer getTenantId() {
@@ -60,7 +58,7 @@ public class StorageResult {
 
     /**
      * Gets the type
-     * 
+     *
      * @return the type
      */
     public String getType() {

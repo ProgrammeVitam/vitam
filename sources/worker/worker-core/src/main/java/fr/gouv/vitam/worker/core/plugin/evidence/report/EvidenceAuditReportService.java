@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.evidence.report;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.CommonReportService;

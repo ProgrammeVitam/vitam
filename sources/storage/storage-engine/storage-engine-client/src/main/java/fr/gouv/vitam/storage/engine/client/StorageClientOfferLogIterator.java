@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,8 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
     private final int chunkSize;
     private Long lastOffset;
 
-    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, String offerId, Order order,
+    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, String offerId,
+        Order order,
         DataCategory dataCategory,
         int chunkSize, Long startOffset) {
         super(chunkSize);

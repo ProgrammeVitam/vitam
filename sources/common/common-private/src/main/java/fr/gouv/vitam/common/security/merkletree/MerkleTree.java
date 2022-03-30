@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,8 +52,8 @@ public class MerkleTree {
     /**
      * Initialize the needed parameters for MerkleTree constructor
      *
-     * @param root      : the root of the MerkleTree
-     * @param leftLeaf  : the left leaf of the MerkleTree
+     * @param root : the root of the MerkleTree
+     * @param leftLeaf : the left leaf of the MerkleTree
      * @param rightLeaf : the right leaf of the MerkleTree
      */
     public MerkleTree(byte[] root, MerkleTree leftLeaf, MerkleTree rightLeaf) {

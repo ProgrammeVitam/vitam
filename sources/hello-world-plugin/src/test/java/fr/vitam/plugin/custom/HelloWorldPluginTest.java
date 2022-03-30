@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,7 @@ public class HelloWorldPluginTest {
     public void testExecuteListThenOK() throws ContentAddressableStorageServerException, ProcessingException {
         HelloWorldPlugin helloWorldPlugin = new HelloWorldPlugin();
         WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
-        parameters.setObjectNameList( Lists.newArrayList("objectId"));
+        parameters.setObjectNameList(Lists.newArrayList("objectId"));
         HandlerIO handlerIO = mock(HandlerIO.class);
         doReturn("HelloWorldPluginTest").when(handlerIO).getInput(0);
         List<ItemStatus> itemStatus = helloWorldPlugin.executeList(parameters, handlerIO);

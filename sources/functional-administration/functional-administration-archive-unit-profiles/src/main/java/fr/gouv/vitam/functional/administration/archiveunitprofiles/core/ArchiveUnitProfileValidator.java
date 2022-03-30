@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.archiveunitprofiles.core;
 
-import java.util.Optional;
-
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+
+import java.util.Optional;
 
 /**
  * Used to validate archive unit profiles and to apply acceptance rules.
  *
  * Bellow the example of usage :
- * 
+ *
  * <pre>
  * {@code
  * private static ArchiveUnitProfileValidator checkDuplicateInDatabaseValidator() {
@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
  * GenericRejectionCause rejection = checkDuplicateInDatabaseValidator().validate(aup, aup.getName());
  *
  * Check if rejection is present then do the resolution
- *
  */
 @FunctionalInterface
 public interface ArchiveUnitProfileValidator {
@@ -76,20 +75,25 @@ public interface ArchiveUnitProfileValidator {
      */
     public class RejectionCause {
 
-        private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating archive unit profile (%s)";
-        private static final String ERR_DUPLICATE_IDENTIFIER_ARCHIVE_PROFILE = "The archive unit profile identifier %s already exists in database";
-        private static final String ERR_DUPLICATE_NAME_ARCHIVE_PROFILE = "The archive unit profile name %s already exists in database";
+        private static final String ERR_ID_NOT_ALLOWED_IN_CREATE =
+            "Id must be null when creating archive unit profile (%s)";
+        private static final String ERR_DUPLICATE_IDENTIFIER_ARCHIVE_PROFILE =
+            "The archive unit profile identifier %s already exists in database";
+        private static final String ERR_DUPLICATE_NAME_ARCHIVE_PROFILE =
+            "The archive unit profile name %s already exists in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_JSON_SHEMA = "The field %s is not a json schema";
         private static final String ERR_JSON_SCHEMA_IN_USE = "The field %s is used by an archiveUnit";
-        private static final String ERR_MISSING_ONTOLOGY_FIELD= "The field %s specified in the schema is not declared in ontology";
-        private static final String ERR_INCORRECT_ONTOLOGY_FIELD= "The field %s specified in the schema is not compatible with the one declared in ontology";
+        private static final String ERR_MISSING_ONTOLOGY_FIELD =
+            "The field %s specified in the schema is not declared in ontology";
+        private static final String ERR_INCORRECT_ONTOLOGY_FIELD =
+            "The field %s specified in the schema is not compatible with the one declared in ontology";
 
         private String reason;
 
         /**
          * Constructor
-         * 
+         *
          * @param error
          */
         public RejectionCause(String error) {
@@ -109,7 +113,7 @@ public interface ArchiveUnitProfileValidator {
         /**
          * Verify for each archive unit profile if already exists one in database that have the same identifier and/or name. The
          * database my manage this kind of constraint (by creating an unique index on the field or column)
-         * 
+         *
          * @param identifier
          * @return RejectionCause
          */
@@ -130,14 +134,14 @@ public interface ArchiveUnitProfileValidator {
 
         /**
          * Reject if the field is not a json shema
-         * 
+         *
          * @param fieldName
          * @return RejectionCause
          */
         public static RejectionCause rejectJsonSchemaModificationIfInUse(String fieldName) {
             return new RejectionCause(String.format(ERR_JSON_SCHEMA_IN_USE, fieldName));
         }
-        
+
         /**
          * Reject if the field is not a json shema
          *
@@ -169,7 +173,7 @@ public interface ArchiveUnitProfileValidator {
         public static RejectionCause rejectMissingFieldInOntology(String fieldName) {
             return new RejectionCause(String.format(ERR_MISSING_ONTOLOGY_FIELD, fieldName));
         }
-        
+
         /**
          * Reject if one field is not compatible with the one declared in ontology
          *
@@ -182,7 +186,7 @@ public interface ArchiveUnitProfileValidator {
 
         /**
          * Get reason
-         * 
+         *
          * @return reason
          */
         public String getReason() {

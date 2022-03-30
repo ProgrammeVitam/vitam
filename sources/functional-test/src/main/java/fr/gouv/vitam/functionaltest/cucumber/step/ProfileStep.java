@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,12 +58,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Profile Step
  */
-public class ProfileStep extends CommonStep{
+public class ProfileStep extends CommonStep {
 
     public ProfileStep(World world) {
         super(world);
     }
-    
+
     /**
      * ★★★ The file name ★★★
      */

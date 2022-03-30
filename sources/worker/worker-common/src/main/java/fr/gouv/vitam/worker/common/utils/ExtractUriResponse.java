@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Set;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
+
+import java.net.URI;
+import java.util.Set;
 
 /**
  * Class contains messages of response.
@@ -50,7 +49,6 @@ public class ExtractUriResponse extends ProcessResponse {
 
     /**
      * @param errorDuplicateUri the errorDuplicateUri to set
-     *
      * @return this
      */
     public ExtractUriResponse setErrorDuplicateUri(boolean errorDuplicateUri) {

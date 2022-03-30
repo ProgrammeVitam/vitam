@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,6 +55,7 @@ public final class VitamDateTimeAttribute extends AbstractFormatAttribute {
     private static final List<String> FORMATS = ImmutableList.of(
         "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final DateTimeFormatter FORMATTER;
+
     static {
         final DateTimeParser msParser = new DateTimeFormatterBuilder()
             .appendLiteral('.').appendDecimal(millisOfSecond(), 1, 3)
@@ -74,6 +75,7 @@ public final class VitamDateTimeAttribute extends AbstractFormatAttribute {
             .appendOptional(msParser);
         FORMATTER = builder.toFormatter();
     }
+
     private static final FormatAttribute INSTANCE = new VitamDateTimeAttribute();
 
     public static FormatAttribute getInstance() {

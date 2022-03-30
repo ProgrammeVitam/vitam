@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,28 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -60,8 +41,28 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 public class AuditCheckObjectPluginTest {
 
@@ -71,7 +72,7 @@ public class AuditCheckObjectPluginTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-            VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private AuditExistenceService auditExistenceService;
@@ -93,21 +94,22 @@ public class AuditCheckObjectPluginTest {
         reset(auditExistenceService);
         reset(auditReportService);
         auditCheckObjectPlugin = new AuditCheckObjectPlugin(auditExistenceService, auditIntegrityService,
-                auditReportService);
+            auditReportService);
     }
 
     @RunWithCustomExecutor
     @Test
     public void shouldCheckExistenceObjectsOfObjectGroup()
-            throws Exception {
+        throws Exception {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
         JsonNode jsonl = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
-        WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
+            .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
+        WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
                 .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
                 .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
                 .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
@@ -118,7 +120,7 @@ public class AuditCheckObjectPluginTest {
         AuditCheckObjectGroupResult result = generateOkAuditResult();
         when(auditExistenceService.check(any(), any())).thenReturn(result);
         doNothing().when(auditReportService).appendEntries(processIdCaptor.capture(),
-                auditReportEntryCaptor.capture());
+            auditReportEntryCaptor.capture());
         when(handler.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("AuditObjectWorkflow/strategies.json"));
 
         // When
@@ -135,15 +137,16 @@ public class AuditCheckObjectPluginTest {
     @RunWithCustomExecutor
     @Test
     public void shouldCheckIntegrityObjectsOfObjectGroup()
-            throws Exception {
+        throws Exception {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
         JsonNode jsonl = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
-        WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
+            .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
+        WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
                 .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
                 .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
                 .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
@@ -155,7 +158,7 @@ public class AuditCheckObjectPluginTest {
 
         when(auditIntegrityService.check(any(), any())).thenReturn(result);
         doNothing().when(auditReportService).appendEntries(processIdCaptor.capture(),
-                auditReportEntryCaptor.capture());
+            auditReportEntryCaptor.capture());
         when(handler.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("AuditObjectWorkflow/strategies.json"));
 
         // When
@@ -171,15 +174,16 @@ public class AuditCheckObjectPluginTest {
     @RunWithCustomExecutor
     @Test
     public void shouldFatalWhenProcessingException()
-            throws Exception {
+        throws Exception {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
         JsonNode jsonl = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
-        WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
+            .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
+        WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
                 .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
                 .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
                 .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
@@ -187,7 +191,8 @@ public class AuditCheckObjectPluginTest {
                 .setCurrentStep("StepName");
         params.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_INTEGRITY");
 
-        when(auditIntegrityService.check(any(), any())).thenThrow(new ProcessingStatusException(StatusCode.FATAL, "storage error"));
+        when(auditIntegrityService.check(any(), any())).thenThrow(
+            new ProcessingStatusException(StatusCode.FATAL, "storage error"));
 
         // When
         ItemStatus status = auditCheckObjectPlugin.execute(params, handler);
@@ -200,15 +205,16 @@ public class AuditCheckObjectPluginTest {
     @RunWithCustomExecutor
     @Test
     public void shouldFatalWhenReportClientException()
-            throws Exception {
+        throws Exception {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
         JsonNode jsonl = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
-        WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
+            .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"));
+        WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID().getId())
                 .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
                 .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
                 .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
@@ -218,7 +224,8 @@ public class AuditCheckObjectPluginTest {
 
         AuditCheckObjectGroupResult result = generateOkAuditResult();
         when(auditExistenceService.check(any(), any())).thenReturn(result);
-        Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "report error")).when(auditReportService).appendEntries(any(), any());
+        Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "report error")).when(auditReportService)
+            .appendEntries(any(), any());
 
         // When
         ItemStatus status = auditCheckObjectPlugin.execute(params, handler);

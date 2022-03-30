@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,18 @@
  */
 package fr.gouv.vitam.common.database.utils;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.Spliterator;
-import java.util.function.Function;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.junit.Test;
+
+import java.util.Spliterator;
+import java.util.function.Function;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class LifecyclesSpliteratorTest {
 
@@ -72,17 +73,17 @@ public class LifecyclesSpliteratorTest {
         requestResponseOK1.addResult(2L);
         requestResponseOK1.addResult(3L);
         requestResponseOK1.setHits(4, 0, 3, 3);
-        
+
         RequestResponseOK<Long> requestResponseOK2 = new RequestResponseOK<>();
         requestResponseOK2.addResult(4L);
         requestResponseOK2.setHits(4, 3, 3, 1);
 
         RequestResponseOK<Long> requestResponseOK3 = new RequestResponseOK<>();
-        
+
         given(function.apply(any(Select.class))).willReturn(requestResponseOK1)
             .willReturn(requestResponseOK2)
             .willReturn(requestResponseOK3);
-        
+
         Select query = new Select();
         Spliterator<Long> longSpliterator = new LifecyclesSpliterator<>(query, function, 3, 4);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,12 @@
  */
 package fr.gouv.vitam.common.mapping.serializer;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+
+import java.io.IOException;
 
 /**
  * Identifier Type Serializer
@@ -56,6 +54,7 @@ public class IdentifierTypeSerializer extends StdSerializer<IdentifierType> {
 
     /**
      * serialize IdentifierType
+     *
      * @param identifierType
      * @param gen
      * @param provider

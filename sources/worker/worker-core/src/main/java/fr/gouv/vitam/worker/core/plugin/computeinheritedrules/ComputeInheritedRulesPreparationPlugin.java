@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -67,7 +67,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesPreparationPlugin.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ComputeInheritedRulesPreparationPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PREPARATION";
 
@@ -93,7 +94,8 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
         try {
             process(handler, dslQuery);
         } catch (ComputedInheritedRulesException e) {
-            LOGGER.error(String.format("ComputeInheritedRules preparation failed with status [%s]", e.getStatusCode()), e);
+            LOGGER.error(String.format("ComputeInheritedRules preparation failed with status [%s]", e.getStatusCode()),
+                e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
             return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), error);
         }
@@ -104,7 +106,8 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
         File unitDistributionFile = null;
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             SelectMultiQuery selectMultiQuery = createSelectMultiple(dslQuery);
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, selectMultiQuery);
+            ScrollSpliterator<JsonNode> scrollRequest =
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, selectMultiQuery);
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
             unitDistributionFile = handler.getNewLocalFile(UNITS_JSONL_FILE);
             try (JsonLineWriter unitWriter = new JsonLineWriter(new FileOutputStream(unitDistributionFile))) {

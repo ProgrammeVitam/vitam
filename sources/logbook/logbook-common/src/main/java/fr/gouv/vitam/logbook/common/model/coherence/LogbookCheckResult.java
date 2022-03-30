@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.model.coherence;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Description of LogbookCheckResult model. <br/>
@@ -41,7 +41,7 @@ public class LogbookCheckResult implements Serializable {
      */
     @JsonProperty("tenant")
     private Integer tenant;
-    
+
     /**
      * Checked events
      */
@@ -57,7 +57,8 @@ public class LogbookCheckResult implements Serializable {
     public LogbookCheckResult() {
     }
 
-    public LogbookCheckResult(Integer tenant, Set<LogbookCheckEvent> checkedEvents, Set<LogbookCheckError> checkErrors) {
+    public LogbookCheckResult(Integer tenant, Set<LogbookCheckEvent> checkedEvents,
+        Set<LogbookCheckError> checkErrors) {
         this.tenant = tenant;
         this.checkedEvents = checkedEvents;
         this.checkErrors = checkErrors;
@@ -66,11 +67,11 @@ public class LogbookCheckResult implements Serializable {
     public Integer getTenant() {
         return tenant;
     }
-    
+
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
     }
-    
+
     public Set<LogbookCheckEvent> getCheckedEvents() {
         return checkedEvents;
     }

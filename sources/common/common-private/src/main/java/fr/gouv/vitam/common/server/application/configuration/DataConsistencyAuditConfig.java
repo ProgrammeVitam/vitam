@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,8 +37,8 @@ public class DataConsistencyAuditConfig {
     }
 
     public DataConsistencyAuditConfig(Boolean isDataConsistencyAuditRunnable,
-                                      Integer dataConsistencyAuditOplogMaxSize, MongoDbShardConf mongodShardsConf,
-                                      Boolean dbAuthentication) {
+        Integer dataConsistencyAuditOplogMaxSize, MongoDbShardConf mongodShardsConf,
+        Boolean dbAuthentication) {
         this.isDataConsistencyAuditRunnable = isDataConsistencyAuditRunnable;
         this.dataConsistencyAuditOplogMaxSize = dataConsistencyAuditOplogMaxSize;
         this.mongodShardsConf = mongodShardsConf;

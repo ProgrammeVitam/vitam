@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 
 /**
  * Search Query
- *
  */
 public class NestedQuery extends Query {
     protected NestedQuery() {
@@ -48,7 +47,7 @@ public class NestedQuery extends Query {
      * @throws InvalidCreateOperationException when query is invalid
      */
     public NestedQuery(final QUERY searchQuery, final String variableName,
-                       final JsonNode value)
+        final JsonNode value)
         throws InvalidCreateOperationException {
         super();
         switch (searchQuery) {

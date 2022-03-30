@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -111,9 +111,13 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
         getNbObjects(match(and(eqProcessId, eqTenant)), globalResults);
         getMetadataTypeStats(globalResults, eqProcessId, eqTenant);
 
-        reportResult.setNbOk(globalResults.getObjectGroupsCount().getNbOK() + globalResults.getUnitsCount().getNbOK() + globalResults.getObjectsCount().getNbOK());
-        reportResult.setNbKo(globalResults.getObjectGroupsCount().getNbKO() + globalResults.getUnitsCount().getNbKO() + globalResults.getObjectsCount().getNbKO());
-        reportResult.setNbWarning(globalResults.getObjectGroupsCount().getNbWARNING() + globalResults.getUnitsCount().getNbWARNING() + globalResults.getObjectsCount().getNbWARNING());
+        reportResult.setNbOk(globalResults.getObjectGroupsCount().getNbOK() + globalResults.getUnitsCount().getNbOK() +
+            globalResults.getObjectsCount().getNbOK());
+        reportResult.setNbKo(globalResults.getObjectGroupsCount().getNbKO() + globalResults.getUnitsCount().getNbKO() +
+            globalResults.getObjectsCount().getNbKO());
+        reportResult.setNbWarning(
+            globalResults.getObjectGroupsCount().getNbWARNING() + globalResults.getUnitsCount().getNbWARNING() +
+                globalResults.getObjectsCount().getNbWARNING());
 
         return reportResult;
     }

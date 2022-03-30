@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,12 +32,13 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 /**
  * This class must be the reference to create new connection implementation compatible with vitam client
  */
-public abstract  class AbstractConnection extends DefaultClient implements Connection {
+public abstract class AbstractConnection extends DefaultClient implements Connection {
 
     private String driverName;
 
     /**
      * Constructor using given scheme (http)
+     *
      * @param driverName the name of the driver
      * @param factory The client factory
      */

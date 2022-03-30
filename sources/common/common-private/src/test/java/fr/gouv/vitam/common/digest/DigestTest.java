@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,11 @@
  */
 package fr.gouv.vitam.common.digest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import fr.gouv.vitam.common.ResourcesPublicUtilTest;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.Assume;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -42,12 +40,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.junit.Assume;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.ResourcesPublicUtilTest;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DigestTest {
     private static final VitamLogger LOGGER =
@@ -104,7 +103,8 @@ public class DigestTest {
             digest0.reset();
             byteArrayInputStream0 = new ByteArrayInputStream(byteArray0);
             final InputStream inputStream = digest0.getDigestInputStream(byteArrayInputStream0);
-            while (inputStream.read(byteArray1) >= 0) {}
+            while (inputStream.read(byteArray1) >= 0) {
+            }
             inputStream.close();
             assertEquals(hex, digest0.digestHex());
         }

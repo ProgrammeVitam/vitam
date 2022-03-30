@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,7 +64,8 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
     public ReadOrder(String tapeCode, Integer filePosition, String fileName, String bucket,
         String fileBucketId, long size) {
         this();
-        ParametersChecker.checkParameter("All params are required", tapeCode, filePosition, fileName, bucket, fileBucketId);
+        ParametersChecker.checkParameter("All params are required", tapeCode, filePosition, fileName, bucket,
+            fileBucketId);
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
         this.fileName = fileName;

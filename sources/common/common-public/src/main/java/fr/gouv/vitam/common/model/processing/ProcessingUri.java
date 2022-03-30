@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,6 @@ public class ProcessingUri {
 
     /**
      * Empty Constructor
-     *
      */
     public ProcessingUri() {
         // empty constructor
@@ -87,7 +86,6 @@ public class ProcessingUri {
 
     /**
      * @param prefix the prefix to set
-     *
      * @return this
      */
     public ProcessingUri setPrefix(UriPrefix prefix) {
@@ -104,7 +102,6 @@ public class ProcessingUri {
 
     /**
      * @param path the path to set
-     *
      * @return this
      */
     public ProcessingUri setPath(String path) {

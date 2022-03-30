@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.junit.Rule;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.model.StatusCode;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LogbookParameterHelperTest {
 
@@ -52,12 +51,14 @@ public class LogbookParameterHelperTest {
 
         // Then
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-                .newLogbookOperationParameters(GUIDFactory.newEventGUID(0), evType, GUIDFactory.newEventGUID(0), LogbookTypeProcess.MASTERDATA,
-                        StatusCode.STARTED,
-                        VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED), GUIDFactory.newEventGUID(0));
+            .newLogbookOperationParameters(GUIDFactory.newEventGUID(0), evType, GUIDFactory.newEventGUID(0),
+                LogbookTypeProcess.MASTERDATA,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED), GUIDFactory.newEventGUID(0));
 
         // Then
-        assertThat(logbookParameters.getMapParameters()).containsEntry(LogbookParameterName.outcomeDetail, "evType.STARTED");
+        assertThat(logbookParameters.getMapParameters()).containsEntry(LogbookParameterName.outcomeDetail,
+            "evType.STARTED");
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.s3;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-
-import java.io.InputStream;
-
-import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.amazonaws.SdkBaseException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -52,11 +37,24 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.io.InputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 
 public class AmazonS3V1MockedClientTest {
 
@@ -94,7 +92,7 @@ public class AmazonS3V1MockedClientTest {
 
     @Test
     public void generate_bucket_name_should_return_return_valid_name_when_last_char_not_alphanumeric()
-            throws Exception {
+        throws Exception {
         String containerName = "UNIT)";
         String buckName = amazonS3V1.generateBucketName(containerName);
         assertThat(buckName).isEqualTo("unit");
@@ -106,17 +104,17 @@ public class AmazonS3V1MockedClientTest {
         assertThatThrownBy(() -> {
             amazonS3V1.isExistingContainer(CONTAINER_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to check existance of container");
+            .hasMessage("Error when trying to check existance of container");
     }
 
     @Test
     public void exists_object_should_throw_exception_when_client_throws_exception() throws Exception {
         Mockito.when(amazonS3Client.doesObjectExist(BUCKET_0, OBJECT_ID_0))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
             amazonS3V1.isExistingObject(CONTAINER_0, OBJECT_ID_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to check existance of object");
+            .hasMessage("Error when trying to check existance of object");
     }
 
     @Test
@@ -125,68 +123,68 @@ public class AmazonS3V1MockedClientTest {
         assertThatCode(() -> {
             amazonS3V1.createContainer(CONTAINER_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to create container");
+            .hasMessage("Error when trying to create container");
 
     }
 
     @Test
     public void delete_object_should_throw_exception_when_client_throws_exception() throws Exception {
         Mockito.doThrow(new SdkBaseException("Client error")).when(amazonS3Client)
-                .deleteObject(any(DeleteObjectRequest.class));
+            .deleteObject(any(DeleteObjectRequest.class));
         assertThatCode(() -> {
             amazonS3V1.deleteObject(BUCKET_0, OBJECT_ID_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to delete object object0id");
+            .hasMessage("Error when trying to delete object object0id");
     }
 
     @Test
     public void get_object_should_throw_exception_when_client_throws_exception() throws Exception {
         Mockito.when(amazonS3Client.getObject(any(GetObjectRequest.class)))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
         assertThatCode(() -> {
             amazonS3V1.getObject(CONTAINER_0, OBJECT_ID_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to download object");
+            .hasMessage("Error when trying to download object");
     }
 
     @Test
     public void get_object_digest_should_throw_exception_when_client_throws_exception() throws Exception {
         Mockito.when(amazonS3Client.getObjectMetadata(any(GetObjectMetadataRequest.class)))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
             amazonS3V1.getObjectDigest(CONTAINER_0, OBJECT_ID_0, DigestType.SHA512, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to compute digest of object");
+            .hasMessage("Error when trying to compute digest of object");
     }
 
     @Test
     public void get_object_metadatas_should_throw_exception_when_client_throws_exception() throws Exception {
 
         Mockito.when(amazonS3Client.getObjectMetadata(any(GetObjectMetadataRequest.class)))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
             amazonS3V1.getObjectMetadata(CONTAINER_0, OBJECT_ID_0, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to get metadatas of object");
+            .hasMessage("Error when trying to get metadatas of object");
     }
 
     @Test
     public void upload_object_should_throw_exception_when_client_putobject_throws_exception() throws Exception {
         FakeInputStream fakeInputStream = new FakeInputStream(3500L);
         Mockito.when(amazonS3Client.putObject(eq(BUCKET_0), eq(OBJECT_ID_0), any(InputStream.class),
-                any(ObjectMetadata.class))).thenThrow(new SdkBaseException("Client error"));
+            any(ObjectMetadata.class))).thenThrow(new SdkBaseException("Client error"));
 
         assertThatCode(() -> {
             amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, fakeInputStream, DigestType.SHA512, 3_500L);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to upload object");
+            .hasMessage("Error when trying to upload object");
     }
 
     @Test
     public void upload_object_should_throw_exception_when_client_copyobject_throws_exception() throws Exception {
         InputStream stream = new FakeInputStream(0);
         Mockito.when(amazonS3Client.putObject(eq(BUCKET_0), eq(OBJECT_ID_0), any(InputStream.class),
-                any(ObjectMetadata.class))).thenReturn(new PutObjectResult());
+            any(ObjectMetadata.class))).thenReturn(new PutObjectResult());
 
         FakeInputStream delegateInputStream = new FakeInputStream(0);
         S3Object object = mock(S3Object.class);
@@ -198,18 +196,18 @@ public class AmazonS3V1MockedClientTest {
         Mockito.when(objectContent.getDelegateStream()).thenReturn(delegateInputStream);
         Mockito.when(amazonS3Client.getObject(any(GetObjectRequest.class))).thenReturn(object);
         Mockito.when(amazonS3Client.copyObject(any(CopyObjectRequest.class)))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
 
         assertThatCode(() -> {
             amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 0L);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to update metadatas of object");
+            .hasMessage("Error when trying to update metadatas of object");
     }
 
     @Test
     public void list_container_should_throw_exception_when_client_throws_exception() throws Exception {
         Mockito.when(amazonS3Client.listObjectsV2(any(ListObjectsV2Request.class)))
-                .thenThrow(new SdkBaseException("Client error"));
+            .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
             amazonS3V1.listContainer(CONTAINER_0, mock(ObjectListingListener.class));
         }).isInstanceOf(ContentAddressableStorageServerException.class).hasMessage("Error when trying to list objects");

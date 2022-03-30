@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * Common abstract class for LogbookLifeCycle Units and ObjectGroups Parameters

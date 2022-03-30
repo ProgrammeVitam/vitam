@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 import java.util.List;
@@ -61,7 +60,7 @@ public class History {
         history.put(UD, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         ObjectNode data = history.putObject(DATA);
         data.put(_V, version);
-        if(nodeToHistory.isMissingNode()) {
+        if (nodeToHistory.isMissingNode()) {
             createBranch(data);
         } else {
             createBranch(data).set(namePathForHistory, nodeToHistory);

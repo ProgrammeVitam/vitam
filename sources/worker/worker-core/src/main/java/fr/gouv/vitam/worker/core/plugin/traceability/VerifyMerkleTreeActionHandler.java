@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -153,7 +153,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
             if (itemStatus.getGlobalStatus().equals(StatusCode.KO)) {
                 updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                    TraceabilityError.INCORRECT_MERKLE_TREE)
+                        TraceabilityError.INCORRECT_MERKLE_TREE)
                     .setMessage("Error checking merkle tree"));
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
             } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,7 @@ import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class ContextResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
@@ -82,7 +82,6 @@ public class ContextResource {
     private final AdminManagementClient adminManagementClient;
 
     /**
-     *
      * @param mongoAccess
      * @param functionalBackupService
      */
@@ -102,9 +101,11 @@ public class ContextResource {
     public Response importContexts(List<ContextModel> ContextModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(CONTEXTS_JSON_IS_MANDATORY_PATAMETER, ContextModelList);
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
+            vitamCounterService,
             functionalBackupService, adminManagementClient);
-             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
+            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
+                securityProfileService)) {
             RequestResponse requestResponse = contextService.createContexts(ContextModelList);
 
             if (!requestResponse.isOk()) {
@@ -161,13 +162,16 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
+            vitamCounterService,
             functionalBackupService, adminManagementClient);
-             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
-            SanityChecker.checkJsonAll(queryDsl); 
+            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
+                securityProfileService)) {
+            SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
-                RequestResponseOK<ContextModel> response = 
-                    result.getRequestResponseOK(queryDsl, fr.gouv.vitam.functional.administration.common.Context.class, ContextModel.class);
+                RequestResponseOK<ContextModel> response =
+                    result.getRequestResponseOK(queryDsl, fr.gouv.vitam.functional.administration.common.Context.class,
+                        ContextModel.class);
                 return Response.status(Status.OK).entity(response).build();
             }
         } catch (Exception e) {
@@ -190,9 +194,11 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
+            vitamCounterService,
             functionalBackupService, adminManagementClient);
-             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
+            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
+                securityProfileService)) {
             RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -205,7 +211,7 @@ public class ContextResource {
             LOGGER.error(exp);
             return Response.status(Status.NOT_FOUND)
                 .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
-        }  catch (VitamException exp) {
+        } catch (VitamException exp) {
             // FIXME : Proper error management
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
@@ -224,11 +230,13 @@ public class ContextResource {
      * @param contextId
      * @return Response
      */
-    Response deleteContext(String contextId, boolean force ) {
+    Response deleteContext(String contextId, boolean force) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
-                functionalBackupService, adminManagementClient);
-             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
+            vitamCounterService,
+            functionalBackupService, adminManagementClient);
+            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
+                securityProfileService)) {
             RequestResponse requestResponse = contextService.deleteContext(contextId, force);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
@@ -245,15 +253,15 @@ public class ContextResource {
         } catch (ReferentialNotFoundException exp) {
             LOGGER.error(exp);
             return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
-        }  catch (VitamException exp) {
+                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
+        } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 

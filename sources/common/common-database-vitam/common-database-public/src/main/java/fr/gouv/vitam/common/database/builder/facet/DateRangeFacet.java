@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.common.database.builder.facet;
 
-import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.List;
 
 /**
  * Date Range facet
@@ -51,7 +50,8 @@ public class DateRangeFacet extends Facet {
      * @param ranges
      * @throws InvalidCreateOperationException
      */
-    public DateRangeFacet(String name, String field, String nestdPath, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
+    public DateRangeFacet(String name, String field, String nestdPath, String dateFormat, List<RangeFacetValue> ranges)
+        throws InvalidCreateOperationException {
         super(name);
         populateFacet(name, field, nestdPath, dateFormat, ranges);
     }
@@ -65,21 +65,23 @@ public class DateRangeFacet extends Facet {
      * @param ranges
      * @throws InvalidCreateOperationException
      */
-    public DateRangeFacet(String name, String field, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
+    public DateRangeFacet(String name, String field, String dateFormat, List<RangeFacetValue> ranges)
+        throws InvalidCreateOperationException {
         super(name);
         populateFacet(name, field, null, dateFormat, ranges);
     }
 
-    private void populateFacet(String name, String field, String nestdPath, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
+    private void populateFacet(String name, String field, String nestdPath, String dateFormat,
+        List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
         setName(name);
         currentTokenFACET = FACET.DATE_RANGE;
         if (name == null || name.isEmpty()) {
             throw new InvalidCreateOperationException("name value is requested");
         }
-        if (field == null || field.isEmpty() ) {
+        if (field == null || field.isEmpty()) {
             throw new InvalidCreateOperationException("field value is requested");
         }
-        if (dateFormat == null  || dateFormat.isEmpty()) {
+        if (dateFormat == null || dateFormat.isEmpty()) {
             throw new InvalidCreateOperationException("dateFormat value is requested");
         }
         if (ranges == null || ranges.size() <= 0) {
@@ -88,14 +90,15 @@ public class DateRangeFacet extends Facet {
 
         ObjectNode facetNode = JsonHandler.createObjectNode();
         facetNode.put(FACETARGS.FIELD.exactToken(), field);
-        if(nestdPath != null) {
+        if (nestdPath != null) {
             facetNode.put(FACETARGS.SUBOBJECT.exactToken(), nestdPath);
         }
         facetNode.put(FACETARGS.FORMAT.exactToken(), dateFormat);
         ArrayNode rangesNode = JsonHandler.createArrayNode();
-        for (RangeFacetValue item:ranges){
+        for (RangeFacetValue item : ranges) {
             ObjectNode rangeNode = JsonHandler.createObjectNode();
-            if ((item.getFrom() == null || item.getFrom().isEmpty()) && (item.getTo() == null || item.getTo().isEmpty()))
+            if ((item.getFrom() == null || item.getFrom().isEmpty()) &&
+                (item.getTo() == null || item.getTo().isEmpty()))
                 throw new InvalidCreateOperationException("Either a 'from' or a 'to' value are requested");
             rangeNode.put(FACETARGS.FROM.exactToken(), item.getFrom());
             rangeNode.put(FACETARGS.TO.exactToken(), item.getTo());

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,12 +50,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
@@ -476,7 +476,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         JsonNode referencedRule = checkRuleNodeByID(ruleId, ruleType, rulesResults, unitId);
 
-        if(hasUndefinedHoldRuleDuration(ruleType, referencedRule)) {
+        if (hasUndefinedHoldRuleDuration(ruleType, referencedRule)) {
 
             ensureStartDateIsBeforeHoldEndDate(startDate, holdEndDate, unitId, ruleId);
 
@@ -494,7 +494,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
     private void ensureHoldEndRuleNotDefined(String unitId, String ruleId, String holdEndDate)
         throws InvalidRuleException {
-        if(holdEndDate != null) {
+        if (holdEndDate != null) {
             String errorMessage = String.format("Cannot set %s for rule %s with defined duration.",
                 SedaConstants.TAG_RULE_HOLD_END_DATE, ruleId);
             ObjectNode json = JsonHandler.createObjectNode();
@@ -511,7 +511,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private void computeEndDateForUndefinedHoldRuleDuration(ObjectNode ruleNode, String ruleType, String unitId,
         String ruleId, String holdEndDate) {
 
-        if(holdEndDate == null) {
+        if (holdEndDate == null) {
             LOGGER.debug(String.format("EndDate cannot be computed for %s rule %s for unit %s since " +
                 "no HoldEndDate provided & rule has no defined duration", ruleType, ruleId, unitId));
             return;
@@ -524,11 +524,11 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
     private void ensureStartDateIsBeforeHoldEndDate(String startDate, String holdEndDate, String unitId, String ruleId)
         throws InvalidRuleException {
-        if(startDate != null && holdEndDate != null) {
+        if (startDate != null && holdEndDate != null) {
             LocalDate localStartDate = LocalDate.parse(startDate, DATE_TIME_FORMATTER);
             LocalDate localHoldEndDate = LocalDate.parse(holdEndDate, DATE_TIME_FORMATTER);
 
-            if(localHoldEndDate.isBefore(localStartDate)) {
+            if (localHoldEndDate.isBefore(localStartDate)) {
                 String errorMessage = "Illegal " + SedaConstants.TAG_RULE_HOLD_END_DATE + "(" + holdEndDate + ") for " +
                     ruleId + "." +
                     " Cannot be lower than " + SedaConstants.TAG_RULE_START_DATE + "(" + startDate + ")";
@@ -573,7 +573,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, JsonHandler.unprettyPrint(json), unitId);
     }
 
-    private LocalDate computeEndDateForRuleWithDuration(String startDateString, String ruleId, String currentRuleType, JsonNode ruleNode)
+    private LocalDate computeEndDateForRuleWithDuration(String startDateString, String ruleId, String currentRuleType,
+        JsonNode ruleNode)
         throws ProcessingException {
 
         if (!ParametersChecker.isNotEmpty(startDateString)) {

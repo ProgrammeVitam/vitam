@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -115,7 +115,8 @@ public class GlobalDataRest {
     /**
      * Allow cross tenant access request check from Admin Tenant
      */
-    public static final String X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED = "X-Admin-Cross-Tenant-Access-Request-Allowed";
+    public static final String X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED =
+        "X-Admin-Cross-Tenant-Access-Request-Allowed";
 
     /**
      * The X_PLATFORM_ID header

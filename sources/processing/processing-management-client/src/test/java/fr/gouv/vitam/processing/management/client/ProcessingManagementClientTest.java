@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -268,8 +268,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Conflict");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Conflict");
         }
 
         when(mock.put()).thenReturn(
@@ -278,8 +278,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Precondition Failed");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Precondition Failed");
         }
 
         when(mock.put()).thenReturn(
@@ -288,8 +288,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
-            .isInstanceOf(InternalServerException.class)
-            .hasMessageContaining("Internal Server Error");
+                .isInstanceOf(InternalServerException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -374,8 +374,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Precondition Failed");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Precondition Failed");
         }
 
         when(mock.get()).thenReturn(
@@ -385,8 +385,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
             assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Not Found");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Not Found");
         }
 
         when(mock.get()).thenReturn(
@@ -395,8 +395,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
-            .isInstanceOf(InternalServerException.class)
-            .hasMessageContaining("Internal Server Error");
+                .isInstanceOf(InternalServerException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -430,8 +430,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
             assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Conflict");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Conflict");
         }
 
         when(mock.delete()).thenReturn(
@@ -440,7 +440,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
-            .isInstanceOf(VitamClientException.class);
+                .isInstanceOf(VitamClientException.class);
         }
 
         when(mock.delete()).thenReturn(
@@ -449,8 +449,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
-            .isInstanceOf(InternalServerException.class)
-            .hasMessageContaining("Internal Server Error");
+                .isInstanceOf(InternalServerException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -579,8 +579,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.listOperationsDetails(new ProcessQuery()))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Internal Server Error");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -611,8 +611,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
             assertThatThrownBy(client::getWorkflowDefinitions)
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Internal Server Error");
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -678,8 +678,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.forcePause(new ProcessPause()))
-            .isInstanceOf(ProcessingException.class)
-            .hasCauseInstanceOf(BadRequestException.class);
+                .isInstanceOf(ProcessingException.class)
+                .hasCauseInstanceOf(BadRequestException.class);
         }
     }
 
@@ -709,8 +709,8 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
             assertThatThrownBy(() -> client.removeForcePause(new ProcessPause()))
-            .isInstanceOf(ProcessingException.class)
-            .hasCauseInstanceOf(BadRequestException.class);
+                .isInstanceOf(ProcessingException.class)
+                .hasCauseInstanceOf(BadRequestException.class);
         }
     }
 }

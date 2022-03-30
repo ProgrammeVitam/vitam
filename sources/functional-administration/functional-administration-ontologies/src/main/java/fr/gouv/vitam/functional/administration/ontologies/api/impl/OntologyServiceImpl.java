@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -697,7 +697,8 @@ public class OntologyServiceImpl implements OntologyService {
         // Map archive unit profiles by fields
         MultiValuedMap<String, ArchiveUnitProfile> archiveUnitProfileByFieldName = new ArrayListValuedHashMap<>();
         for (ArchiveUnitProfile archiveUnitProfileModel : archiveUnitProfiles) {
-            for (String field : archiveUnitProfileModel.getList(ArchiveUnitProfileModel.FIELDS, String.class, Collections.emptyList())) {
+            for (String field : archiveUnitProfileModel.getList(ArchiveUnitProfileModel.FIELDS, String.class,
+                Collections.emptyList())) {
                 archiveUnitProfileByFieldName.put(field, archiveUnitProfileModel);
             }
         }

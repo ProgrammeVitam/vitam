@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 public class CollectConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
+
     /**
      * Must return the value of a 'workspaceUrl' attribute
      *
@@ -48,7 +49,7 @@ public class CollectConfiguration extends DbConfigurationImpl {
      */
     public CollectConfiguration setWorkspaceUrl(String workspaceUrl) {
         ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER,
-                workspaceUrl);
+            workspaceUrl);
         this.workspaceUrl = workspaceUrl;
         return this;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,30 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace.GUID_TO_INFO_RANK;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.net.URL;
-
-import org.jboss.resteasy.core.Headers;
-import org.jboss.resteasy.core.ServerResponse;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -65,6 +41,29 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.jboss.resteasy.core.Headers;
+import org.jboss.resteasy.core.ServerResponse;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.net.URL;
+
+import static fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace.GUID_TO_INFO_RANK;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class PutBinaryOnWorkspaceTest {
 
@@ -106,7 +105,8 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
+            eq(AccessLogUtils.getNoLogAccessLog())))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -131,7 +131,8 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
+            eq(AccessLogUtils.getNoLogAccessLog())))
             .willThrow(new StorageServerClientException("transfer failed"))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
@@ -157,7 +158,8 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
+            eq(AccessLogUtils.getNoLogAccessLog())))
             .willThrow(new StorageServerClientException("transfer failed"));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -170,7 +172,8 @@ public class PutBinaryOnWorkspaceTest {
         verify(handlerIO, never())
             .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
         verify(storageClient, times(3)).
-            getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog()));
+            getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
+                eq(AccessLogUtils.getNoLogAccessLog()));
     }
 
     @Test
@@ -183,13 +186,16 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
-            .willAnswer((args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
+            eq(AccessLogUtils.getNoLogAccessLog())))
+            .willAnswer(
+                (args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))
             .willDoNothing()
             .given(handlerIO)
-            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null), eq(false));
+            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null),
+                eq(false));
 
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -200,7 +206,8 @@ public class PutBinaryOnWorkspaceTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         verify(handlerIO, times(2))
-            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null), eq(false));
+            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null),
+                eq(false));
     }
 
 }

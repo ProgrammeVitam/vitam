@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -151,7 +151,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Integration tests for the reconstruction of metadata. <br/>
@@ -467,7 +466,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, dataCategory, null, Integer.MAX_VALUE,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, dataCategory, null,
+                Integer.MAX_VALUE,
                 Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
@@ -607,7 +607,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
@@ -647,7 +648,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT_GRAPH, 0L, 10,
+                    Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -698,14 +700,16 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP, 0L, 10,
+                    Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -717,13 +721,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT_GRAPH, 0L, 10,
+                    Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
+                DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
                 Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
@@ -817,13 +823,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         RequestResponse<OfferLog> offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT_GRAPH, 0L, 10,
+                    Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
+                DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
                 Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
@@ -882,14 +890,16 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.UNIT, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
             storageClient
-                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECTGROUP, 0L, 10,
+                    Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -1092,14 +1102,14 @@ public class MetadataManagementIT extends VitamRuleRunner {
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .save(unitList);
             VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                    metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
                 .save(unitList);
 
             // Save gots
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
                 .save(gotList);
             VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                    metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
                 .save(gotList);
 
             // Save LFC
@@ -1372,9 +1382,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Replace _glpd, _acd and _aud with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
             jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
-            if(mongoCollection.equals( MetadataCollections.UNIT.getCollection())){
-                jsonUnit.put(Unit.APPROXIMATE_CREATION_DATE,"#TIMESTAMP#");
-                jsonUnit.put(Unit.APPROXIMATE_UPDATE_DATE,"#TIMESTAMP#");
+            if (mongoCollection.equals(MetadataCollections.UNIT.getCollection())) {
+                jsonUnit.put(Unit.APPROXIMATE_CREATION_DATE, "#TIMESTAMP#");
+                jsonUnit.put(Unit.APPROXIMATE_UPDATE_DATE, "#TIMESTAMP#");
             }
 
 
@@ -1411,7 +1421,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_1"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA1"));
+                    Lists.newArrayList("OA1"));
 
         Document au4 = new Document(Unit.ID, "AU_4")
             .append(Unit.MAXDEPTH, 1)
@@ -1448,7 +1458,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_4"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                    Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au8 = new Document(Unit.ID, "AU_8")
             .append(Unit.MAXDEPTH, 1)
@@ -1477,7 +1487,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                    Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
@@ -1526,7 +1536,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
     }
 

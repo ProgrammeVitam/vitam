@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -78,7 +78,7 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
 
     @JsonIgnore
     public String getStartDate() {
-        return (String)this.extendedRuleAttributes.get(RuleModel.START_DATE);
+        return (String) this.extendedRuleAttributes.get(RuleModel.START_DATE);
     }
 
     public void setStartDate(String startDate) {
@@ -87,7 +87,7 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
 
     @JsonIgnore
     public String getEndDate() {
-        return (String)this.extendedRuleAttributes.get(RuleModel.END_DATE);
+        return (String) this.extendedRuleAttributes.get(RuleModel.END_DATE);
     }
 
     public void setEndDate(String endDate) {

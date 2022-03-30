@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,7 +101,8 @@ public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
             boolean hasBlockerErrors = false;
             for (BulkWriteError bulkWriteError : e.getWriteErrors()) {
                 if (bulkWriteError.getCategory() == ErrorCategory.DUPLICATE_KEY) {
-                    LOGGER.info("Document already exists " + metadataDocuments.get(bulkWriteError.getIndex()).getId() + ". Ignoring quietly (idempotency)");
+                    LOGGER.info("Document already exists " + metadataDocuments.get(bulkWriteError.getIndex()).getId() +
+                        ". Ignoring quietly (idempotency)");
                 } else {
                     hasBlockerErrors = true;
                     LOGGER.error("An error occurred during metadata insert " + bulkWriteError);
@@ -132,7 +133,8 @@ public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
         try {
             List<UpdateOneModel<T>> collect = updates.entrySet()
                 .stream()
-                .map(item -> new UpdateOneModel<T>(and(eq(ID, item.getKey()), eq(TENANT_ID, getTenantParameter())), item.getValue()))
+                .map(item -> new UpdateOneModel<T>(and(eq(ID, item.getKey()), eq(TENANT_ID, getTenantParameter())),
+                    item.getValue()))
                 .collect(Collectors.toList());
             mongoCollectionSupplier.get().bulkWrite(collect, options);
         } catch (MongoException | IllegalArgumentException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,32 +75,27 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
     String getServiceUrl();
 
     /**
-     *
      * @return the Default Client configuration (Chunked Mode)
      */
     Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient();
 
     /**
-     *
      * @param chunkedMode
      * @return the Default Client configuration according to the chunked mode
      */
     Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode);
 
     /**
-     *
      * @return the Vitam client configuration
      */
     ClientConfiguration getClientConfiguration();
 
     /**
-     *
      * @return the current {@link VitamClientType}
      */
     VitamClientType getVitamClientType();
 
     /**
-     *
      * @param vitamClientType to set
      * @return this
      */
@@ -119,7 +114,7 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
      * @param port
      */
     void changeServerPort(int port);
-    
+
     /**
      * Shutdown the Factory
      */
@@ -127,12 +122,12 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
 
     /**
      * Reset the client into the Client pool if possible
-     * 
+     *
      * @param client
      * @param chunk
      */
     void resume(Client client, boolean chunk);
-    
+
     /**
      * enum to define client type
      */

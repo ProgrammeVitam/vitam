@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,9 +47,8 @@ import java.util.List;
 
 /**
  * Abstract class for Result
- * 
- * @param <T> Parameter Type
  *
+ * @param <T> Parameter Type
  */
 public abstract class Result<T> {
     private static final String INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS =
@@ -180,7 +179,6 @@ public abstract class Result<T> {
     }
 
     /**
-     *
      * @return the type of Results
      */
     public FILTERARGS getType() {
@@ -233,7 +231,6 @@ public abstract class Result<T> {
     }
 
     /**
-     *
      * @param nb the number of updated elements
      * @return this
      */
@@ -244,7 +241,6 @@ public abstract class Result<T> {
     }
 
     /**
-     *
      * @return the approximative total of responses possible, out of limit
      */
     public long getTotal() {
@@ -252,7 +248,6 @@ public abstract class Result<T> {
     }
 
     /**
-     *
      * @param total the approximative total of responses possible, out of limit
      * @return this
      */
@@ -283,7 +278,6 @@ public abstract class Result<T> {
 
 
     /**
-     *
      * @return the filtered list for Select operation
      * @throws InvalidParseOperationException if exception occurred when getting the filter list
      */
@@ -399,7 +393,7 @@ public abstract class Result<T> {
 
     /**
      * Add a FacetResult
-     * 
+     *
      * @param facetResult facetResult
      */
     public void addFacetResult(FacetResult facetResult) {

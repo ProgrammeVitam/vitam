@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -199,7 +199,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Ensure no storage log stored
             try (CloseableIterator<ObjectEntry> storageLogs = storageClient
-                .listContainer(STRATEGY_ID, null,DataCategory.STORAGELOG)) {
+                .listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG)) {
                 assertThat(storageLogs).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
@@ -207,7 +207,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Ensure no storage log traceability zip generated
             try (CloseableIterator<ObjectEntry> storageTraceabilityZips = storageClient
-                .listContainer(STRATEGY_ID, null,DataCategory.STORAGETRACEABILITY)) {
+                .listContainer(STRATEGY_ID, null, DataCategory.STORAGETRACEABILITY)) {
                 assertThat(storageTraceabilityZips).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
@@ -269,7 +269,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Check storage log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null,DataCategory.STORAGELOG);
+                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             String storageLogObjectId = objectEntries.get(0).getObjectId();

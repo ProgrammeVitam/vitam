@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,12 +94,13 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor,
+                manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null,responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
@@ -114,7 +115,8 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS_FIXED);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor,
+                manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -134,7 +136,8 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_UNKNOWN);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor,
+                manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
