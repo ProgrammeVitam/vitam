@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.model.VitamConstants;
  * Enum StatusCode
  *
  * different constants status code for workflow , action handler and process
- *
  */
 public enum OutcomeMessage {
     /**
@@ -88,7 +87,7 @@ public enum OutcomeMessage {
     /**
      * KO : fail message, manifest is not a valid SEDA file
      */
-    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA "+ VitamConstants.SEDA_CURRENT_VERSION),
+    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA " + VitamConstants.SEDA_CURRENT_VERSION),
 
     /**
      * OK : success message

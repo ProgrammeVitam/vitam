@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,9 @@ public class TransferReplyContext {
     private final String atrMessageIdentifier;
 
     @JsonCreator
-    public TransferReplyContext(@JsonProperty("transferMessageRequestIdentifier") String transferMessageRequestIdentifier, @JsonProperty("atrMessageIdentifier") String atrMessageIdentifier) {
+    public TransferReplyContext(
+        @JsonProperty("transferMessageRequestIdentifier") String transferMessageRequestIdentifier,
+        @JsonProperty("atrMessageIdentifier") String atrMessageIdentifier) {
         this.transferMessageRequestIdentifier = transferMessageRequestIdentifier;
         this.atrMessageIdentifier = atrMessageIdentifier;
     }

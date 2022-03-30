@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,8 @@ public class DbQualifiersModelBuilderTest {
 
         // THEN
         assertThat(qualifiersModel).isNotNull();
-        assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(usage.getName() + "_" + version);
+        assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(
+            usage.getName() + "_" + version);
     }
 
     @Test

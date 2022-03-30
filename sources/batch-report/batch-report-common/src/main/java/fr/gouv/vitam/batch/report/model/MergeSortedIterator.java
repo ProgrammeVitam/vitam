@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.batch.report.model;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import org.apache.commons.collections4.iterators.PeekingIterator;
+
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import org.apache.commons.collections4.iterators.PeekingIterator;
 
 
 /**
@@ -51,9 +51,9 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
     private Comparator<A> comparator;
 
     /**
-     * @param one           The first sorted iterator
-     * @param two           The second sorted iterator
-     * @param comparator    The comparator that compare items of iterators
+     * @param one The first sorted iterator
+     * @param two The second sorted iterator
+     * @param comparator The comparator that compare items of iterators
      * @param mergeFunction The function that merge elements of iterators
      */
     public MergeSortedIterator(Iterator<A> one, Iterator<A> two, Comparator<A> comparator,

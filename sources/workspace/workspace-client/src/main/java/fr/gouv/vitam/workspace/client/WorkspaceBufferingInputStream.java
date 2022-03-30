@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,10 +27,8 @@
 package fr.gouv.vitam.workspace.client;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -77,7 +75,8 @@ public class WorkspaceBufferingInputStream extends InputStream {
         // - In memory if chunk size <= maxInMemoryBufferSize
         // - In a tmp file otherwise (<= maxOnDiskBufferSize)
         try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient();
-            Response response = workspaceClient.getObject(this.containerName, this.objectName, this.totalReadBytes, (long) this.maxOnDiskBufferSize);
+            Response response = workspaceClient.getObject(this.containerName, this.objectName, this.totalReadBytes,
+                (long) this.maxOnDiskBufferSize);
             InputStream objInputStream = response.readEntity(InputStream.class)) {
 
             int chunkSize = Integer.parseInt(response.getHeaderString(GlobalDataRest.X_CHUNK_LENGTH));

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -136,7 +135,7 @@ public class IngestCleanupEligibilityValidationPluginTest {
 
         // Given
         doAnswer(args -> {
-            ((CleanupReportManager)args.getArgument(1)).reportUnitWarning("unit1", "message");
+            ((CleanupReportManager) args.getArgument(1)).reportUnitWarning("unit1", "message");
             return null;
         }).when(ingestCleanupEligibilityService).checkUnitUpdatesFromOtherOperations(any(), any());
 
@@ -157,11 +156,11 @@ public class IngestCleanupEligibilityValidationPluginTest {
 
         // Given
         doAnswer(args -> {
-            ((CleanupReportManager)args.getArgument(1)).reportUnitWarning("unit1", "message");
+            ((CleanupReportManager) args.getArgument(1)).reportUnitWarning("unit1", "message");
             return null;
         }).when(ingestCleanupEligibilityService).checkUnitUpdatesFromOtherOperations(any(), any());
         doAnswer(args -> {
-            ((CleanupReportManager)args.getArgument(1)).reportObjectGroupError("og1", "message");
+            ((CleanupReportManager) args.getArgument(1)).reportObjectGroupError("og1", "message");
             return null;
         }).when(ingestCleanupEligibilityService).checkObjectAttachmentsToExistingObjectGroups(any(), any());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -220,7 +220,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     public void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             String path = getPathToObjectFromFolder(folderName, asyncId);
-            if(client.isExistingObject(PROCESS_CONTAINER, path)) {
+            if (client.isExistingObject(PROCESS_CONTAINER, path)) {
                 client.deleteObject(PROCESS_CONTAINER, path);
             }
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {

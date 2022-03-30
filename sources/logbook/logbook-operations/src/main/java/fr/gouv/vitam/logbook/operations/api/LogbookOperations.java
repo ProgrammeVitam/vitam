@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -89,7 +89,8 @@ public interface LogbookOperations {
     List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant)
         throws VitamDBException, LogbookDatabaseException;
 
-    RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced, boolean crossTenant)
+    RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
+        boolean crossTenant)
         throws VitamDBException, LogbookDatabaseException;
 
     LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException;
@@ -201,8 +202,8 @@ public interface LogbookOperations {
      *
      * @param alias the alias name
      * @param newIndexName the new index to be pointed on
-     * @throws DatabaseException in case error with database occurs
      * @return
+     * @throws DatabaseException in case error with database occurs
      */
     SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException;
 
@@ -212,6 +213,7 @@ public interface LogbookOperations {
 
     /**
      * FInd last event of last operation by type
+     *
      * @param operationType
      * @return
      * @throws InvalidCreateOperationException
@@ -220,5 +222,5 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException
      */
     Optional<LogbookOperation> findLastOperationByType(String operationType) throws InvalidCreateOperationException,
-            LogbookDatabaseException, InvalidParseOperationException;
+        LogbookDatabaseException, InvalidParseOperationException;
 }

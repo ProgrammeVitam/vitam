@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -72,7 +72,8 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
 
         try {
             Map<AccessRequestContext, List<String>> entries = extractResources(workerParameters, handler);
@@ -80,8 +81,9 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
             checkResourcesAvailability(entries, DataCategory.OBJECT);
 
             return IntStream.range(0, workerParameters.getObjectNameList().size()).
-                    mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK, PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
-                    .collect(toList());
+                mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK,
+                    PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
+                .collect(toList());
         } catch (ProcessingRetryAsyncException prae) {
             LOGGER.info("Some resources where not available");
             throw prae;
@@ -90,7 +92,8 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
         }
     }
 
-    private Map<AccessRequestContext, List<String>> extractResources(WorkerParameters workerParameters, HandlerIO handler) throws IOException, InvalidParseOperationException {
+    private Map<AccessRequestContext, List<String>> extractResources(WorkerParameters workerParameters,
+        HandlerIO handler) throws IOException, InvalidParseOperationException {
         handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
         try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_INFO_RANK))) {
             Map<String, Object> guidToInfo = JsonHandler.getMapFromInputStream(inputStream);
@@ -98,7 +101,8 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
             for (String objectId : workerParameters.getObjectNameList()) {
                 Map objectInfo = (Map) guidToInfo.get(objectId);
                 String strategyId = (String) objectInfo.get("strategyId");
-                entries.computeIfAbsent(new AccessRequestContext(strategyId, null), (x -> new ArrayList<>())).add(objectId);
+                entries.computeIfAbsent(new AccessRequestContext(strategyId, null), (x -> new ArrayList<>()))
+                    .add(objectId);
             }
             return entries;
         }

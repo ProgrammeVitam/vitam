@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -134,11 +134,12 @@ public class HashFileSystemHelper {
 
 
     // Manage Container
+
     /**
      * Create a directory recursively in the sub tree
      *
      * @param container : relative path that will be appended at the end of the rootPath
-     * @throws ContentAddressableStorageServerException       : on I/O Errors
+     * @throws ContentAddressableStorageServerException : on I/O Errors
      */
     public void createContainer(String container)
         throws ContentAddressableStorageServerException {

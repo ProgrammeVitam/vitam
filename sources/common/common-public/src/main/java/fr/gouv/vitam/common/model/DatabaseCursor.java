@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,10 +27,10 @@
 
 package fr.gouv.vitam.common.model;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * DatabaseCursor class Show database position of request response
@@ -108,7 +108,6 @@ public class DatabaseCursor {
 
     /**
      * @return the total of units inserted/modified/selected as potential total response size (beyond current limit)
-     *
      */
     public long getTotal() {
         return total;
@@ -165,7 +164,6 @@ public class DatabaseCursor {
 
     /**
      * @param size the size as current response size
-     *
      * @return this
      */
     public DatabaseCursor setSize(long size) {
@@ -183,7 +181,6 @@ public class DatabaseCursor {
 
     /**
      * @param scrollId the cursorId as current response size
-     *
      * @return this
      */
     public DatabaseCursor setScrollId(String scrollId) {

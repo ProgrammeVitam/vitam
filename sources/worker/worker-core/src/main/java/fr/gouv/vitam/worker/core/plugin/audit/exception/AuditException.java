@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,8 +38,8 @@ public class AuditException extends VitamException {
 
     /**
      * @param statusCode associated status code
-     * @param message    associated message
-     * @param cause      associated cause
+     * @param message associated message
+     * @param cause associated cause
      */
     public AuditException(StatusCode statusCode, String message, Throwable cause) {
         super(message, cause);
@@ -49,7 +49,7 @@ public class AuditException extends VitamException {
 
     /**
      * @param statusCode associated status code
-     * @param message    associated message
+     * @param message associated message
      */
     public AuditException(StatusCode statusCode, String message) {
         this(statusCode, message, null);

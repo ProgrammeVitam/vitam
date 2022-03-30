@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,22 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.parser.request.multiple;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -54,24 +70,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 @SuppressWarnings("javadoc")
 public class DeleteParserMultipleTest {
@@ -116,39 +114,39 @@ public class DeleteParserMultipleTest {
 
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": [\n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ],\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n" +
-                        "}"
+            "{\n" +
+                "  \"$query\": [\n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {}\n" +
+                "}"
         );
     }
 
@@ -162,7 +160,8 @@ public class DeleteParserMultipleTest {
             request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+        }
         try {
             final DeleteParserMultiple request1 = new DeleteParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());

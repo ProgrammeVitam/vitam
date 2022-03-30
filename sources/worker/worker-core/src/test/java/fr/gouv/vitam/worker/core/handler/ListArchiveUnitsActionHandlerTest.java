@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -154,20 +154,27 @@ public class ListArchiveUnitsActionHandlerTest {
         action.addOutIOParameters(out);
 
         try (InputStream updatedRules = PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON)) {
-            final JsonNode archiveUnitsToBeUpdated = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
-            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(Response.status(Status.OK).entity(updatedRules).build());
+            final JsonNode archiveUnitsToBeUpdated =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(
+                Response.status(Status.OK).entity(updatedRules).build());
             when(metadataClient.selectUnits(any())).thenReturn(archiveUnitsToBeUpdated);
 
-            saveWorkspacePutObject(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
-            saveWorkspacePutObject(UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+            saveWorkspacePutObject(
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
+            saveWorkspacePutObject(
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-            String filename = UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON;
-            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(getFullPath(filename)), TYPE_REFERENCE);
+            String filename =
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON;
+            JsonLineGenericIterator<JsonLineModel> lines =
+                new JsonLineGenericIterator<>(new FileInputStream(getFullPath(filename)), TYPE_REFERENCE);
             assertEquals(3, lines.stream().count());
 
-            JsonNode aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba = getSavedWorkspaceObject(UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+            JsonNode aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba = getSavedWorkspaceObject(
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
             assertNotNull(aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba);
             int numberOfRulesInvolved = 0;
             for (final JsonNode objNode : aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba) {
@@ -191,7 +198,8 @@ public class ListArchiveUnitsActionHandlerTest {
     }
 
     private String getFullPath(String filename) {
-        return System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" + action.getWorkerId() + "/" + filename.replaceAll("/", "_");
+        return System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" + action.getWorkerId() +
+            "/" + filename.replaceAll("/", "_");
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,8 @@ public class PreservationStatsModel {
     @JsonProperty("analyseResults")
     private Map<String, Integer> analyseResults;
 
-    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnalyse, int nbActionsGenerate,
+    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnalyse,
+        int nbActionsGenerate,
         int nbActionsIdentify, int nbActionsExtract, Map<String, Integer> analyseResults, int nbStatusWarning) {
         this.nbUnits = nbUnits;
         this.nbObjectGroups = nbObjectGroups;

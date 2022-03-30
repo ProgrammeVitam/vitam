@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -133,7 +133,8 @@ public class TransferNotificationActionHandlerATROKFileTest {
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
 
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId", newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
+            newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
         when(validationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
@@ -179,7 +180,8 @@ public class TransferNotificationActionHandlerATROKFileTest {
                 params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
 
-            when(logbookOperationsClient.selectOperationById(any())).thenReturn(new LogbookOperationsClientMock().selectOperationById("opi"));
+            when(logbookOperationsClient.selectOperationById(any())).thenReturn(
+                new LogbookOperationsClientMock().selectOperationById("opi"));
             final ItemStatus response = handler.execute(parameters, handlerIO);
 
             try {

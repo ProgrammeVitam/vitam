@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,12 +107,14 @@ public class PurgeDeleteObjectGroupPluginTest {
             .add(JsonHandler.createObjectNode().put("id", "id_got2_object_1").put("strategyId", "default-binary-fake"));
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_got_1", "id_got_2"))
             .setObjectMetadataList(Arrays.asList(
-                JsonHandler.createObjectNode().put("id", "id_got_1").put("strategyId", "default-fake").set("objects", got1ObjectsDetails),
-                JsonHandler.createObjectNode().put("id", "id_got_2").put("strategyId", "default-fake").set("objects", got2ObjectsDetails)))
+                JsonHandler.createObjectNode().put("id", "id_got_1").put("strategyId", "default-fake")
+                    .set("objects", got1ObjectsDetails),
+                JsonHandler.createObjectNode().put("id", "id_got_2").put("strategyId", "default-fake")
+                    .set("objects", got2ObjectsDetails)))
             .setCurrentStep("StepName");
 
         instance = new PurgeDeleteObjectGroupPlugin("PLUGIN_ACTIOB", purgeDeleteService);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,7 @@ import com.mongodb.client.MongoCursor;
 
 /**
  * Empty mongo cursor implementation to use in place of a real MongoCursor
- * 
+ *
  * @param <TResult> The type of documents the cursor is supposed to contains
  */
 public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {

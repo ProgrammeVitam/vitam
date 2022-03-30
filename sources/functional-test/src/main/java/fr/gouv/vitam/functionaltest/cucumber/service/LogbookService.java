@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -43,6 +37,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import org.apache.commons.lang3.StringUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Logbook service containing common code for logbook
@@ -54,11 +52,11 @@ public class LogbookService {
     /**
      * Get a Logbook operation by its id
      *
-     * @param accessClient         access client
-     * @param tenantId             tenant id
-     * @param contractId           access contract id
+     * @param accessClient access client
+     * @param tenantId tenant id
+     * @param contractId access contract id
      * @param applicationSessionId application session id
-     * @param operationId          logbook operation id
+     * @param operationId logbook operation id
      * @return RequestResponse
      * @throws VitamClientException exception
      */
@@ -73,12 +71,12 @@ public class LogbookService {
     /**
      * check on logbook if the global status is OK (status of the last event, if last event is correct)
      *
-     * @param accessClient         access client
-     * @param tenantId             tenant id
-     * @param contractId           access contract id
+     * @param accessClient access client
+     * @param tenantId tenant id
+     * @param contractId access contract id
      * @param applicationSessionId application session id
-     * @param operationId          logbook operation id
-     * @param status               expected status
+     * @param operationId logbook operation id
+     * @param status expected status
      * @throws VitamClientException exception
      */
     public LogbookEventOperation checkFinalStatusLogbook(AccessExternalClient accessClient, int tenantId,

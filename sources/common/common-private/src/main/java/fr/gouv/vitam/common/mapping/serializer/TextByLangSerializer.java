@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,7 +68,8 @@ public class TextByLangSerializer extends StdSerializer<TextByLang> {
         throws IOException {
         jgen.writeStartObject();
         for (TextType textType : textByLang.getTextTypes()) {
-            String lang = Strings.isNullOrEmpty(textType.getLang()) ? VitamConfiguration.getDefaultLang() : textType.getLang();
+            String lang =
+                Strings.isNullOrEmpty(textType.getLang()) ? VitamConfiguration.getDefaultLang() : textType.getLang();
             jgen.writeStringField(lang, textType.getValue());
         }
         jgen.writeEndObject();

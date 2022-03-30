@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,8 +39,8 @@ import java.util.Map;
 
 /**
  * Abstract class for Logbook LifeCycle item
- * 
- * @param <T> template 
+ *
+ * @param <T> template
  */
 public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
@@ -106,7 +106,6 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     }
 
     /**
-     *
      * @return the ParameterName as id in collection
      */
     static LogbookParameterName getIdParameterName() {
@@ -119,6 +118,6 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     }
 
     public List<Document> events() {
-        return getList(LogbookDocument.EVENTS,Document.class);
+        return getList(LogbookDocument.EVENTS, Document.class);
     }
 }

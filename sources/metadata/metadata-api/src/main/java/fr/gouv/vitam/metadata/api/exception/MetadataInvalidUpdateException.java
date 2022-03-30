@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,7 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message to associate with the exception
      */
     public MetadataInvalidUpdateException(String message) {
@@ -48,7 +48,7 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
 
     /**
      * Constructor
-     * 
+     *
      * @param cause to associate with the exception
      */
     public MetadataInvalidUpdateException(Throwable cause) {
@@ -57,7 +57,7 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause to associate with the exception
      */

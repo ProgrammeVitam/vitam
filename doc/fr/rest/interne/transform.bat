@@ -1,5 +1,5 @@
 @rem ***************************************************************************
-@rem Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+@rem Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
 @rem
 @rem contact.vitam@culture.gouv.fr
 @rem

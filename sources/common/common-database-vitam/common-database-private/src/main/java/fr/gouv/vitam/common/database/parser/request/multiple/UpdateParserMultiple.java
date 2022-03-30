@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -138,16 +138,16 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void thresholdParse(final JsonNode rootNode)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
-        
+
         try {
             ((UpdateMultiQuery) request).setThreshold(rootNode.asLong());
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
-                    "Parse in error for Action: " + rootNode, e);
+                "Parse in error for Action: " + rootNode, e);
         }
     }
 

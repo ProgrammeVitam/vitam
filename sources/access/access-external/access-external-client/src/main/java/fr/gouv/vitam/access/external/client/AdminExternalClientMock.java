@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -149,7 +149,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws AccessExternalClientException, InvalidParseOperationException {
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
     @Override
@@ -394,7 +394,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(agencies);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getAgencies(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -405,7 +405,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(formats);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getFormat(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -416,7 +416,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(rules);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getRule(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -428,7 +428,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(securityProfiles);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getSecurityProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
     private Response checkInternalDocuments(VitamContext vitamContext, AdminCollections documentType,
@@ -616,7 +616,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
+    public RequestResponse createExternalOperation(VitamContext vitamContext,
+        LogbookOperationParameters logbookOperationparams)
         throws LogbookExternalClientException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }

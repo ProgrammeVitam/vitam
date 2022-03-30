@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,17 @@
  */
 package fr.gouv.vitam.common.database.parser.query;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Path query
- *
  */
 public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQuery {
     /**
@@ -57,7 +55,6 @@ public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQ
     }
 
     /**
-     *
      * @return The Path set
      */
     public Set<String> getPaths() {

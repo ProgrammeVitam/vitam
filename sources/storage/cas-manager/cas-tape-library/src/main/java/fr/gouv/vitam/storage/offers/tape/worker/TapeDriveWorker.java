@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -119,7 +119,8 @@ public class TapeDriveWorker implements Runnable {
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;
-        this.tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, fullCartridgeDetectionThresholdInMB);
+        this.tapeLibraryService =
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, fullCartridgeDetectionThresholdInMB);
 
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         this.archiveCacheStorage = archiveCacheStorage;
@@ -149,7 +150,8 @@ public class TapeDriveWorker implements Runnable {
         ArchiveCacheStorage archiveCacheStorage, int fullCartridgeDetectionThresholdInMB) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository,
             accessRequestManager, currentTape,
-            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage, fullCartridgeDetectionThresholdInMB);
+            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage,
+            fullCartridgeDetectionThresholdInMB);
     }
 
     @Override

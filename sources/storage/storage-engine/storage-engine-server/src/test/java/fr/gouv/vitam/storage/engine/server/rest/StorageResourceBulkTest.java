@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,23 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.Rule;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -55,9 +38,24 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 public class StorageResourceBulkTest {
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -98,7 +96,7 @@ public class StorageResourceBulkTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceConflict() throws Exception {
@@ -135,7 +133,7 @@ public class StorageResourceBulkTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.CONFLICT.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceOK() throws Exception {
@@ -176,7 +174,7 @@ public class StorageResourceBulkTest {
         assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
         assertThat(response.getEntity()).isEqualTo(bulkObjectStoreResponse);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceIllegalArguments() {
@@ -265,7 +263,8 @@ public class StorageResourceBulkTest {
 
         // Uri / object name mismatch
         checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", "uri2", "uri3"), dataCategory, Arrays.asList("ob1", "ob2")),
+            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", "uri2", "uri3"), dataCategory,
+                Arrays.asList("ob1", "ob2")),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
             dataCategory.getCollectionName());

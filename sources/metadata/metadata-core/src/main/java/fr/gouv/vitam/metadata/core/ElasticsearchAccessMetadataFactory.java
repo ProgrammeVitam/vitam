@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,9 +28,9 @@ package fr.gouv.vitam.metadata.core;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 
 /**
@@ -44,7 +44,7 @@ public class ElasticsearchAccessMetadataFactory {
      *
      * @param configuration config of elasticsearch
      * @return the ElasticsearchAccess
-     * @throws MetaDataException if error of creating ElasticSearchAccessMetadata 
+     * @throws MetaDataException if error of creating ElasticSearchAccessMetadata
      */
     public static ElasticsearchAccessMetadata create(MetaDataConfiguration configuration,
         ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager) throws MetaDataException {

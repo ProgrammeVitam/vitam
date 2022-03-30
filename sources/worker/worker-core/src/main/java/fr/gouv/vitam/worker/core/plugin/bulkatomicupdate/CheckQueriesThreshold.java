@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -61,8 +61,8 @@ public class CheckQueriesThreshold extends ActionHandler {
 
         final long total = queries.size();
         final long threshold = hasThresholdParameter ? queryNode.get(BulkAtomicUpdateModelUtils.THRESHOLD).asLong() :
-                DEFAULT_THRESHOLD;
-        
+            DEFAULT_THRESHOLD;
+
         if (total > threshold) {
             ObjectNode eventDetails = JsonHandler.createObjectNode();
             eventDetails

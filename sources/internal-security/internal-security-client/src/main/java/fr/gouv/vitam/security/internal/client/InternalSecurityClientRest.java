@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,7 +100,7 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
             .withContentType(APPLICATION_OCTET_STREAM_TYPE)
             .withJsonAccept())) {
             check(response);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new InternalSecurityException(e);
         }
     }

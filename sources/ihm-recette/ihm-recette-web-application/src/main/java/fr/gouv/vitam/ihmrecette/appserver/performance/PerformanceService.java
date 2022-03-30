@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,26 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,26 +67,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import fr.gouv.vitam.access.external.client.AdminExternalClient;
-import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.client.VitamPoolingClient;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.security.IllegalPathException;
-import fr.gouv.vitam.common.security.SafeFileChecker;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
 /**
  *
@@ -170,39 +170,40 @@ public class PerformanceService {
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
+        ExecutorService launcherPerformanceExecutor =
+            Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
         ExecutorService reportExecutor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
         LOGGER.info("start performance test");
 
         ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
-            performanceTestInProgress.set(true);
+        performanceTestInProgress.set(true);
 
-            List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
-                .mapToObj(
-                    i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
-                .map(
-                    future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
-                        reportExecutor))
-                .collect(Collectors.toList());
+        List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
+            .mapToObj(
+                i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
+            .map(
+                future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
+                    reportExecutor))
+            .collect(Collectors.toList());
 
-            CompletableFuture<List<Void>> allDone = sequence(collect);
+        CompletableFuture<List<Void>> allDone = sequence(collect);
 
-            allDone.thenRun(() -> {
-                try {
-                    reportGenerator.close();
-                    launcherPerformanceExecutor.shutdown();
-                    reportExecutor.shutdown();
-                    performanceTestInProgress.set(false);
-                    LOGGER.info("end performance test");
-                } catch (IOException e) {
-                    LOGGER.error("unable to close report", e);
-                }
-            }).exceptionally((e) -> {
-                LOGGER.error("end performance test with error", e);
+        allDone.thenRun(() -> {
+            try {
+                reportGenerator.close();
+                launcherPerformanceExecutor.shutdown();
+                reportExecutor.shutdown();
                 performanceTestInProgress.set(false);
-                return null;
-            });
+                LOGGER.info("end performance test");
+            } catch (IOException e) {
+                LOGGER.error("unable to close report", e);
+            }
+        }).exceptionally((e) -> {
+            LOGGER.error("end performance test with error", e);
+            performanceTestInProgress.set(false);
+            return null;
+        });
     }
 
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
@@ -210,7 +211,8 @@ public class PerformanceService {
             LOGGER.debug("generate report");
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID);
-            final RequestResponse<LogbookOperation> requestResponse = userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+            final RequestResponse<LogbookOperation> requestResponse =
+                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -270,7 +272,8 @@ public class PerformanceService {
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ); IngestExternalClient client = ingestClientFactory.getClient()) {
 
-            RequestResponse<Void> response = client.ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+            RequestResponse<Void> response =
+                client.ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         } catch (final Exception e) {

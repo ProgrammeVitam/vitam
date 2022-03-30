@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,8 +28,8 @@ package fr.gouv.vitam.ihmrecette.appserver.utils;
 
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.Arrays;
 import java.util.List;

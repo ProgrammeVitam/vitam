@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -67,6 +67,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by select query (DSL)
+     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
      * as String <br>
      * Null is not allowed
@@ -82,6 +83,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Bulk Search units by a list of select query (DSL)
+     *
      * @param List<selectQuery> : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
      * as String <br>
      * Null is not allowed<br>
@@ -98,6 +100,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by query (DSL) and path unit id
+     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      * <br>
      * Null is not allowed
@@ -115,6 +118,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search Object Group by query (DSL) and path objectGroup id
+     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      * <br>
      * Null is not allowed
@@ -135,6 +139,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update units by query (DSL) and path unit id
+     *
      * @param updateQuery update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      * <br>
      * Null is not allowed
@@ -167,6 +172,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update ObjectGroup
+     *
      * @param updateQuery
      * @param objectGroupId
      * @throws InvalidParseOperationException
@@ -198,6 +204,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search objectgroups by select query (DSL)
+     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
      * as String <br>
      * Null is not allowed
@@ -225,6 +232,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Reindex a collection with parameters
+     *
      * @param indexParam reindexation parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -236,6 +244,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Switch indexes
+     *
      * @param switchIndexParam switch index parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -247,6 +256,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by path unit id
+     *
      * @param unitId : unit id <br>
      * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
@@ -255,22 +265,25 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Select raw unis by ids
+     *
      * @param unitIds : unit ids <br>
      * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
      */
     RequestResponse<JsonNode> getUnitsByIdsRaw(Collection<String> unitIds) throws VitamClientException;
 
-        /**
-         * Search object group by path unit id
-         * @param objectGroupId : objectGroup id <br>
-         * null and blank is not allowed
-         * @return Json object {$hint:{},$result:[{}]} or vitam error
-         */
+    /**
+     * Search object group by path unit id
+     *
+     * @param objectGroupId : objectGroup id <br>
+     * null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{}]} or vitam error
+     */
     RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException;
 
     /**
      * Select raw object group by ids
+     *
      * @param objectGroupIds : object group ids <br>
      * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
@@ -280,6 +293,7 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Compute graph of all Units/Got that match the given query dsl
      * The returned number of treated object group is an estimation, as object group can be computed several times
+     *
      * @param queryDsl
      * @return GraphComputeResponse
      * @throws VitamClientException
@@ -291,6 +305,7 @@ public interface MetaDataClient extends BasicClient {
      * The document can be UNIT, OBJECTGROUP, or UNIT AND OBJECTGROUP
      *
      * In case of UNIT AND OBJECTGROUP, the ids set is id of UNITs
+     *
      * @param action
      * @param ids
      * @return GraphComputeResponse
@@ -300,6 +315,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update units Bulk.
+     *
      * @param updateQuery
      * @return
      * @throws InvalidParseOperationException
@@ -312,6 +328,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Bulk Update units by a list of update query (DSL)
+     *
      * @param updateQueries : update query {@link fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery}
      * as String
      * Null is not allowed
@@ -322,11 +339,12 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataNotFoundException
      */
     RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException;
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Update units rules Bulk.
+     *
      * @param unitsIds the bulk unit ids to update
      * @param actions
      * @return
@@ -334,12 +352,14 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
      */
-    RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException;
+    RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions,
+        Map<String, DurationData> rulesToDurationData)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Export all units and object groups that are a descendants of the provided units to workspace for graph update.
+     *
      * @param ids the unit ids for which all descendant nodes (units and object groups) are to be updated.
      * @throws VitamClientException
      */
@@ -348,6 +368,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Select units with inherited rules by select query (DSL)
+     *
      * @param selectQuery : select query
      * @return Json object
      * @throws InvalidParseOperationException
@@ -370,6 +391,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * delete UnitsBulk
+     *
      * @param listIds list of id to delete
      * @throws MetaDataExecutionException MetaDataExecutionException
      * @throws MetaDataClientServerException MetaDataClientServerException
@@ -379,11 +401,15 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Delete Object Group Bulk
+     *
      * @param listIds list of id to delete
      * @throws MetaDataExecutionException MetaDataExecutionException
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
-    void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
+    void deleteObjectGroupBulk(Collection<String> listIds)
+        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
 
-    Response streamUnits(JsonNode selectQuery) throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException;
+    Response streamUnits(JsonNode selectQuery)
+        throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
+        MetadataScrollLimitExceededException;
 }

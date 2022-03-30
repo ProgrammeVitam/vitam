@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -196,19 +196,22 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
         // Next on the old paused ans persisted workflow
         RequestResponse<ItemStatus> respStpUpload =
-            ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+            ProcessingManagementClientFactory.getInstance().getClient()
+                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respStpUpload);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respStpUpload.getStatus());
         waitOperation(containerName);
 
         RequestResponse<ItemStatus> respIngestControl =
-                ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(),containerName);
+            ProcessingManagementClientFactory.getInstance().getClient()
+                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respIngestControl);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respIngestControl.getStatus());
         waitOperation(containerName);
 
         RequestResponse<ItemStatus> respOgCheckTransform =
-                ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+            ProcessingManagementClientFactory.getInstance().getClient()
+                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respOgCheckTransform);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respOgCheckTransform.getStatus());
         waitOperation(containerName);
@@ -398,15 +401,15 @@ public class PausedProcessingIT extends VitamRuleRunner {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationId, "Process_SIP_unitary", objectId,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationId != null ? operationId.toString() : "outcomeDetailMessage",
-                operationId);
+            operationId, "Process_SIP_unitary", objectId,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage",
+            operationId);
         logbookClient.create(initParameters);
     }
 

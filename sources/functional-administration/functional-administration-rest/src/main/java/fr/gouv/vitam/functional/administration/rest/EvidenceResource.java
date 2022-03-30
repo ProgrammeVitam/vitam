@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,8 +64,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -91,7 +91,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
  */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class EvidenceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
@@ -151,9 +151,9 @@ public class EvidenceResource {
             // Add access contract rights
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
             rightsStatementIdentifier
-                    .put(ACCESS_CONTRACT,accessContract.getIdentifier());
+                .put(ACCESS_CONTRACT, accessContract.getIdentifier());
             initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                    rightsStatementIdentifier.toString());
+                rightsStatementIdentifier.toString());
 
             client.create(initParameters);
 
@@ -197,7 +197,8 @@ public class EvidenceResource {
             processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
+                processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(),
+                    ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
         } catch (ContentAddressableStorageServerException |
@@ -255,7 +256,8 @@ public class EvidenceResource {
                 .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(), ProcessAction.RESUME.getValue());
+                processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(),
+                    ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | LogbookClientException
@@ -272,6 +274,7 @@ public class EvidenceResource {
         }
 
     }
+
     private void createRectificationAuditOperation(String operationId, AccessContractModel accessContract)
         throws
         LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
@@ -293,13 +296,14 @@ public class EvidenceResource {
             // Add access contract rights
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
             rightsStatementIdentifier
-                    .put(ACCESS_CONTRACT,accessContract.getIdentifier());
+                .put(ACCESS_CONTRACT, accessContract.getIdentifier());
             initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                    rightsStatementIdentifier.toString());
+                rightsStatementIdentifier.toString());
 
             client.create(initParameters);
         }
     }
+
     private Response buildErrorResponse() {
         VitamCode vitamCode = VitamCode.GLOBAL_EMPTY_QUERY;
         return Response.status(vitamCode.getStatus())

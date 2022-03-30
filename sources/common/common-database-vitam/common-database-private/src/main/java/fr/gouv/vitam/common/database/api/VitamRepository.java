@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.common.database.api;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This repository is a specification of vitam data management
@@ -88,7 +88,7 @@ public interface VitamRepository {
     /**
      * Remove document by id
      *
-     * @param id     the id of the document to be removed
+     * @param id the id of the document to be removed
      * @param tenant the tenant of the document to be removed
      * @throws DatabaseException in case error with database occurs
      */
@@ -99,6 +99,7 @@ public interface VitamRepository {
     /**
      * Be careful when using this method
      * Remove by query
+     *
      * @param query
      * @throws DatabaseException
      */
@@ -108,7 +109,7 @@ public interface VitamRepository {
      * Be careful when using this method
      * Remove collection by name and tenant
      *
-     * @param name   the name of the collection to be removed
+     * @param name the name of the collection to be removed
      * @param tenant the tenant of the collection to be removed
      * @throws DatabaseException in case error with database occurs
      */
@@ -137,7 +138,7 @@ public interface VitamRepository {
     /**
      * Get vitam document by id
      *
-     * @param id     the document id
+     * @param id the document id
      * @param tenant the tenant of the document
      * @return the document if found
      * @throws DatabaseException in case error with database occurs
@@ -149,7 +150,7 @@ public interface VitamRepository {
      * find by identifier for all tenant
      *
      * @param identifier the identifier of the document
-     * @param tenant     the tenant of the document
+     * @param tenant the tenant of the document
      * @return the document if found
      * @throws DatabaseException in case error with database occurs
      */
@@ -177,7 +178,7 @@ public interface VitamRepository {
      * Return iterable over document for the given collection for a specific tenant
      *
      * @param mongoBatchSize mongoBatchSize
-     * @param tenant         tenant id
+     * @param tenant tenant id
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant);
@@ -185,9 +186,9 @@ public interface VitamRepository {
     /**
      * Return iterable over document for the given collection for a specific tenant and fields
      *
-     * @param fields         list of fields for filter
+     * @param fields list of fields for filter
      * @param mongoBatchSize mongoBatchSize
-     * @param tenant         tenant id
+     * @param tenant tenant id
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize, Integer tenant);
@@ -218,7 +219,7 @@ public interface VitamRepository {
     /**
      * Return iterable over document for the given collection
      *
-     * @param query          the mongo query to be executed
+     * @param query the mongo query to be executed
      * @param mongoBatchSize mongoBatchSize
      * @return iterable over document for the given collection
      */
@@ -226,6 +227,7 @@ public interface VitamRepository {
 
     /**
      * Deleted all documents by ids
+     *
      * @param ids
      * @param tenant
      */

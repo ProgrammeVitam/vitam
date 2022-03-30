@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,7 +56,8 @@ public enum VitamCode {
 
     GLOBAL_INVALID_DSL(ServiceName.VITAM, DomainName.BUSINESS, "01", Status.BAD_REQUEST, "Dsl query is not valid."),
 
-    UNAUTHORIZED_PARAMETER_DSL(ServiceName.VITAM, DomainName.BUSINESS, "02", Status.BAD_REQUEST, "DSL parameter is unauthorized."),
+    UNAUTHORIZED_PARAMETER_DSL(ServiceName.VITAM, DomainName.BUSINESS, "02", Status.BAD_REQUEST,
+        "DSL parameter is unauthorized."),
 
     INTERNAL_SECURITY_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "00", Status.UNAUTHORIZED,
         "Internal Security Filter Unauthorized"),
@@ -114,8 +115,9 @@ public enum VitamCode {
     STORAGE_ILLEGAL_OPERATION(ServiceName.STORAGE, DomainName.STORAGE, "24", Status.NOT_ACCEPTABLE,
         "Illegal operation"),
 
-    STORAGE_OFFER_EXCEPTION_RANK(ServiceName.STORAGE, DomainName.STORAGE, "25", Status.NOT_FOUND, "A duplicated or missing" +
-        " rank have been detected in offers configuration."),
+    STORAGE_OFFER_EXCEPTION_RANK(ServiceName.STORAGE, DomainName.STORAGE, "25", Status.NOT_FOUND,
+        "A duplicated or missing" +
+            " rank have been detected in offers configuration."),
 
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
@@ -520,15 +522,16 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Security alert during local ingest attempt."),
     METADATA_INDEXATION_ERROR(ServiceName.METADATA, DomainName.DATABASE, "00", Status.INTERNAL_SERVER_ERROR,
-            "Indexation error"),
+        "Indexation error"),
     METADATA_SWITCH_INDEX_ERROR(ServiceName.METADATA, DomainName.DATABASE, "01", Status.INTERNAL_SERVER_ERROR,
-            "Switch index error"),
+        "Switch index error"),
     METADATA_REPOSITORY_DATABASE_ERROR(ServiceName.METADATA, DomainName.DATABASE, "02", Status.INTERNAL_SERVER_ERROR,
-            "DatabaseException while accessing database through repository service"),
+        "DatabaseException while accessing database through repository service"),
     METADATA_NOT_FOUND(ServiceName.METADATA, DomainName.DATABASE, "03", Status.NOT_FOUND, "Metadata not found"),
-    METADATA_INTERNAL_SERVER_ERROR(ServiceName.METADATA, DomainName.DATABASE, "04", Status.INTERNAL_SERVER_ERROR, "Metadata internal server error"),
+    METADATA_INTERNAL_SERVER_ERROR(ServiceName.METADATA, DomainName.DATABASE, "04", Status.INTERNAL_SERVER_ERROR,
+        "Metadata internal server error"),
     DATA_CONSISTENCY_AUDIT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.DATABASE, "05", Status.BAD_REQUEST,
-            "Access external client error in auditDataConsistency method."),
+        "Access external client error in auditDataConsistency method."),
 
     LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR(ServiceName.LOGBOOK, DomainName.NETWORK, "O0", Status.INTERNAL_SERVER_ERROR,
         "Logbook client error"),

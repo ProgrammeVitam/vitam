@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,7 @@ public class EvidenceAuditException extends VitamException {
 
     /**
      * @param message the message
-     * @param cause   the cause
+     * @param cause the cause
      */
     public EvidenceAuditException(EvidenceStatus status, String message, Throwable cause) {
         super(message, cause);

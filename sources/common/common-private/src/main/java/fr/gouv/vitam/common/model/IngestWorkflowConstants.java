@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,8 @@ public class IngestWorkflowConstants {
     /**
      * Prefix of file containing mapping between BinaryDataObjects' seda ID and object group's seda ID.
      */
-    public static final String DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_";
+    public static final String DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX =
+        "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_";
     /**
      * Prefix of file containing mapping between all object GUID and its URI
      */
@@ -63,7 +64,8 @@ public class IngestWorkflowConstants {
     /**
      * Prefix of file containing mapping between BinaryDataObjects' seda ID and data object version and type.
      */
-    public static final String DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_FILE_NAME_PREFIX = "DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP";
+    public static final String DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_FILE_NAME_PREFIX =
+        "DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP";
     /**
      * Prefix of file the ingest units tree.
      */
@@ -145,6 +147,7 @@ public class IngestWorkflowConstants {
      */
     public static final String STP_UPLOAD_RESULT_JSON = "stpUploadResult.json";
 
-    private IngestWorkflowConstants() {}
+    private IngestWorkflowConstants() {
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -80,7 +80,7 @@ public class IngestCleanupUnitReportEntry {
     }
 
     public void addError(String error) {
-        if(errors == null) {
+        if (errors == null) {
             errors = new ArrayList<>();
         }
         errors.add(error);
@@ -96,14 +96,14 @@ public class IngestCleanupUnitReportEntry {
     }
 
     public void addWarning(String message) {
-        if(warnings == null) {
+        if (warnings == null) {
             warnings = new ArrayList<>();
         }
         warnings.add(message);
     }
 
     public void updateStatus(StatusCode statusCode) {
-        if(this.status.compareTo(statusCode) < 0) {
+        if (this.status.compareTo(statusCode) < 0) {
             this.status = statusCode;
         }
     }

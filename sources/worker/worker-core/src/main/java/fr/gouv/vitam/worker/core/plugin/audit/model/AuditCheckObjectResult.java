@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit.model;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
-import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * AuditCheckObjectResult
@@ -59,7 +59,7 @@ public class AuditCheckObjectResult {
 
     /**
      * Compute global status from max status
-     * 
+     *
      * @return globale status
      */
     public StatusCode getGlobalStatus() {

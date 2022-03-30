@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cucumber.api.java.en.When;
 import cucumber.api.java.fr.Quand;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -44,7 +43,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class RevertUpdateStep extends CommonStep{
+public class RevertUpdateStep extends CommonStep {
 
 
     public RevertUpdateStep(World world) {
@@ -52,7 +51,7 @@ public class RevertUpdateStep extends CommonStep{
     }
 
     @Quand("^je lance la restauration des métadonnées essentielles des AU$")
-    public  void unitUpdate() throws VitamException {
+    public void unitUpdate() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());

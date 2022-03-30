@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,23 +30,26 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 
 /**
  * Interface for securiry alert service.
- *
  */
-public interface AlertService {    
-    
-    /**Create an alert with the specified message and level
+public interface AlertService {
+
+    /**
+     * Create an alert with the specified message and level
+     *
      * @param level
      * @param message
      */
-    void createAlert(VitamLogLevel level,String message);
-    
-    /**Create an alert with the specified message and level INFO
+    void createAlert(VitamLogLevel level, String message);
+
+    /**
+     * Create an alert with the specified message and level INFO
+     *
      * @param message
      */
     void createAlert(String message);
 
     /**
-     / Create an alert with the specified message, level au cause
+     * / Create an alert with the specified message, level au cause
      */
     void createAlert(VitamLogLevel level, String message, Throwable cause);
 

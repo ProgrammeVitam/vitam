@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -124,7 +124,8 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(fr.gouv.vitam.ingest.internal.IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(fr.gouv.vitam.ingest.internal.IngestInternalIT.class,
+            mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,

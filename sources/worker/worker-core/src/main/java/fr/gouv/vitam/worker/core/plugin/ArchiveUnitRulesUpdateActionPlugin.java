@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,7 +77,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
 
-    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils = new ArchiveUnitLifecycleUpdateUtils();
+    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils =
+        new ArchiveUnitLifecycleUpdateUtils();
 
     private final MetaDataClientFactory metaDataClientFactory;
 

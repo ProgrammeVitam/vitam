@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,8 +29,6 @@ package fr.gouv.vitam.logbook.common.server.database.collections.request;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 
 /**
@@ -52,9 +50,9 @@ public class LogbookVarNameAdapter extends VarNameAdapter {
 
     @Override
     public String getVariableName(String name) {
-        if(name.equals(ParserTokens.PROJECTIONARGS.LAST_PERSISTED_DATE.exactToken()))
+        if (name.equals(ParserTokens.PROJECTIONARGS.LAST_PERSISTED_DATE.exactToken()))
             return LogbookDocument.LAST_PERSISTED_DATE;
-        if(name.equals(ParserTokens.PROJECTIONARGS.ID.exactToken()))
+        if (name.equals(ParserTokens.PROJECTIONARGS.ID.exactToken()))
             return LogbookDocument.ID;
         return null;
     }

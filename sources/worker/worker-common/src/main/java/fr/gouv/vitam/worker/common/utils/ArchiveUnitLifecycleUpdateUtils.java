@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,7 +47,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * ArchiveUnitUpdateUtils in order to deal with common update operations for units
- *
  */
 public class ArchiveUnitLifecycleUpdateUtils {
 
@@ -57,7 +56,7 @@ public class ArchiveUnitLifecycleUpdateUtils {
 
     /**
      * Method used to log lifecycles unit
-     * 
+     *
      * @param params
      * @param auGuid
      * @param code
@@ -96,7 +95,7 @@ public class ArchiveUnitLifecycleUpdateUtils {
 
     /**
      * Method used to commit lifecycle
-     * 
+     *
      * @param processId
      * @param archiveUnitId
      * @param logbookLifeCycleClient

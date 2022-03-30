@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@
 package fr.gouv.vitam.functional.administration.common.config;
 
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -37,7 +36,6 @@ import org.junit.Test;
 import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class FunctionalAdminIndexationConfigurationTest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,10 +54,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class PreservationPreparationInsertionAuMetadataTest {
 
@@ -65,7 +63,8 @@ public class PreservationPreparationInsertionAuMetadataTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private BatchReportClientFactory batchReportFactory;
@@ -82,9 +81,9 @@ public class PreservationPreparationInsertionAuMetadataTest {
     private PreservationPreparationInsertionAuMetadata plugin;
 
     private final TestWorkerParameter parameter = workerParameterBuilder()
-            .withContainerName("CONTAINER_NAME_TEST")
-            .withRequestId("REQUEST_ID_TEST")
-            .build();
+        .withContainerName("CONTAINER_NAME_TEST")
+        .withRequestId("REQUEST_ID_TEST")
+        .build();
 
     private HandlerIO handler = new TestHandlerIO();
 
@@ -129,7 +128,7 @@ public class PreservationPreparationInsertionAuMetadataTest {
     public void should_throw_exception_when_create_Distribution_File_For_Au_batch_report() throws Exception {
         // Given
         doThrow(new VitamClientInternalException("Exception when creating diStribution file for AU")).
-                when(batchReportClient).createExtractedMetadataDistributionFileForAu(any());
+            when(batchReportClient).createExtractedMetadataDistributionFileForAu(any());
 
         // When
         ThrowableAssert.ThrowingCallable shouldThrow = () -> plugin.execute(parameter, handler);

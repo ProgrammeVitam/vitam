@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * Term Query
- *
  */
 public class TermQuery extends Query {
     private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,66 +26,67 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
+
 public class GenericExceptionMapperTest {
 
     @Test
-    public final void shouldRemoveHostnameAndPortFromNotFoundExceptionMessageAndDescription() throws InvalidParseOperationException {
+    public final void shouldRemoveHostnameAndPortFromNotFoundExceptionMessageAndDescription()
+        throws InvalidParseOperationException {
         GenericExceptionMapper exceptionMapper = new GenericExceptionMapper();
         Response response = exceptionMapper.toResponse(new NotFoundException(
-                "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul:8444/admin-external/v1/toto"));
+            "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul:8444/admin-external/v1/toto"));
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("message").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("message").asText());
     }
 
     @Test
     public final void shouldRemoveHostnameAndPortFromExceptionDescription() throws InvalidParseOperationException {
         GenericExceptionMapper exceptionMapper = new GenericExceptionMapper();
         Response response = exceptionMapper.toResponse(new Throwable(
-                "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul:8444/admin-external/v1/toto"));
+            "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul:8444/admin-external/v1/toto"));
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
     }
 
     @Test
     public final void shouldRemoveHostnameFromExceptionDescription() throws InvalidParseOperationException {
         GenericExceptionMapper exceptionMapper = new GenericExceptionMapper();
         Response response = exceptionMapper.toResponse(new Throwable(
-                "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul/admin-external/v1/toto"));
+            "RESTEASY003210: Could not find resource for full path: https://access-external.service.consul/admin-external/v1/toto"));
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
     }
 
     @Test
     public final void shouldRemoveIPAndPortFromExceptionDescription() throws InvalidParseOperationException {
         GenericExceptionMapper exceptionMapper = new GenericExceptionMapper();
         Response response = exceptionMapper.toResponse(new Throwable(
-                "RESTEASY003210: Could not find resource for full path: https://127.0.0.1:8444/admin-external/v1/toto"));
+            "RESTEASY003210: Could not find resource for full path: https://127.0.0.1:8444/admin-external/v1/toto"));
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
     }
 
     @Test
     public final void shouldRemoveIPFromExceptionDescription() throws InvalidParseOperationException {
         GenericExceptionMapper exceptionMapper = new GenericExceptionMapper();
         Response response = exceptionMapper.toResponse(new Throwable(
-                "RESTEASY003210: Could not find resource for full path: https://127.0.0.1/admin-external/v1/toto"));
+            "RESTEASY003210: Could not find resource for full path: https://127.0.0.1/admin-external/v1/toto"));
 
         Assert.assertEquals("RESTEASY003210: Could not find resource for full path: admin-external/v1/toto",
-                JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
+            JsonHandler.toJsonNode(response.getEntity()).get("description").asText());
     }
 }

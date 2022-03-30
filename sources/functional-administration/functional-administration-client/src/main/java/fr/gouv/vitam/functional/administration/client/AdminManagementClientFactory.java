@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,7 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
         new AdminManagementClientFactory();
     private static final String CONFIGURATION_FILENAME = "functional-administration-client.conf";
     private static final String RESOURCE_PATH = "/adminmanagement/v1";
-    
+
     private AdminManagementClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true);
     }
@@ -104,7 +104,6 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     // TODO P2 should not be public (but IT test)

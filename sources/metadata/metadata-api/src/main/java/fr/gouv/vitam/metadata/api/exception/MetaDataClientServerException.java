@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,8 +33,8 @@ public class MetaDataClientServerException extends MetaDataException {
     private static final long serialVersionUID = 2595337250665740662L;
 
     /**
-     * Constructor 
-     * 
+     * Constructor
+     *
      * @param message message to associate with the exception
      */
     public MetaDataClientServerException(String message) {
@@ -43,7 +43,7 @@ public class MetaDataClientServerException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public MetaDataClientServerException(Throwable cause) {
@@ -52,7 +52,7 @@ public class MetaDataClientServerException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,21 +39,15 @@ public class StoragePutResult extends StorageObjectResult {
     /**
      * Initialize the needed parameters for put results
      *
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
-     * @param guid
-     *            the object guid
-     * @param distantObjectId
-     *            The distant object id
-     * @param digestHashBase16
-     *            the object digest hash
-     * @param objectSize
-     *            size of the object
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
+     * @param distantObjectId The distant object id
+     * @param digestHashBase16 the object digest hash
+     * @param objectSize size of the object
      */
     public StoragePutResult(Integer tenantId, String type, String guid, String distantObjectId, String digestHashBase16,
-            long objectSize) {
+        long objectSize) {
         super(tenantId, type, guid);
         this.distantObjectId = distantObjectId;
         this.digestHashBase16 = digestHashBase16;

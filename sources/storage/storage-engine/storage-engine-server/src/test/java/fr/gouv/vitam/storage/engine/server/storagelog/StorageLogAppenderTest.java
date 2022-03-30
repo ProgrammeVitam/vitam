@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.junit.Before;
@@ -71,7 +70,8 @@ public class StorageLogAppenderTest {
 
         assertThat(filePath).exists();
         assertThat(Files.readAllBytes(filePath))
-            .isEqualTo("{\"objectIdentifier\":\"params1\"}\n{\"objectIdentifier\":\"params2\"}\n{\"objectIdentifier\":\"params3\"}\n".getBytes());
+            .isEqualTo(
+                "{\"objectIdentifier\":\"params1\"}\n{\"objectIdentifier\":\"params2\"}\n{\"objectIdentifier\":\"params3\"}\n".getBytes());
     }
 
     private StorageLogbookParameters buildStorageParameters(String str) {

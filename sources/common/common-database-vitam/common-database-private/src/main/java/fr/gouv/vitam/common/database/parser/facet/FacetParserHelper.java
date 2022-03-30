@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,6 @@
  */
 package fr.gouv.vitam.common.database.parser.facet;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -47,20 +41,26 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * Facet from Parser Helper
- *
  */
 public class FacetParserHelper extends FacetHelper {
 
     /**
      * Construction
      */
-    protected FacetParserHelper() {}
+    protected FacetParserHelper() {
+    }
 
     /**
      * Transform facet jsonNode in terms Facet object
-     * 
+     *
      * @param facet facet node
      * @param adapter adapter
      * @return terms Facet object
@@ -82,17 +82,17 @@ public class FacetParserHelper extends FacetHelper {
         }
 
         String translatedNestedPath = null;
-        if(terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+        if (terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
             String nestedPath = terms.get(FACETARGS.SUBOBJECT.exactToken()).asText();
             translatedNestedPath = adapter.getVariableName(nestedPath);
-            if(translatedNestedPath == null) {
+            if (translatedNestedPath == null) {
                 translatedNestedPath = nestedPath;
             }
         }
 
         String fieldName = terms.get(FACETARGS.FIELD.exactToken()).asText();
         String translatedFieldName = adapter.getVariableName(fieldName);
-        if(translatedFieldName == null) {
+        if (translatedFieldName == null) {
             translatedFieldName = fieldName;
         }
 
@@ -105,7 +105,7 @@ public class FacetParserHelper extends FacetHelper {
 
     /**
      * Transform facet jsonNode into a dateRange Facet object
-     * 
+     *
      * @param facet
      * @param adapter
      * @return
@@ -129,17 +129,17 @@ public class FacetParserHelper extends FacetHelper {
         });
 
         String translatedNestedPath = null;
-        if(dateRange.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+        if (dateRange.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
             String nestedPath = dateRange.get(FACETARGS.SUBOBJECT.exactToken()).asText();
             translatedNestedPath = adapter.getVariableName(nestedPath);
-            if(translatedNestedPath == null) {
+            if (translatedNestedPath == null) {
                 translatedNestedPath = nestedPath;
             }
         }
 
         String fieldName = dateRange.get(FACETARGS.FIELD.exactToken()).asText();
         String translatedFieldName = adapter.getVariableName(fieldName);
-        if(translatedFieldName == null) {
+        if (translatedFieldName == null) {
             translatedFieldName = fieldName;
         }
 
@@ -149,7 +149,7 @@ public class FacetParserHelper extends FacetHelper {
 
     /**
      * Transform facet jsonNode in filters Facet object
-     * 
+     *
      * @param facet facet node
      * @param adapter adapter
      * @return filters Facet object

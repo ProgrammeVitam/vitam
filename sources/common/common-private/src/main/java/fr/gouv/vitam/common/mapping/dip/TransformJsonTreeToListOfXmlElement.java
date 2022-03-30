@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.mapping.dip;
 
 import com.google.common.base.Throwables;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.vitam.common.SedaConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -77,15 +76,15 @@ public class TransformJsonTreeToListOfXmlElement {
      *
      * @param consumer consumer to accept
      * @param document xml document
-     * @param map      Json tree
+     * @param map Json tree
      */
     private static void transformMapToElement(Consumer<Element> consumer, Document document, Map map) {
 
         for (Object key : map.keySet()) {
             Object value = map.get(key);
             //skip vitam technical metadata (_opi,..)
-            if(key.toString().startsWith("#")){
-               continue;
+            if (key.toString().startsWith("#")) {
+                continue;
             }
 
             if (value instanceof String) {

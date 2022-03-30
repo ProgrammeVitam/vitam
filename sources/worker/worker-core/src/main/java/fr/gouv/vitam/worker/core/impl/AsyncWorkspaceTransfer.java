@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.worker.core.impl;
 
-import java.util.concurrent.Executor;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
+
+import java.util.concurrent.Executor;
 
 /**
  * Send asynchronously files to the workspace
@@ -56,7 +56,8 @@ public class AsyncWorkspaceTransfer {
 
     public void transfer(WorkspaceQueue workspaceQueue) throws WorkerspaceQueueException {
         if (null == runner) {
-            throw new WorkerspaceQueueException("Workspace batch runner is not started, call startTransfer to start it");
+            throw new WorkerspaceQueueException(
+                "Workspace batch runner is not started, call startTransfer to start it");
         }
         this.runner.transfer(workspaceQueue);
     }

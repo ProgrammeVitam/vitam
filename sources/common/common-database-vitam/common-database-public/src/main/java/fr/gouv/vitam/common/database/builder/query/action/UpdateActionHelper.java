@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,15 @@
  */
 package fr.gouv.vitam.common.database.builder.query.action;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-
 /**
  * Update associated actions helper
- *
  */
 public class UpdateActionHelper {
     protected UpdateActionHelper() {
@@ -44,7 +42,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an AddAction
@@ -56,7 +53,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an AddAction
@@ -68,7 +64,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an AddAction
@@ -80,7 +75,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an AddAction
@@ -92,7 +86,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an AddAction
@@ -104,7 +97,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an IncAction
@@ -116,7 +108,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return an IncAction using default value 1
      * @throws InvalidCreateOperationException when query is invalid
@@ -127,7 +118,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MinAction
@@ -139,7 +129,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MinAction
@@ -151,7 +140,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MinAction
@@ -163,7 +151,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MinAction
@@ -175,7 +162,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MinAction
@@ -187,7 +173,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MaxAction
@@ -199,7 +184,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MaxAction
@@ -211,7 +195,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MaxAction
@@ -223,7 +206,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MaxAction
@@ -235,7 +217,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return an MaxAction
@@ -247,7 +228,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PullAction
@@ -259,7 +239,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PullAction
@@ -271,7 +250,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PullAction
@@ -283,7 +261,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PullAction
@@ -295,7 +272,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PullAction
@@ -307,7 +283,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param way -1 for first, 1 for last
      * @return a PopAction
@@ -319,7 +294,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return a PopAction with default last position
      * @throws InvalidCreateOperationException when query is invalid
@@ -330,7 +304,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PushAction
@@ -342,7 +315,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PushAction
@@ -354,7 +326,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PushAction
@@ -366,7 +337,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PushAction
@@ -378,7 +348,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a PushAction
@@ -390,7 +359,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param newName new key name
      * @return a RenameAction
@@ -403,7 +371,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a SetAction
@@ -415,7 +382,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value as List of values
      * @return a SetAction
@@ -427,7 +393,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a SetAction
@@ -439,7 +404,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a SetAction
@@ -451,7 +415,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a SetAction
@@ -463,7 +426,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value key value
      * @return a SetAction
@@ -475,7 +437,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param map map of variableName for values
      * @return a SectAction
      * @throws InvalidCreateOperationException when query is invalid
@@ -486,7 +447,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param node of variableName and values
      * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
@@ -497,7 +457,6 @@ public class UpdateActionHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return an UnsetAction
      * @throws InvalidCreateOperationException when query is invalid

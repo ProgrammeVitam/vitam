@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.model.coherence;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.io.Serializable;
 
 /**
  * Description of LogbookCheckResult model. <br/>
@@ -67,7 +67,8 @@ public class LogbookCheckError implements Serializable {
     @JsonProperty("expectedLogbookMsg")
     private String expectedLogbookMsg;
 
-    public LogbookCheckError() {}
+    public LogbookCheckError() {
+    }
 
     /**
      * LogbookCheckResult constructor.

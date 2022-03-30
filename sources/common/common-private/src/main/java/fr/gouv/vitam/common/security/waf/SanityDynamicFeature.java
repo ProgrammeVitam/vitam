@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,14 @@
  */
 package fr.gouv.vitam.common.security.waf;
 
-import java.io.InputStream;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.VitamConfiguration;
 
 import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.VitamConfiguration;
+import java.io.InputStream;
 
 /**
  * Dynamic filter checker for resources

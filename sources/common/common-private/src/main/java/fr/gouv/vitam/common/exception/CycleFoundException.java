@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,9 +27,7 @@
 package fr.gouv.vitam.common.exception;
 
 /**
- *
  * Exception used in DFS when a cycle is found
- *
  */
 public class CycleFoundException extends VitamException {
 
@@ -65,7 +63,7 @@ public class CycleFoundException extends VitamException {
      * @param cycle detail of the cycle
      * @param eventDetailData eventDetailData of the exception
      */
-    public CycleFoundException(String message, String cycle,String eventDetailData) {
+    public CycleFoundException(String message, String cycle, String eventDetailData) {
         super(message);
         this.cycle = cycle;
         this.eventDetailData = eventDetailData;
@@ -102,7 +100,7 @@ public class CycleFoundException extends VitamException {
 
     /**
      * Get the eventDetailData
-     * 
+     *
      * @return eventDetailData
      */
     public String getEventDetailData() {

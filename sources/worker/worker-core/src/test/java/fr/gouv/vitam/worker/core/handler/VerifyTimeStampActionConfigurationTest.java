@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
-import org.junit.Test;
 
 public class VerifyTimeStampActionConfigurationTest {
 
@@ -38,11 +38,13 @@ public class VerifyTimeStampActionConfigurationTest {
         try {
             new VerifyTimeStampActionConfiguration("password", null);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             new VerifyTimeStampActionConfiguration(null, "file");
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
 
 
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -76,21 +76,26 @@ public class MassUpdateRulesCheck extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         try {
-            RuleActions ruleActions = JsonHandler.getFromJsonNode(handler.getJsonFromWorkspace("actions.json"), RuleActions.class);
+            RuleActions ruleActions =
+                JsonHandler.getFromJsonNode(handler.getJsonFromWorkspace("actions.json"), RuleActions.class);
             if (ruleActions.isRuleActionsEmpty()) {
-                MassUpdateErrorInfo errorInfo = new MassUpdateErrorInfo("RULE_ACTION_EMPTY", "Rule actions used to update units is empty.");
+                MassUpdateErrorInfo errorInfo =
+                    new MassUpdateErrorInfo("RULE_ACTION_EMPTY", "Rule actions used to update units is empty.");
                 return buildItemStatus(PLUGIN_NAME, KO, errorInfo);
             }
 
             List<String> duplicateKeys = getDuplicateKeys(ruleActions);
             if (!duplicateKeys.isEmpty()) {
-                String message = String.format("Invalid rule actions query: duplicate rules '%s'.", String.join(", ", duplicateKeys));
+                String message = String.format("Invalid rule actions query: duplicate rules '%s'.",
+                    String.join(", ", duplicateKeys));
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
 
-            boolean deleteOrAddSameAUP = isTryingToAddAndDeleteAUP(ruleActions.getAddOrUpdateMetadata(), ruleActions.getDeleteMetadata());
+            boolean deleteOrAddSameAUP =
+                isTryingToAddAndDeleteAUP(ruleActions.getAddOrUpdateMetadata(), ruleActions.getDeleteMetadata());
             if (deleteOrAddSameAUP) {
-                String message = String.format("Invalid AUP query: duplicate in add or delete '%s'.", ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile());
+                String message = String.format("Invalid AUP query: duplicate in add or delete '%s'.",
+                    ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile());
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
 
@@ -103,7 +108,8 @@ public class MassUpdateRulesCheck extends ActionHandler {
                 .collect(Collectors.toList());
 
             if (!unknownAddClassificationLevels.isEmpty()) {
-                String message = String.format("Unknown classification level '%s' in added rule action.", String.join(", ", unknownAddClassificationLevels));
+                String message = String.format("Unknown classification level '%s' in added rule action.",
+                    String.join(", ", unknownAddClassificationLevels));
                 alertService.createAlert(message);
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
@@ -117,7 +123,8 @@ public class MassUpdateRulesCheck extends ActionHandler {
                 .collect(Collectors.toList());
 
             if (!unknownUpdateClassificationLevels.isEmpty()) {
-                String message = String.format("Unknown classification level '%s' in updated rule action.", String.join(", ", unknownUpdateClassificationLevels));
+                String message = String.format("Unknown classification level '%s' in updated rule action.",
+                    String.join(", ", unknownUpdateClassificationLevels));
                 alertService.createAlert(message);
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
@@ -129,8 +136,10 @@ public class MassUpdateRulesCheck extends ActionHandler {
         }
     }
 
-    private boolean isTryingToAddAndDeleteAUP(ManagementMetadataAction addOrUpdateMetadata, ManagementMetadataAction deleteMetadata) {
-        if (addOrUpdateMetadata == null || addOrUpdateMetadata.getArchiveUnitProfile() == null || deleteMetadata == null || deleteMetadata.getArchiveUnitProfile() == null) {
+    private boolean isTryingToAddAndDeleteAUP(ManagementMetadataAction addOrUpdateMetadata,
+        ManagementMetadataAction deleteMetadata) {
+        if (addOrUpdateMetadata == null || addOrUpdateMetadata.getArchiveUnitProfile() == null ||
+            deleteMetadata == null || deleteMetadata.getArchiveUnitProfile() == null) {
             return false;
         }
         return addOrUpdateMetadata.getArchiveUnitProfile().equalsIgnoreCase(deleteMetadata.getArchiveUnitProfile());
@@ -138,7 +147,8 @@ public class MassUpdateRulesCheck extends ActionHandler {
 
     private List<String> getDuplicateKeys(RuleActions rules) {
         Set<String> foundKeys = new HashSet<>();
-        return Stream.concat(Stream.concat(rules.getAdd().stream(), rules.getUpdate().stream()), rules.getDelete().stream())
+        return Stream.concat(Stream.concat(rules.getAdd().stream(), rules.getUpdate().stream()),
+                rules.getDelete().stream())
             .flatMap(map -> map.keySet().stream())
             .filter(key -> includeFoundedKey(foundKeys, key))
             .collect(Collectors.toList());

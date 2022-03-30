@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * ProcessingManagement factory for creating ProcessingManagement client
@@ -119,7 +119,6 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     // TODO P2 should not be public (but IT test)

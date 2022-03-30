@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -85,7 +85,7 @@ public class SedaUtilsTest {
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final SedaUtils utils = SedaUtilsFactory.getInstance().createSedaUtils(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
+            .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList(OBJ)).setObjectName(OBJ)
         .setCurrentStep("TEST");
 
@@ -269,7 +269,8 @@ public class SedaUtilsTest {
     public void givenWrongAlgorithThenReturnInvalidAlgo() throws Exception {
 
         final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
-        XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml"));
+        XMLEventReader evenReader =
+            factory.createXMLEventReader(new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml"));
         Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
     }
 

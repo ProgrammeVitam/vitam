@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,9 +29,10 @@ package fr.gouv.vitam.common.model.unit;
 /**
  * Custom Class for DescriptiveMetadataContentType.Writer (Seda 2.1)
  * Problem (with merge of two choice elements) :  getting JAXB "catch-all" property (one content property generated of type List of JAXBElement)
- *   because of the following reason :
+ * because of the following reason :
  * The field name "Identifier" is used by two different parts of a schema in choice element.
  * N.B : xjc:simple resolve the problem but impact lot of class properties names
+ *
  * @author afraoucene
  */
 

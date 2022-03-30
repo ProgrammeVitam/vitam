@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,10 +27,10 @@
 package fr.gouv.vitam.processing.common.model;
 
 
+import fr.gouv.vitam.common.CommonMediaType;
+
 import java.io.InputStream;
 import java.nio.file.Path;
-
-import fr.gouv.vitam.common.CommonMediaType;
 
 /**
  * Workspace Queue class
@@ -55,7 +55,7 @@ public class WorkspaceQueue {
 
     /**
      * Constructor
-     * 
+     *
      * @param workspacePath
      * @param sourceFile
      */
@@ -67,7 +67,7 @@ public class WorkspaceQueue {
 
     /**
      * Constructor
-     * 
+     *
      * @param workspacePath
      * @param sourceFile
      * @param action

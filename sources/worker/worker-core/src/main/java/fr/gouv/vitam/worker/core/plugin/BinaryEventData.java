@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,8 @@ public class BinaryEventData {
     private final String algorithm;
 
     @JsonCreator
-    public BinaryEventData(@JsonProperty(MESSAGE_DIGEST) String messageDigest, @JsonProperty(FILE_NAME) String fileName, @JsonProperty(OFFERS) String offers, @JsonProperty(ALGORITHM) String algorithm) {
+    public BinaryEventData(@JsonProperty(MESSAGE_DIGEST) String messageDigest, @JsonProperty(FILE_NAME) String fileName,
+        @JsonProperty(OFFERS) String offers, @JsonProperty(ALGORITHM) String algorithm) {
         this.messageDigest = messageDigest;
         this.fileName = fileName;
         this.offers = offers;
@@ -54,7 +55,8 @@ public class BinaryEventData {
     }
 
     public static BinaryEventData from(StoredInfoResult storedInfoResult) {
-        return new BinaryEventData(storedInfoResult.getDigest(), null, String.join(", ", storedInfoResult.getOfferIds()), storedInfoResult.getDigestType());
+        return new BinaryEventData(storedInfoResult.getDigest(), null,
+            String.join(", ", storedInfoResult.getOfferIds()), storedInfoResult.getDigestType());
     }
 
     @JsonProperty(MESSAGE_DIGEST)

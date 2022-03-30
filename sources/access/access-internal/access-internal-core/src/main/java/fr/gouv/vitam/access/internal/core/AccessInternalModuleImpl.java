@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -520,7 +520,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
             // Get Files in accessLog
             CloseableIterator<ObjectEntry> filesInfo =
-                storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null,
+                    DataCategory.STORAGEACCESSLOG);
         ) {
 
             if (filesInfo.hasNext()) {

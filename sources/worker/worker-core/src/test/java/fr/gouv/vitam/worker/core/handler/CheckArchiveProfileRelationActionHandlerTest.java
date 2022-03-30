@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -91,7 +91,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testhandlerWorking()
-        throws  InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);

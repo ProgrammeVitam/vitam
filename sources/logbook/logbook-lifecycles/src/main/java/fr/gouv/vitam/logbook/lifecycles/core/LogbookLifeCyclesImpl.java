@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,14 @@
  */
 package fr.gouv.vitam.logbook.lifecycles.core;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.mongodb.client.model.Projections;
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -48,6 +41,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,6 +67,10 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Logbook LifeCycles implementation base class
@@ -393,11 +391,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         // Select operations greater OR equal to startDate to include last secured elements in next traceability
         MongoCursor<Document> lifecycleIterator =
             vitamMongoRepository.findDocuments(
-                Filters.and(
-                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
-                    Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
-                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
-                , VitamConfiguration.getBatchSize())
+                    Filters.and(
+                        Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                        Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
+                        Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
+                    , VitamConfiguration.getBatchSize())
                 .sort(
                     Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE)
                 )
@@ -444,11 +442,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         // Check if new LFC entries exist since last operation
         // /!\ Only check for operations strictly greater startDate to "ignore" last secured elements
         Document firstLifecycle = vitamMongoRepository.findDocuments(
-            Filters.and(
-                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
-                Filters.gt(LogbookDocument.LAST_PERSISTED_DATE, startDate),
-                Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
-            , VitamConfiguration.getBatchSize())
+                Filters.and(
+                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                    Filters.gt(LogbookDocument.LAST_PERSISTED_DATE, startDate),
+                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
+                , VitamConfiguration.getBatchSize())
             .projection(Projections.include("_id"))
             .limit(1).first();
 

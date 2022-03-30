@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -224,13 +223,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(
-        VitamContext vitamContext, Collection<AccessRequestReference> accessRequestReferences) throws VitamClientException {
+        VitamContext vitamContext, Collection<AccessRequestReference> accessRequestReferences)
+        throws VitamClientException {
 
         ParametersChecker.checkParameter("Access requests required", accessRequestReferences);
         for (AccessRequestReference accessRequestReference : accessRequestReferences) {
             ParametersChecker.checkParameter("Access requests required", accessRequestReference);
             ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
-            ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+            ParametersChecker.checkParameter("Required storageStrategyId",
+                accessRequestReference.getStorageStrategyId());
         }
 
         VitamRequestBuilder request = get()
@@ -252,7 +253,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext, AccessRequestReference accessRequestReference)
+    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext,
+        AccessRequestReference accessRequestReference)
         throws VitamClientException {
 
         ParametersChecker.checkParameter("Access request required", accessRequestReference);

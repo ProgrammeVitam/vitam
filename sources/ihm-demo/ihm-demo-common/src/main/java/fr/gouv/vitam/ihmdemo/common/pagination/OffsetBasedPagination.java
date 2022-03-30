@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -98,7 +98,6 @@ public class OffsetBasedPagination {
 
     /**
      * @param offset the offset to set
-     *
      * @return this
      */
     public OffsetBasedPagination setOffset(int offset) {
@@ -116,7 +115,6 @@ public class OffsetBasedPagination {
 
     /**
      * @param limit the limit to set
-     *
      * @return this
      */
     public OffsetBasedPagination setLimit(int limit) {
@@ -134,7 +132,6 @@ public class OffsetBasedPagination {
 
     /**
      * @param total the total to set
-     *
      * @return this
      */
     public OffsetBasedPagination setTotal(int total) {

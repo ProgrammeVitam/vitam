@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,7 @@ public class TnrClientConfiguration {
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
      */
-    public TnrClientConfiguration(){
+    public TnrClientConfiguration() {
         //Nothing to-do
     }
 
@@ -58,7 +58,7 @@ public class TnrClientConfiguration {
     public void setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
     }
-    
+
     /**
      * @return vitamSecret
      */
@@ -74,7 +74,7 @@ public class TnrClientConfiguration {
     }
 
     /**
-     *url workspace
+     * url workspace
      */
     protected String urlWorkspace;
     /**
@@ -83,18 +83,22 @@ public class TnrClientConfiguration {
     protected List<Integer> tenantsTest;
 
     /**
-     *vitam secret
+     * vitam secret
      */
     protected String vitamSecret;
-    
+
     /**
      * TNR tenants List
+     *
      * @return The list
      */
-    public List<Integer> getTenantsTest() { return tenantsTest; }
+    public List<Integer> getTenantsTest() {
+        return tenantsTest;
+    }
 
     /**
      * TNR tenants list setter
+     *
      * @param tenants
      */
     public void setTenantsTest(List<Integer> tenants) {

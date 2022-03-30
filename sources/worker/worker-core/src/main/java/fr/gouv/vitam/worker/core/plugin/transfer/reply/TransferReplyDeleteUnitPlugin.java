@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,8 @@ public class TransferReplyDeleteUnitPlugin extends PurgeUnitPlugin {
         MetaDataClientFactory metaDataClientFactory,
         PurgeReportService purgeReportService,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
-        super(TRANSFER_REPLY_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService, logbookLifeCyclesClientFactory);
+        super(TRANSFER_REPLY_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService,
+            logbookLifeCyclesClientFactory);
     }
 
     public static String getId() {

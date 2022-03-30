@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,10 +83,12 @@ public class LogbookAuditAdministration {
             LocalDateTime startDateTime = LocalDateUtil.now().minus(amount, unit);
 
             selectQuery.setQuery(
-                    and().add(QueryHelper.eq(LogbookMongoDbName.eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name()),
-                            QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), type),
-                            QueryHelper.gte(LogbookMongoDbName.eventDateTime.getDbname(), LocalDateUtil.getFormattedDateForMongo(startDateTime))
-                    ));
+                and().add(QueryHelper.eq(LogbookMongoDbName.eventTypeProcess.getDbname(),
+                        LogbookTypeProcess.TRACEABILITY.name()),
+                    QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), type),
+                    QueryHelper.gte(LogbookMongoDbName.eventDateTime.getDbname(),
+                        LocalDateUtil.getFormattedDateForMongo(startDateTime))
+                ));
             List<LogbookOperation> ops = logbookOperations.selectOperations(selectQuery.getFinalSelect());
             int nbLog = ops.size();
 

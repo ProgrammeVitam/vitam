@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,11 +77,11 @@ public class PurgeDeleteService {
             LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    public void deleteObjects(Map<String,String> objectsGuidsWithStrategies) throws StorageServerClientException {
+    public void deleteObjects(Map<String, String> objectsGuidsWithStrategies) throws StorageServerClientException {
         storageDelete(objectsGuidsWithStrategies, DataCategory.OBJECT, Strings.EMPTY);
     }
 
-    public void deleteObjectGroups(Map<String,String> objectGroupsGuidsWithStrategies)
+    public void deleteObjectGroups(Map<String, String> objectGroupsGuidsWithStrategies)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataClientServerException, StorageServerClientException, LogbookClientBadRequestException,
         LogbookClientServerException {
@@ -97,7 +97,7 @@ public class PurgeDeleteService {
         storageDelete(objectGroupsGuidsWithStrategies, DataCategory.OBJECTGROUP, ".json");
     }
 
-    public void deleteUnits(Map<String,String> unitsGuidsWithStrategies)
+    public void deleteUnits(Map<String, String> unitsGuidsWithStrategies)
         throws MetaDataExecutionException,
         MetaDataClientServerException, StorageServerClientException, LogbookClientBadRequestException,
         LogbookClientServerException {
@@ -113,7 +113,7 @@ public class PurgeDeleteService {
         storageDelete(unitsGuidsWithStrategies, DataCategory.UNIT, ".json");
     }
 
-    private void storageDelete(Map<String,String> idsWithStrategies, DataCategory dataCategory,
+    private void storageDelete(Map<String, String> idsWithStrategies, DataCategory dataCategory,
         String fileExtension)
         throws StorageServerClientException {
 
@@ -140,7 +140,8 @@ public class PurgeDeleteService {
             metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
 
         } catch (MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during object group detachment", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during object group detachment",
+                e);
         }
     }
 }

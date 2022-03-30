@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,28 +26,26 @@
  */
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.facet.Facet;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * abstract class for multi query request
@@ -59,7 +57,6 @@ public abstract class RequestMultiple extends AbstractRequest {
     protected Long threshold;
 
     /**
-     *
      * @return this Request
      */
     public final RequestMultiple resetQueries() {
@@ -97,7 +94,6 @@ public abstract class RequestMultiple extends AbstractRequest {
     }
 
     /**
-     *
      * @param queries list of query
      * @return this Request
      * @throws InvalidCreateOperationException when query is invalid
@@ -129,7 +125,6 @@ public abstract class RequestMultiple extends AbstractRequest {
     }
 
     /**
-     *
      * @param roots string root
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
@@ -144,7 +139,6 @@ public abstract class RequestMultiple extends AbstractRequest {
     }
 
     /**
-     *
      * @param rootContent array of root
      * @return this Request
      */
@@ -156,7 +150,6 @@ public abstract class RequestMultiple extends AbstractRequest {
     }
 
     /**
-     *
      * @param roots string of array root
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
@@ -242,6 +235,7 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      * getFacets
+     *
      * @return
      */
     public List<Facet> getFacets() {
@@ -250,6 +244,7 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      * setFacets
+     *
      * @param facets
      */
     public void setFacets(List<Facet> facets) {

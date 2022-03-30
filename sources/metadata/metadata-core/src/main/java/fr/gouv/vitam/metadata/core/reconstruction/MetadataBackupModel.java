@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.metadata.core.reconstruction;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,7 @@ public class MetadataBackupModel {
 
         if (events != null && !events.isEmpty()) {
 
-            Map<?,?> test = (Map<?, ?>) events.get(events.size() - 1);
+            Map<?, ?> test = (Map<?, ?>) events.get(events.size() - 1);
             var approximateDateTime = test.get("evDateTime");
 
             this.metadatas.put(Unit.APPROXIMATE_CREATION_DATE, lifecycle.get("evDateTime"));

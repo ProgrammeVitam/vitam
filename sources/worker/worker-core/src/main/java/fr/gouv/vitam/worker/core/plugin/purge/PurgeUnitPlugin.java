@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -182,7 +182,7 @@ public class PurgeUnitPlugin extends ActionHandler {
                 LOGGER.info(unitId + " " + msg);
                 purgeUnitStatus = PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS;
                 itemStatuses.add(buildItemStatus(actionId, WARNING, PluginHelper.EventDetails.of(msg)));
-                if(TRANSFER_REPLY_DELETE_UNIT.equals(actionId)) {
+                if (TRANSFER_REPLY_DELETE_UNIT.equals(actionId)) {
                     try {
                         writeLfcForUnpurgedUnit(lfcClientFactory.getClient(), param, unitId);
                     } catch (InvalidGuidOperationException | LogbookClientServerException |
@@ -279,7 +279,8 @@ public class PurgeUnitPlugin extends ActionHandler {
     }
 
     private void writeLfcForUnpurgedUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId)
-        throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
+        LogbookClientServerException {
         LogbookLifeCycleParameters logbookLfcParam =
             LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
                 GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),

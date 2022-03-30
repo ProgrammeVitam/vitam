@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -213,11 +213,11 @@ public class Unit extends MetadataDocument<Unit> {
 
 
 
-    public void setFuzzyCreationDate(LocalDateTime creationDate){
+    public void setFuzzyCreationDate(LocalDateTime creationDate) {
         put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
     }
 
-    public void setFuzzyUpdateDate(LocalDateTime lastUpdate){
+    public void setFuzzyUpdateDate(LocalDateTime lastUpdate) {
         put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
     }
 

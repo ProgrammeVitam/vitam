@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ package fr.gouv.vitam.security.internal.common.exception;
 public class IdentityNotFoundException extends InternalSecurityException {
 
     /**
-     *
      * @param message
      */
     public IdentityNotFoundException(String message) {
@@ -40,7 +39,6 @@ public class IdentityNotFoundException extends InternalSecurityException {
     }
 
     /**
-     *
      * @param cause
      */
     public IdentityNotFoundException(Throwable cause) {
@@ -48,7 +46,6 @@ public class IdentityNotFoundException extends InternalSecurityException {
     }
 
     /**
-     *
      * @param message
      * @param cause
      */

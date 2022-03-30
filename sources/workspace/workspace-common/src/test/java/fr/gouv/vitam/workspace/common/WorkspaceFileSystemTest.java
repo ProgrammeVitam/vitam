@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -219,7 +219,7 @@ public class WorkspaceFileSystemTest {
     public void givenFileNotFoundWhenGetObjectThenRaiseAnException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
 
-        assertThatThrownBy( () -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -245,11 +245,13 @@ public class WorkspaceFileSystemTest {
         storage.createContainer(CONTAINER_NAME);
 
         // When
-        storage.putAtomicObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+        storage.putAtomicObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, getInputStream("file1.pdf"),
+            getLength("file1.pdf"));
 
         // Then
         assertThat(storage.isExistingObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME)).isTrue();
-        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, null, null).getEntity();
+        InputStream is =
+            (InputStream) storage.getObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, null, null).getEntity();
         assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
     }
 
@@ -262,8 +264,9 @@ public class WorkspaceFileSystemTest {
         // When / Then
         storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
 
-        assertThatThrownBy( () -> storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), getLength("file2.pdf")))
-        .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"),
+            getLength("file2.pdf")))
+            .isInstanceOf(ContentAddressableStorageException.class);
 
         assertThat(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME)).isTrue();
         InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null).getEntity();
@@ -309,7 +312,7 @@ public class WorkspaceFileSystemTest {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
 
         // Then
-        assertThatThrownBy( () -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -422,7 +425,8 @@ public class WorkspaceFileSystemTest {
     public void givenSIPWithNotAllowedFileOrDirectoryNameThenException()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("KO_FILE_extension_caractere_special.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("KO_FILE_extension_caractere_special.zip"));
     }
 
     @Test
@@ -595,7 +599,8 @@ public class WorkspaceFileSystemTest {
     public void givenZipSIPAndArchiveTypeWhenManifestFileNamePersonalizedThenRenamedToManifestDotXmlOK()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("personalized_manifest_file_name.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("personalized_manifest_file_name.zip"));
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
     }
 
@@ -730,23 +735,27 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void should_get_files_with_params_from_folder_existant_container_and_existant_folder() throws  Exception {
+    public void should_get_files_with_params_from_folder_existant_container_and_existant_folder() throws Exception {
         // Given
         storage.createContainer(SIP_CONTAINER);
 
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder =
+            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
 
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
-        Map<String, FileParams> filesWithParamsResult = storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
+        Map<String, FileParams> filesWithParamsResult =
+            storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
 
         // Then
         assertThat(filesWithParamsResult).isNotNull().isNotEmpty();
@@ -756,17 +765,20 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void should_not_get_files_with_params_from_folder_inexistant_container() throws  Exception {
+    public void should_not_get_files_with_params_from_folder_inexistant_container() throws Exception {
         // Given
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder =
+            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
 
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
@@ -774,23 +786,27 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void should_not_get_files_with_params_from_folder_inexistant_folder() throws  Exception {
+    public void should_not_get_files_with_params_from_folder_inexistant_folder() throws Exception {
         // Given
         storage.createContainer(SIP_CONTAINER);
 
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder =
+            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
 
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
-        Map<String, FileParams> filesWithParamsResult= storage.getFilesWithParamsFromFolder(SIP_CONTAINER, "wrongFolder");
+        Map<String, FileParams> filesWithParamsResult =
+            storage.getFilesWithParamsFromFolder(SIP_CONTAINER, "wrongFolder");
 
         // Then
         assertThat(filesWithParamsResult).isNotNull().isEmpty();

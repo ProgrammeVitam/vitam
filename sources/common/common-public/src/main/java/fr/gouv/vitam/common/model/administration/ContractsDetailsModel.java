@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,31 +34,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ContractsDetailsModel {
-    
+
     @JsonProperty("ingestContract")
     private IngestContractModel ingestContractModel;
-    
+
     @JsonProperty("managementContract")
     private ManagementContractModel managementContractModel;
-    
+
     public ContractsDetailsModel() {
         super();
     }
-    
+
     public IngestContractModel getIngestContractModel() {
         return ingestContractModel;
     }
-    
+
     public void setIngestContractModel(IngestContractModel ingestContractModel) {
         this.ingestContractModel = ingestContractModel;
     }
-    
+
     public ManagementContractModel getManagementContractModel() {
         return managementContractModel;
     }
-    
+
     public void setManagementContractModel(ManagementContractModel managementContractModel) {
         this.managementContractModel = managementContractModel;
     }
-    
+
 }

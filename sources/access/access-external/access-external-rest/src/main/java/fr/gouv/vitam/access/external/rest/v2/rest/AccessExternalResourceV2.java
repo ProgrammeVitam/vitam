@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -146,7 +146,8 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
+            .setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

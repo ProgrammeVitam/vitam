@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,8 @@ public class ExportRequest {
         this.dslRequest = dslRequest;
     }
 
-    public ExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC, Long maxSizeThreshold) {
+    public ExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC,
+        Long maxSizeThreshold) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
@@ -81,7 +82,7 @@ public class ExportRequest {
         exportRequest.setExportType(ExportType.get(dipRequest.getDipExportType()));
         exportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
         exportRequest.setMaxSizeThreshold(dipRequest.getMaxSizeThreshold());
-        
+
         return exportRequest;
     }
 

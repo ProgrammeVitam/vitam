@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -359,7 +359,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             assertThat(unit).isNotNull();
             final String unitId = unit.get("#id").asText();
             String gotId = "EMPTY";
-            if(unit.has("#object")){
+            if (unit.has("#object")) {
                 gotId = unit.get("#object").asText();
             }
             Bson filterUnit = Filters.eq("_id", unitId);

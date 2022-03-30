@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -135,9 +135,9 @@ public class IngestExternalImpl implements IngestExternal {
     private final ManifestDigestValidator manifestDigestValidator;
 
     public IngestExternalImpl(IngestExternalConfiguration config,
-                              FormatIdentifierFactory formatIdentifierFactory,
-                              IngestInternalClientFactory ingestInternalClientFactory,
-                              ManifestDigestValidator manifestDigestValidator) {
+        FormatIdentifierFactory formatIdentifierFactory,
+        IngestInternalClientFactory ingestInternalClientFactory,
+        ManifestDigestValidator manifestDigestValidator) {
         this.config = config;
         this.formatIdentifierFactory = formatIdentifierFactory;
         this.ingestInternalClientFactory = ingestInternalClientFactory;
@@ -146,8 +146,8 @@ public class IngestExternalImpl implements IngestExternal {
 
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid, String xAction,
-                                              AsyncResponse asyncResponse)
-            throws IngestExternalException, VitamClientException {
+        AsyncResponse asyncResponse)
+        throws IngestExternalException, VitamClientException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
@@ -166,11 +166,11 @@ public class IngestExternalImpl implements IngestExternal {
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
             LogbookOperationParameters startedParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                    guid, workflow.getIdentifier(), guid,
-                    logbookTypeProcess, StatusCode.STARTED,
-                    messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
-                            guid.toString(),
-                    guid);
+                guid, workflow.getIdentifier(), guid,
+                logbookTypeProcess, StatusCode.STARTED,
+                messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
+                    guid.toString(),
+                guid);
 
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, guid.getId());
             helper.createDelegate(startedParameters);
@@ -196,16 +196,16 @@ public class IngestExternalImpl implements IngestExternal {
             // Implementation of asynchrone
             LOGGER.debug("Responds to asyncResponse the continue in background operation (" + guid + ")");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
-                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
-                    .build(), input);
+                .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
+                .build(), input);
             // we run the workflow
             ingestClient.updateOperationActionProcess(xAction, guid.getId());
 
             return new PreUploadResume(
-                    workflow,
-                    workspaceFileSystem
+                workflow,
+                workspaceFileSystem
             );
 
         } catch (LogbookClientAlreadyExistsException ex) {
@@ -221,8 +221,8 @@ public class IngestExternalImpl implements IngestExternal {
 
     @Override
     public StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid,
-                             String manifestDigestValue, String manifestDigestAlgo)
-            throws IngestExternalException {
+        String manifestDigestValue, String manifestDigestAlgo)
+        throws IngestExternalException {
         WorkspaceFileSystem workspaceFileSystem = preUploadResume.getWorkspaceFileSystem();
         try {
             final String antiVirusScriptName = config.getAntiVirusScriptName();
@@ -249,7 +249,8 @@ public class IngestExternalImpl implements IngestExternal {
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
                  * virus found but not corrected 3: Fatal scan not performed
                  */
-                executionOutput = JavaExecuteScript.executeCommand(antiVirusScriptName, file.getAbsolutePath(), timeoutScanDelay);
+                executionOutput =
+                    JavaExecuteScript.executeCommand(antiVirusScriptName, file.getAbsolutePath(), timeoutScanDelay);
             } catch (final Exception e) {
                 LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
@@ -275,7 +276,7 @@ public class IngestExternalImpl implements IngestExternal {
                 case STATUS_ANTIVIRUS_NOT_PERFORMED:
                 case STATUS_ANTIVIRUS_EXCEPTION_OCCURRED:
                     LOGGER.error("{},{},{}", IngestExternalOutcomeMessage.FATAL_VIRUS.toString(),
-                            executionOutput.getStdout(), executionOutput.getStderr());
+                        executionOutput.getStdout(), executionOutput.getStderr());
                     antivirusItemStatus.increment(FATAL);
                     isFileInfected = true;
                     break;
@@ -292,7 +293,8 @@ public class IngestExternalImpl implements IngestExternal {
 
                 // instantiate SiegFried final
                 try {
-                    final FormatIdentifier formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+                    final FormatIdentifier formatIdentifier =
+                        formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
 
                     // call siegFried
@@ -325,11 +327,14 @@ public class IngestExternalImpl implements IngestExternal {
                     try {
                         // check manifest file name by regex
                         inputStreamTmp = workspaceFileSystem
-                                .getObject(guid.getId(), guid.getId(), null, null)
-                                .readEntity(InputStream.class);
-                        manifestFileName = checkManifestFile(inputStreamTmp, mimeType, manifestDigestAlgo, manifestDigestValue);
+                            .getObject(guid.getId(), guid.getId(), null, null)
+                            .readEntity(InputStream.class);
+                        manifestFileName =
+                            checkManifestFile(inputStreamTmp, mimeType, manifestDigestAlgo, manifestDigestValue);
                         if (manifestFileName.isManifestFile()) {
-                            inputStream = (InputStream) workspaceFileSystem.getObject(guid.getId(), guid.getId(), null, null).getEntity();
+                            inputStream =
+                                (InputStream) workspaceFileSystem.getObject(guid.getId(), guid.getId(), null, null)
+                                    .getEntity();
                             manifestFileNameItemStatus.increment(OK);
                         } else {
                             LOGGER.error("Nom du fichier manifest n'est pas conforme");
@@ -355,17 +360,21 @@ public class IngestExternalImpl implements IngestExternal {
                         StreamUtils.closeSilently(inputStreamTmp);
                     }
 
-                    itemStatusFromExternal.set(CHECK_FILENAME_MANIFEST.getItemParam(), JsonHandler.toJsonNode(manifestFileNameItemStatus));
-                    itemStatusFromExternal.set(CHECK_DIGEST_MANIFEST.getItemParam(), JsonHandler.toJsonNode(manifestDigestItemStatus));
+                    itemStatusFromExternal.set(CHECK_FILENAME_MANIFEST.getItemParam(),
+                        JsonHandler.toJsonNode(manifestFileNameItemStatus));
+                    itemStatusFromExternal.set(CHECK_DIGEST_MANIFEST.getItemParam(),
+                        JsonHandler.toJsonNode(manifestDigestItemStatus));
 
                 }
             }
 
             try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
                 ingestClient.saveObjectToWorkspace(guid.getId(), SANITY_CHECK_RESULT_FILE,
-                        JsonHandler.writeToInpustream(itemStatusFromExternal));
-                if (!isFileInfected && isSupportedMedia && manifestFileName != null && manifestFileName.isManifestFile()) {
-                    ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), preUploadResume.getWorkFlow(), xAction);
+                    JsonHandler.writeToInpustream(itemStatusFromExternal));
+                if (!isFileInfected && isSupportedMedia && manifestFileName != null &&
+                    manifestFileName.isManifestFile()) {
+                    ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), preUploadResume.getWorkFlow(),
+                        xAction);
                     return OK;
                 } else {
                     return KO;
@@ -373,7 +382,7 @@ public class IngestExternalImpl implements IngestExternal {
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
-        } catch ( InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException e) {
             throw new IngestExternalException(e);
         } finally {
             if (workspaceFileSystem != null) {
@@ -410,22 +419,22 @@ public class IngestExternalImpl implements IngestExternal {
 
 
         AsyncInputStreamHelper responseHelper =
-                new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(entity.getBytes(CharsetUtils.UTF8)));
+            new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(entity.getBytes(CharsetUtils.UTF8)));
         final ResponseBuilder responseBuilder =
-                Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
-                        .header(GlobalDataRest.X_REQUEST_ID, operationId.getId())
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL);
+            Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
+                .header(GlobalDataRest.X_REQUEST_ID, operationId.getId())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL);
         responseHelper.writeResponse(responseBuilder);
     }
 
     private ManifestFileName checkManifestFile(InputStream in, String mimeType,
-                                               String manifestDigestAlgo, String manifestDigestValue)
-            throws IOException, ArchiveException, ManifestDigestValidationException {
+        String manifestDigestAlgo, String manifestDigestValue)
+        throws IOException, ArchiveException, ManifestDigestValidationException {
 
         ManifestFileName manifestFileName = new ManifestFileName();
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in)) {
+            .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in)) {
             ArchiveEntry entry;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 LOGGER.debug("SIP Files : " + entry.getName());
@@ -437,7 +446,7 @@ public class IngestExternalImpl implements IngestExternal {
 
 
                             manifestDigestValidator
-                                    .checkManifestDigest(archiveInputStream, manifestDigestAlgo, manifestDigestValue);
+                                .checkManifestDigest(archiveInputStream, manifestDigestAlgo, manifestDigestValue);
 
                             break;
                         }

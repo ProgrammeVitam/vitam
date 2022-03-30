@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 /**
+ *
  */
 
 public class ProfileModelTest {
@@ -41,7 +42,7 @@ public class ProfileModelTest {
     @Test
     public void testConstructor() throws Exception {
 
-        
+
         ProfileModel profile = new ProfileModel();
         final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String identifier = "aIdentifier";

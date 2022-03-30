@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,7 @@ public class ObjectEntryWriterTest {
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
         // When
-        try(ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
+        try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
             writer.writeEof();
         }
 
@@ -57,7 +57,7 @@ public class ObjectEntryWriterTest {
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
         // When
-        try(ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
+        try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
             // No EOF
         }
 
@@ -73,7 +73,7 @@ public class ObjectEntryWriterTest {
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
         // When
-        try(ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
+        try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
             writer.write(new ObjectEntry("file1", 10L));
             writer.write(new ObjectEntry("file2", 20L));
             writer.writeEof();
@@ -82,8 +82,8 @@ public class ObjectEntryWriterTest {
         // Then
         assertThat(innerStream.toInputStream()).hasContent(
             "{\"objectId\":\"file1\",\"size\":10}\n" +
-            "{\"objectId\":\"file2\",\"size\":20}\n" +
-            "{}");
+                "{\"objectId\":\"file2\",\"size\":20}\n" +
+                "{}");
     }
 
     @Test
@@ -93,7 +93,7 @@ public class ObjectEntryWriterTest {
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
         // When
-        try(ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
+        try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
             writer.write(new ObjectEntry("file1", 10L));
             writer.write(new ObjectEntry("file2", 20L));
             // No EOF

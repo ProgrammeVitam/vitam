@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1245,7 +1245,8 @@ public class TapeOfferStorageIT {
 
         // Ensure obj2 & obj3 copied to 4_object container, obj4 removed from 4_object container
         VitamThreadUtils.getVitamSession().setTenantId(4);
-        try (CloseableIterator<ObjectEntry> iterator = storageClient.listContainer(OFFER2_ONLY_STRATEGY, null, OBJECT)) {
+        try (CloseableIterator<ObjectEntry> iterator = storageClient.listContainer(OFFER2_ONLY_STRATEGY, null,
+            OBJECT)) {
             assertThat(iterator)
                 .usingFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(

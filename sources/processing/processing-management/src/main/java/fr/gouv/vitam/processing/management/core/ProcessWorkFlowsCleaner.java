@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.time.LocalDateTime;
@@ -103,7 +102,7 @@ public class ProcessWorkFlowsCleaner implements Runnable {
         for (Map.Entry<String, ProcessWorkflow> element : map.entrySet()) {
             if (isCleanable(element.getValue())) {
                 try {
-                    processDataManagement.removeOperationContainer(element.getValue(),workspaceClientFactory);
+                    processDataManagement.removeOperationContainer(element.getValue(), workspaceClientFactory);
                     processDataManagement
                         .removeProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                             element.getKey());

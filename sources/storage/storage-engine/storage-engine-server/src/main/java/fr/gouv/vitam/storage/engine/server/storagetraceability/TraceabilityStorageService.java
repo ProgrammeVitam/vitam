@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -88,6 +88,7 @@ public class TraceabilityStorageService {
      */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
         return this.distribution
-            .getContainerByCategory(strategyId, TRACEABILITY_ORIGIN, objectId, category, AccessLogUtils.getNoLogAccessLog());
+            .getContainerByCategory(strategyId, TRACEABILITY_ORIGIN, objectId, category,
+                AccessLogUtils.getNoLogAccessLog());
     }
 }

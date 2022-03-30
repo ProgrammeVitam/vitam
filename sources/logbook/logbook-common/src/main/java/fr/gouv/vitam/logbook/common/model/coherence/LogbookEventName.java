@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,13 +31,13 @@ package fr.gouv.vitam.logbook.common.model.coherence;
  */
 public enum LogbookEventName {
 
-    ID ("_id"),
+    ID("_id"),
 
-    EVID_PROC ("evIdProc"),
+    EVID_PROC("evIdProc"),
 
-    EVTYPE ("evType"),
+    EVTYPE("evType"),
 
-    EVTYPE_PARENT ("evTypeParent"),
+    EVTYPE_PARENT("evTypeParent"),
 
     OUTCOME("outcome"),
 

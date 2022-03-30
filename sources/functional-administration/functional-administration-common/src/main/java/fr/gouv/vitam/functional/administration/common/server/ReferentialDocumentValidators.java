@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,7 +75,7 @@ public final class ReferentialDocumentValidators {
     private static final DocumentValidator INGEST_CONTRACT_SCHEMA_VALIDATOR =
         forBuiltInSchema(INGEST_CONTRACT_SCHEMA_JSON);
     private static final DocumentValidator MANAGEMENT_CONTRACT_SCHEMA_VALIDATOR =
-            forBuiltInSchema(MANAGEMENT_CONTRACT_SCHEMA_JSON);
+        forBuiltInSchema(MANAGEMENT_CONTRACT_SCHEMA_JSON);
     private static final DocumentValidator PROFILE_SCHEMA_VALIDATOR =
         forBuiltInSchema(PROFILE_SCHEMA_JSON);
     private static final DocumentValidator SECURITY_PROFILE_SCHEMA_VALIDATOR =

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Insert Parser: { $query : query, $filter : filter, $data : data}
- *
  */
 public class InsertParserSingle extends RequestParserSingle {
 
@@ -45,9 +44,8 @@ public class InsertParserSingle extends RequestParserSingle {
 
     /**
      * Use in Masterdata
-     * 
-     * @param adapter VarNameAdapter
      *
+     * @param adapter VarNameAdapter
      */
     public InsertParserSingle(VarNameAdapter adapter) {
         super(adapter);
@@ -60,7 +58,6 @@ public class InsertParserSingle extends RequestParserSingle {
     }
 
     /**
-     *
      * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $data : data}
      * @throws InvalidParseOperationException if request could not parse to JSON
      */

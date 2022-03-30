@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1117,7 +1117,7 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
-        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(), storageStrategy));
 
         assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
             protected StorageStrategyProvider getStrategyProvider() {
@@ -1149,7 +1149,7 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
-        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(), storageStrategy));
 
         assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
             protected StorageStrategyProvider getStrategyProvider() {
@@ -1181,7 +1181,7 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         StorageStrategyProvider mock = mock(StorageStrategyProvider.class);
-        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(),storageStrategy));
+        when(mock.getStorageStrategies()).thenReturn(Map.of(storageStrategy.getId(), storageStrategy));
 
         assertThatThrownBy(() -> new StorageDistributionImpl(confPair.getLeft(), confPair.getRight()) {
             protected StorageStrategyProvider getStrategyProvider() {
@@ -1216,28 +1216,33 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String expectedObject = "My stream Object";
         final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
+        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(
+            IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
 
         final AtomicInteger fireCount = new AtomicInteger(0);
 
         // override default get object in fake Driver
         final FakeDriverImpl defaultDriver = (FakeDriverImpl) DriverManager.getDriverFor("default");
-        final FakeDriverImpl.FakeConnectionImpl connection1 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
+        final FakeDriverImpl.FakeConnectionImpl connection1 =
+            (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
         connection1.setGetObjectFunction((e) -> {
             fireCount.incrementAndGet();
             throw new StorageDriverServiceUnavailableException("", "");
-        } );
-        final FakeDriverImpl.FakeConnectionImpl connection2 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
-        connection2.setGetObjectFunction((e) -> new StorageGetResult(0,"type","guid", responseMock));
+        });
+        final FakeDriverImpl.FakeConnectionImpl connection2 =
+            (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
+        connection2.setGetObjectFunction((e) -> new StorageGetResult(0, "type", "guid", responseMock));
 
-        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverServiceUnavailableException.class);
+        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(
+            StorageDriverServiceUnavailableException.class);
         assertThatCode(() -> connection2.getObject(new StorageObjectRequest(0, ""))).doesNotThrowAnyException();
 
         final Response response = simpleDistribution
             .getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "containerId", "obId", DataCategory.UNIT,
                 AccessLogUtils.getNoLogAccessLog());
 
-        assertThat(IOUtils.toString(response.readEntity(InputStream.class),Charset.defaultCharset())).isEqualTo(expectedObject);
+        assertThat(IOUtils.toString(response.readEntity(InputStream.class), Charset.defaultCharset())).isEqualTo(
+            expectedObject);
         assertEquals(4, fireCount.get());
     }
 
@@ -1247,27 +1252,34 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String expectedObject = "My stream Object";
         final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
+        when(responseMock.readEntity(eq(InputStream.class))).thenReturn(
+            IOUtils.toInputStream(expectedObject, Charset.defaultCharset()));
 
         final AtomicInteger fireCount = new AtomicInteger(0);
 
         // override default get object in fake Driver
         final FakeDriverImpl defaultDriver = (FakeDriverImpl) DriverManager.getDriverFor("default");
-        final FakeDriverImpl.FakeConnectionImpl connection1 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
+        final FakeDriverImpl.FakeConnectionImpl connection1 =
+            (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default");
         connection1.setGetObjectFunction((e) -> {
             fireCount.incrementAndGet();
             throw new StorageDriverServiceUnavailableException("", "");
-        } );
-        final FakeDriverImpl.FakeConnectionImpl connection2 = (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
+        });
+        final FakeDriverImpl.FakeConnectionImpl connection2 =
+            (FakeDriverImpl.FakeConnectionImpl) defaultDriver.connect("default2");
         connection2.setGetObjectFunction((e) -> {
             throw new StorageDriverNotFoundException("", "");
         });
 
-        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverServiceUnavailableException.class);
-        assertThatCode(() -> connection2.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(StorageDriverNotFoundException.class);
+        assertThatCode(() -> connection1.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(
+            StorageDriverServiceUnavailableException.class);
+        assertThatCode(() -> connection2.getObject(new StorageObjectRequest(0, ""))).isInstanceOf(
+            StorageDriverNotFoundException.class);
 
-        assertThatCode(() -> simpleDistribution.getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "containerId", "obId",
-            DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog())).isInstanceOf(StorageNotFoundException.class);
+        assertThatCode(
+            () -> simpleDistribution.getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "containerId",
+                "obId",
+                DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog())).isInstanceOf(StorageNotFoundException.class);
         assertEquals(4, fireCount.get());
     }
 }

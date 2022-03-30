@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -92,7 +92,8 @@ public class LightweightWorkflowLock {
             if (!processDetailRequestResponse.isOk()) {
 
                 VitamError error = (VitamError) processDetailRequestResponse;
-                throw new VitamClientException("Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
+                throw new VitamClientException(
+                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
             }
 
             List<ProcessDetail> processDetails =

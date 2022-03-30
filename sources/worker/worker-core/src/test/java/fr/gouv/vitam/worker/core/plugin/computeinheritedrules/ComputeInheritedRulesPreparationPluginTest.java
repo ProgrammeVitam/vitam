@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,22 +25,6 @@
  * accept its terms.
  */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
-
-import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesPreparationPlugin.UNITS_JSONL_FILE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -68,6 +52,22 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesPreparationPlugin.UNITS_JSONL_FILE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class ComputeInheritedRulesPreparationPluginTest {
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -88,7 +88,8 @@ public class ComputeInheritedRulesPreparationPluginTest {
 
     private ComputeInheritedRulesPreparationPlugin computeInheritedRulesPreparationPlugin;
 
-    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {};
+    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {
+    };
 
     @Before
     public void setUp() throws Exception {
@@ -107,7 +108,8 @@ public class ComputeInheritedRulesPreparationPluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream("computeInheritedRules/query.json");
         File distributionFile = temporaryFolder.newFile();
         WorkerParameters workerParameters = mock(WorkerParameters.class);
-        JsonNode unitResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
+        JsonNode unitResponse =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromInputStream(query));
@@ -116,18 +118,20 @@ public class ComputeInheritedRulesPreparationPluginTest {
         doAnswer(invocation -> {
             File distributionFileCaptured = invocation.getArgument(1);
 
-            try(FileOutputStream fileOutputStream = new FileOutputStream(resultFile)){
-            Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(resultFile)) {
+                Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
             }
             return null;
         }).when(handlerIO)
-            .transferFileToWorkspace(ArgumentMatchers.eq(UNITS_JSONL_FILE), any(), ArgumentMatchers.eq(true), ArgumentMatchers.eq(false));
+            .transferFileToWorkspace(ArgumentMatchers.eq(UNITS_JSONL_FILE), any(), ArgumentMatchers.eq(true),
+                ArgumentMatchers.eq(false));
         // When
         ItemStatus itemStatus = computeInheritedRulesPreparationPlugin.execute(workerParameters, handlerIO);
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(resultFile), jsonLineModelTypeReference);
+        JsonLineGenericIterator<JsonLineModel> lines =
+            new JsonLineGenericIterator<>(new FileInputStream(resultFile), jsonLineModelTypeReference);
 
         List<String> unitIds = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         assertThat(unitIds.size()).isEqualTo(4);
@@ -140,7 +144,8 @@ public class ComputeInheritedRulesPreparationPluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream("computeInheritedRules/query.json");
         File distributionFile = temporaryFolder.newFile();
         WorkerParameters workerParameters = mock(WorkerParameters.class);
-        JsonNode unitResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
+        JsonNode unitResponse =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
         TestHandlerIO handler = new TestHandlerIO();
         handler.setJsonFromWorkspace("query.json", JsonHandler.getFromInputStream(query));

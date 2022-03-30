@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,12 +58,13 @@ public class DefaultWorkerParameters extends AbstractWorkerParameters {
         super(WorkerParametersFactory.getDefaultMandatory());
         setMap(map);
     }
-    
+
     /**
      * Shallow copy of DefaultWorkerParameter
+     *
      * @return the shallow copy
      */
-    public DefaultWorkerParameters newInstance(){
+    public DefaultWorkerParameters newInstance() {
         DefaultWorkerParameters awp = new DefaultWorkerParameters(getMandatoriesParameters());
         awp.mapParameters.putAll(mapParameters);
         return awp;

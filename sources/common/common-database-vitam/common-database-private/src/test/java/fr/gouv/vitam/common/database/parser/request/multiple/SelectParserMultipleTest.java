@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -152,50 +152,50 @@ public class SelectParserMultipleTest {
             "] }");
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": [\n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ],\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {},\n" +
-                        "\"$facets\": [\n" +
-                        "  {\n" +
-                        "    \"$name\": \"facet_testl\",\n" +
-                        "    \"$terms\": {\n" +
-                        "      \"$subobject\": \"#qualifiers.versions\",\n" +
-                        "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
-                        "      \"$size\": 5,\n" +
-                        "      \"$order\": \"ASC\"        \n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "]" +
-                        "}"
+            "{\n" +
+                "  \"$query\": [\n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {},\n" +
+                "\"$facets\": [\n" +
+                "  {\n" +
+                "    \"$name\": \"facet_testl\",\n" +
+                "    \"$terms\": {\n" +
+                "      \"$subobject\": \"#qualifiers.versions\",\n" +
+                "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
+                "      \"$size\": 5,\n" +
+                "      \"$order\": \"ASC\"        \n" +
+                "    }\n" +
+                "  }\n" +
+                "]" +
+                "}"
         );
     }
 
@@ -232,7 +232,7 @@ public class SelectParserMultipleTest {
             request1.parse(nestedSearchQuery.deepCopy());
             assertNotNull(request1);
             assertTrue(request1.getRequest().getFacets().get(0).getCurrentFacet()
-                    .get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
+                .get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -384,9 +384,9 @@ public class SelectParserMultipleTest {
             assertEquals(3, request.getRequest().getFilter()
                 .get(SELECTFILTER.ORDERBY.exactToken()).size());
             for (final Iterator<Entry<String, JsonNode>> iterator =
-                request.getRequest().getFilter()
-                    .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
-                        .hasNext();) {
+                 request.getRequest().getFilter()
+                     .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
+                     .hasNext(); ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());
@@ -461,9 +461,9 @@ public class SelectParserMultipleTest {
             assertEquals(3, request.getRequest().getFilter()
                 .get(SELECTFILTER.ORDERBY.exactToken()).size());
             for (final Iterator<Entry<String, JsonNode>> iterator =
-                request.getRequest().getFilter()
-                    .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
-                        .hasNext();) {
+                 request.getRequest().getFilter()
+                     .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
+                     .hasNext(); ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());

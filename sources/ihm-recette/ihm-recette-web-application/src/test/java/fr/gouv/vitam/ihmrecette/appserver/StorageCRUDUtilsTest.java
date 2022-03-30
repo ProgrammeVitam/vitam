@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,7 +64,8 @@ public class StorageCRUDUtilsTest {
         ArrayList<String> offers = new ArrayList<>();
         offers.add("offer-fs-1.service.consul");
         given(storageClient
-            .getInformation(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers, true))
+            .getInformation(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
+                "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers, true))
             .willReturn(
                 JsonHandler.getFromString(information));
 
@@ -72,7 +73,8 @@ public class StorageCRUDUtilsTest {
         storageCRUDUtils = new StorageCRUDUtils(storageClient);
 
 
-        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, VitamConfiguration.getDefaultStrategy(), "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json","offer-fs-1.service.consul");
+        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, VitamConfiguration.getDefaultStrategy(),
+            "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", "offer-fs-1.service.consul");
 
         assertThat(result).isFalse();
 

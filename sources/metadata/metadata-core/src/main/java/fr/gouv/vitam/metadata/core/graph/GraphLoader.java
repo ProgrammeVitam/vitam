@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,18 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.mongodb.BasicDBObject;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.database.collections.UnitGraphModel;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -43,16 +46,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.mongodb.BasicDBObject;
-
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.UnitGraphModel;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
 
 /**
  * compute graph information with recursive parent load.
@@ -120,7 +117,8 @@ public class GraphLoader implements AutoCloseable {
             .collect(Collectors.toSet());
 
         if (collectParent.isEmpty()) {
-            return units.stream().map(UnitGraphModel::new).collect(Collectors.toMap(UnitGraphModel::id, Function.identity()));
+            return units.stream().map(UnitGraphModel::new)
+                .collect(Collectors.toMap(UnitGraphModel::id, Function.identity()));
         }
 
         Map<String, UnitGraphModel> parents = unitLoadingCache.getAll(collectParent);

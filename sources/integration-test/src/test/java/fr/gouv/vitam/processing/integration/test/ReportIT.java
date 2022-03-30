@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,9 +34,9 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -137,12 +137,15 @@ public class ReportIT extends VitamRuleRunner {
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_06_JSON =
         "integration-processing/mass-update/unit_lfc_06.json";
 
-    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON = "integration-processing/mass-update/update_query_02.json";
+    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON =
+        "integration-processing/mass-update/update_query_02.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_RULE =
         "/integration-processing/mass-update/rules_referential.csv";
-    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE = "integration-processing/mass-update/Action_update_rules.json";
+    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE =
+        "integration-processing/mass-update/Action_update_rules.json";
 
-    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {};
+    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {
+    };
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
     private WorkspaceClient workspaceClient;
@@ -205,8 +208,10 @@ public class ReportIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
     }
 
@@ -241,7 +246,8 @@ public class ReportIT extends VitamRuleRunner {
         JsonNode query =
             JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
         workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-        workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+        workspaceClient.putObject(operationGuid.getId(), ACTION,
+            JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
         VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
@@ -276,7 +282,7 @@ public class ReportIT extends VitamRuleRunner {
         assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(1);
         assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(1);
         assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
-        assertThat( reportLines.get(3).get("status").asText()).isEqualTo("KO");
+        assertThat(reportLines.get(3).get("status").asText()).isEqualTo("KO");
     }
 
     @RunWithCustomExecutor
@@ -353,10 +359,10 @@ public class ReportIT extends VitamRuleRunner {
         assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(1);
         assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(2);
         assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
-        assertThat( reportLines.get(3).get("status").asText()).isEqualTo("KO");
-        assertThat( reportLines.get(3).get("outcome").asText()).isEqualTo("MASS_UPDATE_UNITS.KO");
-        assertThat( reportLines.get(4).get("status").asText()).isEqualTo("KO");
-        assertThat( reportLines.get(4).get("outcome").asText()).isEqualTo("MASS_UPDATE_UNITS.KO");
+        assertThat(reportLines.get(3).get("status").asText()).isEqualTo("KO");
+        assertThat(reportLines.get(3).get("outcome").asText()).isEqualTo("MASS_UPDATE_UNITS.KO");
+        assertThat(reportLines.get(4).get("status").asText()).isEqualTo("KO");
+        assertThat(reportLines.get(4).get("outcome").asText()).isEqualTo("MASS_UPDATE_UNITS.KO");
     }
 
     @RunWithCustomExecutor
@@ -389,10 +395,12 @@ public class ReportIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            JsonNode query = JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+            JsonNode query = JsonHandler.getFromFile(
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
             workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-            JsonNode action = JsonHandler.getFromFile( PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
-            workspaceClient.putObject(operationGuid.getId(), ACTION,JsonHandler.writeToInpustream(action));
+            JsonNode action =
+                JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
+            workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
             VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
@@ -480,10 +488,12 @@ public class ReportIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            JsonNode query = JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+            JsonNode query = JsonHandler.getFromFile(
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
             workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-            JsonNode action = JsonHandler.getFromFile( PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
-            workspaceClient.putObject(operationGuid.getId(), ACTION,JsonHandler.writeToInpustream(action));
+            JsonNode action =
+                JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
+            workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
             VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
@@ -551,17 +561,17 @@ public class ReportIT extends VitamRuleRunner {
         throws fr.gouv.vitam.common.exception.InvalidParseOperationException, FileNotFoundException, DatabaseException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            unitFile),
+                unitFile),
             TYPE_LIST_UNIT);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .save(units);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(units);
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            lfcFile),
+                lfcFile),
             new TypeReference<>() {
             });
         List<Document> lfcs = unitsLfc.stream()

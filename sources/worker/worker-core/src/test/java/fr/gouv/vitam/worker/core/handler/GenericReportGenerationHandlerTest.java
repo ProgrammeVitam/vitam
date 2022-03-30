@@ -96,7 +96,7 @@ public class GenericReportGenerationHandlerTest {
     @RunWithCustomExecutor
     public void should_generate_report_OK() throws Exception {
         // When
-        genericReportGenerationHandler = getGenericReportGenerationHandler(3,0,0);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(3, 0, 0);
 
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
         doNothing().when(reportService).storeReportToWorkspace(reportCaptor.capture());
@@ -123,7 +123,7 @@ public class GenericReportGenerationHandlerTest {
     @RunWithCustomExecutor
     public void should_generate_report_WARNING() throws Exception {
         // When
-        genericReportGenerationHandler = getGenericReportGenerationHandler(1,2,1);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(1, 2, 1);
 
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
         doNothing().when(reportService).storeReportToWorkspace(reportCaptor.capture());

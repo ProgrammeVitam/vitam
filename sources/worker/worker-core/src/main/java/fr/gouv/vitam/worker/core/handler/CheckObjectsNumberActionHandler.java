@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -185,9 +185,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO, errorCount);
 
             String status;
-            if(uriManifestSet.size() > uriListWorkspace.size()) {
+            if (uriManifestSet.size() > uriListWorkspace.size()) {
                 status = SUBTASK_MANIFEST_SUPERIOR_BDO;
-            } else if(uriManifestSet.size() < uriListWorkspace.size()) {
+            } else if (uriManifestSet.size() < uriListWorkspace.size()) {
                 status = SUBTASK_MANIFEST_INFERIOR_BDO;
             } else {
                 status = SUBTASK_INVALID_URI;
@@ -248,8 +248,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
-            return uriListWorkspace.stream().filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR)).collect(Collectors
-                .toList());
+            return uriListWorkspace.stream().filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
+                .collect(Collectors
+                    .toList());
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             throw new ProcessingException(e);
         }

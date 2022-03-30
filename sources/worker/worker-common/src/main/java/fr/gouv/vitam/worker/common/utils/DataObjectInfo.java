@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.common.utils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * The class DataObjectInfo is stored all information of the DataObjectInfo
@@ -150,7 +149,6 @@ public final class DataObjectInfo {
     }
 
     /**
-     *
      * @return the rank in version
      */
     public int getRank() {
@@ -158,7 +156,6 @@ public final class DataObjectInfo {
     }
 
     /**
-     *
      * @param rank the rank in version
      * @return this
      */
@@ -201,6 +198,7 @@ public final class DataObjectInfo {
 
     /**
      * Field to conatain the diff if size has not the same between manifest and binary file
+     *
      * @return
      */
 
@@ -216,6 +214,7 @@ public final class DataObjectInfo {
     public Boolean getSizeIncorrect() {
         return isSizeIncorrect;
     }
+
     public DataObjectInfo setSizeIncorrect(Boolean sizeIncorrect) {
         this.isSizeIncorrect = sizeIncorrect;
         return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,8 @@ public class UpdateUnit {
     private final String diff;
 
     @JsonCreator
-    public UpdateUnit(@JsonProperty(ID) String unitId, @JsonProperty(STATUS) StatusCode status, @JsonProperty(KEY) UpdateUnitKey key, @JsonProperty(MESSAGE) String message, @JsonProperty(DIFF) String diff) {
+    public UpdateUnit(@JsonProperty(ID) String unitId, @JsonProperty(STATUS) StatusCode status,
+        @JsonProperty(KEY) UpdateUnitKey key, @JsonProperty(MESSAGE) String message, @JsonProperty(DIFF) String diff) {
         this.unitId = Objects.requireNonNull(unitId);
         this.status = Objects.requireNonNull(status);
         this.key = Objects.requireNonNull(key);

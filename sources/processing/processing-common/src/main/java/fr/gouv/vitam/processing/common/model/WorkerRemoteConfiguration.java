@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.processing.common.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
@@ -64,7 +63,6 @@ public class WorkerRemoteConfiguration {
 
     /**
      * @param serverHost the serverHost to set
-     *
      * @return this
      */
     public WorkerRemoteConfiguration setServerHost(String serverHost) {
@@ -81,7 +79,6 @@ public class WorkerRemoteConfiguration {
 
     /**
      * @param serverPort the serverPort to set
-     *
      * @return this
      */
     public WorkerRemoteConfiguration setServerPort(int serverPort) {

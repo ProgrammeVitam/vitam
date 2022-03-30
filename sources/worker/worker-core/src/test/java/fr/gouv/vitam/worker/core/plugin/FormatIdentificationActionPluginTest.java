@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -139,7 +139,8 @@ public class FormatIdentificationActionPluginTest {
         when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(formatIdentifier);
 
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(), "workerId", Lists.newArrayList());
+        handlerIO = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
+            "workerId", Lists.newArrayList());
         deleteFiles();
     }
 

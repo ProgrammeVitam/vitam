@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,7 +107,7 @@ public class SanityChecker {
      *
      * @param xmlFile as File
      * @throws InvalidParseOperationException when parse file error
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     public static void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -192,10 +192,10 @@ public class SanityChecker {
             checkParam(param);
         }
     }
-    
+
     /**
      * checkHTMLFile : Check if the file contains HTML content
-     * 
+     *
      * @param file
      * @throws InvalidParseOperationException
      * @throws IOException
@@ -281,7 +281,7 @@ public class SanityChecker {
     /**
      * Find out XSS by ESAPI validator
      *
-     * @param value     of string
+     * @param value of string
      * @param validator name declared in ESAPI.properties
      * @return boolean
      */
@@ -308,7 +308,7 @@ public class SanityChecker {
      * check XML Sanity Tag and Value Size
      *
      * @param xmlFile xml file
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static void checkXmlSanityTagValueSize(File xmlFile)
@@ -353,7 +353,7 @@ public class SanityChecker {
      * CheckXMLSanityFileSize : check size of xml file
      *
      * @param xmlFile as File
-     * @throws IOException                    when read file exception
+     * @throws IOException when read file exception
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
@@ -366,7 +366,7 @@ public class SanityChecker {
      * CheckXMLSanityTags : check invalid tag contains of a xml file
      *
      * @param xmlFile : XML file path as String
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -395,7 +395,7 @@ public class SanityChecker {
     /**
      * Check for all RULES and Esapi
      *
-     * @param line  line to check
+     * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -407,7 +407,7 @@ public class SanityChecker {
     /**
      * Check using ESAPI from OWASP
      *
-     * @param line  line to check
+     * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -566,10 +566,11 @@ public class SanityChecker {
     }
 
     private static class SanityValidator extends DefaultValidator {
-        
+
         @Override
-        public String getValidSafeHTML( String context, String input, int maxLength, boolean allowNull ) throws ValidationException, IntrusionException {
-            HTMLValidationRule hvr = new HTMLValidationRule( "safehtml", org.owasp.esapi.ESAPI.encoder() );
+        public String getValidSafeHTML(String context, String input, int maxLength, boolean allowNull)
+            throws ValidationException, IntrusionException {
+            HTMLValidationRule hvr = new HTMLValidationRule("safehtml", org.owasp.esapi.ESAPI.encoder());
             hvr.setMaximumLength(maxLength);
             hvr.setAllowNull(allowNull);
             hvr.setCanonicalize(false);

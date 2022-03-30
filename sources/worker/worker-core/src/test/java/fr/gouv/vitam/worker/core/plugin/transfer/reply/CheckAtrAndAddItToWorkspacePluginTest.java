@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,8 @@ public class CheckAtrAndAddItToWorkspacePluginTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private CheckAtrAndAddItToWorkspacePlugin checkAtrAndAddItToWorkspacePlugin = new CheckAtrAndAddItToWorkspacePlugin();
+    private CheckAtrAndAddItToWorkspacePlugin checkAtrAndAddItToWorkspacePlugin =
+        new CheckAtrAndAddItToWorkspacePlugin();
 
     @Test
     public void should_return_status_ko_when_ATR_not_OK_or_WARNING() throws Exception {
@@ -93,7 +94,9 @@ public class CheckAtrAndAddItToWorkspacePluginTest {
         ItemStatus execute = checkAtrAndAddItToWorkspacePlugin.execute(null, handler);
 
         // Then
-        assertThat(JsonHandler.getFromFile(file, TransferReplyContext.class)).isEqualTo(new TransferReplyContext(atr.getMessageRequestIdentifier().getValue(), atr.getMessageIdentifier().getValue()));
+        assertThat(JsonHandler.getFromFile(file, TransferReplyContext.class)).isEqualTo(
+            new TransferReplyContext(atr.getMessageRequestIdentifier().getValue(),
+                atr.getMessageIdentifier().getValue()));
     }
 
     private ArchiveTransferReplyType createATR(String name) {

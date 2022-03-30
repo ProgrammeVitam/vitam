@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,8 +56,10 @@ public class ChangesTriggerTest {
     public void testTriggerUpdateClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
-        JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
+        JsonNode before =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
+        JsonNode after =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
 
         fieldHistoryManager.trigger(before, after);
 
@@ -72,8 +74,10 @@ public class ChangesTriggerTest {
     public void testTriggerAddingClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
-        JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
+        JsonNode before =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
+        JsonNode after =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
 
         fieldHistoryManager.trigger(before, after);
 
@@ -89,8 +93,10 @@ public class ChangesTriggerTest {
     public void testTriggerRemovingClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
-        JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
+        JsonNode before =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
+        JsonNode after =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
 
         fieldHistoryManager.trigger(before, after);
 

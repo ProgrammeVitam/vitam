@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,33 +26,21 @@
  */
 package fr.gouv.vitam.security.internal.filter;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Response;
-
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.container.ContainerRequestContext;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test class of {@link fr.gouv.vitam.security.internal.filter.EndpointPermissionAuthorizationFilter}
@@ -62,7 +50,7 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
     public void testAccessDeniedToAPIAdmin() throws Exception {

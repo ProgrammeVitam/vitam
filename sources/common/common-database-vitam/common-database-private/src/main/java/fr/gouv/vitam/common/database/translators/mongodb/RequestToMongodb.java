@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import java.util.List;
-import java.util.Set;
-
-import org.bson.conversions.Bson;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
@@ -39,10 +34,13 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.bson.conversions.Bson;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Request to MongoDb
- *
  */
 public abstract class RequestToMongodb extends RequestToAbstract {
 
@@ -86,7 +84,6 @@ public abstract class RequestToMongodb extends RequestToAbstract {
     }
 
     /**
-     *
      * @param roots Bson
      * @param query Bson
      * @return the final request

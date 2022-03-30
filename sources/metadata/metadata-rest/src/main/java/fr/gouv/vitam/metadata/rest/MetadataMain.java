@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,10 +54,10 @@ public class MetadataMain {
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
 
-    
+
     /**
      * Default constructor
-     * 
+     *
      * @param configurationFile
      */
     public MetadataMain(String configurationFile) {
@@ -69,7 +69,7 @@ public class MetadataMain {
 
     /**
      * The main method
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -97,7 +97,7 @@ public class MetadataMain {
 
     /**
      * Start the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -106,17 +106,17 @@ public class MetadataMain {
 
     /**
      * Start and join the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
-    
+
     /**
      * Stop the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -212,7 +212,7 @@ public class StorageLogBackupIT extends VitamRuleRunner {
 
             // Check storage log
             CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID,null, DataCategory.STORAGELOG);
+                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG);
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();

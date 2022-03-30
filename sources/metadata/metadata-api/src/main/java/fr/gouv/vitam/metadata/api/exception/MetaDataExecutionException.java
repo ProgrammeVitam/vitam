@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,16 +40,16 @@ public class MetaDataExecutionException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param vitamError vitamError to associate with the exception
-     */ 
+     */
     public MetaDataExecutionException(VitamError vitamError) {
         super(vitamError);
     }
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      */
     public MetaDataExecutionException(String message) {
@@ -58,7 +58,7 @@ public class MetaDataExecutionException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public MetaDataExecutionException(Throwable cause) {
@@ -67,7 +67,7 @@ public class MetaDataExecutionException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

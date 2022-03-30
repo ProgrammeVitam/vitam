@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
 
 /**
  * Mapper for PersonalCertificateException
@@ -39,6 +39,7 @@ import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateExcep
 public class PersonalCertificateExceptionMapper implements ExceptionMapper<PersonalCertificateException> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateExceptionMapper.class);
+
     /**
      * Map an exception to a {@link Response}. Returning
      * {@code null} results in a {@link Response.Status#NO_CONTENT}

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.processing.common.parameter;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import fr.gouv.vitam.common.ParametersChecker;
 
 /**
  * Worker parameters factory </br>
@@ -98,7 +98,7 @@ public class WorkerParametersFactory {
      *
      * @param processId unique id (GUID) of the workflow to be executed (can be null)
      * @param stepUniqId unique id of a step. The pattern of the id is :
-     *        {CONTAINER_NAME}_{WORKFLOW_ID}_{STEP_RANK_IN_THE_WORKFLOW}_{STEP_NAME}
+     * {CONTAINER_NAME}_{WORKFLOW_ID}_{STEP_RANK_IN_THE_WORKFLOW}_{STEP_NAME}
      * @param containerName name of the container to be uploaded
      * @param currentStep current name of the step to be processed
      * @param objectNameList List name/path of the object to be processed
@@ -108,8 +108,8 @@ public class WorkerParametersFactory {
      * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName,
-                                                              String currentStep, List<String> objectNameList, String urlMetadata,
-                                                              String urlWorkspace) {
+        String currentStep, List<String> objectNameList, String urlMetadata,
+        String urlWorkspace) {
         ParametersChecker.checkParameter("Parameters cannot be null or empty", processId, stepUniqId, containerName,
             currentStep, objectNameList,
             urlMetadata, urlWorkspace);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -47,6 +44,9 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -97,7 +97,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     }
 
     protected BulkObjectStoreResponse storeObjects(String startegy, BulkObjectStoreRequest bulkObjectStoreRequest)
-            throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
+        throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data objects
@@ -106,7 +106,8 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         }
     }
 
-    protected void storeStorageInfos(List<MapOfObjects> mapOfObjectsList, Map<String, BulkObjectStoreResponse> resultByStrategy, Map<String, String> strategiesByObjectId) {
+    protected void storeStorageInfos(List<MapOfObjects> mapOfObjectsList,
+        Map<String, BulkObjectStoreResponse> resultByStrategy, Map<String, String> strategiesByObjectId) {
         LOGGER.debug("DEBUG storeStorageInfos");
 
         for (MapOfObjects mapOfObjects : mapOfObjectsList) {
@@ -131,7 +132,8 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * @param itemStatusByObjectList
      * @param itemStatusList
      */
-    protected void updateSubTasksAndTasksFromStorageInfos(Map<String, BulkObjectStoreResponse> resultsByStrategy, List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
+    protected void updateSubTasksAndTasksFromStorageInfos(Map<String, BulkObjectStoreResponse> resultsByStrategy,
+        List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
 
         for (BulkObjectStoreResponse result : resultsByStrategy.values()) {
             for (Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
@@ -148,14 +150,15 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
                 // increment itemStatus with subtask
                 itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
-                        .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
+                    .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
             }
         }
     }
 
-    private int getElementPositionForObjectName(String objectName, List<Map<String, ItemStatus>> itemStatusByObjectList) {
-        for(int i=0; i<itemStatusByObjectList.size(); i++) {
-            if(itemStatusByObjectList.get(i).containsKey(objectName)) {
+    private int getElementPositionForObjectName(String objectName,
+        List<Map<String, ItemStatus>> itemStatusByObjectList) {
+        for (int i = 0; i < itemStatusByObjectList.size(); i++) {
+            if (itemStatusByObjectList.get(i).containsKey(objectName)) {
                 return i;
             }
         }

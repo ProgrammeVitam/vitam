@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,20 +57,20 @@ public class Agencies extends VitamDocument<Agencies> {
     private static final String TENANT = "_tenant";
 
     /**
-     /**
+     * /**
      * Empty Constructor
      */
     public Agencies() {
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public Agencies(Integer tenantId) {
         // Empty
         append(TENANT, tenantId);
     }
+
     /**
      * Constructor
      *
@@ -162,6 +162,7 @@ public class Agencies extends VitamDocument<Agencies> {
 
 
     public AgenciesModel wrap() {
-        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription(), this.get("#tenant", Integer.class));
+        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription(),
+            this.get("#tenant", Integer.class));
     }
 }

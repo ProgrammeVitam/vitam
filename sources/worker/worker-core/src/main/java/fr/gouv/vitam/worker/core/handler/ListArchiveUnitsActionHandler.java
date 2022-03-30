@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -200,7 +200,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
         // list of archive units to be updated
         handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, distribFile, true, false);
 
-        try  {
+        try {
             for (String key : archiveUnitGuidAndRulesToBeUpdated.keySet()) {
                 final File archiveUnitTempFile = handlerIO.getNewLocalFile(
                     UpdateWorkflowConstants.UNITS_FOLDER + "/" + key + JSON);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,10 +40,12 @@ public class ProcessStateTest {
     public void pauseEvalPauseStateThenOK() throws Exception {
         assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.PAUSE)).doesNotThrowAnyException();
     }
+
     @Test
     public void pauseEvalCompletedStateThenOK() throws Exception {
         assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.COMPLETED)).doesNotThrowAnyException();
     }
+
     @Test
     public void pauseEvalRunningStateThenOK() throws Exception {
         assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.RUNNING)).doesNotThrowAnyException();
@@ -53,25 +55,29 @@ public class ProcessStateTest {
     public void runningEvalPauseStateThenOK() throws Exception {
         assertThatCode(() -> ProcessState.RUNNING.eval(ProcessState.PAUSE)).doesNotThrowAnyException();
     }
+
     @Test
     public void runningEvalCompletedStateThenOK() throws Exception {
         assertThatCode(() -> ProcessState.RUNNING.eval(ProcessState.COMPLETED)).doesNotThrowAnyException();
     }
-    @Test (expected = StateNotAllowedException.class)
+
+    @Test(expected = StateNotAllowedException.class)
     public void runningEvalRunningStateThenOK() throws Exception {
         ProcessState.RUNNING.eval(ProcessState.RUNNING);
     }
 
 
-    @Test (expected = StateNotAllowedException.class)
+    @Test(expected = StateNotAllowedException.class)
     public void completedEvalPauseStateThenOK() throws Exception {
         ProcessState.COMPLETED.eval(ProcessState.PAUSE);
     }
-    @Test (expected = StateNotAllowedException.class)
+
+    @Test(expected = StateNotAllowedException.class)
     public void completedEvalCompletedStateThenOK() throws Exception {
         ProcessState.COMPLETED.eval(ProcessState.COMPLETED);
     }
-    @Test (expected = StateNotAllowedException.class)
+
+    @Test(expected = StateNotAllowedException.class)
     public void completedEvalRunningStateThenOK() throws Exception {
         ProcessState.COMPLETED.eval(ProcessState.RUNNING);
     }

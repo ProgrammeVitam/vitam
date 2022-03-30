@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,8 @@ import java.util.function.Consumer;
 
 public class AnyKeyFormat extends Format {
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         itemType.setReportingType(this);
     }
 
@@ -48,13 +49,14 @@ public class AnyKeyFormat extends Format {
         this.itemType = keyType;
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         if (!node.isObject()) {
             validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
             return;
         }
 
-        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext();) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
             Map.Entry<String, JsonNode> item = it.next();
             String name = item.getKey();
             validator.pushContext(name);
@@ -64,12 +66,14 @@ public class AnyKeyFormat extends Format {
         }
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
         itemType.walk(consumer);
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         return "{[key]: " + itemType.debugInfo() + "}";
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,9 +53,9 @@ import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
-import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -498,7 +498,8 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException if error when create query
      */
-    public RequestResponse<JsonNode> findAccessionRegisterDetail(String originatingAgency, String options, VitamContext context)
+    public RequestResponse<JsonNode> findAccessionRegisterDetail(String originatingAgency, String options,
+        VitamContext context)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
 
@@ -619,6 +620,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Download DIP or Transfer SIP
+     *
      * @param asyncResponse AsyncResponse
      * @param exportId exportId
      * @param context vitam context
@@ -626,7 +628,8 @@ public class UserInterfaceTransactionManager {
      * @throws UnsupportedEncodingException
      * @throws VitamClientException
      */
-    public boolean downloadExports(AsyncResponse asyncResponse, String exportId, VitamContext context, boolean isTransfer)
+    public boolean downloadExports(AsyncResponse asyncResponse, String exportId, VitamContext context,
+        boolean isTransfer)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         try (AccessExternalClient client = accessExternalClientFactory.getClient()) {

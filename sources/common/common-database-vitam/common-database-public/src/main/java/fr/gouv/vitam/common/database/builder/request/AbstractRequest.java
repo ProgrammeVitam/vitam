@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,6 @@ public abstract class AbstractRequest {
     protected ObjectNode projection;
 
     /**
-     *
      * @return this Request
      */
     public final AbstractRequest resetHintFilter() {
@@ -63,7 +62,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @return this Request
      */
     public final AbstractRequest resetFilter() {
@@ -84,7 +82,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param hints list of hint
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
@@ -110,7 +107,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Request
      */
@@ -131,7 +127,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
@@ -143,7 +138,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filter String filter
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
@@ -208,7 +202,6 @@ public abstract class AbstractRequest {
     public abstract List<Action> getActions();
 
     /**
-     *
      * @return True if the projection is not restricted
      */
     public abstract boolean getAllProjection();
@@ -223,7 +216,6 @@ public abstract class AbstractRequest {
     /******************************************************/
 
     /**
-     *
      * @return this Query
      */
     protected final AbstractRequest selectResetLimitFilter() {
@@ -235,7 +227,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @return this Query
      */
     protected final AbstractRequest selectResetOrderByFilter() {
@@ -246,7 +237,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @return this Query
      */
     protected final AbstractRequest selectResetUsedProjection() {
@@ -267,7 +257,8 @@ public abstract class AbstractRequest {
      * @param limit ignored if 0
      * @return this Query
      */
-    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final int scrollTimeout, final int limit) {
+    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final int scrollTimeout,
+        final int limit) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -304,7 +295,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      */
@@ -333,9 +323,9 @@ public abstract class AbstractRequest {
              */
             scrollId = filterContent.get(SELECTFILTER.SCROLL_ID.exactToken()).asText();
             if (filterContent.has(SELECTFILTER.SCROLL_TIMEOUT.exactToken())) {
-            /*
-             * $offset : start cursor.skip(start) "from" : start, "size" : n
-             */
+                /*
+                 * $offset : start cursor.skip(start) "from" : start, "size" : n
+                 */
                 timeout = filterContent.get(SELECTFILTER.SCROLL_TIMEOUT.exactToken()).asInt(0);
             }
             selectSetScrollFilter(scrollId, timeout, limit);
@@ -345,7 +335,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -358,7 +347,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -369,7 +357,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -380,7 +367,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param way the way of the operation
      * @param variableNames list of key name
      * @return this Query
@@ -406,7 +392,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -428,7 +413,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -446,7 +430,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -457,7 +440,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -468,7 +450,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param way the way of the operation
      * @param variableNames list of key name
      * @return this Query
@@ -497,7 +478,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      */
@@ -515,7 +495,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param projection string projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -528,7 +507,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -547,7 +525,6 @@ public abstract class AbstractRequest {
     protected abstract ObjectNode getFinal();
 
     /**
-     *
      * @return the Final Select containing all 3 parts: query, filter and projection
      */
     protected final ObjectNode selectGetFinalSelect() {
@@ -561,7 +538,6 @@ public abstract class AbstractRequest {
     }
 
     /**
-     *
      * @return True if the projection is not restricted
      */
     protected boolean selectGetAllProjection() {
@@ -591,5 +567,5 @@ public abstract class AbstractRequest {
         }
         return projection;
     }
-    
+
 }

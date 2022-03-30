@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 @Path("/v1/admin")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminContextResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminContextResource.class);

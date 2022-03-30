@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,17 @@
  */
 package fr.gouv.vitam.common.database.builder.query.action;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.HashMap;
+
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.max;
@@ -38,18 +49,6 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.HashMap;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
 @SuppressWarnings("javadoc")
 public class UpdateActionHelperTest {
@@ -85,12 +84,14 @@ public class UpdateActionHelperTest {
             final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             add(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {}
+        } catch (final InvalidCreateOperationException e) {
+        }
         try {
             final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             add("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {}
+        } catch (final InvalidCreateOperationException e) {
+        }
     }
 
     @Test
@@ -172,7 +173,7 @@ public class UpdateActionHelperTest {
     }
 
     @Test
-    public void testMax()  throws Exception {
+    public void testMax() throws Exception {
         try {
             Action action = max("var1", 5);
             assertTrue(action.getCurrentAction().size() == 1);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -42,6 +36,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Abstract class for all Parameters in Logbook

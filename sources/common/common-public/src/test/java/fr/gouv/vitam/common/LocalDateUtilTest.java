@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,29 +26,26 @@
  */
 package fr.gouv.vitam.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.Assume;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import org.junit.Assume;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
- *
  *
  */
 @SuppressWarnings("javadoc")
@@ -119,7 +116,7 @@ public class LocalDateUtilTest {
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
-        assertTrue(LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length()==19);
+        assertTrue(LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length() == 19);
 
     }
 
@@ -188,7 +185,8 @@ public class LocalDateUtilTest {
         assertEquals(dateWithMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillis));
         assertEquals(dateWithMillisZoneFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZone));
         assertEquals(dateWithMillisZonePSTFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePST));
-        assertEquals(dateWithMillisZonePSTNoMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis));
+        assertEquals(dateWithMillisZonePSTNoMillisFormatted,
+            LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis));
 
         assertEquals(slashedDateFormatted, LocalDateUtil.getFormattedDateForMongo(slashedDate));
     }

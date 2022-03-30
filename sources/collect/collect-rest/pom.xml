@@ -16,13 +16,11 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-public</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-private</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
@@ -43,7 +41,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.6.28</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -62,31 +59,21 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-security</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>metadata-client</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>ingest-external-client</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-format-identification</artifactId>
-            <version>5.1-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>
@@ -230,7 +217,7 @@
                         <require>vitam-user-${unix.user}</require>
                     </requires>
                     <defaultDirmode>750</defaultDirmode>
-                    <defaultFileMode>640</defaultFileMode>
+                    <defaultFilemode>640</defaultFilemode>
                     <defaultUsername>${unix.user}</defaultUsername>
                     <defaultGroupname>${unix.group}</defaultGroupname>
                     <mappings>

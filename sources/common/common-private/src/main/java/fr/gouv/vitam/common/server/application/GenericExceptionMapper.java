@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,16 @@
  */
 package fr.gouv.vitam.common.server.application;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotAcceptableException;
@@ -39,17 +49,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.common.base.Strings;
-
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Generic Exception Mapper for Jetty Server

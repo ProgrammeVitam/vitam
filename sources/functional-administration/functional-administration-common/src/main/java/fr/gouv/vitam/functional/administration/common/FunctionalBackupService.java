@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,6 +33,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -101,8 +101,8 @@ public class FunctionalBackupService {
 
     /**
      * @param objectIdentifier
-     * @param eipMaster  logbookMaster
-     * @param eventCode  logbook evType
+     * @param eipMaster logbookMaster
+     * @param eventCode logbook evType
      * @param collection collection
      * @throws VitamException vitamException
      */
@@ -153,19 +153,20 @@ public class FunctionalBackupService {
         }
     }
 
-    public void saveDocument(FunctionalAdminCollections collection, Document document) throws FunctionalBackupServiceException {
+    public void saveDocument(FunctionalAdminCollections collection, Document document)
+        throws FunctionalBackupServiceException {
         try {
             int initialTenant = ParameterHelper.getTenantParameter();
             Integer storageTenant = document.getInteger("_tenant");
 
             String fileName = String.format("%d_%s.%s",
-                    storageTenant, document.get("_id"), DEFAULT_EXTENSION);
+                storageTenant, document.get("_id"), DEFAULT_EXTENSION);
 
             InputStream is = null;
 
             try {
                 // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
-                is = new ByteArrayInputStream( BsonHelper.stringify(document).getBytes());
+                is = new ByteArrayInputStream(BsonHelper.stringify(document).getBytes());
                 VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
                 switch (collection) {
                     case ACCESSION_REGISTER_DETAIL:
@@ -223,6 +224,7 @@ public class FunctionalBackupService {
 
     /**
      * save  file and log in logbook
+     *
      * @param inputStream
      * @param eipMaster
      * @param eventCode
@@ -247,7 +249,7 @@ public class FunctionalBackupService {
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
         }
     }
-    
+
     private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
         VitamSequence backupSequence) throws ReferentialException, IOException {
 
@@ -310,9 +312,9 @@ public class FunctionalBackupService {
      */
     private MongoCursor<Document> getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
         return collections.getCollection()
-                .find(getMangoFilter(collections, tenant))
-                .sort(Sorts.ascending(VitamDocument.ID))
-                .iterator();
+            .find(getMangoFilter(collections, tenant))
+            .sort(Sorts.ascending(VitamDocument.ID))
+            .iterator();
     }
 
     /**
@@ -331,7 +333,8 @@ public class FunctionalBackupService {
         return arrayNode;
     }
 
-    public ArrayNode getCollectionInJson(FunctionalAdminCollections collections, int tenant) throws InvalidParseOperationException {
+    public ArrayNode getCollectionInJson(FunctionalAdminCollections collections, int tenant)
+        throws InvalidParseOperationException {
         return getCollectionInJson(getCurrentCollection(collections, tenant));
     }
 
@@ -355,7 +358,7 @@ public class FunctionalBackupService {
     }
 
     private String storeBackupFileInStorage(String fileName, InputStream is, DataCategory dataCategory)
-            throws BackupServiceException {
+        throws BackupServiceException {
 
         if (null == dataCategory) {
             dataCategory = DataCategory.BACKUP;

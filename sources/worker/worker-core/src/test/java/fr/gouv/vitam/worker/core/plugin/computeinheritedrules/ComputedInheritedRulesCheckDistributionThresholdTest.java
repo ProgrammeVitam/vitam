@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -78,7 +78,8 @@ public class ComputedInheritedRulesCheckDistributionThresholdTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenCheckDistributionComputedInheritedRulesDefaultThresholdOnSelectQueryThenReturnKO() throws Exception {
+    public void whenCheckDistributionComputedInheritedRulesDefaultThresholdOnSelectQueryThenReturnKO()
+        throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -101,7 +102,8 @@ public class ComputedInheritedRulesCheckDistributionThresholdTest {
 
         // Then
         assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getData().toString()).isEqualTo("{eventDetailData={\"error\":\"Too many units found. Threshold=100000000, found=100000002\"}}");
+        assertThat(itemStatus.getData().toString()).isEqualTo(
+            "{eventDetailData={\"error\":\"Too many units found. Threshold=100000000, found=100000002\"}}");
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 }

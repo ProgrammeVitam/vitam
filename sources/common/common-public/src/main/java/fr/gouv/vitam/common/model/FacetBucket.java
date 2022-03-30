@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.model;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Objects;
 
 /**
  * Facet bucket
@@ -43,11 +43,12 @@ public class FacetBucket {
     /**
      * Constructor
      */
-    public FacetBucket() {}
+    public FacetBucket() {
+    }
 
     /**
      * Constructor
-     * 
+     *
      * @param value value
      * @param count number of documents
      */

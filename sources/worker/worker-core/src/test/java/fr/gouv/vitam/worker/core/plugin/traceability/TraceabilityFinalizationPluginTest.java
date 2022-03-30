@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -122,7 +122,8 @@ public class TraceabilityFinalizationPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        traceabilityFinalizationPlugin = new TraceabilityFinalizationPlugin(traceabilityReportService, logbookOperationsClientFactory);
+        traceabilityFinalizationPlugin =
+            new TraceabilityFinalizationPlugin(traceabilityReportService, logbookOperationsClientFactory);
         lenient().when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
         handler = mock(HandlerIO.class);
         workerParameters = mock(WorkerParameters.class);
@@ -231,7 +232,7 @@ public class TraceabilityFinalizationPluginTest {
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_OK);
 
         Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "traceability report exception")).when(
-            traceabilityReportService)
+                traceabilityReportService)
             .storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any()))
             .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));

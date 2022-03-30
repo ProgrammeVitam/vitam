@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -126,7 +126,8 @@ public class AgenciesIT extends VitamRuleRunner {
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
         offsetRepository
-            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(AGENCY_PATH_1), "agencies_1.csv");
@@ -149,9 +150,13 @@ public class AgenciesIT extends VitamRuleRunner {
             .map(d -> new AgenciesModel(d.getIdentifier(), d.getName(), d.getDescription(), d.getTenantId()))
             .forEach((Consumer<AgenciesModel>) agencies::add);
 
-        assertThat(agencies).extracting(AgenciesModel::getIdentifier).containsOnly("AGG-00001", "AGG-00002", "AGG-00003", "AGG-00004", "AGG-00005", "AGG-00006");
-        assertThat(agencies).extracting(AgenciesModel::getName).containsOnly("agency 1", "agency 2", "agency 3", "agency 4", "agency 5", "agency 6");
-        assertThat(agencies).extracting(AgenciesModel::getDescription).containsOnly("BLOU---1", "BLOU---2", "BLOU---3", "BLOU---4", "BLOU---5", "BLOU---6");
-        assertThat(agencies).extracting(AgenciesModel::getTenant).containsOnly(TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0);
+        assertThat(agencies).extracting(AgenciesModel::getIdentifier)
+            .containsOnly("AGG-00001", "AGG-00002", "AGG-00003", "AGG-00004", "AGG-00005", "AGG-00006");
+        assertThat(agencies).extracting(AgenciesModel::getName)
+            .containsOnly("agency 1", "agency 2", "agency 3", "agency 4", "agency 5", "agency 6");
+        assertThat(agencies).extracting(AgenciesModel::getDescription)
+            .containsOnly("BLOU---1", "BLOU---2", "BLOU---3", "BLOU---4", "BLOU---5", "BLOU---6");
+        assertThat(agencies).extracting(AgenciesModel::getTenant)
+            .containsOnly(TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0);
     }
 }

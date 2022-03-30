@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -384,7 +384,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         try {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             List<String> offerIdHeaders =
-                Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)).orElse(Collections.emptyList());
+                Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER))
+                    .orElse(Collections.emptyList());
             CloseableIterator<ObjectEntry> objectEntryIterator;
             if (offerIdHeaders.isEmpty()) {
                 objectEntryIterator = distribution.listContainerObjects(strategyId, type);
@@ -556,7 +557,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         List<String> offerIdHeaders =
-            Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)).orElse(Collections.emptyList());
+            Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER))
+                .orElse(Collections.emptyList());
         try {
             if (CollectionUtils.isEmpty(offerIdHeaders)) {
                 return new VitamAsyncInputStreamResponse(
@@ -746,7 +748,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
-    /** Get referent Offer in strategy
+    /**
+     * Get referent Offer in strategy
+     *
      * @param strategyId the strategy to get offers
      * @return
      */

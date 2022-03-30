@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,7 +64,8 @@ public class IngestPrepareActionHandler extends ActionHandler {
             ItemStatus result = JsonHandler.getFromJsonNode(externalJsonResults.get(ingestParam), ItemStatus.class);
 
             // Add Logbook only when manifest digest is NOT OK
-            if (result.getItemId().equals(CHECK_DIGEST_MANIFEST.getItemValue()) && !result.getGlobalStatus().isGreaterOrEqualToKo()) {
+            if (result.getItemId().equals(CHECK_DIGEST_MANIFEST.getItemValue()) &&
+                !result.getGlobalStatus().isGreaterOrEqualToKo()) {
                 return new ItemStatus(IGNORED).increment(UNKNOWN);
             }
 

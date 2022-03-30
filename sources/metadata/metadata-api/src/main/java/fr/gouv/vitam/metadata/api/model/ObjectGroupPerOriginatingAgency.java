@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,11 +52,11 @@ public class ObjectGroupPerOriginatingAgency {
     /**
      * Constructor
      *
-     * @param operation      operation id
-     * @param agency         originating agency
+     * @param operation operation id
+     * @param agency originating agency
      * @param numberOfObject total of objects in the objects groups
-     * @param numberOfGOT    total of objects groups
-     * @param size           size of al objects
+     * @param numberOfGOT total of objects groups
+     * @param size size of al objects
      */
     public ObjectGroupPerOriginatingAgency(String operation, String agency, long numberOfObject, long numberOfGOT,
         long size) {

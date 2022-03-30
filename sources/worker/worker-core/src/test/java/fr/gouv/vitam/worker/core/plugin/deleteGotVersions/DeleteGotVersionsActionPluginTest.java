@@ -131,7 +131,7 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(OK, itemStatusList.get(0).getGlobalStatus());
-        verify(metaDataClient, times(1)).updateObjectGroupById(any(),any());
+        verify(metaDataClient, times(1)).updateObjectGroupById(any(), any());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(WARNING, itemStatusList.get(0).getGlobalStatus());
-        verify(metaDataClient, times(1)).updateObjectGroupById(any(),any());
+        verify(metaDataClient, times(1)).updateObjectGroupById(any(), any());
     }
 
     @Test
@@ -185,7 +185,7 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(WARNING, itemStatusList.get(0).getGlobalStatus());
-        verify(metaDataClient, times(0)).updateObjectGroupById(any(),any());
+        verify(metaDataClient, times(0)).updateObjectGroupById(any(), any());
     }
 
     @Test
@@ -211,6 +211,6 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(OK, itemStatusList.get(0).getGlobalStatus());
-        verify(metaDataClient, times(0)).updateObjectGroupById(any(),any());
+        verify(metaDataClient, times(0)).updateObjectGroupById(any(), any());
     }
 }

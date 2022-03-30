@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Java6Assertions.fail;
 public class AuditStep extends CommonStep {
 
     private final static String AUDIT_QUERY = "{auditActions:\"%s\",auditType:\"originatingagency\",objectId:\"%s\"}";
-    
+
     private Status auditStatus;
 
     public AuditStep(World world) {

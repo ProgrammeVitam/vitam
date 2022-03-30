@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin;
     private final MetaDataClientFactory metaDataClientFactory;
-    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils = new ArchiveUnitLifecycleUpdateUtils();
+    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils =
+        new ArchiveUnitLifecycleUpdateUtils();
 
     private static final String RESULTS = "$results";
     private static final String ID = "#id";

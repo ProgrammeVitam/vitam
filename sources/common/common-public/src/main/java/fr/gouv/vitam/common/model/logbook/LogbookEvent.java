@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,7 @@ public class LogbookEvent {
         return evId;
     }
 
-   /**
+    /**
      * @param evId the evId to set
      */
     public void setEvId(String evId) {
@@ -259,6 +259,7 @@ public class LogbookEvent {
 
     /**
      * Rights statement Identifier
+     *
      * @return rightsStatementIdentifier
      */
     public String getRightsStatementIdentifier() {
@@ -267,6 +268,7 @@ public class LogbookEvent {
 
     /**
      * Rights statement Identifier
+     *
      * @param rightsStatementIdentifier
      */
     public void setRightsStatementIdentifier(String rightsStatementIdentifier) {

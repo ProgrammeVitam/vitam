@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import net.javacrumbs.jsonunit.JsonAssert;
-import org.bson.Document;
-import org.junit.Rule;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,6 +35,17 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.bson.Document;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class AccessionRegisterDetailTest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,23 +44,23 @@ public class ESAPIConfigurationTest {
 
         final String goodUrl1 = "/resources";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP query string: " + goodUrl1, goodUrl1,
-                ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
 
         final String goodUrl2 = "/resources/54554-5454545";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP query string: " + goodUrl2, goodUrl2,
-                ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
 
         final String goodUrl3 = "/resources/./54554-5454545";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP query string: " + goodUrl3, goodUrl3,
-                ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
 
         final String goodUrl4 = "/";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP query string: " + goodUrl4, goodUrl4,
-                ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
 
         final String goodUrl5 = ".";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP query string: " + goodUrl5, goodUrl5,
-                ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPQUERYSTRING, 2000, true)).doesNotThrowAnyException();
     }
 
     @Test
@@ -68,33 +68,33 @@ public class ESAPIConfigurationTest {
 
         final String badUrl1 = "..";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl1, badUrl1,
-                        ESAPI_HTTPQUERYSTRING, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl1);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl1, badUrl1,
+                ESAPI_HTTPQUERYSTRING, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl1);
 
         final String badUrl2 = "/resources/..";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl2, badUrl2,
-                        ESAPI_HTTPQUERYSTRING, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl2);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl2, badUrl2,
+                ESAPI_HTTPQUERYSTRING, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl2);
 
         final String badUrl3 = "../parent";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl3, badUrl3,
-                        ESAPI_HTTPQUERYSTRING, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl3);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl3, badUrl3,
+                ESAPI_HTTPQUERYSTRING, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl3);
 
         final String badUrl4 = "/resources/../parent";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl4, badUrl4,
-                        ESAPI_HTTPQUERYSTRING, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl4);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl4, badUrl4,
+                ESAPI_HTTPQUERYSTRING, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl4);
 
         final String badUrl5 = "resources..parent";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl5, badUrl5,
-                        ESAPI_HTTPQUERYSTRING, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl5);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP query string: " + badUrl5, badUrl5,
+                ESAPI_HTTPQUERYSTRING, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl5);
     }
 
     @Test
@@ -102,23 +102,23 @@ public class ESAPIConfigurationTest {
 
         final String goodHeader1 = "value";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + goodHeader1, goodHeader1,
-                ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
 
         final String goodHeader2 = "/resources";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + goodHeader2, goodHeader2,
-                ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
 
         final String goodHeader3 = "/resources/./54554-5454545";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + goodHeader3, goodHeader3,
-                ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
 
         final String goodHeader4 = "./";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + goodHeader4, goodHeader4,
-                ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
 
         final String goodHeader5 = ".";
         assertThatCode(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + goodHeader5, goodHeader5,
-                ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
+            ESAPI_HTTPHEADERVALUE, 2000, true)).doesNotThrowAnyException();
     }
 
     @Test
@@ -126,32 +126,32 @@ public class ESAPIConfigurationTest {
 
         final String badUrl1 = "..";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl1, badUrl1,
-                        ESAPI_HTTPHEADERVALUE, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl1);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl1, badUrl1,
+                ESAPI_HTTPHEADERVALUE, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl1);
 
         final String badUrl2 = "/resources/..";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl2, badUrl2,
-                        ESAPI_HTTPHEADERVALUE, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl2);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl2, badUrl2,
+                ESAPI_HTTPHEADERVALUE, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl2);
 
         final String badUrl3 = "../parent";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl3, badUrl3,
-                        ESAPI_HTTPHEADERVALUE, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl3);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badUrl3, badUrl3,
+                ESAPI_HTTPHEADERVALUE, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badUrl3);
 
         final String badHeader4 = "/////..";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badHeader4, badHeader4,
-                        ESAPI_HTTPHEADERVALUE, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badHeader4);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badHeader4, badHeader4,
+                ESAPI_HTTPHEADERVALUE, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badHeader4);
 
         final String badHeader5 = "value..hack";
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badHeader5, badHeader5,
-                        ESAPI_HTTPHEADERVALUE, 2000, true))
-                .withMessageContaining(INVALID_MSG).withMessageContaining(badHeader5);
+            .isThrownBy(() -> ESAPI.validator().getValidInput("HTTP Header value string: " + badHeader5, badHeader5,
+                ESAPI_HTTPHEADERVALUE, 2000, true))
+            .withMessageContaining(INVALID_MSG).withMessageContaining(badHeader5);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -74,56 +74,57 @@ public class RequestToElasticsearchTest {
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, " +
             "$facets: [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'} }," +
-            "{" + 
-            "    $name: 'filters_facet'," + 
-            "    $filters: {" + 
-            "        $query_filters: [" + 
-            "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," + 
-            "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" + 
-            "        ]" + 
-            "    }" + 
-            "}"+
+            "{" +
+            "    $name: 'filters_facet'," +
+            "    $filters: {" +
+            "        $query_filters: [" +
+            "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," +
+            "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" +
+            "        ]" +
+            "    }" +
+            "}" +
             "] }");
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": [\n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ],\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n" +
-                        "}"
+            "{\n" +
+                "  \"$query\": [\n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {}\n" +
+                "}"
         );
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
+    public static void tearDownAfterClass() throws Exception {
+    }
 
     @Test
     public void testGetRequestToElasticsearch() {
@@ -145,9 +146,11 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(exampleSelectElasticsearch);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens =
+                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
+                final QueryBuilder queryBuilderCommand =
+                    rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
@@ -196,9 +199,11 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(nestedSearchQuery);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens =
+                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
+                final QueryBuilder queryBuilderCommand =
+                    rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
@@ -213,7 +218,7 @@ public class RequestToElasticsearchTest {
             assertNotNull(rte.getRequestParser());
             assertNotNull(rte.model());
             System.out.println("Select Context = " + rte.getLastDepth() + ":" + rte.getFinalLimit() + ":" +
-                    rte.getFinalOffset() + ":" + rte.getUsage() + ":" + rte.getHints());
+                rte.getFinalOffset() + ":" + rte.getUsage() + ":" + rte.getHints());
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());

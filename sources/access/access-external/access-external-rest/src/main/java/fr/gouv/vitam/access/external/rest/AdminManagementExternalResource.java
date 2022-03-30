@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -98,14 +98,13 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -151,7 +150,85 @@ import static fr.gouv.vitam.common.dsl.schema.DslSchema.SELECT_SINGLE;
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR;
 import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSCONTRACTS_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSCONTRACTS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSCONTRACTS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSCONTRACTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSIONREGISTERSSYMBOLIC_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSIONREGISTERS_ID_ACCESSIONREGISTERDETAILS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSIONREGISTERS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ACCESSIONREGISTER_DETAILS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AGENCIESFILE_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AGENCIESREFERENTIAL_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AGENCIES_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AGENCIES_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AGENCIES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ARCHIVEUNITPROFILES_CREATE_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ARCHIVEUNITPROFILES_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ARCHIVEUNITPROFILES_ID_READ_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ARCHIVEUNITPROFILES_ID_UPDATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ARCHIVEUNITPROFILES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.AUDITS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.BATCHREPORT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.CONTEXTS_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.CONTEXTS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.CONTEXTS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.CONTEXTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.DISTRIBUTIONREPORT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.EVIDENCEAUDIT_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.FORCEPAUSE_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.FORMATSFILE_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.FORMATS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.FORMATS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.FORMATS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.GRIFFINS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.GRIFFINS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.GRIFFIN_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKOPERATIONS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ONTOLOGIES_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ONTOLOGIES_ID_READ_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ONTOLOGIES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OPERATIONS_ID_DELETE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OPERATIONS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OPERATIONS_ID_READ_STATUS;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OPERATIONS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OPERATIONS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PRESERVATIONSCENARIOS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PRESERVATIONSCENARIOS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PRESERVATIONSCENARIO_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROBATIVEVALUE_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_CREATE_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_ID_READ_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_ID_READ_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_ID_UPDATE_BINAIRE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_ID_UPDATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROFILES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RECTIFICATIONAUDIT_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.REFERENTIALAUDIT_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.REMOVEFORCEPAUSE_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULESFILE_CHECK;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULESREFERENTIAL_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULESREPORT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULES_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULES_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RULES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.SECURITYPROFILES_CREATE_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.SECURITYPROFILES_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.SECURITYPROFILES_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.SECURITYPROFILES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRACEABILITYCHECKS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRACEABILITYLINKEDCHECKS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRACEABILITY_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.WORKFLOWS_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -1335,7 +1412,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = ACCESSIONREGISTERS_READ,
-            description = "Lister le contenu du référentiel des registres des fonds")
+        description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1417,7 +1494,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-            RequestResponse<AccessionRegisterSymbolicModel> result = client.getAccessionRegisterSymbolic(tenant, select);
+            RequestResponse<AccessionRegisterSymbolicModel> result =
+                client.getAccessionRegisterSymbolic(tenant, select);
             return Response.status(result.getHttpCode()).entity(result).build();
         } catch (Exception e) {
             return VitamCodeHelper.toVitamError(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR, e.getMessage())
@@ -1853,7 +1931,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<ArchiveUnitProfileModel> response = client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
+            RequestResponse<ArchiveUnitProfileModel> response =
+                client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1893,7 +1972,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<AccessContractModel> response = client.updateAccessContract(identifier, update.getFinalUpdate());
+            RequestResponse<AccessContractModel> response =
+                client.updateAccessContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1935,7 +2015,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<IngestContractModel> response = client.updateIngestContract(identifier, update.getFinalUpdate());
+            RequestResponse<IngestContractModel> response =
+                client.updateIngestContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1974,7 +2055,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<ManagementContractModel> response = client.updateManagementContract(identifier, update.getFinalUpdate());
+            RequestResponse<ManagementContractModel> response =
+                client.updateManagementContract(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -2063,7 +2145,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRACEABILITYLINKEDCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
-    public Response linkedCheckOperationTraceability(@Dsl(value = SELECT_SINGLE)  JsonNode query) {
+    public Response linkedCheckOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             checkParameter("checks operation Logbook traceability parameters", query);
@@ -2289,7 +2371,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<SecurityProfileModel> response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
+            RequestResponse<SecurityProfileModel> response =
+                client.updateSecurityProfile(identifier, update.getFinalUpdateById());
             return getResponse(response);
         } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);

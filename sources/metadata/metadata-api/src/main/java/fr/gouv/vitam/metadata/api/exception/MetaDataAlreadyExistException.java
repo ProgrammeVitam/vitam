@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,8 +37,8 @@ public class MetaDataAlreadyExistException extends MetaDataException {
     private static final long serialVersionUID = 130421172214167262L;
 
     /**
-     * Constructor 
-     * 
+     * Constructor
+     *
      * @param message message to associate with the exception
      */
     public MetaDataAlreadyExistException(String message) {
@@ -46,8 +46,8 @@ public class MetaDataAlreadyExistException extends MetaDataException {
     }
 
     /**
-     * Constructor 
-     * 
+     * Constructor
+     *
      * @param cause cause to associate with the exception
      */
     public MetaDataAlreadyExistException(Throwable cause) {
@@ -55,8 +55,8 @@ public class MetaDataAlreadyExistException extends MetaDataException {
     }
 
     /**
-     * Constructor 
-     * 
+     * Constructor
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

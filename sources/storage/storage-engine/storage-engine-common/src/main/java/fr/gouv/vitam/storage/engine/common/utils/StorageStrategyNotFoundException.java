@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,9 +29,9 @@ package fr.gouv.vitam.storage.engine.common.utils;
 import fr.gouv.vitam.common.exception.VitamException;
 
 public class StorageStrategyNotFoundException extends VitamException {
-    
+
     private final String strategyId;
-    private final String variableName; 
+    private final String variableName;
 
     public StorageStrategyNotFoundException(String message, String strategyId, String variableName) {
         super(message);
@@ -44,11 +44,11 @@ public class StorageStrategyNotFoundException extends VitamException {
         strategyId = null;
         variableName = null;
     }
-    
+
     public String getStrategyId() {
         return strategyId;
     }
-    
+
     public String getVariableName() {
         return variableName;
     }

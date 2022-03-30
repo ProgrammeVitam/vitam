@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,7 @@ public class ProcessingMalformedDataException extends ProcessingException {
 
     /**
      * @param message associated message
-     * @param cause   associated cause
+     * @param cause associated cause
      */
     public ProcessingMalformedDataException(String message, Throwable cause) {
         super(message, cause);

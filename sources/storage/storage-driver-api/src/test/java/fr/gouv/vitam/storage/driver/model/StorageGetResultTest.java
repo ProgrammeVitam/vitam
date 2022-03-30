@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.storage.driver.model;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.ByteArrayInputStream;
-
-import javax.ws.rs.core.Response;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test for StorageGetObjectResult

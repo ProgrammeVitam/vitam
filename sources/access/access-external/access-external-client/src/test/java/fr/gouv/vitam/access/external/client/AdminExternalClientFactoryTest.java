@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -49,7 +49,7 @@ public class AdminExternalClientFactoryTest {
     @Test
     public void getClientInstanceTest() {
         try {
-            AdminExternalClientFactory.changeMode(new ClientConfigurationImpl(null, 10));;
+            AdminExternalClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
@@ -68,7 +68,7 @@ public class AdminExternalClientFactoryTest {
 
         }
 
-        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
         final AdminExternalClient client =
             AdminExternalClientFactory.getInstance().getClient();
@@ -93,7 +93,7 @@ public class AdminExternalClientFactoryTest {
         assertTrue(client instanceof AdminExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminExternalClientFactory.getInstance().getVitamClientType());
 
-        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration) null);
         final AdminExternalClient client2 =
             AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof AdminExternalClientMock);

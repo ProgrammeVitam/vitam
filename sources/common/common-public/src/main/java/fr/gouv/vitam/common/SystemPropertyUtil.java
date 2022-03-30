@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,7 +47,7 @@ public final class SystemPropertyUtil {
     public static final String FILE_ENCODING = "file.encoding";
 
     private static final Properties PROPS = new Properties();
-    
+
     private static final String INVALID_PROPERTY = "Invalid property ";
 
     private static Platform m_os = null;
@@ -112,7 +112,6 @@ public final class SystemPropertyUtil {
     }
 
     /**
-     *
      * @return True if Encoding is Correct
      */
     public static boolean isFileEncodingCorrect() {
@@ -163,7 +162,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static String get(final String key, final String def) {
@@ -190,7 +189,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static boolean get(final String key, final boolean def) {
@@ -232,7 +231,7 @@ public final class SystemPropertyUtil {
      * @param key the system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static int get(final String key, final int def) {
@@ -272,7 +271,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static long get(final String key, final long def) {
@@ -313,7 +312,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key or def null
      */
     public static String getAndSet(String key, String def) {
@@ -336,7 +335,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static boolean getAndSet(String key, boolean def) {
@@ -356,7 +355,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static int getAndSet(String key, int def) {
@@ -376,7 +375,7 @@ public final class SystemPropertyUtil {
      * @param key of system property
      * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
-     *         not allowed.
+     * not allowed.
      * @throws IllegalArgumentException key null
      */
     public static long getAndSet(String key, long def) {

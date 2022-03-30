@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.storage.engine.common.model.request;
 
-import java.io.File;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+
+import java.io.File;
 
 /**
  * Simple object holding data used to retrieve an Object from the workspace
@@ -49,7 +49,7 @@ public class ObjectDescription {
 
     /**
      * Constructor with DataCategory parameter<br/>
-     * 
+     *
      * @param type the collection tyoe
      * @param workspaceContainerGUID the container guid in workspace
      * @param objectName the object name
@@ -100,16 +100,13 @@ public class ObjectDescription {
 
     /**
      * @return the objectName
-     * 
      */
     public String getObjectName() {
         return objectName;
     }
 
     /**
-     * @param objectName
-     *            the objectName to set
-     *
+     * @param objectName the objectName to set
      * @return this
      */
     public ObjectDescription setObjectName(String objectName) {
@@ -125,9 +122,7 @@ public class ObjectDescription {
     }
 
     /**
-     * @param type
-     *            the type to set
-     *
+     * @param type the type to set
      * @return this
      */
     public ObjectDescription setType(DataCategory type) {

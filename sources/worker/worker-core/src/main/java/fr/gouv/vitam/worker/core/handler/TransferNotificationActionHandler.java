@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -183,15 +183,17 @@ public class TransferNotificationActionHandler extends ActionHandler {
             String atrObjectName = handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath();
 
             // Generate ATR only if not already generated (idempotency)
-            try(WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
-                boolean atrAlreadyGenerated = workspaceClient.isExistingObject(params.getContainerName(), atrObjectName);
+            try (WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
+                boolean atrAlreadyGenerated =
+                    workspaceClient.isExistingObject(params.getContainerName(), atrObjectName);
 
-                if(atrAlreadyGenerated) {
+                if (atrAlreadyGenerated) {
                     atrFile = handlerIO.getFileFromWorkspace(atrObjectName);
                 } else {
                     atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus);
                     try (InputStream is = new FileInputStream(atrFile)) {
-                        workspaceClient.putAtomicObject(handlerIO.getContainerName(), atrObjectName, is, atrFile.length());
+                        workspaceClient.putAtomicObject(handlerIO.getContainerName(), atrObjectName, is,
+                            atrFile.length());
                     }
                 }
             }
@@ -239,7 +241,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             itemStatus.increment(StatusCode.OK);
         } catch (InvalidParseOperationException | StorageClientException | IOException | ProcessingException |
-            ContentAddressableStorageNotFoundException| ContentAddressableStorageServerException e) {
+            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -264,7 +266,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
         }
     }
 
-    private LogbookOperation getLogbookOperation(WorkerParameters params) throws InvalidParseOperationException, ProcessingException {
+    private LogbookOperation getLogbookOperation(WorkerParameters params)
+        throws InvalidParseOperationException, ProcessingException {
         LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             Select select = new Select();
@@ -592,8 +595,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
             final File dataObjectMapTmpFile = (File) handlerIO.getInput(DATAOBJECT_MAP_RANK);
             final File bdoObjectGroupStoredMapTmpFile = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
             final File objectGroupSystemGuidTmpFile = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
-            final File dataObjectToDetailDataObjectMapTmpFile = (File) handlerIO.getInput(DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK);
-            final File existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile = (File) handlerIO.getInput(EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK);
+            final File dataObjectToDetailDataObjectMapTmpFile =
+                (File) handlerIO.getInput(DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK);
+            final File existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile =
+                (File) handlerIO.getInput(EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK);
 
             Map<String, Object> dataObjectSystemGuid = getDataObjectSystemGuid(dataObjectMapTmpFile);
             Map<String, Object> bdoObjectGroupSystemGuid = getBdoObjectGroupSystemGuid(bdoObjectGroupStoredMapTmpFile);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -36,9 +35,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -51,13 +48,13 @@ import static org.assertj.core.api.Java6Assertions.fail;
  * MassUpdateStep class
  */
 public class MassUpdateStep extends CommonStep {
-    
+
     public MassUpdateStep(World world) {
         super(world);
     }
 
     @When("^je lance la mise à jour de masse des units$")
-    public  void unitUpdate() throws VitamException {
+    public void unitUpdate() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
@@ -84,7 +81,7 @@ public class MassUpdateStep extends CommonStep {
     }
 
     @When("^je lance la mise à jour de masse des règles de gestion$")
-    public  void rulesUpdate() throws VitamException {
+    public void rulesUpdate() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
@@ -111,16 +108,18 @@ public class MassUpdateStep extends CommonStep {
     }
 
     @When("^je lance la mise à jour de masse des règles de gestion pour avoir les codes réponses$")
-    public  void rulesUpdateRaw() throws VitamException {
+    public void rulesUpdateRaw() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().massUpdateUnitsRules(vitamContext, queryString);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().massUpdateUnitsRules(vitamContext, queryString);
 
-        JsonNode codes = JsonHandler.toJsonNode(Collections.singletonMap("Code", String.valueOf(requestResponse.getHttpCode())));
+        JsonNode codes =
+            JsonHandler.toJsonNode(Collections.singletonMap("Code", String.valueOf(requestResponse.getHttpCode())));
         world.setResults(Collections.singletonList(codes));
     }
 

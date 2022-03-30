@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class AccessLogParameters implements StorageLogStructure {
-    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY = "Mandatory parameters can not be null or empty";
+    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY =
+        "Mandatory parameters can not be null or empty";
 
     private static final Set<StorageLogbookParameterName> mandatoryParameters = new HashSet<>();
 
@@ -56,8 +57,7 @@ public class AccessLogParameters implements StorageLogStructure {
      * AccessLogParameters. This constructor checks if all mandatory
      * parameters are set
      *
-     * @param mapParameters
-     *            The initial parameters (MUST contains mandatory parameters
+     * @param mapParameters The initial parameters (MUST contains mandatory parameters
      * @throws StorageException
      */
     public AccessLogParameters(Map<StorageLogbookParameterName, String> mapParameters) {
@@ -79,8 +79,7 @@ public class AccessLogParameters implements StorageLogStructure {
     /**
      * set The status of the operation
      *
-     * @param outcome
-     *            the outcome
+     * @param outcome the outcome
      * @return the AccessLogParameters after the parameter has been added
      */
     @JsonIgnore
@@ -103,8 +102,7 @@ public class AccessLogParameters implements StorageLogStructure {
     /**
      * Check if mandatories parameters are not empty or null
      *
-     * @throws IllegalArgumentException
-     *             thrown when one parameter is empty or null
+     * @throws IllegalArgumentException thrown when one parameter is empty or null
      */
     public void checkMandatoryParameters() throws IllegalArgumentException {
         for (final StorageLogbookParameterName s : mandatoryParameters) {

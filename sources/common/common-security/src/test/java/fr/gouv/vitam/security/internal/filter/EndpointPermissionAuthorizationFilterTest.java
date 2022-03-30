@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,7 @@ public class EndpointPermissionAuthorizationFilterTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
     public void testAccessDeniedToUnknownSecurityProfile() throws Exception {
@@ -72,7 +72,7 @@ public class EndpointPermissionAuthorizationFilterTest {
 
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         when(adminManagementClient.findSecurityProfileByIdentifier(SECURITY_PROFILE_IDENTIFIER)).thenReturn(
-                new VitamError("ERROR").setHttpCode(Response.Status.BAD_REQUEST.getStatusCode()));
+            new VitamError("ERROR").setHttpCode(Response.Status.BAD_REQUEST.getStatusCode()));
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
@@ -91,9 +91,10 @@ public class EndpointPermissionAuthorizationFilterTest {
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         boolean fullAccess = true;
         Set<String> permissions = Collections.EMPTY_SET;
-        SecurityProfileModel securityProfile = new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
+        SecurityProfileModel securityProfile =
+            new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
         when(adminManagementClient.findSecurityProfileByIdentifier(SECURITY_PROFILE_IDENTIFIER))
-                .thenReturn(new RequestResponseOK().addResult(securityProfile));
+            .thenReturn(new RequestResponseOK().addResult(securityProfile));
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
@@ -112,9 +113,10 @@ public class EndpointPermissionAuthorizationFilterTest {
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         boolean fullAccess = false;
         Set<String> permissions = new HashSet<>(Arrays.asList("some_permission", PERMISSION, "some_other_permission"));
-        SecurityProfileModel securityProfile = new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
+        SecurityProfileModel securityProfile =
+            new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
         when(adminManagementClient.findSecurityProfileByIdentifier(SECURITY_PROFILE_IDENTIFIER))
-                .thenReturn(new RequestResponseOK().addResult(securityProfile));
+            .thenReturn(new RequestResponseOK().addResult(securityProfile));
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
@@ -133,9 +135,10 @@ public class EndpointPermissionAuthorizationFilterTest {
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         boolean fullAccess = false;
         Set<String> permissions = new HashSet<>(Arrays.asList("some_permission", "some_other_permission"));
-        SecurityProfileModel securityProfile = new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
+        SecurityProfileModel securityProfile =
+            new SecurityProfileModel("guid", SECURITY_PROFILE_IDENTIFIER, "Sec profile", fullAccess, permissions);
         when(adminManagementClient.findSecurityProfileByIdentifier(SECURITY_PROFILE_IDENTIFIER))
-                .thenReturn(new RequestResponseOK().addResult(securityProfile));
+            .thenReturn(new RequestResponseOK().addResult(securityProfile));
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 

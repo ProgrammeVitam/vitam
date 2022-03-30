@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import org.apache.commons.lang3.BooleanUtils;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -47,10 +36,19 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
+import org.apache.commons.lang3.BooleanUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * AuditExistenceService
@@ -76,7 +74,7 @@ public class AuditExistenceService {
     /**
      * Check the existence of all objects in GOT.
      *
-     * @param gotDetail         got details
+     * @param gotDetail got details
      * @param storageStrategies deployed storage strategies
      * @return result of existence check
      */
@@ -92,21 +90,23 @@ public class AuditExistenceService {
                 if (PHYSICAL_MASTER.equals(object.getQualifier())) {
                     // Get global information for physical master
                     StorageRacineModel storageInformation = gotDetail.getStorage();
-                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
+                    List<String> offerIds =
+                        StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                     Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                            DataCategory.OBJECT, object.getId(), offerIds);
+                        DataCategory.OBJECT, object.getId(), offerIds);
                     auditCheckObjectResult.getOfferStatuses()
-                            .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                                    e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.KO : StatusCode.OK)));
+                        .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                            e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.KO : StatusCode.OK)));
                 } else {
                     // Get object information
                     StorageJson storageInformation = object.getStorage();
-                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
+                    List<String> offerIds =
+                        StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                     Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                            DataCategory.OBJECT, object.getId(), offerIds);
+                        DataCategory.OBJECT, object.getId(), offerIds);
                     auditCheckObjectResult.getOfferStatuses()
-                            .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                                    e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.OK : StatusCode.KO)));
+                        .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                            e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.OK : StatusCode.KO)));
                 }
                 result.getObjectStatuses().add(auditCheckObjectResult);
             }

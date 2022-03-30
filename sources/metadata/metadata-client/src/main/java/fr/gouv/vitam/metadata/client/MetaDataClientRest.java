@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -79,8 +78,6 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
 import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
@@ -128,9 +125,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-            MetaDataClientServerException {
+        MetaDataClientServerException {
         try (Response response = make(get().withPath("/units/bulk")
-                .withBody(selectQueryBulk, SELECT_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
+            .withBody(selectQueryBulk, SELECT_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
             check(response);
             RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
             if (requestResponse.isOk()) {
@@ -495,10 +492,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         try (Response response = make(post().withPath("/units/atomicupdatebulk")
-                .withBody(updateQueries, UPDATE_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
+            .withBody(updateQueries, UPDATE_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
@@ -547,7 +544,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public Response streamUnits(JsonNode selectQuery)
-        throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException {
+        throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
+        MetadataScrollLimitExceededException {
         try {
             Response response = make(get().withJsonContentType().withOctetAccept().withPath("/units/stream")
                 .withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()));

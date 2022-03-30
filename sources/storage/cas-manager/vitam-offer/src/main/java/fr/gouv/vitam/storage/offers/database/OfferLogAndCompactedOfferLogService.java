@@ -3,9 +3,9 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,7 +51,8 @@ public class OfferLogAndCompactedOfferLogService {
             //  "com.mongodb.MongoClientException: Sessions are not supported by the MongoDB cluster to which this client is connected"
 
             LOGGER.error("An error occurred during offer log compaction. Possible CompactedOfferLog corruption", e);
-            alertService.createAlert("An error occurred during offer log compaction. Possible CompactedOfferLog corruption");
+            alertService.createAlert(
+                "An error occurred during offer log compaction. Possible CompactedOfferLog corruption");
             throw new VitamRuntimeException(e);
         }
     }

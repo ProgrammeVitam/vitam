@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -170,11 +170,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
             operations.add(doc);
         }
 
-       return operations;
+        return operations;
     }
 
     @Override
-    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced, boolean crossTenant)
+    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
+        boolean crossTenant)
         throws VitamDBException, LogbookDatabaseException {
         VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced, crossTenant);
 

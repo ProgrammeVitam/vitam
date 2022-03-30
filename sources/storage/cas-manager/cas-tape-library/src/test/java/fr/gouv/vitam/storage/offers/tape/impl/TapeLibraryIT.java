@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -366,7 +366,7 @@ public class TapeLibraryIT {
             assertThat(state).isNotNull();
 
             // 1 Load Tape
-            assertThatCode( () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
+            assertThatCode(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
                 .doesNotThrowAnyException();
 
             TapeReadWriteService ddReadWriteService =
@@ -429,7 +429,7 @@ public class TapeLibraryIT {
             assertThat(state).isNotNull();
 
             // 1 Load Tape
-            assertThatCode( () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
+            assertThatCode(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
                 .doesNotThrowAnyException();
 
             TapeReadWriteService ddReadWriteService =
@@ -463,14 +463,16 @@ public class TapeLibraryIT {
                 new ReadTask(
                     new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
+                    tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             ReadTask readTask2 =
                 new ReadTask(
                     new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
                     workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
+                    tapeCatalogService,
                     accessRequestManager, archiveCacheStorage);
 
             // Classical read

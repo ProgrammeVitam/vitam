@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,6 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     *
      * @param params the worker parameter
      * @return the ObjectID as String
      */
@@ -66,7 +65,7 @@ public class LogbookLifecycleWorkerHelper {
      * @param params the worker parameters
      * @param lfcEventType the event type of lfc
      * @param logbookTypeProcess the logbook type process
-     * @param statusCode the global status code                          
+     * @param statusCode the global status code
      * @param additionalParams the additional params
      * @throws ProcessingException if logbook lfc ressouce not found
      */
@@ -112,7 +111,8 @@ public class LogbookLifecycleWorkerHelper {
      * @throws ProcessingException if logbook lfc ressouce not found
      */
     public static void updateLifeCycleForBegining(LogbookLifeCyclesClientHelper helper,
-        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, LogbookTypeProcess logbookTypeProcess)
+        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params,
+        LogbookTypeProcess logbookTypeProcess)
         throws ProcessingException {
 
         try {

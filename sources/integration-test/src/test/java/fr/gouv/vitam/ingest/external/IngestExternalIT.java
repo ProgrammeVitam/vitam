@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -73,7 +72,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -180,19 +178,20 @@ public class IngestExternalIT extends VitamRuleRunner {
                 Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
 
-            RequestResponse<ItemStatus>  itemStatusRequestResponse1 =
+            RequestResponse<ItemStatus> itemStatusRequestResponse1 =
                 adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
             assertThat(itemStatusRequestResponse1.isOk()).isTrue();
 
 
-            RequestResponseOK<ItemStatus> itemStatusRequestResponse = (RequestResponseOK<ItemStatus>) itemStatusRequestResponse1;
+            RequestResponseOK<ItemStatus> itemStatusRequestResponse =
+                (RequestResponseOK<ItemStatus>) itemStatusRequestResponse1;
             assertThat(itemStatusRequestResponse.getResults()).hasSize(1);
 
             ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
             assertThat(itemStatus).isNotNull();
             assertThat(itemStatus.getGlobalState()).isEqualTo(ProcessState.COMPLETED);
             assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
-                .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                    .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
                 .isEqualTo(StatusCode.OK);
 
 
@@ -261,7 +260,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                 ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
                 assertNotNull(itemStatus);
                 assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
-                    .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                        .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
                     .isEqualTo(StatusCode.OK);
 
 

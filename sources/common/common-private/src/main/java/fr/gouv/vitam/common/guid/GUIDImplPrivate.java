@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.common.guid;
 
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.SecureRandom;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.SecureRandom;
 
 /**
  * GUID Generator (also Global UID Generator) <br>
@@ -60,7 +58,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * </pre>
  *
  * Where nnnnn is a number between 0 and 2^22 (4194304).
- *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS,
     property = "@class")

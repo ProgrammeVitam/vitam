@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.database.builder.facet;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Map;
 
 /**
  * Filters facet
@@ -44,7 +43,7 @@ public class FiltersFacet extends Facet {
 
     /**
      * Filters Facet constructor
-     * 
+     *
      * @param name name of the facet
      * @param filters map of named filer queries
      * @throws InvalidCreateOperationException when not valid

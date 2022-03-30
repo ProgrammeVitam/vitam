@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -136,7 +136,8 @@ public class UpdateMultipleSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
+            JsonHandler.getFromFile(
+                PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
     }

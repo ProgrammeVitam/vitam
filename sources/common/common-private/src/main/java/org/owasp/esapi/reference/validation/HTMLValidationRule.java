@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,11 +40,7 @@
  */
 package org.owasp.esapi.reference.validation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.Encoder;
 import org.owasp.esapi.Logger;
@@ -57,20 +53,25 @@ import org.owasp.validator.html.Policy;
 import org.owasp.validator.html.PolicyException;
 import org.owasp.validator.html.ScanException;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 
 /**
  * A validator performs syntax and possibly semantic validation of a single piece of data from an untrusted source.
  *
  * @author Jeff Williams (jeff.williams .at. aspectsecurity.com) <a href="http://www.aspectsecurity.com">Aspect
- *         Security</a>
- * @since June 1, 2007
+ * Security</a>
  * @see org.owasp.esapi.Validator
+ * @since June 1, 2007
  */
 public class HTMLValidationRule extends StringValidationRule {
 
-    /** OWASP AntiSamy markup verification policy */
+    /**
+     * OWASP AntiSamy markup verification policy
+     */
     private static Policy antiSamyPolicy = null;
     private static final Logger LOGGER = ESAPI.getLogger("HTMLValidationRule");
     private static final String ANTISAMYPOLICY_FILENAME = "antisamy-esapi.xml";

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,15 +71,16 @@ public class DescriptiveMetadataMapper {
      * @return a descriptive Metadata Content Type
      * @throws DatatypeConfigurationException
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel, List<ArchiveUnitHistoryModel> historyListModel)
-            throws DatatypeConfigurationException {
+    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel,
+        List<ArchiveUnitHistoryModel> historyListModel)
+        throws DatatypeConfigurationException {
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
 
         dmc.getAddressee().addAll(metadataModel.getAddressee());
         dmc.getAny().addAll(
-                TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
+            TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
 
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
@@ -116,17 +117,21 @@ public class DescriptiveMetadataMapper {
             dmc.getOriginatingSystemId().addAll(metadataModel.getOriginatingSystemId());
         }
 
-        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null && !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()) {
+        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()) {
             dmc.getArchivalAgencyArchiveUnitIdentifier().addAll(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null && !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
-            dmc.getOriginatingAgencyArchiveUnitIdentifier().addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
+        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
+            dmc.getOriginatingAgencyArchiveUnitIdentifier()
+                .addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null && !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty()) {
+        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty()) {
             dmc.getTransferringAgencyArchiveUnitIdentifier().addAll(
-                    metadataModel.getTransferringAgencyArchiveUnitIdentifier());
+                metadataModel.getTransferringAgencyArchiveUnitIdentifier());
         }
 
         if (metadataModel.getLanguage() != null && !metadataModel.getLanguage().isEmpty()) {
@@ -194,8 +199,8 @@ public class DescriptiveMetadataMapper {
             return null;
         }
         return signatures.stream()
-                .map(this::mapSignature)
-                .collect(Collectors.toList());
+            .map(this::mapSignature)
+            .collect(Collectors.toList());
     }
 
     private SignatureType mapSignature(SignatureTypeModel signatureType) {
@@ -232,8 +237,8 @@ public class DescriptiveMetadataMapper {
 
     private List<EventType> mapEvents(List<EventTypeModel> eventTypes) {
         return eventTypes.stream()
-                .map(this::mapEvent)
-                .collect(Collectors.toList());
+            .map(this::mapEvent)
+            .collect(Collectors.toList());
     }
 
     private EventType mapEvent(EventTypeModel event) {
@@ -250,8 +255,9 @@ public class DescriptiveMetadataMapper {
         return eventType;
     }
 
-    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel, List<ManagementHistoryType> managementHistoryType)
-            throws DatatypeConfigurationException {
+    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel,
+        List<ManagementHistoryType> managementHistoryType)
+        throws DatatypeConfigurationException {
 
         for (ArchiveUnitHistoryModel historyModel : archiveUnitHistoryModel) {
 
@@ -268,7 +274,8 @@ public class DescriptiveMetadataMapper {
         }
     }
 
-    private Optional<XMLGregorianCalendar> stringToXMLGregorianCalendar(String date) throws DatatypeConfigurationException {
+    private Optional<XMLGregorianCalendar> stringToXMLGregorianCalendar(String date)
+        throws DatatypeConfigurationException {
         if (ParametersChecker.isNotEmpty(date)) {
             return Optional.of(newInstance().newXMLGregorianCalendar(date));
         } else {

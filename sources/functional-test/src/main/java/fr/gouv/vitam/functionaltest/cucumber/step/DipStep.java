@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,8 +64,8 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class DipStep extends CommonStep{
-    
+public class DipStep extends CommonStep {
+
     public DipStep(World world) {
         super(world);
     }
@@ -111,7 +111,7 @@ public class DipStep extends CommonStep{
         vitamContext.setAccessContract(world.getContractId());
 
         String query = world.getQuery();
-        DipRequest dipExportRequest = JsonHandler.getFromString(query,DipRequest.class );
+        DipRequest dipExportRequest = JsonHandler.getFromString(query, DipRequest.class);
 
         RequestResponse<JsonNode> response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 

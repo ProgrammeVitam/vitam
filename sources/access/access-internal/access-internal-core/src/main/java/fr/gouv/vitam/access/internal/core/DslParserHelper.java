@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,7 @@ public class DslParserHelper {
             JsonNode setAction = currentAction.get(BuilderToken.UPDATEACTION.SET.exactToken());
 
             JsonNode value = getValueForSetAction(setAction, fieldName);
-            if(value != null) {
+            if (value != null) {
                 // return last non null
                 result = value;
             }
@@ -74,7 +74,7 @@ public class DslParserHelper {
             for (int j = i + 1; j < keyParts.length; j++) {
                 value = getSubValue(value, keyParts[j]);
             }
-            if(value != null) {
+            if (value != null) {
                 return value;
             }
         }
@@ -82,7 +82,7 @@ public class DslParserHelper {
     }
 
     private static JsonNode getSubValue(JsonNode node, String subKey) {
-        if(node == null) {
+        if (node == null) {
             return null;
         }
         return node.get(subKey);

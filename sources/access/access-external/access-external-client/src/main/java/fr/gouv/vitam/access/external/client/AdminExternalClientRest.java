@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -161,7 +161,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.MANAGEMENT_CONTRACTS, select,
-                ManagementContractModel.class);
+            ManagementContractModel.class);
     }
 
     @Override
@@ -705,9 +705,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try (Response response = make(request)) {
             check(response);
             ItemStatus itemStatus = new ItemStatus()
-                    .setGlobalState(ProcessState.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATE)))
-                    .setLogbookTypeProcess(response.getHeaderString(X_CONTEXT_ID))
-                    .increment(StatusCode.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATUS)));
+                .setGlobalState(ProcessState.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATE)))
+                .setLogbookTypeProcess(response.getHeaderString(X_CONTEXT_ID))
+                .increment(StatusCode.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATUS)));
             return new RequestResponseOK<ItemStatus>()
                 .addResult(itemStatus)
                 .setHttpCode(response.getStatus());
@@ -1211,7 +1211,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
+    public RequestResponse createExternalOperation(VitamContext vitamContext,
+        LogbookOperationParameters logbookOperationparams)
         throws LogbookExternalClientException {
         VitamRequestBuilder request = post()
             .withPath(AccessExtAPI.LOGBOOK_OPERATIONS)
@@ -1235,7 +1236,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return;
         }
 
-        String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
+        String message =
+            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase());
         VitamError<JsonNode> vitamError = new VitamError<JsonNode>(message)
             .setDescription(message)
             .setHttpCode(status.getStatusCode())

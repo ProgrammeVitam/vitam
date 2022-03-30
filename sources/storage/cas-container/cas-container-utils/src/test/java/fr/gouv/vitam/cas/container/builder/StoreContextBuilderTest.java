@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,6 @@
  */
 package fr.gouv.vitam.cas.container.builder;
 
-import static fr.gouv.vitam.common.digest.DigestType.SHA512;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.util.UUID;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -47,6 +38,15 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.UUID;
+
+import static fr.gouv.vitam.common.digest.DigestType.SHA512;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration Test When you have swift Vm installed in your computer
@@ -89,11 +89,11 @@ public class StoreContextBuilderTest {
 
         // When
         contentAddressableStorage
-            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L);
+            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512, 3500L);
 
         // Then
         ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
-        try(InputStream is = response.getInputStream()) {
+        try (InputStream is = response.getInputStream()) {
 
             File fileDownloaded = tempFolder.newFile();
 

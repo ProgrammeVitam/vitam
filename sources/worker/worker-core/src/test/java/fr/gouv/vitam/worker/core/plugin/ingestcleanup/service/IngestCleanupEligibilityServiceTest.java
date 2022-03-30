@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -238,7 +238,8 @@ public class IngestCleanupEligibilityServiceTest {
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.OK);
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
         verifyZeroInteractions(logbookOperationsClient);
     }
 
@@ -253,7 +254,8 @@ public class IngestCleanupEligibilityServiceTest {
                 .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
             JsonHandler.createObjectNode()
                 .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
+                .set(VitamFieldsHelper.operations(),
+                    JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
         )).toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
@@ -275,15 +277,18 @@ public class IngestCleanupEligibilityServiceTest {
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
 
         ArgumentCaptor<JsonNode> logbookQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(logbookOperationsClient).selectOperation(logbookQueryCaptor.capture());
-        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
+        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
     }
 
     @Test
-    public void givenNonIngestObjectGroupUpdatesThenCheckObjectGroupUpdatesFromOtherOperationsWarning() throws Exception {
+    public void givenNonIngestObjectGroupUpdatesThenCheckObjectGroupUpdatesFromOtherOperationsWarning()
+        throws Exception {
 
         // Given
         String anotherOperationId = "aecaaaaaachipxsgaamxmalhi4ovibiaaaar";
@@ -293,7 +298,8 @@ public class IngestCleanupEligibilityServiceTest {
                 .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
             JsonHandler.createObjectNode()
                 .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
+                .set(VitamFieldsHelper.operations(),
+                    JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
         )).toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
@@ -313,11 +319,13 @@ public class IngestCleanupEligibilityServiceTest {
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
 
         ArgumentCaptor<JsonNode> logbookQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(logbookOperationsClient).selectOperation(logbookQueryCaptor.capture());
-        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
+        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
     }
 
     @Test
@@ -336,7 +344,8 @@ public class IngestCleanupEligibilityServiceTest {
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.OK);
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
+        checkQueryEquals(queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
     }
 
     @Test
@@ -356,12 +365,15 @@ public class IngestCleanupEligibilityServiceTest {
         // Then
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(cleanupReportManager.getCleanupReport().getObjectGroups()).containsOnlyKeys("og_updated_1");
-        assertThat(cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getErrors()).isNotEmpty();
-        assertThat(cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getWarnings()).isNull();
+        assertThat(
+            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getErrors()).isNotEmpty();
+        assertThat(
+            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getWarnings()).isNull();
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
+        checkQueryEquals(queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
     }
 
     private void checkQueryEquals(JsonNode expectedJsonNode, String resourceFile)

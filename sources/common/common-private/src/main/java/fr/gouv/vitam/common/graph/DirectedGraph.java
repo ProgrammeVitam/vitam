@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,16 +28,14 @@ package fr.gouv.vitam.common.graph;
 
 
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * DirectedGraph
@@ -245,7 +243,7 @@ public class DirectedGraph {
 
     /**
      * Retrieve the id mapping the index
-     * 
+     *
      * @param index index
      * @return id
      */

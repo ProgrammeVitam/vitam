@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,7 +100,6 @@ import java.util.concurrent.TimeUnit;
 import static fr.gouv.vitam.common.VitamServerRunner.getOfferPath;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Integration tests for the reconstruction services. <br/>
@@ -250,7 +249,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP_OPERATION, 0L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP_OPERATION,
+                0L, 10,
                 Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
@@ -267,7 +267,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
             .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse2 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.BACKUP_OPERATION, 1L, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP_OPERATION,
+                1L, 10,
                 Order.DESC);
         assertThat(offerLogResponse2).isNotNull();
         assertThat(offerLogResponse2.isOk()).isTrue();
@@ -277,7 +278,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
             .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse3 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID,DataCategory.BACKUP_OPERATION, null, 10,
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP_OPERATION,
+                null, 10,
                 Order.DESC);
         assertThat(offerLogResponse3).isNotNull();
         assertThat(offerLogResponse3.isOk()).isTrue();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -610,8 +610,8 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(
-                    new RequestResponseOK<TenantLogbookOperationTraceabilityResult>()
-                        .setHttpCode(Status.OK.getStatusCode()))
+                        new RequestResponseOK<TenantLogbookOperationTraceabilityResult>()
+                            .setHttpCode(Status.OK.getStatusCode()))
                     .build());
         client.traceability(Collections.singletonList(0));
     }
@@ -699,7 +699,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     @Test
     public void statusExecutionWithBody() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"name\":\"logbook\",\"role\":\"myRole\"," +
-            "\"pid\":123}")
+                "\"pid\":123}")
             .build());
         client.checkStatus();
     }

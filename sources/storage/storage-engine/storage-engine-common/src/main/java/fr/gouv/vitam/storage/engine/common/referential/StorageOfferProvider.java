@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,11 +38,9 @@ public interface StorageOfferProvider {
     /**
      * Retrieve an offer full configuration by its id
      *
-     * @param idOffer
-     *            the id of the storage offer to retrieve
+     * @param idOffer the id of the storage offer to retrieve
      * @return an object representation of a storage offer
-     * @throws StorageException
-     *             if any unwanted technical issue happens
+     * @throws StorageException if any unwanted technical issue happens
      */
     StorageOffer getStorageOffer(String idOffer) throws StorageException;
 

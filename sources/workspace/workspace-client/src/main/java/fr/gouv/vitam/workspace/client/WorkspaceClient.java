@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -190,7 +190,7 @@ public class WorkspaceClient extends DefaultClient {
 
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageServerException {
-        this.putObject(containerName, objectName, (Object)stream);
+        this.putObject(containerName, objectName, (Object) stream);
     }
 
     public void putObject(String containerName, String objectName, Object object)
@@ -344,9 +344,11 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public RequestResponse<Map<String, FileParams>> getFilesWithParamsFromFolder(String containerName, String folderName)
+    public RequestResponse<Map<String, FileParams>> getFilesWithParamsFromFolder(String containerName,
+        String folderName)
         throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,folderName);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, folderName);
         try (Response response = make(
             get().withPath(CONTAINERS + containerName + FOLDERS + folderName + FILES_WITH_PARAMS).withJsonAccept())) {
             check(response);

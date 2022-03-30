@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -830,7 +830,7 @@ public class MongoDbInMemory {
         JsonNode parent = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
         String[] fieldNamePath = fieldName.split("[.]");
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-        if(parent != null) {
+        if (parent != null) {
             ((ObjectNode) parent).remove(lastNodeName);
         }
         String newFieldName = element.getValue().asText();

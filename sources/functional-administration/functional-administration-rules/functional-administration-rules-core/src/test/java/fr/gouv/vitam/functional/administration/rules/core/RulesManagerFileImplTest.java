@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,9 +68,9 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
@@ -1347,7 +1347,7 @@ public class RulesManagerFileImplTest {
         // Given : empty db
         List<Integer> tenants = Arrays.asList(0, 1, 2);
         doReturn(Optional.empty()).when(restoreBackupService)
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(),null, RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
         doReturn(JsonHandler.createArrayNode())
             .when(functionalBackupService).getCollectionInJson(eq(RULES), anyInt());
 
@@ -1356,7 +1356,7 @@ public class RulesManagerFileImplTest {
             .doesNotThrowAnyException();
 
         verify(restoreBackupService, times(3))
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(),null, RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
         verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
     }
 
@@ -1375,7 +1375,7 @@ public class RulesManagerFileImplTest {
             collectionBackupModel.setDocuments(Collections.singletonList(doc));
             return Optional.of(collectionBackupModel);
         }).when(restoreBackupService)
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(),null, RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
 
         doAnswer(
             (args) -> {
@@ -1392,7 +1392,7 @@ public class RulesManagerFileImplTest {
             .doesNotThrowAnyException();
 
         verify(restoreBackupService, times(3))
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(),null, RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
         verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
     }
 
@@ -1417,7 +1417,7 @@ public class RulesManagerFileImplTest {
             collectionBackupModel.setDocuments(Collections.singletonList(doc));
             return Optional.of(collectionBackupModel);
         }).when(restoreBackupService)
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null,RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
 
         doAnswer(
             (args) -> {
@@ -1433,7 +1433,7 @@ public class RulesManagerFileImplTest {
             .isInstanceOf(ReferentialException.class);
 
         verify(restoreBackupService, times(3))
-            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null,RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), null, RULES);
         verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
     }
 }

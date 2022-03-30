@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -916,7 +916,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test
     public void selectExecution() throws Exception {
         final String BODY_WITHOUT_ID =
-                "{\"$query\": {}, \"$projection\": {}, \"$filter\": {}}";
+            "{\"$query\": {}, \"$projection\": {}, \"$filter\": {}}";
         final String BODY_WITH_ID =
             "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
 
@@ -967,8 +967,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         } catch (final LogbookClientException e) {
 
         }
-        assertThatThrownBy(() -> client.unitLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
-        assertThatThrownBy(() -> client.objectGroupLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
+        assertThatThrownBy(() -> client.unitLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
+        assertThatThrownBy(() -> client.objectGroupLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
@@ -1065,7 +1067,8 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getUnitLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
 
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
+        when(mock.head()).thenReturn(
+            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
         assertThatCode(() -> client.getUnitLifeCycleStatus(unitId.toString())).doesNotThrowAnyException();
@@ -1095,7 +1098,8 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getObjectGroupLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
 
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
+        when(mock.head()).thenReturn(
+            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
         assertThatCode(() -> client.getObjectGroupLifeCycleStatus(objectGroupId.toString())).doesNotThrowAnyException();
@@ -1224,8 +1228,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getRawUnitLifecyclesByLastPersistedDate_InternalServerError() {
         when(mock.post())
             .thenReturn(Response.serverError().build());
-        assertThatThrownBy( () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
-        .isInstanceOf(LogbookClientServerException.class);
+        assertThatThrownBy(
+            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+            .isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
@@ -1260,7 +1265,8 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
             .thenReturn(Response.ok(new NullInputStream(100))
                 .build());
         assertThatThrownBy(
-            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(),
+                1000))
             .isInstanceOf(LogbookClientException.class);
     }
 
@@ -1268,7 +1274,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getRawObjectGroupLifecyclesByLastPersistedDate_InternalServerError() {
         when(mock.post())
             .thenReturn(Response.serverError().build());
-        assertThatThrownBy( () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+        assertThatThrownBy(
+            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(),
+                1000))
             .isInstanceOf(LogbookClientServerException.class);
     }
 

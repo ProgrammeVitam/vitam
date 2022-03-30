@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,9 @@
  */
 package fr.gouv.vitam.metadata.core.database.configuration;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashSet;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class GlobalDatasDbTest {
     @Test

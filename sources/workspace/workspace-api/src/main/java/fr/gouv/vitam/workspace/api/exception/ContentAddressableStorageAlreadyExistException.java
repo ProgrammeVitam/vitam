@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,7 @@ public class ContentAddressableStorageAlreadyExistException extends ContentAddre
 
     /**
      * Constructor
-     * 
+     *
      * @param message as String message to associate with the exception
      */
     public ContentAddressableStorageAlreadyExistException(String message) {
@@ -44,7 +44,7 @@ public class ContentAddressableStorageAlreadyExistException extends ContentAddre
 
     /**
      * Constructor
-     * 
+     *
      * @param cause as String to associate with the exception
      */
     public ContentAddressableStorageAlreadyExistException(Throwable cause) {
@@ -53,7 +53,7 @@ public class ContentAddressableStorageAlreadyExistException extends ContentAddre
 
     /**
      * Constructor
-     * 
+     *
      * @param message : message to associate with the exception
      * @param cause : cause to associate with the exception
      */

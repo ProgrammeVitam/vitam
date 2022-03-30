@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,16 @@
  */
 package fr.gouv.vitam.processing.common.exception;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ProcessingStorageWorkspaceExceptionTest {
 
 
     private static final String ERROR = "ERROR";
-    private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException";
+    private static final String EXCEPTION =
+        "fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException";
     private static final String JAVA_ERROR = "java.lang.Exception";
 
     @Test

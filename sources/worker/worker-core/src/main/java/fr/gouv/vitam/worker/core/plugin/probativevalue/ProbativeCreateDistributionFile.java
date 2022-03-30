@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -98,14 +98,17 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
             JsonLineWriter writer = new JsonLineWriter(outputStream);
             InputStream request = handler.getInputStreamFromWorkspace("request")) {
 
-            ProbativeValueRequest probativeValueRequest = JsonHandler.getFromInputStream(request, ProbativeValueRequest.class);
-            String usageVersion = String.format("%s_%s", probativeValueRequest.getUsage(), probativeValueRequest.getVersion());
+            ProbativeValueRequest probativeValueRequest =
+                JsonHandler.getFromInputStream(request, ProbativeValueRequest.class);
+            String usageVersion =
+                String.format("%s_%s", probativeValueRequest.getUsage(), probativeValueRequest.getVersion());
 
             SelectMultiQuery select = constructSelectMultiQuery(probativeValueRequest);
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, select);
+            ScrollSpliterator<JsonNode> scrollRequest =
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, select);
             SpliteratorIterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
-            MultiValuedMap<String,String> unitsByObjectId = new HashSetValuedHashMap<>();
+            MultiValuedMap<String, String> unitsByObjectId = new HashSetValuedHashMap<>();
             while (iterator.hasNext()) {
                 JsonNode element = iterator.next();
 
@@ -139,7 +142,8 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
         }
     }
 
-    private JsonLineModel toJsonLineDistribution(String objectId, String usageVersion, Collection<String> elementIds) throws InvalidParseOperationException {
+    private JsonLineModel toJsonLineDistribution(String objectId, String usageVersion, Collection<String> elementIds)
+        throws InvalidParseOperationException {
         ObjectNode objectNode = createObjectNode();
         objectNode.set("unitIds", JsonHandler.toJsonNode(elementIds));
         objectNode.put("usageVersion", usageVersion);

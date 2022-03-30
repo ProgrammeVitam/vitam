@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.common.graph;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -34,14 +40,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Graph contains Directed Acyclic Graph
@@ -159,12 +157,15 @@ public class Graph {
         }
     }
 
+
     /**
      * state enum
      */
     public enum State {
         NEW, VISITED
     }
+
+
     /**
      * Neighbour class
      */
@@ -180,7 +181,6 @@ public class Graph {
     }
 
     /**
-     *
      * @param source
      * @return {@link Map} : longest path for list of child
      */
