@@ -4,3 +4,5 @@ prometheus_alertmanager_config_path: "{{ vitam_defaults.folder.root_path | defau
 prometheus_alertmanager_db_path:     "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/alertmanager"
 prometheus_alertmanager_app_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/app/alertmanager"
 prometheus_alertmanager_bin_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/bin/alertmanager"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

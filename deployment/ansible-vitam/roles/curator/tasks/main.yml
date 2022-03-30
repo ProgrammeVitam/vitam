@@ -67,9 +67,9 @@
 - name: Enable systemd timers
   systemd:
     name: "{{ item | basename | regex_replace('\\.j2$') }}"
-    daemon_reload: "yes"
-    enabled: "yes"
-    state: "started"
+    daemon_reload: yes
+    enabled: "{{ curator.at_boot | default(service_at_boot) }}"
+    state: started
   with_fileglob:
     - "{{ role_path }}/templates/systemd/*.timer.j2"
 
