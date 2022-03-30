@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,14 +70,15 @@ public class TimeStampService {
 
     public TimeStampToken getTimeStampFrom(String timeStampAsString) throws IOException, TSPException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(Base64.decode(timeStampAsString.getBytes(US_ASCII)));
-             ASN1InputStream timeStampAsn1Stream = new ASN1InputStream(is)) {
+            ASN1InputStream timeStampAsn1Stream = new ASN1InputStream(is)) {
 
             ASN1Primitive timeStampAsn1Primitive = timeStampAsn1Stream.readObject();
             if (timeStampAsn1Primitive == null) {
                 throw new IOException("Cannot get ASN1Primitive.");
             }
 
-            TimeStampToken timeStampToken = new TimeStampResponse(timeStampAsn1Primitive.getEncoded()).getTimeStampToken();
+            TimeStampToken timeStampToken =
+                new TimeStampResponse(timeStampAsn1Primitive.getEncoded()).getTimeStampToken();
             if (timeStampToken.getTimeStampInfo().getNonce() != null) {
                 throw new IOException("Timestamp token nonce cannot be filled.");
             }

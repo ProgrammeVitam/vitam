@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,10 @@
  */
 package fr.gouv.vitam.logbook.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
@@ -55,6 +43,15 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
 import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path("/logbook/v1")
 @Tag(name = "Logbook")
@@ -82,7 +79,8 @@ public class LogbookReconstructionResource {
 
     /**
      * Constructor
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository
      * @param indexManager
      */

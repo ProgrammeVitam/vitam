@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.objectgroup.StorageRacineModel;
+
+import java.util.List;
 
 /**
  * AuditObjectGroup
@@ -53,7 +52,7 @@ public class AuditObjectGroup {
     }
 
     public AuditObjectGroup(String id, String opi, String sp, List<String> unitUps, List<AuditObject> objects,
-            StorageRacineModel storage) {
+        StorageRacineModel storage) {
         this.id = id;
         this.opi = opi;
         this.sp = sp;

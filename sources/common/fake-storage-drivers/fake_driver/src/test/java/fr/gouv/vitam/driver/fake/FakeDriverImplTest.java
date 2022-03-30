@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,30 +26,29 @@
  */
 package fr.gouv.vitam.driver.fake;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Properties;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class FakeDriverImplTest {
 

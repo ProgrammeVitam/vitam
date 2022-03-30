@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,7 @@ public enum LogbookLifeCycleMongoDbName {
      * parentEventIdentifier
      */
     parentEventIdentifier("evParentId", LogbookParameterName.parentEventIdentifier),
-    
+
     /**
      * eventType
      */
@@ -94,7 +94,6 @@ public enum LogbookLifeCycleMongoDbName {
     }
 
     /**
-     *
      * @return the corresponding dbname
      */
     public final String getDbname() {
@@ -102,7 +101,6 @@ public enum LogbookLifeCycleMongoDbName {
     }
 
     /**
-     *
      * @return the corresponding {@link LogbookParameterName}
      */
     public final LogbookParameterName getLogbookParameterName() {
@@ -110,7 +108,6 @@ public enum LogbookLifeCycleMongoDbName {
     }
 
     /**
-     *
      * @param name as {@link LogbookParameterName}
      * @return the corresponding {@link LogbookLifeCycleMongoDbName}
      */
@@ -119,7 +116,6 @@ public enum LogbookLifeCycleMongoDbName {
     }
 
     /**
-     *
      * @param name as db field name
      * @return the corresponding {@link LogbookLifeCycleMongoDbName}
      */

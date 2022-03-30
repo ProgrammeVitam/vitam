@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,13 +107,14 @@ public class PluginLoader {
      * }
      * </pre>
      *
-     * @throws FileNotFoundException          if file is not found
+     * @throws FileNotFoundException if file is not found
      * @throws InvalidParseOperationException if file cannot be parsed
-     * @throws PluginNotFoundException        if the plugin is not found in the classpath
+     * @throws PluginNotFoundException if the plugin is not found in the classpath
      */
-    public void loadConfiguration() throws FileNotFoundException, InvalidParseOperationException, PluginNotFoundException {
+    public void loadConfiguration()
+        throws FileNotFoundException, InvalidParseOperationException, PluginNotFoundException {
         Map<String, PluginProperties> mapFromInputStream =
-                JsonHandler.getMapFromInputStream(getConfigAsStream(pluginsConfigFile), PluginProperties.class);
+            JsonHandler.getMapFromInputStream(getConfigAsStream(pluginsConfigFile), PluginProperties.class);
         for (Map.Entry<String, PluginProperties> pluginPropertiesEntry : mapFromInputStream.entrySet()) {
             PluginProperties pluginProperties = pluginPropertiesEntry.getValue();
             final Optional<Class<ActionHandler>> actionHandlerClazz;
@@ -122,26 +123,30 @@ public class PluginLoader {
                 actionHandlerClazz = loadInternalPlugins(pluginPropertiesEntry.getKey(), pluginProperties);
             } else {
                 actionHandlerClazz = loadExternalPlugins(pluginPropertiesEntry.getKey(), pluginProperties);
-                LOGGER.debug("Load external plugin name : {}", actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
+                LOGGER.debug("Load external plugin name : {}",
+                    actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
             }
             if (actionHandlerClazz.isPresent()) {
-                plugins.put(pluginPropertiesEntry.getKey(), new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
+                plugins.put(pluginPropertiesEntry.getKey(),
+                    new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
             }
         }
     }
 
-    private Optional<Class<ActionHandler>> loadInternalPlugins(String handlerID, PluginProperties pluginProperties) throws PluginNotFoundException {
+    private Optional<Class<ActionHandler>> loadInternalPlugins(String handlerID, PluginProperties pluginProperties)
+        throws PluginNotFoundException {
 
         Class<ActionHandler> actionHandlerClazz;
         try {
 
-            if(StringUtils.isNotEmpty(pluginProperties.getPropertiesFile())) {
+            if (StringUtils.isNotEmpty(pluginProperties.getPropertiesFile())) {
                 SafeFileChecker.checkSafeRessourceFilePath(pluginProperties.getPropertiesFile());
                 PluginPropertiesLoader.loadProperties(handlerID, pluginProperties.getPropertiesFile());
             }
 
             actionHandlerClazz =
-                    (Class<ActionHandler>) Thread.currentThread().getContextClassLoader().loadClass(pluginProperties.getClassName());
+                (Class<ActionHandler>) Thread.currentThread().getContextClassLoader()
+                    .loadClass(pluginProperties.getClassName());
         } catch (ClassNotFoundException | IllegalPathException e) {
             LOGGER.error("could not find class: {}", pluginProperties.getClassName());
             throw new PluginNotFoundException(format("could not find class: %s", pluginProperties.getClassName()), e);
@@ -151,9 +156,12 @@ public class PluginLoader {
 
     private Optional<Class<ActionHandler>> loadExternalPlugins(String handlerID, PluginProperties pluginProperties) {
         try {
-            File jarFile = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamConfigFolder(), WORKER_PLUGIN_WORKSPACE, pluginProperties.getJarName());
+            File jarFile =
+                SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamConfigFolder(), WORKER_PLUGIN_WORKSPACE,
+                    pluginProperties.getJarName());
             if (!jarFile.exists()) {
-                LOGGER.error("Jar file {} not found in {} folder. FullPath {}", pluginProperties.getJarName(), WORKER_PLUGIN_WORKSPACE, jarFile.getAbsolutePath());
+                LOGGER.error("Jar file {} not found in {} folder. FullPath {}", pluginProperties.getJarName(),
+                    WORKER_PLUGIN_WORKSPACE, jarFile.getAbsolutePath());
                 return Optional.empty();
             }
             URL[] urls = new URL[1];
@@ -162,14 +170,15 @@ public class PluginLoader {
 
             // Load properties file
             String propertiesFile = pluginProperties.getPropertiesFile();
-            if(StringUtils.isNotEmpty(propertiesFile)) {
+            if (StringUtils.isNotEmpty(propertiesFile)) {
                 SafeFileChecker.checkSafeRessourceFilePath(propertiesFile);
                 PluginPropertiesLoader.loadProperties(handlerID, propertiesFile, pluginLoader);
             }
             SafeFileChecker.checkSafeRessourceFilePath(pluginProperties.getClassName());
             return Optional.of((Class<ActionHandler>) pluginLoader.loadClass(pluginProperties.getClassName()));
         } catch (ClassNotFoundException | IOException | IllegalPathException e) {
-            LOGGER.error("could not find class: " + pluginProperties.getClassName() + ". the jar file " + pluginProperties.getJarName() + " should be be in " + WORKER_PLUGIN_WORKSPACE + " folder", e);
+            LOGGER.error("could not find class: " + pluginProperties.getClassName() + ". the jar file " +
+                pluginProperties.getJarName() + " should be be in " + WORKER_PLUGIN_WORKSPACE + " folder", e);
             return Optional.empty();
         }
     }
@@ -188,7 +197,7 @@ public class PluginLoader {
      * @param pluginId id of a plugin
      * @return an  new instance of a plugin
      * @throws InvocationPluginException the plugin cannot be instanciate.
-     * @throws PluginNotFoundException   the plugin is not present
+     * @throws PluginNotFoundException the plugin is not present
      */
     public ActionHandler newInstance(String pluginId) throws InvocationPluginException, PluginNotFoundException {
         PluginConfiguration pluginConfiguration = plugins.get(pluginId);
@@ -218,7 +227,7 @@ public class PluginLoader {
                 // Exception is used here because Class.newInstance propagate the exception launched by the constructor.
             } catch (Exception e) {
                 throw new InvocationPluginException(
-                        format("could not instance plugin with action Id: %s", configurationEntry.getKey()), e);
+                    format("could not instance plugin with action Id: %s", configurationEntry.getKey()), e);
             }
         }
         return actionHandlers;

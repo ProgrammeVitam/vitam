@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,28 +26,24 @@
  */
 package fr.gouv.vitam.common.logging;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLoggerFactory;
+
+import javax.management.RuntimeErrorException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
-import javax.management.RuntimeErrorException;
-
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLoggerFactory;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-
 /**
  * logger factory using SLF4J from Logback
- *
  */
 public final class LogbackLoggerFactory extends VitamLoggerFactory {
     // Since Logger, most of the exception are catch silently
     static final String ROOT = Logger.ROOT_LOGGER_NAME;
 
     /**
-     *
      * @param level the vitam log level
      */
     public LogbackLoggerFactory(final VitamLogLevel level) {

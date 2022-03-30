@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -213,7 +213,8 @@ public class CreateManifestTest {
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
         assertThat(fromFile).hasSize(3).extracting(JsonNode::asText)
-            .containsExactlyInAnyOrder("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq", "aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba", "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
+            .containsExactlyInAnyOrder("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq", "aeaaaaaaaaerxz5cbmt2yal5tk4lihqaaaba",
+                "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
             .doesNotContain("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
         assertThat(Input.fromFile(manifestFile), hasXPath(
@@ -403,7 +404,7 @@ public class CreateManifestTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
-            Charset.defaultCharset()).get(0), "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"),
+                Charset.defaultCharset()).get(0), "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"),
             equalTo(1));
 
     }
@@ -477,7 +478,8 @@ public class CreateManifestTest {
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba\",\"status\":\"OK\"}", lines.get(3));
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca\",\"status\":\"OK\"}", lines.get(4));
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba\",\"status\":\"OK\"}", lines.get(5));
-        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
+        verify(handlerIO).transferInputStreamToWorkspace(
+            eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
             any(InputStream.class), eq(null), eq(false));
     }
 
@@ -543,7 +545,8 @@ public class CreateManifestTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
+        verify(handlerIO).transferInputStreamToWorkspace(
+            eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
             any(InputStream.class), eq(null), eq(false));
     }
 
@@ -634,7 +637,7 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-          JsonHandler.createObjectNode().set(RequestResponseOK.TAG_RESULTS, JsonHandler.createArrayNode()));
+            JsonHandler.createObjectNode().set(RequestResponseOK.TAG_RESULTS, JsonHandler.createArrayNode()));
 
         File manifestFile = tempFolder.newFile();
         given(handlerIO.getOutput(MANIFEST_XML_RANK))

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.StatusCode;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -75,7 +74,8 @@ public class ProbativeReportEntry {
         this.status = status;
     }
 
-    public ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId, String usageVersion, List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
+    public ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId,
+        String usageVersion, List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -108,7 +108,8 @@ public class ProbativeReportEntry {
         return KO;
     }
 
-    private ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId, String usageVersion) {
+    private ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId,
+        String usageVersion) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -121,18 +122,24 @@ public class ProbativeReportEntry {
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId, String usageVersion) {
+    public static ProbativeReportEntry koFrom(String evStartDateTime, List<String> unitIds, String objectGroupId,
+        String objectId, String usageVersion) {
         return new ProbativeReportEntry(evStartDateTime, unitIds, objectGroupId, objectId, usageVersion);
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId, String objectId, String usageVersion, List<ProbativeOperation> probativeOperations) {
-        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion, probativeOperations, Collections.emptyList());
+    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId,
+        String objectId, String usageVersion, List<ProbativeOperation> probativeOperations) {
+        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion,
+            probativeOperations, Collections.emptyList());
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId, String objectId, String usageVersion, List<ProbativeOperation> probativeOperations, List<ProbativeCheck> probativeChecks) {
-        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion, probativeOperations, probativeChecks);
+    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId,
+        String objectId, String usageVersion, List<ProbativeOperation> probativeOperations,
+        List<ProbativeCheck> probativeChecks) {
+        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion,
+            probativeOperations, probativeChecks);
     }
 
     @JsonProperty("unitIds")

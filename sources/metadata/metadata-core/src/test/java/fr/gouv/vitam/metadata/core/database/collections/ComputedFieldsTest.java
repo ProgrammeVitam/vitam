@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,8 @@ public class ComputedFieldsTest {
     private static final List<String> expectedUnitComputedFields =
         Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
             MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
-            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES, Unit.APPROXIMATE_CREATION_DATE, Unit.APPROXIMATE_UPDATE_DATE);
+            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES,
+            Unit.APPROXIMATE_CREATION_DATE, Unit.APPROXIMATE_UPDATE_DATE);
 
     private static final List<String> expectedUnitMainFields = Arrays
         .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,

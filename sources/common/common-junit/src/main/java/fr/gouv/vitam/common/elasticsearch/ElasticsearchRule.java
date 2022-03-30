@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,14 +44,12 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.core.TimeValue;
-import org.elasticsearch.xcontent.XContentType;
-
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.index.reindex.ScrollableHitSource;
 import org.elasticsearch.rest.RestStatus;
-
+import org.elasticsearch.xcontent.XContentType;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
@@ -149,7 +147,7 @@ public class ElasticsearchRule extends ExternalResource {
 
             LOGGER.info("Deleted : " + bulkResponse.getDeleted());
         } catch (ElasticsearchException e) {
-            if(e.status() == RestStatus.NOT_FOUND) {
+            if (e.status() == RestStatus.NOT_FOUND) {
                 return;
             }
             throw new RuntimeException("Purge Exception", e);

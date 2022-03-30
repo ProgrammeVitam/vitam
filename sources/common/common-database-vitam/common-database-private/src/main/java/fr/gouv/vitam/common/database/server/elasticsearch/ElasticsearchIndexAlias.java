@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -88,7 +88,7 @@ public class ElasticsearchIndexAlias {
         return name;
     }
 
-    public boolean isValidAliasOfIndex  (ElasticsearchIndexAlias indexName) {
+    public boolean isValidAliasOfIndex(ElasticsearchIndexAlias indexName) {
         ParametersChecker.checkParameter("Missing index name", indexName);
         return indexName.getName().startsWith(this.name + "_");
     }

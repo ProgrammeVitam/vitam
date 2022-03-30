@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E> {
-    private static final Consumer NOOP = r -> {};
+    private static final Consumer NOOP = r -> {
+    };
 
     private final AtomicInteger counter = new AtomicInteger();
     private final SecureRandom randomSleep = new SecureRandom();

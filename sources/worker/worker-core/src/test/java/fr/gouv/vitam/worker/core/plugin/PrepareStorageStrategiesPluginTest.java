@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -93,13 +93,13 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Test
     public void shouldCreateStrategiesOutput() throws ProcessingException,
-            IOException, InvalidParseOperationException {
+        IOException, InvalidParseOperationException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(handler.getOutput(0)).thenReturn(new ProcessingUri(UriPrefix.WORKSPACE,"StorageInfo/strategies.json"));
+        when(handler.getOutput(0)).thenReturn(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/strategies.json"));
 
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
@@ -116,7 +116,8 @@ public class PrepareStorageStrategiesPluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
 
-        JsonNode strategies = JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
+        JsonNode strategies =
+            JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
         assertThat(strategies).isNotNull();
         List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<>() {
         });
@@ -161,7 +162,7 @@ public class PrepareStorageStrategiesPluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.FATAL);
     }
 
-    private RequestResponse<StorageStrategy> loadStorageStrategiesMock(){
+    private RequestResponse<StorageStrategy> loadStorageStrategiesMock() {
         StorageStrategy defaultStrategy = new StorageStrategy();
         defaultStrategy.setId("default");
         OfferReference offer1 = new OfferReference();

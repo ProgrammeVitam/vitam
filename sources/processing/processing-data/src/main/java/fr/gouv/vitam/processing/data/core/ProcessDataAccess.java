@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.processing.data.core;
 
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Process Data Access Interface offers services
@@ -51,6 +50,7 @@ public interface ProcessDataAccess {
 
     /**
      * Gets Process Workflow by ID
+     *
      * @param processId the process id
      * @param tenantId the working tenant
      * @return {@link ProcessWorkflow}
@@ -62,8 +62,8 @@ public interface ProcessDataAccess {
     /**
      * Retrieves All the workflow process for monitoring purpose The final business scope of this feature is likely to
      * be redefined, to match the future need
-     * @param tenantId the working tenant
      *
+     * @param tenantId the working tenant
      * @return All the workflow process details
      */
     List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);
@@ -77,9 +77,9 @@ public interface ProcessDataAccess {
     void addToWorkflowList(ProcessWorkflow processWorkflow);
 
     /**
-     *getter of WorkflowList
+     * getter of WorkflowList
      *
      * @return
      */
-    Map<Integer,Map<String,ProcessWorkflow>> getWorkFlowList();
+    Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList();
 }

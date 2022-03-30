@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,7 @@ import java.util.Optional;
  * Used to validate profiles and to apply acceptance rules.
  *
  * Bellow the example of usage :
- * 
+ *
  * <pre>
  * {@code
  * private static ProfileValidator checkDuplicateInDatabaseValidator() {
@@ -56,7 +56,6 @@ import java.util.Optional;
  * GenericRejectionCause rejection = checkDuplicateInDatabaseValidator().validate(p, p.getName());
  *
  * Check if rejection is present then do the resolution
- *
  */
 @FunctionalInterface
 public interface ProfileValidator {
@@ -85,7 +84,7 @@ public interface ProfileValidator {
 
         /**
          * Constructor
-         * 
+         *
          * @param error
          */
         public RejectionCause(String error) {
@@ -105,7 +104,7 @@ public interface ProfileValidator {
         /**
          * Verify for each profile if already exists one in database that have the same identifier and/or name. The
          * database my manage this kind of constraint (by creating an unique index on the field or column)
-         * 
+         *
          * @param identifier
          * @return RejectionCause
          */
@@ -115,7 +114,7 @@ public interface ProfileValidator {
 
         /**
          * Reject if one of multiple mandatory parameter are null
-         * 
+         *
          * @param fieldName
          * @return RejectionCause
          */
@@ -139,7 +138,7 @@ public interface ProfileValidator {
 
         /**
          * Get reason
-         * 
+         *
          * @return reason
          */
         public String getReason() {

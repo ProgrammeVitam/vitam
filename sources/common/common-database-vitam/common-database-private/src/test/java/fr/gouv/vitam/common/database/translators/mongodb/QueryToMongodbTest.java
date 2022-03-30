@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,7 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.bson.conversions.Bson;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.query.MatchQuery;
 import fr.gouv.vitam.common.database.builder.query.MltQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.SearchQuery;
@@ -52,6 +37,18 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import org.bson.conversions.Bson;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class QueryToMongodbTest {
@@ -86,7 +83,8 @@ public class QueryToMongodbTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
+    public static void tearDownAfterClass() throws Exception {
+    }
 
     private SelectMultiQuery createSelect() {
         try {

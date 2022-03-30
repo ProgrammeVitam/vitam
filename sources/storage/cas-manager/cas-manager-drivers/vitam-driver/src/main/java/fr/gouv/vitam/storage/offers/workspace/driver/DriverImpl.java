@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -51,6 +44,12 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import javax.annotation.Nonnull;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Workspace Driver Implementation
@@ -62,6 +61,7 @@ public class DriverImpl extends AbstractDriver {
     private static final String RESOURCE_PATH = "/offer/v1";
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
+
 
     static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
@@ -97,7 +97,8 @@ public class DriverImpl extends AbstractDriver {
 
 
     @Override
-    protected VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters) {
+    protected VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(StorageOffer offer,
+        Properties parameters) {
         return new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
     }
 

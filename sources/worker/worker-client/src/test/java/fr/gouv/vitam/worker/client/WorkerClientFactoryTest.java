@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,23 +26,21 @@
  */
 package fr.gouv.vitam.worker.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
-
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
  */
 public class WorkerClientFactoryTest {
 
-    private  WorkerClientConfiguration workerClientConfiguration;
+    private WorkerClientConfiguration workerClientConfiguration;
+
     @Before
     public void initFileConfiguration() {
         workerClientConfiguration = WorkerClientFactory.changeConfigurationFile("worker-client.conf");
@@ -62,7 +60,8 @@ public class WorkerClientFactoryTest {
 
         final WorkerClient client = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         assertTrue(client instanceof WorkerClientRest);
-        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(workerClientConfiguration).getVitamClientType());
+        assertEquals(VitamClientType.PRODUCTION,
+            WorkerClientFactory.getInstance(workerClientConfiguration).getVitamClientType());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -71,14 +70,14 @@ public class WorkerClientFactoryTest {
     }
 
     @Test
-    public void testMultipleClientInstances(){
-        WorkerClientConfiguration configuration1 = new  WorkerClientConfiguration("localhost",8076);
-        WorkerClientConfiguration configuration2 = new  WorkerClientConfiguration("localhost",8176);
-        WorkerClientConfiguration configuration3 = new  WorkerClientConfiguration("localhost",8176);
+    public void testMultipleClientInstances() {
+        WorkerClientConfiguration configuration1 = new WorkerClientConfiguration("localhost", 8076);
+        WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("localhost", 8176);
+        WorkerClientConfiguration configuration3 = new WorkerClientConfiguration("localhost", 8176);
 
 
         assertTrue(configuration3.equals(configuration2));
-        assertNotEquals(configuration3,configuration1);
+        assertNotEquals(configuration3, configuration1);
 
         WorkerClientFactory.getInstance(configuration2);
         WorkerClientFactory.getInstance(configuration2);
@@ -90,8 +89,9 @@ public class WorkerClientFactoryTest {
         assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration1).getVitamClientType());
         assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration2).getVitamClientType());
 
-        assertNotEquals(WorkerClientFactory.getInstance(configuration2),WorkerClientFactory.getInstance(configuration1));
-        assertEquals(WorkerClientFactory.getInstance(configuration2),WorkerClientFactory.getInstance(configuration3));
+        assertNotEquals(WorkerClientFactory.getInstance(configuration2),
+            WorkerClientFactory.getInstance(configuration1));
+        assertEquals(WorkerClientFactory.getInstance(configuration2), WorkerClientFactory.getInstance(configuration3));
 
 
     }

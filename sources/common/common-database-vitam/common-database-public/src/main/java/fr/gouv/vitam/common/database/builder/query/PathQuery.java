@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.database.builder.query;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -35,7 +34,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Path Query
- *
  */
 public class PathQuery extends Query {
     protected PathQuery() {

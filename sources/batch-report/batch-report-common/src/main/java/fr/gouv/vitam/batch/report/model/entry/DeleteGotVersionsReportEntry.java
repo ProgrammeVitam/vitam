@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.Set;
@@ -100,6 +99,8 @@ public class DeleteGotVersionsReportEntry extends ReportEntry {
     }
 
     @JsonProperty(UNIT_IDS)
-    public Set<String> getUnitIds() {return unitIds;}
+    public Set<String> getUnitIds() {
+        return unitIds;
+    }
 
 }

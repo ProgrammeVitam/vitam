@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.common.thread;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.validation.constraints.NotNull;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
+
+import javax.validation.constraints.NotNull;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Simple ThreadFactory setting Threads to be Daemon threads (do not prevent shutdown) ; in addition, creates
@@ -51,7 +50,6 @@ public class VitamThreadFactory implements ThreadFactory {
     }
 
     /**
-     *
      * @return the default {@link VitamThreadFactory}
      */
     public static final VitamThreadFactory getInstance() {

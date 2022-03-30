@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,14 +42,13 @@ import java.util.Map.Entry;
 
 /**
  * Query from Parser Helper
- *
  */
 public class QueryParserHelper extends QueryHelper {
 
-    protected QueryParserHelper() {}
+    protected QueryParserHelper() {
+    }
 
     /**
-     *
      * @param array primary list of path in the future PathQuery
      * @param adapter VarNameAdapter
      * @return a PathQuery
@@ -59,7 +58,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using EQ comparator
@@ -71,7 +69,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using NE comparator
@@ -83,7 +80,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using LT (less than) comparator
@@ -95,7 +91,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -107,7 +102,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using GT (greater than) comparator
@@ -119,7 +113,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -131,7 +124,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a CompareQuery using SIZE comparator
@@ -143,7 +135,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return an ExistsQuery
@@ -156,7 +147,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return an ExistsQuery using Missing operator
@@ -169,7 +159,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return an ExistsQuery using isNull operator
@@ -182,7 +171,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return an InQuery using IN operator
@@ -194,7 +182,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return an InQuery using NIN (not in) operator
@@ -206,7 +193,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH operator
@@ -218,7 +204,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH operator
@@ -230,7 +215,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH_PHRASE operator
@@ -242,7 +226,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH_PHRASE_PREFIX operator
@@ -254,7 +237,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a SearchQuery using REGEX operator
@@ -266,7 +248,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a SearchQuery using SEARCH operator
@@ -278,19 +259,17 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a SearchQuery using nested search mode
      * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SearchQuery nestedSearch(final JsonNode command, final VarNameAdapter adapter)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new SearchQuery(QUERY.SUBOBJECT, command, adapter);
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a TermQuery
@@ -302,7 +281,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a WildcardQuery
@@ -314,7 +292,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MltQuery using a FLT (fuzzy like this) operator
@@ -326,7 +303,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a MltQuery using a MLT (more like this) operator
@@ -338,7 +314,6 @@ public class QueryParserHelper extends QueryHelper {
     }
 
     /**
-     *
      * @param command JsonNode
      * @param adapter VarNameAdapter
      * @return a RangeQuery
@@ -361,7 +336,7 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      * Transform command to query
-     * 
+     *
      * @param refCommand ref of command
      * @param command command
      * @param adapter dapater
@@ -547,7 +522,7 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      * Analyze an array of commands
-     * 
+     *
      * @param query query
      * @param commands commands
      * @param adapter adapter

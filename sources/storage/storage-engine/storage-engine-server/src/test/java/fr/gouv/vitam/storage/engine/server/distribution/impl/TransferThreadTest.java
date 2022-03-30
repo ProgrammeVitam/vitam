@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -61,7 +61,7 @@ public class TransferThreadTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String OFFER_ID = "OfferId";
 
@@ -94,7 +94,8 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length,
+                offerProvider);
 
         // When
         ThreadResponseData call = transferThread.call();
@@ -137,7 +138,8 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length,
+                offerProvider);
 
         // When / Then
         assertThatThrownBy(transferThread::call)
@@ -170,7 +172,8 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L,
+                offerProvider);
 
         // When / Then
         assertThatThrownBy(transferThread::call)
@@ -205,7 +208,8 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L,
+                offerProvider);
 
         // When / When
         assertThatThrownBy(transferThread::call)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,8 +83,8 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -95,7 +95,6 @@ import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -201,8 +200,9 @@ public class ContextServiceImpl implements ContextService {
         manager.logStarted();
 
         final List<ContextModel> contextsListToPersist = new ArrayList<>();
-        final VitamError<ContextModel> error = new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError<ContextModel> error =
+            new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         ArrayNode contextsToPersist = JsonHandler.createArrayNode();
 
@@ -217,8 +217,9 @@ public class ContextServiceImpl implements ContextService {
                 }
                 // if a contract have an id
                 if (cm.getId() != null) {
-                    error.addToErrors(new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
-                        ContextRejectionCause.rejectIdNotAllowedInCreate(cm.getName()).getReason()));
+                    error.addToErrors(
+                        new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
+                            ContextRejectionCause.rejectIdNotAllowedInCreate(cm.getName()).getReason()));
                     continue;
                 }
 

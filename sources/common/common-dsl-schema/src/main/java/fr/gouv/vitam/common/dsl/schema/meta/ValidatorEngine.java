@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,7 @@
  */
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -42,6 +34,13 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * DSL Validator from a Schema. WARNING: not thread safe. (note: Schema is thread safe)
@@ -101,7 +100,7 @@ public class ValidatorEngine {
         if (fieldReport == null && node.isObject()) {
             // No need to report. We do local check.
             fields = new HashSet<>();
-            for (Iterator<String> it = node.fieldNames(); it.hasNext();) {
+            for (Iterator<String> it = node.fieldNames(); it.hasNext(); ) {
                 fields.add(it.next());
             }
             localFieldReport = fields::remove;

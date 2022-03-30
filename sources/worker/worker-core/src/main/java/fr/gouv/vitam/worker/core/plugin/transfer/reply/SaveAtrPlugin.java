@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,14 +77,18 @@ public class SaveAtrPlugin extends ActionHandler {
 
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
 
-            StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(), description.getObjectName(), description);
+            StoredInfoResult storedInfo =
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
+                    description.getObjectName(), description);
 
             handler.addOutputResult(0, atr);
 
-            return buildItemStatus(PLUGIN_NAME, OK, Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
+            return buildItemStatus(PLUGIN_NAME, OK,
+                Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.warn(e);
-            return buildItemStatus(PLUGIN_NAME, WARNING, EventDetails.of(e.getMessage(), "ATR already exists but it will continue."));
+            return buildItemStatus(PLUGIN_NAME, WARNING,
+                EventDetails.of(e.getMessage(), "ATR already exists but it will continue."));
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));

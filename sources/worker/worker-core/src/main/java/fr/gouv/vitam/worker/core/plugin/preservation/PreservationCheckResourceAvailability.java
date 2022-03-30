@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.stream.Collectors.toList;
 
 public class PreservationCheckResourceAvailability extends CheckResourceAvailability {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationCheckResourceAvailability.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(PreservationCheckResourceAvailability.class);
     private static final String PLUGIN_NAME = "PRESERVATION_CHECK_RESOURCE_AVAILABILITY";
 
     public PreservationCheckResourceAvailability() {
@@ -67,20 +68,23 @@ public class PreservationCheckResourceAvailability extends CheckResourceAvailabi
 
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
 
         try {
             Map<AccessRequestContext, List<String>> entries = new HashMap<>();
             IntStream.range(0, workerParameters.getObjectNameList().size())
-                    .mapToObj(index -> mapToParamsResourceDistributionLine(workerParameters, index))
-                    .collect(toList())
-                    .forEach(pair -> entries.computeIfAbsent(pair.getLeft(),  (x -> new ArrayList<>())).add(pair.getRight()));
+                .mapToObj(index -> mapToParamsResourceDistributionLine(workerParameters, index))
+                .collect(toList())
+                .forEach(
+                    pair -> entries.computeIfAbsent(pair.getLeft(), (x -> new ArrayList<>())).add(pair.getRight()));
 
             checkResourcesAvailability(entries, DataCategory.OBJECT);
 
             return IntStream.range(0, workerParameters.getObjectNameList().size()).
-                    mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK, PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
-                    .collect(toList());
+                mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK,
+                    PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
+                .collect(toList());
         } catch (ProcessingRetryAsyncException prae) {
             LOGGER.info("Some resources where not available");
             throw prae;
@@ -89,7 +93,8 @@ public class PreservationCheckResourceAvailability extends CheckResourceAvailabi
         }
     }
 
-    private Pair<AccessRequestContext, String> mapToParamsResourceDistributionLine(WorkerParameters workerParameters, int index) {
+    private Pair<AccessRequestContext, String> mapToParamsResourceDistributionLine(WorkerParameters workerParameters,
+        int index) {
         String strategyId = workerParameters.getObjectMetadataList().get(index).get("sourceStrategy").asText();
         String objectId = workerParameters.getObjectMetadataList().get(index).get("objectId").asText();
         return new ImmutablePair<>(new AccessRequestContext(strategyId, null), objectId);

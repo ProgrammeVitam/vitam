@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.bson.Document;
-import org.elasticsearch.search.Scroll;
 
 public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
 
@@ -42,13 +41,17 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
      */
     public static final String VALUE = "Value";
 
+
     /**
      * Parameters
      */
     public enum PARAMETERS {
         Scroll,
         LastScrollRequestDate
-    };
+    }
+
+
+    ;
 
     @Override
     public MetadataSnapshot newInstance(JsonNode content) {
@@ -82,6 +85,7 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
 
     /**
      * Name of the parameter
+     *
      * @return name of the parameter
      */
     public String getName() {
@@ -90,6 +94,7 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
 
     /**
      * Set or change the parameter name
+     *
      * @param name to set
      * @return this
      */

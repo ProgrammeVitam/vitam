@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -141,8 +141,10 @@ class BulkPutTransferManager {
                 new MultiplePipedInputStream(prependedStreamWithInfo.getResult().getStream(), offerIds.size() + 1);
 
             String requestId = VitamThreadUtils.getVitamSession().getRequestId();
-            transferThreadFutures = startTransferThreads(strategyId, attempts, tenantId, requestId, dataCategory, objectIds, offerIds, storageDrivers,
-                storageOffers, streams, prependedStreamWithInfo.getResult().getSize());
+            transferThreadFutures =
+                startTransferThreads(strategyId, attempts, tenantId, requestId, dataCategory, objectIds, offerIds,
+                    storageDrivers,
+                    storageOffers, streams, prependedStreamWithInfo.getResult().getSize());
 
             digestListenerFuture = startDigestComputeThread(offerIds, streams, objectIds);
 
@@ -235,7 +237,8 @@ class BulkPutTransferManager {
     private Future<List<ObjectInfo>> startDigestComputeThread(List<String> offerIds, MultiplePipedInputStream
         streams, List<String> objectIds) {
         return executor.submit(new MultiplexedStreamObjectInfoListenerThread(
-            VitamThreadUtils.getVitamSession().getTenantId(), VitamThreadUtils.getVitamSession().getRequestId(), streams.getInputStream(offerIds.size()), digestType, objectIds
+            VitamThreadUtils.getVitamSession().getTenantId(), VitamThreadUtils.getVitamSession().getRequestId(),
+            streams.getInputStream(offerIds.size()), digestType, objectIds
         ));
     }
 
@@ -252,7 +255,8 @@ class BulkPutTransferManager {
 
             BufferedInputStream bufferedInputStream = new BufferedInputStream(streams.getInputStream(rank));
             InputStream offerInputStream =
-                new UploadCountingInputStreamMetrics(tenantId, strategyId, offerId, BULK_ORIGIN, dataCategory, attempts , bufferedInputStream);
+                new UploadCountingInputStreamMetrics(tenantId, strategyId, offerId, BULK_ORIGIN, dataCategory, attempts,
+                    bufferedInputStream);
 
             transferThreadFutures.add(executor.submit(
                 new MultiplexedStreamTransferThread(tenantId, requestId,

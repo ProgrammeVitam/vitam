@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter;
 import org.junit.Rule;
@@ -64,7 +64,8 @@ public class MassUpdateCheckTest {
     public void should_return_KO_status_when_query_dsl_contains_internal_fields() throws Exception {
         // Given
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode());
-        given(internalActionKeysRetriever.getInternalActionKeyFields(any())).willReturn(Collections.singletonList("_INTERNAL_FIELD"));
+        given(internalActionKeysRetriever.getInternalActionKeyFields(any())).willReturn(
+            Collections.singletonList("_INTERNAL_FIELD"));
 
         // When
         ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1062,13 +1062,15 @@ public class StorageDistributionImpl implements StorageDistribution {
         return JsonHandler.createObjectNode().set(CAPACITIES, resultArray);
     }
 
-    private List<OfferReference> checkCoherentOfferRanksAndSort(List<OfferReference> offerReferences) throws StorageTechnicalException {
+    private List<OfferReference> checkCoherentOfferRanksAndSort(List<OfferReference> offerReferences)
+        throws StorageTechnicalException {
         if (offerReferences.size() !=
             offerReferences.stream().filter(elmt -> null != elmt.getRank()).map(OfferReference::getRank).distinct()
                 .count()) {
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_EXCEPTION_RANK));
         }
-        return offerReferences.stream().sorted(Comparator.comparing(OfferReference::getRank)).collect(Collectors.toList());
+        return offerReferences.stream().sorted(Comparator.comparing(OfferReference::getRank))
+            .collect(Collectors.toList());
     }
 
     private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId, int nbCopy)

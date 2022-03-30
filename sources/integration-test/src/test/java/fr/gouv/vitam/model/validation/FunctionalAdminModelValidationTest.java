@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,7 +68,8 @@ public class FunctionalAdminModelValidationTest {
         checkedCollections.add(FunctionalAdminCollections.VITAM_SEQUENCE);
 
         // Check that all collections are tested (NB will fail if not all tests are executed)
-        assertThat(checkedCollections).as("Should not fail if all the tests are executed !!!").containsExactlyInAnyOrder(FunctionalAdminCollections.values());
+        assertThat(checkedCollections).as("Should not fail if all the tests are executed !!!")
+            .containsExactlyInAnyOrder(FunctionalAdminCollections.values());
     }
 
     @Test

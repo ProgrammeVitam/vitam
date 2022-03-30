@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,9 +41,8 @@ import java.io.InputStream;
 
 /**
  * Dsl schema validator for multiple update DSL queries.
- *
  */
-public class UpdateMultipleSchemaValidator implements DslValidator{
+public class UpdateMultipleSchemaValidator implements DslValidator {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UpdateByIdSchemaValidator.class);
 
@@ -68,9 +67,10 @@ public class UpdateMultipleSchemaValidator implements DslValidator{
      *
      * @param dsl dsl query
      * @throws IllegalArgumentException dsl empty or null
-     * @throws ValidationException      thrown if dsl query is not valid
+     * @throws ValidationException thrown if dsl query is not valid
      */
-    @Override public void validate(JsonNode dsl) throws ValidationException {
+    @Override
+    public void validate(JsonNode dsl) throws ValidationException {
         Validator.validate(schema, "DSL", dsl);
     }
 }

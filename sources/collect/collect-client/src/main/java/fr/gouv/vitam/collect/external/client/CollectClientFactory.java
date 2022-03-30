@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,7 +83,7 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
         SecureClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                    SecureClientConfigurationImpl.class);
+                SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             //LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }

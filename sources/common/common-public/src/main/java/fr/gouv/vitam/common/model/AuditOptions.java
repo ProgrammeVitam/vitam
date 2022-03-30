@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuditOptions {
@@ -53,10 +52,10 @@ public class AuditOptions {
 
     /**
      * Constructor
-     * 
-     * @param auditType    tenant, originatingagency or dsl
-     * @param objectId     id of tenant or originating agency
-     * @param query        dsl query
+     *
+     * @param auditType tenant, originatingagency or dsl
+     * @param objectId id of tenant or originating agency
+     * @param query dsl query
      * @param auditActions AUDIT_FILE_EXISTING or AUDIT_FILE_INTEGRITY
      */
     public AuditOptions(String auditType, String objectId, JsonNode query, String auditActions) {
@@ -107,20 +106,20 @@ public class AuditOptions {
             errorMessage = "The field auditActions is mandatory";
         } else {
             switch (auditType) {
-            case "tenant":
-            case "originatingagency":
-                if (StringUtils.isBlank(objectId)) {
-                    errorMessage = "The field objectId is mandatory with auditType " + auditType;
-                }
-                break;
-            case "dsl":
-                if (query == null) {
-                    errorMessage = "The field query is mandatory with auditType " + auditType;
-                }
-                break;
-            default:
-                errorMessage = "The field auditType is invalid";
-                break;
+                case "tenant":
+                case "originatingagency":
+                    if (StringUtils.isBlank(objectId)) {
+                        errorMessage = "The field objectId is mandatory with auditType " + auditType;
+                    }
+                    break;
+                case "dsl":
+                    if (query == null) {
+                        errorMessage = "The field query is mandatory with auditType " + auditType;
+                    }
+                    break;
+                default:
+                    errorMessage = "The field auditType is invalid";
+                    break;
             }
         }
         if (errorMessage != null) {

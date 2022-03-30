@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,31 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.LongStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import org.apache.commons.collections4.IteratorUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -60,10 +38,29 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import org.apache.commons.collections4.IteratorUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 /**
  * RestoreBackupService Test
@@ -94,11 +91,13 @@ public class RestoreBackupServiceTest {
                 eq(DataCategory.BACKUP_OPERATION), eq(100L), eq(2),
                 eq(Order.ASC)))
             .thenReturn(getListingOk(100L, 2L));
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
 
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        Iterator<List<OfferLog>> listingIterator = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
+        Iterator<List<OfferLog>> listingIterator =
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
         // then
         List<List<OfferLog>> listing = IteratorUtils.toList(listingIterator);
         assertThat(listing).isNotNull().isNotEmpty();
@@ -115,13 +114,16 @@ public class RestoreBackupServiceTest {
         throws StorageServerClientException, StorageNotFoundClientException {
         // given
         when(storageClientFactory.getClient()
-                .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER), eq(DataCategory.BACKUP_OPERATION), eq(100L),
-                    eq(2), eq(Order.ASC)))
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
+                eq(DataCategory.BACKUP_OPERATION), eq(100L),
+                eq(2), eq(Order.ASC)))
             .thenReturn(getListingOk(100L, -1L));
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
+        Iterator<List<OfferLog>> listing =
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
         // then
         assertThat(listing).isNotNull().isEmpty();
     }
@@ -131,7 +133,8 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_returns_VitamError()
         throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
         when(storageClientFactory.getClient()
             .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
                 eq(DataCategory.BACKUP_OPERATION),
@@ -140,7 +143,8 @@ public class RestoreBackupServiceTest {
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
+        Iterator<List<OfferLog>> listing =
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
         assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
@@ -150,7 +154,8 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException, StorageNotFoundClientException {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
         when(storageClientFactory.getClient()
             .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER),
                 eq(DataCategory.BACKUP_OPERATION),
@@ -158,7 +163,8 @@ public class RestoreBackupServiceTest {
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
+        Iterator<List<OfferLog>> listing =
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, 2);
         assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
@@ -168,8 +174,10 @@ public class RestoreBackupServiceTest {
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
         throws Exception {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation.json"),
@@ -190,11 +198,14 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_invalid()
         throws Exception {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
-                new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid.json"),
+                new FakeInboundResponse(Status.OK,
+                    PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
 
@@ -209,8 +220,10 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws Exception {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
@@ -224,8 +237,10 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
         throws Exception {
         // given
-        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(DEFAULT_OFFER);
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,"100.json",
+        when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            DEFAULT_OFFER);
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER, "100.json",
                 DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),

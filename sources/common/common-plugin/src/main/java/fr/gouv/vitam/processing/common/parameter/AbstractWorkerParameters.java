@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -123,7 +123,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         mapParameters.put(WorkerParameterName.currentStep, currentStep);
         return this;
     }
-    
+
     @JsonIgnore
     @Override
     public String getPreviousStep() {
@@ -193,7 +193,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @JsonIgnore
     @Override
     public WorkerParameters setObjectMetadata(JsonNode objectMetadata) {
-        if(objectMetadata != null) {
+        if (objectMetadata != null) {
             mapParameters.put(WorkerParameterName.objectMetadata, JsonHandler.unprettyPrint(objectMetadata));
         }
         return this;

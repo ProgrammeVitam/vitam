@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -128,7 +128,7 @@ public class EliminationActionUnitPreparationHandlerTest {
         doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
@@ -161,7 +161,8 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
+        when(
+            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),     // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.KEEP),        // id_unit_2
@@ -205,11 +206,13 @@ public class EliminationActionUnitPreparationHandlerTest {
             assertThat(entries).hasSize(2);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo(
+                "default-fake");
 
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(1);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo(
+                "default-fake");
         }
     }
 
@@ -226,7 +229,8 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
+        when(
+            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_2
@@ -257,16 +261,20 @@ public class EliminationActionUnitPreparationHandlerTest {
             assertThat(entries).hasSize(4);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo(
+                "default-fake");
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_2");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(2);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo(
+                "default-fake");
             assertThat(entries.get(2).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(2).getDistribGroup()).isEqualTo(1);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(2).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(2).getParams())).isEqualTo(
+                "default-fake");
             assertThat(entries.get(3).getId()).isEqualTo("id_unit_4");
             assertThat(entries.get(3).getDistribGroup()).isEqualTo(1);
-            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(3).getParams())).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(3).getParams())).isEqualTo(
+                "default-fake");
         }
     }
 

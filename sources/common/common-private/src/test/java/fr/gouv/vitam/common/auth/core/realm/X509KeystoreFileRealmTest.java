@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.common.auth.core.realm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,11 +41,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class X509KeystoreFileRealmTest {
 

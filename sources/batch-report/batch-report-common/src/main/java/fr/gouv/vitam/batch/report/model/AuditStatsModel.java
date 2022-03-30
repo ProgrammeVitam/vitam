@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Additional statistics for audit report.
@@ -55,7 +55,7 @@ public class AuditStatsModel {
     }
 
     public AuditStatsModel(int nbObjectGroups, int nbObjects, Set<String> opis, AuditFullStatusCount globalResults,
-            Map<String, AuditFullStatusCount> originatingAgencyResults) {
+        Map<String, AuditFullStatusCount> originatingAgencyResults) {
         super();
         this.nbObjectGroups = nbObjectGroups;
         this.nbObjects = nbObjects;

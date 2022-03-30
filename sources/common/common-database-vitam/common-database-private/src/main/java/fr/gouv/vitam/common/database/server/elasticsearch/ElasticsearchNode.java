@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,7 @@ public class ElasticsearchNode {
     }
 
     /**
-     * @param hostName the node host name 
+     * @param hostName the node host name
      * @param httpPort the node tcp port
      */
     public ElasticsearchNode(String hostName, int httpPort) {
@@ -68,7 +68,6 @@ public class ElasticsearchNode {
 
     /**
      * @param hostName the hostName to set
-     *
      * @return this
      */
     public ElasticsearchNode setHostName(String hostName) {
@@ -78,7 +77,6 @@ public class ElasticsearchNode {
 
     /**
      * @param httpPort the httpPort to set
-     *
      * @return this
      */
     public ElasticsearchNode setHttpPort(int httpPort) {

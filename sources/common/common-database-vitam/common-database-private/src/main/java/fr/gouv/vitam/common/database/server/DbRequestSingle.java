@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -121,7 +121,6 @@ public class DbRequestSingle {
 
     /**
      * Constructor with VitamCollection
-     *
      */
     public DbRequestSingle(VitamCollection<VitamDocument<?>> collection, OntologyLoader ontologyLoader,
         ElasticsearchIndexAlias elasticsearchIndexAlias) {
@@ -321,7 +320,7 @@ public class DbRequestSingle {
      *
      * @param parser
      * @param list list of Ids
-     * @return MongoCursor<VitamDocument<?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */
@@ -488,7 +487,8 @@ public class DbRequestSingle {
                                 ") of the collection " + vitamCollection.getName() + " retry number = " + nbTry);
 
                         try {
-                            TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                            TimeUnit.MILLISECONDS.sleep(
+                                ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
                         } catch (InterruptedException e1) {
                             Thread.currentThread().interrupt();
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e1);

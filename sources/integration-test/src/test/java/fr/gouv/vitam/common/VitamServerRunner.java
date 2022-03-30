@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -124,7 +124,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_IDENTITY = 8005;
     public static final int PORT_SERVICE_IDENTITY_ADMIN = 28005;
     public static final int PORT_SERVICE_WORKSPACE = 8094;
-    public static final int PORT_SERVICE_WORKSPACE_COLLECT= 8091;
+    public static final int PORT_SERVICE_WORKSPACE_COLLECT = 8091;
     public static final int PORT_SERVICE_WORKSPACE_ADMIN = 28094;
     public static final int PORT_SERVICE_METADATA = 8020;
     public static final int PORT_SERVICE_METADATA_COLLECT = 8029;
@@ -403,7 +403,7 @@ public class VitamServerRunner extends ExternalResource {
                 startCollectServer();
             } else {
                 CollectClientFactory.getInstance()
-                        .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 
             waitServerStart();
@@ -911,7 +911,7 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
         SystemPropertyUtil.set(CollectMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_COLLECT));
+            Integer.toString(PORT_SERVICE_COLLECT));
       /*  File collectConfigurationFile = PropertiesUtils.findFile(COLLECT_CONF);
         final CollectConfiguration collectConfiguration =
                 readYaml(collectConfigurationFile, CollectConfiguration.class);
@@ -1139,7 +1139,7 @@ public class VitamServerRunner extends ExternalResource {
             }
         }
         if (!isStarted) {
-            throw new VitamRuntimeException("Cannot check service status on "+ mockOrRestClient.getServiceUrl());
+            throw new VitamRuntimeException("Cannot check service status on " + mockOrRestClient.getServiceUrl());
         }
     }
 
@@ -1159,7 +1159,7 @@ public class VitamServerRunner extends ExternalResource {
             }
         }
         if (isStarted) {
-            throw new VitamRuntimeException("Server is always listening on "+ mockOrRestClient.getServiceUrl());
+            throw new VitamRuntimeException("Server is always listening on " + mockOrRestClient.getServiceUrl());
         }
     }
 
@@ -1226,23 +1226,23 @@ public class VitamServerRunner extends ExternalResource {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void startMetadataCollectServer()
-            throws IOException, VitamApplicationServerException {
+        throws IOException, VitamApplicationServerException {
         if (null != metadataCollectMain) {
             MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA_COLLECT));
             return;
         }
 
         List<ElasticsearchNode> esNodes =
-                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         SystemPropertyUtil
-                .set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA_COLLECT));
+            .set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA_COLLECT));
         SystemPropertyUtil
-                .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-                        Integer.toString(PORT_SERVICE_METADATA_COLLECT_ADMIN));
+            .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                Integer.toString(PORT_SERVICE_METADATA_COLLECT_ADMIN));
         final File metadataConfig = PropertiesUtils.findFile(METADATA_COLLECT_CONF);
         final MetaDataConfiguration realMetadataConfig =
-                readYaml(metadataConfig, MetaDataConfiguration.class);
+            readYaml(metadataConfig, MetaDataConfiguration.class);
         realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
@@ -1254,10 +1254,10 @@ public class VitamServerRunner extends ExternalResource {
             realMetadataConfig.setIndexationConfiguration(this.customMetadataIndexationConfiguration);
         } else {
             realMetadataConfig.setIndexationConfiguration(new MetadataIndexationConfiguration()
-                    .setDefaultCollectionConfiguration(
-                            new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
-                                    .setUnit(new CollectionConfiguration(1, 0))
-                                    .setObjectgroup(new CollectionConfiguration(1, 0))));
+                .setDefaultCollectionConfiguration(
+                    new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))));
         }
         writeYaml(metadataConfig, realMetadataConfig);
 
@@ -1292,12 +1292,12 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_WORKSPACE_COLLECT));
+            Integer.toString(PORT_SERVICE_WORKSPACE_COLLECT));
 
         final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_COLLECT_CONF);
 
         fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-                readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+            readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
         workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);

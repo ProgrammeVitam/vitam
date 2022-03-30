@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,6 +35,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.UNITS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALL;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALLUNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_CREATION_DATE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_UPDATE_DATE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.DUA;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ELIMINATION;
@@ -71,8 +73,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_CREATION_DATE;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.APPROXIMATE_UPDATE_DATE;
 
 
 
@@ -350,12 +350,14 @@ public class VitamFieldsHelper {
     public static String history() {
         return HISTORY.exactToken();
     }
+
     /**
      * @return #version
      */
     public static String sedaVersion() {
         return SEDAVERSION.exactToken();
     }
+
     /**
      * @return #version
      */
@@ -367,9 +369,13 @@ public class VitamFieldsHelper {
         return COMPUTED_INHERITED_RULES.exactToken();
     }
 
-    public static String validComputedInheritedRules() { return VALID_COMPUTED_INHERITED_RULES.exactToken(); }
+    public static String validComputedInheritedRules() {
+        return VALID_COMPUTED_INHERITED_RULES.exactToken();
+    }
 
-    public static String opts() { return OPERATION_TRANSFERS.exactToken(); }
+    public static String opts() {
+        return OPERATION_TRANSFERS.exactToken();
+    }
 
 
 

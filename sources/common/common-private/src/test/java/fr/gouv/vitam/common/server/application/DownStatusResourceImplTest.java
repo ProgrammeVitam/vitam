@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -184,6 +184,7 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
     }
 
     // Status
+
     /**
      * Tests the state of the module service API by get
      *

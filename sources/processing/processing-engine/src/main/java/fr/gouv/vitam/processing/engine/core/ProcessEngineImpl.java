@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
-import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
@@ -103,8 +102,8 @@ public class ProcessEngineImpl implements ProcessEngine {
     private final WorkspaceClientFactory workspaceClientFactory;
 
     public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor,
-                             LogbookOperationsClientFactory logbookOperationsClientFactory,
-                             WorkspaceClientFactory workspaceClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
         this.processDistributor = processDistributor;
         this.workerParameters = workerParameters;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -163,48 +162,48 @@ public class ProcessEngineImpl implements ProcessEngine {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
         return CompletableFuture
-                // Check if the property waitFor is assigned before distributing (if yes it's an entry condition)
-                .runAsync(() -> waitForStep(step, operationId, stopwatch), VitamThreadPoolExecutor.getDefaultExecutor())
-                // call distributor in async mode
-                .thenApplyAsync((e) -> callDistributor(step, this.workerParameters, operationId),
-                        VitamThreadPoolExecutor.getDefaultExecutor())
-                // When the distributor responds, finalize the logbook persistence
-                .thenApply(distributorResponse -> {
-                    try {
-                        // Do not log if stop, replay or cancel occurs
-                        // we have to logbook the event of the current step
-                        if (step.getPauseOrCancelAction() ==
-                                PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
-                            return distributorResponse;
-                        }
-
-                        logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
-                                logbookParameter, distributorResponse);
+            // Check if the property waitFor is assigned before distributing (if yes it's an entry condition)
+            .runAsync(() -> waitForStep(step, operationId, stopwatch), VitamThreadPoolExecutor.getDefaultExecutor())
+            // call distributor in async mode
+            .thenApplyAsync((e) -> callDistributor(step, this.workerParameters, operationId),
+                VitamThreadPoolExecutor.getDefaultExecutor())
+            // When the distributor responds, finalize the logbook persistence
+            .thenApply(distributorResponse -> {
+                try {
+                    // Do not log if stop, replay or cancel occurs
+                    // we have to logbook the event of the current step
+                    if (step.getPauseOrCancelAction() ==
+                        PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
                         return distributorResponse;
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
-                })
-                // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
-                .thenApply(distributorResponse -> {
-                    try {
-                        if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL) {
-                            stateMachineCallback.onProcessEngineCancel(this.workerParameters);
-                            return distributorResponse;
-                        }
 
-                        stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
-                    } finally {
-                        PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                    }
+                    logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
+                        logbookParameter, distributorResponse);
                     return distributorResponse;
-                })
-                // When exception occurred
-                .exceptionally((e) -> {
-                    stateMachineCallback.onError(e);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
+            .thenApply(distributorResponse -> {
+                try {
+                    if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL) {
+                        stateMachineCallback.onProcessEngineCancel(this.workerParameters);
+                        return distributorResponse;
+                    }
+
+                    stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
+                } finally {
                     PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                    throw new CompletionException(e);
-                });
+                }
+                return distributorResponse;
+            })
+            // When exception occurred
+            .exceptionally((e) -> {
+                stateMachineCallback.onError(e);
+                PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                throw new CompletionException(e);
+            });
     }
 
     private void waitForStep(ProcessStep step, String operationId, Stopwatch stopwatch) {
@@ -214,11 +213,11 @@ public class ProcessEngineImpl implements ProcessEngine {
                 int sleepDelay = 1;
                 final int maxSleepDelay = 60;
                 while (!workspaceClient.isExistingObject(operationId, step.getWaitFor()) &&
-                        stopwatch.elapsed(TimeUnit.SECONDS) < VitamConfiguration.getProcessEngineWaitForStepTimeout()) {
+                    stopwatch.elapsed(TimeUnit.SECONDS) < VitamConfiguration.getProcessEngineWaitForStepTimeout()) {
                     TimeUnit.SECONDS.sleep(sleepDelay);
                     sleepDelay = Math.min(sleepDelay * 2, maxSleepDelay);
                 }
-                if (stopwatch.elapsed(TimeUnit.SECONDS) > VitamConfiguration.getProcessEngineWaitForStepTimeout()){
+                if (stopwatch.elapsed(TimeUnit.SECONDS) > VitamConfiguration.getProcessEngineWaitForStepTimeout()) {
                     throw new RuntimeException("The file " + step.getWaitFor() + " was not found in workspace!");
                 }
             } catch (ContentAddressableStorageServerException | InterruptedException e) {

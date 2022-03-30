@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -67,7 +67,7 @@ public class PrepareStorageInfoActionHandlerTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-    
+
     private StorageClient storageClient;
     private StorageClientFactory storageClientFactory;
 
@@ -85,13 +85,17 @@ public class PrepareStorageInfoActionHandlerTest {
     public void testExecute() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(1);
-        
+
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        File defaultStorageInformation = PropertiesUtils.getResourceFile("PrepareStorageInfoActionHandler/defaultStorageInformation.json");
-        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(JsonHandler.getFromFile(defaultStorageInformation));
-        File testStorageInformation = PropertiesUtils.getResourceFile("PrepareStorageInfoActionHandler/testStorageInformation.json");
-        when(storageClient.getStorageInformation(eq("test"))).thenReturn(JsonHandler.getFromFile(testStorageInformation));
+        File defaultStorageInformation =
+            PropertiesUtils.getResourceFile("PrepareStorageInfoActionHandler/defaultStorageInformation.json");
+        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            JsonHandler.getFromFile(defaultStorageInformation));
+        File testStorageInformation =
+            PropertiesUtils.getResourceFile("PrepareStorageInfoActionHandler/testStorageInformation.json");
+        when(storageClient.getStorageInformation(eq("test"))).thenReturn(
+            JsonHandler.getFromFile(testStorageInformation));
 
         File output = new File(temporaryFolder.newFolder(), "storageInfo.json");
         File input = PropertiesUtils.getResourceFile("PrepareStorageInfoActionHandler/ingestContractWithDetail.json");
@@ -100,21 +104,27 @@ public class PrepareStorageInfoActionHandlerTest {
         when(handlerIO.getNewLocalFile(filePath)).thenReturn(output);
         when(handlerIO.getInput(0)).thenReturn(input);
 
-        try (PrepareStorageInfoActionHandler instance = new PrepareStorageInfoActionHandler(storageClientFactory)){
+        try (PrepareStorageInfoActionHandler instance = new PrepareStorageInfoActionHandler(storageClientFactory)) {
             ItemStatus response = instance.execute(params, handlerIO);
-    
+
             assertEquals(StatusCode.OK, response.getGlobalStatus());
-    
+
             verify(handlerIO).addOutputResult(0, output, true, false);
-    
+
             JsonNode storageInfo = JsonHandler.getFromFile(output);
-    
+
             assertThat(storageInfo.get(VitamConfiguration.getDefaultStrategy())).isNotNull();
-            assertThat(storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.TAG_NB).asInt()).isEqualTo(2);
-            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.OFFER_IDS)).size()).isEqualTo(2);
-            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.OFFER_IDS)).get(0).asText()).isEqualTo("offer1");
-            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.OFFER_IDS)).get(1).asText()).isEqualTo("offer2");
-            assertThat(storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.STRATEGY_ID).asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(
+                storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.TAG_NB).asInt()).isEqualTo(
+                2);
+            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy())
+                .get(SedaConstants.OFFER_IDS)).size()).isEqualTo(2);
+            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.OFFER_IDS)).get(0)
+                .asText()).isEqualTo("offer1");
+            assertThat((storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.OFFER_IDS)).get(1)
+                .asText()).isEqualTo("offer2");
+            assertThat(storageInfo.get(VitamConfiguration.getDefaultStrategy()).get(SedaConstants.STRATEGY_ID)
+                .asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
             assertThat(storageInfo.get("test")).isNotNull();
             assertThat(storageInfo.get("test").get(SedaConstants.TAG_NB).asInt()).isEqualTo(3);
             assertThat((storageInfo.get("test").get(SedaConstants.OFFER_IDS)).size()).isEqualTo(3);

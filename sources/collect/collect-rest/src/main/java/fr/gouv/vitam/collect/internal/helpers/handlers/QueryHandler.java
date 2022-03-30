@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,7 +68,8 @@ public class QueryHandler {
 
     public static UpdateMultiQuery getQualifiersAddMultiQuery(DataObjectVersionType usage, int version,
         List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String objectGroupVersionId, int nbc) throws InvalidParseOperationException, InvalidCreateOperationException {
+        ObjectGroupDto objectGroupDto, String objectGroupVersionId, int nbc)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         DbQualifiersModel newQualifier = new DbQualifiersModelBuilder()
             .withUsage(usage)
             .withVersion(objectGroupVersionId, objectGroupDto.getFileInfo().getFileName(), usage, version)
@@ -113,15 +114,17 @@ public class QueryHandler {
         return query;
     }
 
-    public static ObjectNode insertObjectMultiQuery(DbObjectGroupModel dbObjectGroupModel) throws InvalidParseOperationException {
+    public static ObjectNode insertObjectMultiQuery(DbObjectGroupModel dbObjectGroupModel)
+        throws InvalidParseOperationException {
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
-        return  insert.getFinalInsert();
+        return insert.getFinalInsert();
     }
 
-    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, MetaDataClient client, String objectGroupId)
+    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, MetaDataClient client,
+        String objectGroupId)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         UpdateMultiQuery multiQuery = new UpdateMultiQuery();

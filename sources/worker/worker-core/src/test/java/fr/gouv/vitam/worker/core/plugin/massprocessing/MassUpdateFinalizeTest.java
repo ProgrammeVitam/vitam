@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -49,7 +49,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.worker.core.plugin.CommonReportService;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -158,7 +157,8 @@ public class MassUpdateFinalizeTest {
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
-        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseWarning());
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(
+            getLogbookOperationRequestResponseWarning());
 
         // When
         ItemStatus itemStatus = massUpdateFinalize.execute(workerParameter, handlerIO);

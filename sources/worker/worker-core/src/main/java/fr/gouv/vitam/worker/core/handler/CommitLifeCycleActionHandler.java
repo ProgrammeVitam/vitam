@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,12 +46,11 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
 
     /**
      * Default Constructor
-     *
      */
     public CommitLifeCycleActionHandler() {
-    	// Empty constructor
+        // Empty constructor
     }
-    
+
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
@@ -73,14 +72,14 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
 
     /**
      * Returns an ItemStatus
-     * 
+     *
      * @return an ItemStatus
      */
     public abstract ItemStatus getItemStatus();
 
     /**
      * Returns the final ItemStatus related to the current actionHandler execution based on a given one
-     * 
+     *
      * @param itemStatus a given ItemStatus
      * @return the final ActionHandler ItemStatus
      */
@@ -88,13 +87,13 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
 
     /**
      * Runs a commit process for the given object (Unit or ObjectGroup) and a given operation
-     * 
+     *
      * @param handlerIO a HandlerIO instance
      * @param objectID the object id to commit
      * @param operationId the operation id
      * @throws ProcessingException if processing exception occurred when commit unit lifecycle
-     * @throws LogbookClientBadRequestException if the argument is incorrect when commit unit lifecycle 
-     * @throws LogbookClientNotFoundException if the element was not created before when commit unit lifecycle 
+     * @throws LogbookClientBadRequestException if the argument is incorrect when commit unit lifecycle
+     * @throws LogbookClientNotFoundException if the element was not created before when commit unit lifecycle
      * @throws LogbookClientServerException if the Server got an internal error when commit unit lifecycle
      */
     public abstract void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)

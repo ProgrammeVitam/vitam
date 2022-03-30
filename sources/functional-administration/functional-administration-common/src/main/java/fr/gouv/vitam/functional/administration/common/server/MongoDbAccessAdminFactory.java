@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,7 +55,8 @@ public final class MongoDbAccessAdminFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader, ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         final List<Class<?>> classList = new ArrayList<>();
         for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
@@ -68,7 +69,7 @@ public final class MongoDbAccessAdminFactory {
 
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false, indexManager, ontologyLoader);
     }
-    
+
     /**
      * Creation of one MongoDbAccess and initialize elasticsearch access
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,8 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
     private static final String HANDLER_SUB_ACTION_TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
-    private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE = "OP_SECURISATION_STORAGE_ON_WORKSPACE";
+    private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE =
+        "OP_SECURISATION_STORAGE_ON_WORKSPACE";
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
     private static final int TRACEABILITY_STATISTICS_RANK = 3;

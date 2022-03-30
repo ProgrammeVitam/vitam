@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class WorkspaceClientObjectTest extends ResteasyTestApplication {
-    
+
     protected static WorkspaceClient client;
     private final static ExpectedResults mock = mock(ExpectedResults.class);
 

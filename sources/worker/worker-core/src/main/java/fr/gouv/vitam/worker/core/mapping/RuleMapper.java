@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.HoldRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.CommonRule;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Map data base representation of rules to a jaxb representation =&gt; Map RuleCategoryModel to CommonRule
@@ -48,7 +46,7 @@ public class RuleMapper {
 
     /**
      * This generic method is used to map data base model of rule to jaxb
-     * 
+     *
      * @param rule
      * @return rule category
      */
@@ -122,32 +120,32 @@ public class RuleMapper {
                     ruleModel.setRule(ruleId);
                     break;
                 case SedaConstants.TAG_RULE_START_DATE:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     XMLGregorianCalendar startDate = (XMLGregorianCalendar) ruleEntry.getValue();
                     ruleModel.setStartDate(startDate.toString());
                     break;
                 case SedaConstants.TAG_RULE_HOLD_END_DATE:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     XMLGregorianCalendar holdEndDate = (XMLGregorianCalendar) ruleEntry.getValue();
                     ruleModel.setHoldEndDate(holdEndDate.toString());
                     break;
                 case SedaConstants.TAG_RULE_HOLD_OWNER:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     String holdOwner = (String) ruleEntry.getValue();
                     ruleModel.setHoldOwner(holdOwner);
                     break;
                 case SedaConstants.TAG_RULE_HOLD_REASSESSING_DATE:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     XMLGregorianCalendar holdReassessingDate = (XMLGregorianCalendar) ruleEntry.getValue();
                     ruleModel.setHoldReassessingDate(holdReassessingDate.toString());
                     break;
                 case SedaConstants.TAG_RULE_HOLD_REASON:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     String holdReason = (String) ruleEntry.getValue();
                     ruleModel.setHoldReason(holdReason);
                     break;
                 case SedaConstants.TAG_RULE_PREVENT_REARRANGEMENT:
-                    assert(ruleModel != null);
+                    assert (ruleModel != null);
                     Boolean preventRearrangement = (Boolean) ruleEntry.getValue();
                     ruleModel.setPreventRearrangement(preventRearrangement);
                     break;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,30 +27,12 @@
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.CommonReportService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.util.List;
 
 public class TransferReplyReportService extends CommonReportService<TransferReplyUnitReportEntry> {
 

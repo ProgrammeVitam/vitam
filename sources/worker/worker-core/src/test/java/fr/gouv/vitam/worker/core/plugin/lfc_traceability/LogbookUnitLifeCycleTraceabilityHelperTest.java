@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -206,8 +206,9 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         when(logbookOperationsClient.selectOperation(any()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
-        JsonLineGenericIterator<JsonNode> entriesIterator = new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
-            JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> entriesIterator =
+            new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
+                JSON_NODE_TYPE_REFERENCE);
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),

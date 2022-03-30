@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -176,7 +176,7 @@ public class SwiftV2V3ITTest {
         // GIVEN
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
-        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift,2000L);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 2000L);
         VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
             = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
 
@@ -187,13 +187,16 @@ public class SwiftV2V3ITTest {
             .doesNotThrowAnyException();
 
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001",
+                Collections.emptyMap()))
             .doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002",
+                Collections.emptyMap()))
             .doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003",
+                Collections.emptyMap()))
             .doesNotThrowAnyException();
         // WHEN
         swift.deleteObject("container", "objName");
@@ -204,13 +207,16 @@ public class SwiftV2V3ITTest {
             () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001",
+                Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002",
+                Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap()))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003",
+                Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -220,7 +226,7 @@ public class SwiftV2V3ITTest {
         // GIVEN
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
-        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift,2000L);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 2000L);
         VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
             = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
 

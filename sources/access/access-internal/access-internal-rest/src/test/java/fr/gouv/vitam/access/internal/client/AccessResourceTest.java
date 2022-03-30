@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,20 @@
  */
 package fr.gouv.vitam.access.internal.client;
 
-import static org.junit.Assert.assertNotNull;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
-
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import io.restassured.RestAssured;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * AccessResourceTest class

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,10 +35,8 @@ public class StorageListRequest extends StorageRequest {
     /**
      * Initialize the needed parameters for request.
      *
-     * @param tenantId
-     *            the request tenantId
-     * @param type
-     *            the type The request type
+     * @param tenantId the request tenantId
+     * @param type the type The request type
      */
     public StorageListRequest(Integer tenantId, String type) {
         super(tenantId, type);

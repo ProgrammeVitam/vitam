@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,12 +44,12 @@ public abstract class MetadatasObject {
     @JsonProperty("lastAccessDate")
     private String lastAccessDate;
     @JsonProperty("lastModifiedDate")
-    private String lastModifiedDate;  
-    
+    private String lastModifiedDate;
+
     /**
      * empty constructor
      */
-    public MetadatasObject(){
+    public MetadatasObject() {
         this.objectName = null;
         this.type = null;
         this.digest = null;
@@ -57,10 +57,10 @@ public abstract class MetadatasObject {
         this.lastAccessDate = null;
         this.lastModifiedDate = null;
     }
-    
+
     /**
      * Constructor to initialize the needed parameters for get metadata results
-     * 
+     *
      * @param objectName the object name
      * @param type the type of metadata object
      * @param digest of metadata object
@@ -77,8 +77,8 @@ public abstract class MetadatasObject {
         this.lastAccessDate = lastAccessDate;
         this.lastModifiedDate = lastModifiedDate;
     }
-    
-    
+
+
     /**
      * @return object name
      */
@@ -174,5 +174,5 @@ public abstract class MetadatasObject {
         this.lastModifiedDate = lastModifiedDate;
         return this;
     }
-    
+
 }

@@ -67,7 +67,7 @@ public class BulkAtomicUpdateFinalize extends UpdateUnitFinalize {
         StorageClientFactory storageClientFactory) {
         super(batchReportClientFactory, logbookOperationsClientFactory, storageClientFactory);
     }
-    
+
     @Override
     protected ReportSummary getReport(LogbookOperation logbook) {
         Optional<LogbookEventOperation> logbookEventPrepare = logbook.getEvents().stream()

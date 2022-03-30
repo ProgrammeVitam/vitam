@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.graph;
 
-import java.util.Stack;
-
 import fr.gouv.vitam.common.exception.CycleFoundException;
+
+import java.util.Stack;
 
 /**
  * DirectedCycle Class
@@ -69,7 +69,6 @@ public class DirectedCycle {
 
 
     /**
-     *
      * depthFirstSearch is a method for traversing or searching graph data structures. One starts at the root and
      * explores as far as possible along each branch.
      *
@@ -164,7 +163,7 @@ public class DirectedCycle {
 
     /**
      * Return the directed cycle if isCyclic
-     * 
+     *
      * @return the directed cycle or null
      */
     public Stack<Integer> getCycle() {

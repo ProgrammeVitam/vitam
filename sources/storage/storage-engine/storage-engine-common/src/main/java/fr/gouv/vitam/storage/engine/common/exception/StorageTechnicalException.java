@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,26 +36,22 @@ public class StorageTechnicalException extends StorageException {
     private static final long serialVersionUID = -5098668741736597680L;
 
     /**
-     * @param message
-     *            associated message
+     * @param message associated message
      */
     public StorageTechnicalException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
-     *            associated cause
+     * @param cause associated cause
      */
     public StorageTechnicalException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage
-     *            associated message
-     * @param cause
-     *            associated cause
+     * @param messsage associated message
+     * @param cause associated cause
      */
     public StorageTechnicalException(String messsage, Throwable cause) {
         super(messsage, cause);

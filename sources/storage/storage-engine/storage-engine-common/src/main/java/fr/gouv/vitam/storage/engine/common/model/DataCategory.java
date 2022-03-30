@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -102,6 +102,7 @@ public enum DataCategory {
 
     /**
      * dip collection
+     *
      * @deprecated : DIP are no more stored in offers.
      */
     @Deprecated

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,8 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
-    public TransactionDto(String id, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+    public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
+        String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment) {
         this.id = id;

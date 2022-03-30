@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,8 +30,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Vitam Error Messages Helper for take value of the key in 
- * vitam-error-messages.properties 
+ * Vitam Error Messages Helper for take value of the key in
+ * vitam-error-messages.properties
  */
 public class VitamErrorMessages {
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-error-messages";
@@ -52,7 +52,6 @@ public class VitamErrorMessages {
     }
 
     /**
-     *
      * @param propertyFilename
      */
     private VitamErrorMessages(String propertyFilename) {
@@ -60,7 +59,6 @@ public class VitamErrorMessages {
     }
 
     /**
-     *
      * @param propertyFilename
      * @param locale
      */
@@ -79,7 +77,7 @@ public class VitamErrorMessages {
 
     /**
      * Retrieve value of the message key
-     * 
+     *
      * @param key key of the message
      * @return
      */
@@ -89,7 +87,7 @@ public class VitamErrorMessages {
 
     /**
      * Retrieve value of the message key
-     * 
+     *
      * @param key of the message
      * @param args the arguments to use as MessageFormat.format(mesg, args)
      * @return value of the message key

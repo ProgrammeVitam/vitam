@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * List of status used in report.
- *
  */
 public enum ReportStatus {
     OK, WARNING, KO;
@@ -39,17 +38,17 @@ public enum ReportStatus {
         ReportStatus reportStatus = null;
         if (statusCode != null) {
             switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
+                case OK:
+                    reportStatus = ReportStatus.OK;
+                    break;
+                case WARNING:
+                    reportStatus = ReportStatus.WARNING;
+                    break;
+                case KO:
+                    reportStatus = ReportStatus.KO;
+                    break;
+                default:
+                    throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
             }
         }
         return reportStatus;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -85,7 +85,6 @@ public class SSLConfiguration {
     }
 
     /**
-     *
      * @param sslContext using a given SSLContext
      * @return the associate Registry for Apache Ssl configuration
      * @throws FileNotFoundException
@@ -251,7 +250,6 @@ public class SSLConfiguration {
 
     /**
      * @param truststore the truststore to set
-     *
      * @return this
      */
     public SSLConfiguration setTruststore(List<SSLKey> truststore) {
@@ -261,7 +259,6 @@ public class SSLConfiguration {
 
     /**
      * @param keystore the keystore to set
-     *
      * @return this
      */
     public SSLConfiguration setKeystore(List<SSLKey> keystore) {

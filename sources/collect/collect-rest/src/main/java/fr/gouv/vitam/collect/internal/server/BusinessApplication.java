@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,7 @@ public class BusinessApplication extends ConfigurationApplication {
         singletons = new HashSet<>();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final CollectConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
+                PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
             MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());

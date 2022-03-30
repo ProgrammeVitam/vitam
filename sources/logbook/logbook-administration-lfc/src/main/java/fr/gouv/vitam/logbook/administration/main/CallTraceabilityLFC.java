@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,8 @@ public class CallTraceabilityLFC {
         }
 
         try {
-            CallTraceabilityLFC callTraceability = new CallTraceabilityLFC(LogbookOperationsClientFactory.getInstance());
+            CallTraceabilityLFC callTraceability =
+                new CallTraceabilityLFC(LogbookOperationsClientFactory.getInstance());
             callTraceability.run(traceabilityType);
         } catch (Exception e) {
             LOGGER.error(e);
@@ -102,7 +103,7 @@ public class CallTraceabilityLFC {
         }
     }
 
-    void run(TraceabilityType traceabilityType) throws IOException{
+    void run(TraceabilityType traceabilityType) throws IOException {
         File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
         final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
         while (true) {
@@ -158,7 +159,7 @@ public class CallTraceabilityLFC {
             try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
                 operationId = runLfcTraceability(tenantId, traceabilityType, client);
 
-                if(operationId == null) {
+                if (operationId == null) {
                     LOGGER.info("No " + traceabilityType + " LFC traceability required for tenant " + tenantId);
                     return false;
                 }
@@ -175,7 +176,8 @@ public class CallTraceabilityLFC {
                     lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus(operationId);
 
                     if (lifecycleTraceabilityStatus.isPaused()) {
-                        LOGGER.error("LFC traceability operation on tenant {} for operationId {} is in PAUSE state", tenantId,
+                        LOGGER.error("LFC traceability operation on tenant {} for operationId {} is in PAUSE state",
+                            tenantId,
                             operationId);
                         break;
                     }
@@ -216,7 +218,7 @@ public class CallTraceabilityLFC {
         }
 
         String operationId = getOperationId(response);
-        if(operationId == null) {
+        if (operationId == null) {
             LOGGER.info("Traceability operation not required for tenant {}", tenantId);
         } else {
             LOGGER.info("Traceability operation for tenant started successfully ({})", tenantId, operationId);

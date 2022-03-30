@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,7 @@ public class ProcessWorkFlowsCleanerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final int tenant = VitamConfiguration.getAdminTenant();
 

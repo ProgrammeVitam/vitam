@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,8 @@ import java.io.FileNotFoundException;
 public class CollectVarNameAdapterTest {
 
     @Test
-    public void should_filter_jsonvariable_name_beginning_by_dash() throws FileNotFoundException, InvalidParseOperationException {
+    public void should_filter_jsonvariable_name_beginning_by_dash()
+        throws FileNotFoundException, InvalidParseOperationException {
         // GIVEN
         CollectVarNameAdapter collectVarNameAdapter = new CollectVarNameAdapter();
         ObjectNode result = JsonHandler.createObjectNode();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,10 +27,8 @@
 
 package fr.gouv.vitam.common.security.filter;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -73,7 +71,7 @@ public class ThrottlingAlertService {
     }
 
     private void triggerAlert(int occurrences) {
-        if(occurrences == 1) {
+        if (occurrences == 1) {
             alertService.createAlert(errorMessage);
         } else {
             alertService.createAlert(occurrences + " redundant errors. " + errorMessage);

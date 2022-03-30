@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -72,7 +72,8 @@ public class OplogReader {
         this.dataMaxSize = dataMaxSize;
     }
 
-    public Map<String, Document> readDocumentsFromOplogByShardAndCollections(List<String> collectionsToReadOplog, BsonTimestamp maxTimeStamp) {
+    public Map<String, Document> readDocumentsFromOplogByShardAndCollections(List<String> collectionsToReadOplog,
+        BsonTimestamp maxTimeStamp) {
         Map<String, Document> recentlyTouchedDocuments = readOplog(collectionsToReadOplog, maxTimeStamp);
         mongoClient.close();
         return recentlyTouchedDocuments;
@@ -83,30 +84,33 @@ public class OplogReader {
         Map<String, Document> touchedDocumentsByRecentTime = new HashMap<>();
         List<Document> opLogList = new ArrayList<>();
         List<Bson> bsonsFilters = new ArrayList<>();
-        bsonsFilters.add(Filters.in(OPERATION_TYPE, Arrays.asList(INSERT_OPERATION, UPDATE_OPERATION, DELETE_OPERATION)));
+        bsonsFilters.add(
+            Filters.in(OPERATION_TYPE, Arrays.asList(INSERT_OPERATION, UPDATE_OPERATION, DELETE_OPERATION)));
         bsonsFilters.add(Filters.in(COLLECTION_NAME, collectionsToReadOplog));
         if (maxTimeStamp != null) {
             bsonsFilters.add(Filters.gt(OPERATION_TIME, maxTimeStamp));
         }
         Document sort = new Document(NATURAL, 1);
         Bson filter = Filters.and(bsonsFilters);
-        MongoCollection oplogCollection =  mongoClient.getDatabase(LOCALDB).getCollection(OPLOG);
+        MongoCollection oplogCollection = mongoClient.getDatabase(LOCALDB).getCollection(OPLOG);
         MongoCursor<Document> cursor = oplogCollection.find(filter)
-                .sort(sort)
-                .limit(dataMaxSize) // use limit(0) to have no limit
-                .iterator();
-        while(cursor.hasNext()){
+            .sort(sort)
+            .limit(dataMaxSize) // use limit(0) to have no limit
+            .iterator();
+        while (cursor.hasNext()) {
             populateOplogList(opLogList, cursor.next());
         }
 
-        touchedDocumentsByRecentTime.putAll(opLogList.stream().collect(Collectors.toMap(OplogReader::extractFieldId, elmt -> elmt)));
+        touchedDocumentsByRecentTime.putAll(
+            opLogList.stream().collect(Collectors.toMap(OplogReader::extractFieldId, elmt -> elmt)));
         return touchedDocumentsByRecentTime;
     }
 
     private static void populateOplogList(List<Document> opLogList, Document document) {
-        Optional<Document> isAlreadyScannedDoc = opLogList.stream().filter(elmt -> extractFieldId(elmt).equals(extractFieldId(document))).findFirst();
+        Optional<Document> isAlreadyScannedDoc =
+            opLogList.stream().filter(elmt -> extractFieldId(elmt).equals(extractFieldId(document))).findFirst();
         if (isAlreadyScannedDoc.isPresent()) {
-            if ((extractFieldTimeStamp(document)).compareTo((extractFieldTimeStamp(isAlreadyScannedDoc.get()))) > 0 ) {
+            if ((extractFieldTimeStamp(document)).compareTo((extractFieldTimeStamp(isAlreadyScannedDoc.get()))) > 0) {
                 // REPLACE WITH RECENT
                 opLogList.remove(isAlreadyScannedDoc.get());
                 opLogList.add(document);

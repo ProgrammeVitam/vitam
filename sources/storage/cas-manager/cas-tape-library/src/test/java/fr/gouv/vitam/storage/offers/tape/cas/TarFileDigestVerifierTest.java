@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -231,7 +231,7 @@ public class TarFileDigestVerifierTest {
 
             // Return response
             return objectNames.stream().map(
-                objectName -> createObjectReferentialEntry(entryNames.get(objectName), digests.get(objectName)))
+                    objectName -> createObjectReferentialEntry(entryNames.get(objectName), digests.get(objectName)))
                 .collect(toList());
 
         }).when(objectReferentialRepository).bulkFind(any(), any());

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,7 @@ public class ObjectGroupResponseTest {
     @Test
     public void shouldGetBinaryMasterVersion1Model() {
 
-       FormatIdentificationModel formatIdentification =
+        FormatIdentificationModel formatIdentification =
             objectGroupModel.getFirstVersionsModel("BinaryMaster").get().getFormatIdentification();
 
         assertThat(formatIdentification.getFormatId()).isEqualTo("fmt/354");

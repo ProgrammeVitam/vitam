@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import fr.gouv.vitam.common.security.IllegalPathException;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.processing.common.exception.InvocationPluginException;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PluginLoaderTest {
 

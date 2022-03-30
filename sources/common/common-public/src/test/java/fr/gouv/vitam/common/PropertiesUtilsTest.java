@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,13 +41,12 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.rules.TemporaryFolder;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class PropertiesUtilsTest {
 
@@ -91,8 +89,8 @@ public class PropertiesUtilsTest {
     public void should_validate_file() throws Exception {
         // When / Then
         assertThatThrownBy(() -> PropertiesUtils.fileFromTmpFolder("../test"))
-                .isInstanceOf(VitamRuntimeException.class)
-                .hasMessageContaining("invalid path");
+            .isInstanceOf(VitamRuntimeException.class)
+            .hasMessageContaining("invalid path");
         assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("./test")).doesNotThrowAnyException();
         assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("/test")).doesNotThrowAnyException();
         assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("test")).doesNotThrowAnyException();
@@ -209,7 +207,8 @@ public class PropertiesUtilsTest {
         try {
             final Map<String, Object> testMap = PropertiesUtils.readYaml(
                 PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
-                new TypeReference<Map<String, Object>>() {});
+                new TypeReference<Map<String, Object>>() {
+                });
             assertEquals("test", testMap.get("test"));
             assertEquals(12346, (int) testMap.get("number"));
         } catch (final IOException e1) {
@@ -264,7 +263,8 @@ public class PropertiesUtilsTest {
         }
         try {
             final Map<String, Object> testMap = PropertiesUtils.readYaml(
-                (File) null, new TypeReference<Map<String, Object>>() {});
+                (File) null, new TypeReference<Map<String, Object>>() {
+                });
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IOException e1) {
             // ignore

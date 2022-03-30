@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,13 +28,13 @@ package fr.gouv.vitam.metadata.core.rules;
 
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.VitamConstants;
-import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitRuleModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -411,9 +411,11 @@ public class ComputeInheritedRuleService {
 
         Map<String, Object> globalProperties = new HashMap<>();
         if (unitRuleModel.getManagementModel().isNeedAuthorization() != null) {
-            globalProperties.put(SedaConstants.TAG_RULE_NEED_AUTHORISATION, unitRuleModel.getManagementModel().isNeedAuthorization());
+            globalProperties.put(SedaConstants.TAG_RULE_NEED_AUTHORISATION,
+                unitRuleModel.getManagementModel().isNeedAuthorization());
         }
-        List<InheritedPropertyResponseModel> localProperties = computeLocalGlobalProperties(unitRuleModel, globalProperties);
+        List<InheritedPropertyResponseModel> localProperties =
+            computeLocalGlobalProperties(unitRuleModel, globalProperties);
 
         List<InheritedPropertyResponseModel> inheritedProperties =
             getInheritedGlobalProperties(unitRuleModel, unitInheritedRulesByUnitIdMap, globalProperties);

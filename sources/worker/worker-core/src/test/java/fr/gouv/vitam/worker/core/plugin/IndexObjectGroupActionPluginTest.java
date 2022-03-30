@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -62,9 +62,9 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 
 
 public class IndexObjectGroupActionPluginTest {
@@ -113,7 +113,8 @@ public class IndexObjectGroupActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "IndexObjectGroupActionPluginTest", "workerId",
+        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
+            "IndexObjectGroupActionPluginTest", "workerId",
             newArrayList("objectName.json"));
 
         handlerIO.setCurrentObjectId("objectName.json");
@@ -152,7 +153,8 @@ public class IndexObjectGroupActionPluginTest {
         ObjectNode existingOgRaw = (ObjectNode) existingOg.deepCopy();
         existingOgRaw.remove("_work");
         doThrow(new InvalidParseOperationException("")).when(metadataClient).updateObjectGroupById(any(), any());
-        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(existingOgRaw));
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(existingOgRaw));
         handlerIO.getInput().clear();
         handlerIO.getInput().add(existingOg);
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);

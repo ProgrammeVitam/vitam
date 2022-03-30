@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,8 @@ public class UnitInheritedRuleTest {
     private final static String EXPECTED_MULTI_PATH = "UnitInheritedRule/EXPECTED_MULTI_PATH.json";
 
     private final static String EXPECTED_LONG_PATH = "{" + "\"inheritedRule\":{\"StorageRule\":" +
-        "{\"STR1\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU0\",\"AU2\",\"AU3\",\"AU4\"]]}" + "}}}}";
+        "{\"STR1\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," +
+        "\"path\":[[\"AU0\",\"AU2\",\"AU3\",\"AU4\"]]}" + "}}}}";
 
     private final static String EXPECTED_CUMUL = "{" + "\"inheritedRule\":{\"StorageRule\":" +
         "{\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU2\"]]}}," +
@@ -76,7 +77,8 @@ public class UnitInheritedRuleTest {
         "{\"STR1\":{\"AU1\":{\"StartDate\":\"01/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU1\"]]}" + "}}}}";
 
     private final static String EXPECTED_NEW_RULE_PARENT = "{" + "\"inheritedRule\":{\"StorageRule\":{" +
-        "\"STR1\":{\"AU0\":{\"StartDate\":\"01/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU0\",\"AU1\"]]}" + "}}}}";
+        "\"STR1\":{\"AU0\":{\"StartDate\":\"01/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU0\",\"AU1\"]]}" +
+        "}}}}";
 
     private final static String EMPTY = "{}";
 
@@ -137,7 +139,8 @@ public class UnitInheritedRuleTest {
         "\"STR1\":{\"AU3\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU3\"]]}}" + "}}}";
 
     private final static String EXPECTED_FINAL_PREVENT_WHILE_DECLARE = "{" + "\"inheritedRule\":{\"StorageRule\":{" +
-        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU2\",\"AU3\"]]}}" + "}}}";
+        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU2\",\"AU3\"]]}}" +
+        "}}}";
 
     private final static String EXPECTED_PREVENTED_RULE = "UnitInheritedRule/EXPECTED_PREVENTED_RULE.json";
 
@@ -272,7 +275,7 @@ public class UnitInheritedRuleTest {
         marxDormoy.concatRule(rule2);
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_FOR_MARX_DORMOY))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_FOR_MARX_DORMOY))),
             JsonHandler.unprettyPrint(marxDormoy));
     }
 
@@ -335,7 +338,7 @@ public class UnitInheritedRuleTest {
 
         // assert 2 path from fathers
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_MULTI_PATH))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_MULTI_PATH))),
             JsonHandler.unprettyPrint(finalAu3));
     }
 
@@ -352,7 +355,7 @@ public class UnitInheritedRuleTest {
             (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(R1_NON_REF_ID)), "AU2"));
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_REF_NON_RULE_ID))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_REF_NON_RULE_ID))),
             JsonHandler.unprettyPrint(au2));
     }
 
@@ -369,7 +372,7 @@ public class UnitInheritedRuleTest {
         UnitInheritedRule au3 = new UnitInheritedRule();
         au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_NEW_RULE_REF_NON_RULE_ID))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_NEW_RULE_REF_NON_RULE_ID))),
             JsonHandler.unprettyPrint(au3));
     }
 
@@ -407,7 +410,7 @@ public class UnitInheritedRuleTest {
             (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(ROOT_NODE_WITH_MD)), "AU0");
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_METADATA_REF_NON_RULE_ID))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_METADATA_REF_NON_RULE_ID))),
             JsonHandler.unprettyPrint(au0));
     }
 
@@ -424,14 +427,14 @@ public class UnitInheritedRuleTest {
             "AU2"));
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENTED_RULE))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENTED_RULE))),
             JsonHandler.unprettyPrint(au2));
 
         UnitInheritedRule au3 = new UnitInheritedRule();
         au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENTED_RULE_INHERIT))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENTED_RULE_INHERIT))),
             JsonHandler.unprettyPrint(au3));
     }
 
@@ -446,7 +449,7 @@ public class UnitInheritedRuleTest {
             "AU2"));
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENT_WILE_DECLARE))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENT_WILE_DECLARE))),
             JsonHandler.unprettyPrint(au2));
 
         UnitInheritedRule au3 = new UnitInheritedRule();
@@ -466,7 +469,7 @@ public class UnitInheritedRuleTest {
             "AU2"));
 
         assertEquals(JsonHandler
-            .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENT_AND_DECLARE))),
+                .unprettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(EXPECTED_PREVENT_AND_DECLARE))),
             JsonHandler.unprettyPrint(au2));
 
         UnitInheritedRule au3 = new UnitInheritedRule();

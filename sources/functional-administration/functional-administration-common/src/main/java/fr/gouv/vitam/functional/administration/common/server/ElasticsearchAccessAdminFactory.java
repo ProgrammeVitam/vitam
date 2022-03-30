@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,7 @@ public final class ElasticsearchAccessAdminFactory {
      * @param configuration config of ElasticsearchDbAcess
      * @param indexManager
      * @return the ElasticsearchDbAcess
-     * @throws VitamException           if elasticsearch list nodes is empty
+     * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
     public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration,
@@ -62,10 +62,10 @@ public final class ElasticsearchAccessAdminFactory {
      * Creation of one ElasticsearchDbAcess
      *
      * @param clusterName the cluster name
-     * @param nodes       the node list
+     * @param nodes the node list
      * @param indexManager
      * @return the ElasticsearchDbAcess
-     * @throws VitamException           if elasticsearch list nodes is empty
+     * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
     public static ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes,

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,21 +30,21 @@ package fr.gouv.vitam.common.model;
  * Constants for the Ingest Workflow.
  */
 public class UpdateWorkflowConstants {
-    
+
     /**
      * Sub folder for processing files
      */
     public static final String PROCESSING_FOLDER = "PROCESSING";
-    
+
     /**
      * Sub folder for processing files
      */
-    public static final String UNITS_FOLDER = "UnitsWithoutLevel";    
+    public static final String UNITS_FOLDER = "UnitsWithoutLevel";
     /**
      * updated rules file as a json used for the update AU workflow
      */
     public static final String UPDATED_RULES_JSON = "updatedRules.json";
-    
+
     /**
      * running ingests as a json used for the update AU workflow
      */
@@ -54,7 +54,7 @@ public class UpdateWorkflowConstants {
      * archive units to be updated as a json used for the update AU workflow
      */
     public static final String AU_TO_BE_UPDATED_JSON = "auToBeUpdated.json";
-    
+
     private UpdateWorkflowConstants() {
         // Do nothing
     }

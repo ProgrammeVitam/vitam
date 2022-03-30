@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -215,8 +215,8 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                         if (!keysToAdd.isEmpty() || !keysToUpdate.isEmpty()) {
                             request
                                 .addActions(new SetAction(Stream.concat(
-                                    keysToAdd.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))),
-                                    keysToUpdate.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))))
+                                        keysToAdd.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))),
+                                        keysToUpdate.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))))
                                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue))));
                         }
 

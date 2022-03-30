@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,6 @@ import java.util.stream.Stream;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
@@ -118,10 +117,10 @@ public class CheckConformityActionPluginTest {
 
 
     private static final Map<String, ObjectNode> EV_DETAIL_DATA = Collections.unmodifiableMap(Stream.of(
-        new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq", jsonNode_1),
-        new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq", jsonNode_2),
-        new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq", jsonNode_3),
-        new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq", jsonNode_4))
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq", jsonNode_1),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq", jsonNode_2),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq", jsonNode_3),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq", jsonNode_4))
         .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
 
     private static final JsonNode EV_DETAIL_DATA_BDO_AND_PDO =
@@ -130,7 +129,7 @@ public class CheckConformityActionPluginTest {
             .put("MessageDigest",
                 "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7")
             .put("Algorithm", "SHA-512").put("SystemMessageDigest",
-            "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7")
+                "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7")
             .put("SystemAlgorithm", "SHA-512");
 
 
@@ -242,7 +241,7 @@ public class CheckConformityActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
@@ -276,7 +275,7 @@ public class CheckConformityActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroupEmptyDigest).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
@@ -313,7 +312,7 @@ public class CheckConformityActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroupInvalideDigest).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();

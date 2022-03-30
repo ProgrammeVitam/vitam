@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -99,7 +99,6 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.OPTIONS_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
@@ -340,7 +339,8 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
                 assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
             } else {
                 assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
-            }            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+            }
+            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
             assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
                 .contains(containerName);
         });

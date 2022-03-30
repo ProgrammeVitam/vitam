@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,9 +34,10 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
 
     private String workflowIdentifier;
     private String logbookTypeProcess;
+
     /**
      * Constructor
-     * 
+     *
      * @param message as String message to associate with the exception
      */
     public WorkspaceClientServerException(String message) {
@@ -45,7 +46,7 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
 
     /**
      * Constructor
-     * 
+     *
      * @param cause as String to associate with the exception
      */
     public WorkspaceClientServerException(Throwable cause) {

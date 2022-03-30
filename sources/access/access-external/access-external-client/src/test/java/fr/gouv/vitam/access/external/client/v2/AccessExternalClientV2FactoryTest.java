@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,7 @@ public class AccessExternalClientV2FactoryTest {
     @Test
     public void getClientInstanceTest() {
         try {
-            AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl(null, 10));;
+            AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
@@ -76,17 +76,17 @@ public class AccessExternalClientV2FactoryTest {
         AccessExternalClientV2Factory.changeMode(null);
 
         final AccessExternalClientV2 client =
-                AccessExternalClientV2Factory.getInstance().getClient();
+            AccessExternalClientV2Factory.getInstance().getClient();
         assertNotNull(client);
 
         final AccessExternalClientV2 client2 =
-                AccessExternalClientV2Factory.getInstance().getClient();
+            AccessExternalClientV2Factory.getInstance().getClient();
         assertNotNull(client2);
         assertNotSame(client, client2);
 
         AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl("server", 1025));
         final AccessExternalClientV2 client3 =
-                AccessExternalClientV2Factory.getInstance().getClient();
+            AccessExternalClientV2Factory.getInstance().getClient();
         assertTrue(client3 instanceof AccessExternalClientV2Rest);
 
     }

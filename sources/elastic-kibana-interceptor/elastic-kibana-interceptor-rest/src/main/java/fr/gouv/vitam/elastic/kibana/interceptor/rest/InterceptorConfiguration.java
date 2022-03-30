@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,10 +28,10 @@ package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
 
 
-import java.util.List;
-
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+
+import java.util.List;
 
 /**
  * Configuration for interceptor elastic-kibana-interceptor

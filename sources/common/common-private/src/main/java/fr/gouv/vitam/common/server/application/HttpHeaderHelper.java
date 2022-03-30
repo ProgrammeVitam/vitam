@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.base.Joiner;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-
-import com.google.common.base.Joiner;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class helper to manage specifics Vitam headers
@@ -147,11 +145,11 @@ public final class HttpHeaderHelper {
      *
      * @param headers the headers list to validate
      * @param wantedHeaders the map representing wanted header values with the key for header name and the value (list)
-     *        for the wanted values for this specific header name
+     * for the wanted values for this specific header name
      * @throws IllegalArgumentException if headers is null
      * @throws IllegalStateException if one or more header values does not equal to wanted values, header values do not
-     *         match with the defined regular expression, wanted values for a header are null, header values are null.
-     *         This exception contains all errors in its message.
+     * match with the defined regular expression, wanted values for a header are null, header values are null.
+     * This exception contains all errors in its message.
      */
     public static void validateHeaderValue(HttpHeaders headers, MultivaluedHashMap<String, String> wantedHeaders) {
         ParametersChecker.checkParameter("Headers cannot be null", headers);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,7 @@ public class FormatIdentifierResponse {
     /**
      * Create a new FormatIdentifierResponse with mandatory parameters.
      *
-     * @param formatLiteral  the literal version of the matched format response
+     * @param formatLiteral the literal version of the matched format response
      * @param mimeType the mime type of response
      * @param puid the puid that match format
      * @param matchedNamespace the base of format

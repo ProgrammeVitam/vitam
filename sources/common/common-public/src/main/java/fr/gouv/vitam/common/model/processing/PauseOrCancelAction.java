@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model.processing;
 
 /**
+ *
  */
 public enum PauseOrCancelAction {
     /**
@@ -38,7 +39,7 @@ public enum PauseOrCancelAction {
      * When the step was ACTION_PAUSE, after restart the step will be marked as ACTION_RECOVER
      */
     ACTION_RECOVER,
-    
+
     /**
      * When the replay occurs, the current step will be marked as ACTION_REPLAY, so it could be replayed
      */

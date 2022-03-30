@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,24 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.parser.request.multiple;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -65,26 +83,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 @SuppressWarnings("javadoc")
 public class UpdateParserMultipleTest {
@@ -144,39 +142,39 @@ public class UpdateParserMultipleTest {
             updateAction + " }");
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": [\n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ],\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n," +
-                        " \"$action\" : " + updateAction + " }"
+            "{\n" +
+                "  \"$query\": [\n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {}\n," +
+                " \"$action\" : " + updateAction + " }"
         );
 
     }
@@ -191,7 +189,8 @@ public class UpdateParserMultipleTest {
             request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+        }
         try {
             final UpdateParserMultiple request1 = new UpdateParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
@@ -369,7 +368,8 @@ public class UpdateParserMultipleTest {
         try {
             request.actionParse(node);
             fail("Should Failed");
-        } catch (final InvalidParseOperationException e) {}
+        } catch (final InvalidParseOperationException e) {
+        }
     }
 
     @Test
@@ -381,7 +381,8 @@ public class UpdateParserMultipleTest {
         final UpdateParserMultiple request2 = new UpdateParserMultiple(new VarNameAdapter());
         assertNotNull(request2);
     }
-    @Test(expected = InvalidParseOperationException.class )
+
+    @Test(expected = InvalidParseOperationException.class)
     public void testExternalUnautorized() throws InvalidParseOperationException {
         String queryString = "{\"$query\": [],\"$filter\": {},\"$action\": [\n" +
             "\t\t{\"$set\": {\n" +
@@ -393,7 +394,7 @@ public class UpdateParserMultipleTest {
         request.parse(query);
     }
 
-    @Test(expected = InvalidParseOperationException.class )
+    @Test(expected = InvalidParseOperationException.class)
     public void testExternalUnautorizedUnset() throws InvalidParseOperationException {
         String queryString = "{\"$query\": [],\"$filter\": {},\"$action\": [\n" +
             "\t\t{\"$unset\": ['_tenant']}]}";

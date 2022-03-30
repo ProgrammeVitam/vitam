@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -186,7 +186,8 @@ public class CheckAttachementActionHandler extends ActionHandler {
         try {
             select.setQuery(in(EV_ID, operationsIdsArray));
             ObjectNode objectNode = createObjectNode().put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, OUTCOME), 1)
-                .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_TYPE), 1).put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_ID_PROC), 1);
+                .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_TYPE), 1)
+                .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_ID_PROC), 1);
             JsonNode projection = createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(), objectNode);
             select.setProjection(projection);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {

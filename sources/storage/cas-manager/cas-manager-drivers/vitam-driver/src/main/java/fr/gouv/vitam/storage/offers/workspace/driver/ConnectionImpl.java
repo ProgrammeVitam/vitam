@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -269,7 +269,8 @@ public class ConnectionImpl extends AbstractConnection {
         VitamRequestBuilder request = get()
             .withPath(ACCESS_REQUEST_STATUSES_PATH)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
-            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED, Boolean.toString(adminCrossTenantAccessRequestAllowed))
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
+                Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJson()
             .withBody(accessRequestIds);
         try (Response response = make(request)) {
@@ -293,7 +294,8 @@ public class ConnectionImpl extends AbstractConnection {
         VitamRequestBuilder request = delete()
             .withPath(ACCESS_REQUEST_PATH + "/" + accessRequestId)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
-            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED, Boolean.toString(adminCrossTenantAccessRequestAllowed))
+            .withHeader(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
+                Boolean.toString(adminCrossTenantAccessRequestAllowed))
             .withJsonAccept();
 
         try (Response response = make(request)) {

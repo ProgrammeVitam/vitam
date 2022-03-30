@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -87,7 +87,7 @@ public class MetaDataClientMockTest {
     @Test
     public void selectObjectGrouptbyIdTest()
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetadataInvalidSelectException,
-        MetaDataClientServerException, InvalidParseOperationException,MetaDataNotFoundException {
+        MetaDataClientServerException, InvalidParseOperationException, MetaDataNotFoundException {
         assertNotNull(client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"));
     }
 
@@ -100,8 +100,8 @@ public class MetaDataClientMockTest {
 
     @Test
     public void atomicUpdateBulk()
-            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
-            InvalidParseOperationException, MetaDataNotFoundException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+        InvalidParseOperationException, MetaDataNotFoundException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         assertNotNull(client.atomicUpdateBulk(queries));

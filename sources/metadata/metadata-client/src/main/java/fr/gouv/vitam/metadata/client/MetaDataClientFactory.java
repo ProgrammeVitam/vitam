@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,7 +44,8 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     private static final String CONFIGURATION_FILENAME = "metadata-client.conf";
 
     private static final MetaDataClientFactory META_DATA_CLIENT_FACTORY = new MetaDataClientFactory("/metadata/v1");
-    private static final MetaDataClientFactory META_DATA_COLLECT_CLIENT_FACTORY = new MetaDataClientFactory("/metadata-collect/v1");
+    private static final MetaDataClientFactory META_DATA_COLLECT_CLIENT_FACTORY =
+        new MetaDataClientFactory("/metadata-collect/v1");
 
     private MetaDataClientFactory(String resourcePath) {
         // All requests from client are SMALL, but responses from server could be Huge
@@ -76,11 +77,10 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     public static void changeMode(ClientConfiguration configuration) {
-        for (MetadataType type: MetadataType.values()) {
+        for (MetadataType type : MetadataType.values()) {
             getInstance(type).initialisation(configuration, getInstance(type).getResourcePath());
         }
     }
@@ -95,9 +95,9 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     }
 
     public static MetaDataClientFactory getInstance(MetadataType metadataType) {
-        if(metadataType == MetadataType.VITAM) {
+        if (metadataType == MetadataType.VITAM) {
             return META_DATA_CLIENT_FACTORY;
-        } else if(metadataType == MetadataType.COLLECT) {
+        } else if (metadataType == MetadataType.COLLECT) {
             return META_DATA_COLLECT_CLIENT_FACTORY;
         }
         return null;

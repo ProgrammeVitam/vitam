@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,7 @@
  */
 package fr.gouv.vitam.logbook.common.traceability;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -40,9 +35,12 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+
 /**
  * Interface used to handle specific steps of the traceability process
- *
  */
 public interface LogbookTraceabilityHelper {
 
@@ -51,7 +49,7 @@ public interface LogbookTraceabilityHelper {
     /**
      * Search for entries to secure with the traceability process and store data in the given Traceability zip file.<br/>
      * Also, Merkle Algorithm should be updated by adding each wanted entry as a leaf of the tree.
-     * 
+     *
      * @param algo algorithm used to generate MerkleTree with data.
      * @param file output zip to store data (in some TYPE_COLLECTION.json)
      * @throws IOException if any error occurs while writing in traceabilityFile
@@ -69,7 +67,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Update or finalize the traceability entry in the logbook collection
-     * 
+     *
      * @param tenantId tenant used for the operation
      * @param eventType code of the eventType for the entry
      * @param status status of the entry
@@ -81,9 +79,9 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Store the temporary zip.
-     * 
+     *
      * @param tenant tenant used for the operation
-     * @param strategyId strategy used for the storage 
+     * @param strategyId strategy used for the storage
      * @param zipFile file containing multiple information about the traceability operation (data, merkle, computingData, ...)
      * @param fileName name of the file on the destination
      * @param event traceability event that should be updated by this operation
@@ -127,7 +125,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Warning: This method MUST be used after "saveDataInZip" witch initialize traceabilityIterator
-     * 
+     *
      * @return the number of items secured in traceabilityIterator
      * @throws TraceabilityException if the traceabilityIterator isn't yet initialized
      */
@@ -135,7 +133,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the last traceability (in logbook) event and return the timestampToken of the entry
-     * 
+     *
      * @return the timestamp token of the last traceability entry or null if no previous traceability OK for that type
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      */
@@ -143,7 +141,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the timestampToken of the entry
-     * 
+     *
      * @return the timestamp token of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
@@ -152,7 +150,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the timestampToken of the entry
-     * 
+     *
      * @return the timestamp token of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
@@ -161,7 +159,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the last traceability (in logbook) event and return the startDate of the entry
-     * 
+     *
      * @return the start date of the last traceability entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      */
@@ -169,7 +167,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the startDate of the entry
-     * 
+     *
      * @return the start date of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
@@ -178,7 +176,7 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the startDate of the entry
-     * 
+     *
      * @return the start date of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
@@ -187,9 +185,9 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Save the close master event if needed
-     * 
+     *
      * @param tenantId the tenant used for log
-     * @throws TraceabilityException 
+     * @throws TraceabilityException
      */
     void saveEmpty(Integer tenantId) throws TraceabilityException;
 

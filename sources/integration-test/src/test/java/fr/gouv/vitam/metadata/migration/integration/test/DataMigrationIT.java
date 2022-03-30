@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -241,8 +241,10 @@ public class DataMigrationIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
     }
 
@@ -325,7 +327,7 @@ public class DataMigrationIT extends VitamRuleRunner {
             checkStoredUnit(rawUnitsById.get(unitId), rawUnitLfcById.get(unitId));
         }
 
-       checkReport(requestId, unitsBefore);
+        checkReport(requestId, unitsBefore);
     }
 
     private void dumpDataSet(List<JsonNode> unitsAfter, List<JsonNode> unitsBefore) {
@@ -360,13 +362,13 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         // Then
         assertThat(response.isSuccessful()).isTrue();
-            RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
-                .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
-            AccessionRegisterDetailModel acRegDetAfterUpdate =
-                ((RequestResponseOK<AccessionRegisterDetailModel>)
-                    acRegDetResponseAfterUpdate).getResults().get(0);
-            assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
-            assertNull(acRegDetAfterUpdate.getComment());
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
+            .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
+        AccessionRegisterDetailModel acRegDetAfterUpdate =
+            ((RequestResponseOK<AccessionRegisterDetailModel>)
+                acRegDetResponseAfterUpdate).getResults().get(0);
+        assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
+        assertNull(acRegDetAfterUpdate.getComment());
     }
 
     @Test
@@ -424,7 +426,8 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     private void waitMigration() throws IOException {
         for (int nbtimes = 0; (nbtimes <= VitamServerRunner.NB_TRY &&
-            (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() != javax.ws.rs.core.Response.Status.OK.getStatusCode())); nbtimes++) {
+            (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() !=
+                javax.ws.rs.core.Response.Status.OK.getStatusCode())); nbtimes++) {
             try {
                 TimeUnit.MILLISECONDS.sleep(VitamServerRunner.SLEEP_TIME);
             } catch (InterruptedException e) {

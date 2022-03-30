@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -126,7 +126,7 @@ public class LifeCycleTraceabilitySecureFileObject {
 
     /**
      * Set hashLFCEvents
-     * 
+     *
      * @param hashLFCEvents
      */
     public void setHashLFCEvents(String hashLFCEvents) {
@@ -154,10 +154,10 @@ public class LifeCycleTraceabilitySecureFileObject {
         this.objectGroupDocumentHashList = objectGroupDocumentHashList;
     }
 
-    public LifeCycleTraceabilitySecureFileObject() {}
+    public LifeCycleTraceabilitySecureFileObject() {
+    }
 
     /**
-     *
      * Constructor to set the attributes for lfc tracibility file lines
      *
      * @param lastEvtIdProc lastEvtIdProc
@@ -269,7 +269,7 @@ public class LifeCycleTraceabilitySecureFileObject {
 
     /**
      * getter fro hashLFCEvents
-     * 
+     *
      * @return hashLFCEvents
      */
     public String getHashLFCEvents() {

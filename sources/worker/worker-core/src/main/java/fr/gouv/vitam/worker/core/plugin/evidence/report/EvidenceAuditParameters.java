@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,17 +51,17 @@ public class EvidenceAuditParameters {
     private LifeCycleTraceabilitySecureFileObject traceabilityLine;
 
     private StoredInfoResult mdOptimisticStorageInfo;
-    private  String  hashMdFromDatabase;
+    private String hashMdFromDatabase;
     private int lfcVersion;
-    private String hashLfcFromDatabase ;
+    private String hashLfcFromDatabase;
     private JsonNode storageMetadataResultListJsonNode;
 
     private String auditMessage;
 
     private EvidenceStatus evidenceStatus;
 
-    private Map<String,JsonNode> objectStorageMetadataResultMap;
-    private Map<String,StoredInfoResult> mdOptimisticStorageInfoMap;
+    private Map<String, JsonNode> objectStorageMetadataResultMap;
+    private Map<String, StoredInfoResult> mdOptimisticStorageInfoMap;
 
 
     /**
@@ -119,7 +119,6 @@ public class EvidenceAuditParameters {
     public void setSecurisationOperationId(String securisationOperationId) {
         this.securisationOperationId = securisationOperationId;
     }
-
 
 
 
@@ -220,7 +219,9 @@ public class EvidenceAuditParameters {
      **/
     public void setLfcVersion(int lfcVersion) {
         this.lfcVersion = lfcVersion;
-    };
+    }
+
+    ;
 
     /**
      * getter for hashLfcFromDatabase

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,12 +45,12 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -147,7 +147,8 @@ public class ReconstructionService {
 
     /**
      * Constructor
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository offsetRepository
      * @param indexManager
      */
@@ -267,10 +268,12 @@ public class ReconstructionService {
 
         try {
             // get the list of data to backup.
-            String referentOffer = storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
+            String referentOffer =
+                storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
             Iterator<OfferLog> listing =
                 restoreBackupService
-                    .getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory, offset, limit, Order.ASC,
+                    .getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory, offset, limit,
+                        Order.ASC,
                         VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
@@ -319,7 +322,7 @@ public class ReconstructionService {
             LOGGER.error(e.getMessage());
             newOffset = offset;
             response.setStatus(StatusCode.KO);
-        }  finally {
+        } finally {
             offsetRepository
                 .createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), dataCategory.name(), newOffset);
         }
@@ -469,10 +472,10 @@ public class ReconstructionService {
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles for the strategy {%s} on the tenant {%s} from {offset:%s}",
                 collection, strategy, tenant, offset), e);
             resultStatusCode = StatusCode.KO;
-        } catch (StorageNotFoundClientException |StorageServerClientException e) {
-            LOGGER.error("Error occured when getting data from Storage : "+ e.getMessage(),e);
+        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+            LOGGER.error("Error occured when getting data from Storage : " + e.getMessage(), e);
             resultStatusCode = StatusCode.KO;
-        }  finally {
+        } finally {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return resultStatusCode;
@@ -583,7 +586,7 @@ public class ReconstructionService {
         this.vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection())
             .delete(ids, tenant);
         this.vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
-            indexManager.getElasticsearchIndexAliasResolver(collection))
+                indexManager.getElasticsearchIndexAliasResolver(collection))
             .delete(ids, tenant);
     }
 
@@ -720,7 +723,7 @@ public class ReconstructionService {
      * @throws DatabaseException databaseException
      */
     private void reconstructCollectionMetadata(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer)
-            throws DatabaseException {
+        throws DatabaseException {
         LOGGER.info("[Reconstruction]: Back up of metadata bulk");
 
         // Do not erase graph data
@@ -736,13 +739,13 @@ public class ReconstructionService {
 
         // Create bulk of ReplaceOneModel
         List<WriteModel<Document>> metadata =
-                documentStream.get().map(this::createReplaceOneModel)
-                        .collect(Collectors.toList());
+            documentStream.get().map(this::createReplaceOneModel)
+                .collect(Collectors.toList());
 
         this.bulkMongo(collection, metadata);
 
         List<Document> documents =
-                documentStream.get().collect(Collectors.toList());
+            documentStream.get().collect(Collectors.toList());
         bulkElasticSearch(collection, documents);
     }
 

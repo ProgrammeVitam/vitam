@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -710,7 +710,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminManagementClient = mock(AdminExternalClient.class);
         doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
             .when(adminManagementClient).createFormats(any(),
-            any(), any());
+                any(), any());
         when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
@@ -1209,7 +1209,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetObjectGroupLifeCycleByIdOk() throws Exception {
-        final RequestResponseOK<LogbookLifecycle> result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN, LogbookLifecycle.class);
+        final RequestResponseOK<LogbookLifecycle> result =
+            RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN, LogbookLifecycle.class);
         when(userInterfaceTransactionManager.selectObjectGroupLifeCycleById(any(), any()))
             .thenReturn(result);
 

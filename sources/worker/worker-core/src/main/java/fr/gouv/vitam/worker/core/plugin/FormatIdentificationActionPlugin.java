@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,9 +54,9 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -187,7 +187,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                             jsonFormatIdentifier, file,
                                             version);
 
-                                    if(result.getMetadataUpdated()) {
+                                    if (result.getMetadataUpdated()) {
                                         metadataUpdated = true;
                                     }
 
@@ -216,7 +216,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
 
                                     if (result.getEventDetailData() != null) {
-                                        itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(result.getEventDetailData());
+                                        itemStatus.getSubTaskStatus().get(objectId)
+                                            .setEvDetailData(result.getEventDetailData());
                                     }
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
@@ -533,8 +534,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
     private IngestContractModel loadIngestContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        ContractsDetailsModel contractsDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK),
-            ContractsDetailsModel.class);
+        ContractsDetailsModel contractsDetailsModel =
+            JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK),
+                ContractsDetailsModel.class);
         return contractsDetailsModel.getIngestContractModel();
     }
 

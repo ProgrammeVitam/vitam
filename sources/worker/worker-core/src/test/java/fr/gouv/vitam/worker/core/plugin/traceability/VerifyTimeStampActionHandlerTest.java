@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -203,8 +202,9 @@ public class VerifyTimeStampActionHandlerTest {
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
         when(handlerIO
-            .getInputStreamFromWorkspace(eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
-                "token.tsp")))
+            .getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
+                    "token.tsp")))
             .thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
@@ -225,8 +225,9 @@ public class VerifyTimeStampActionHandlerTest {
 
 
         when(handlerIO
-            .getInputStreamFromWorkspace(eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
-                "token.tsp")))
+            .getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
+                    "token.tsp")))
             .thenReturn(tokenFile);
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);

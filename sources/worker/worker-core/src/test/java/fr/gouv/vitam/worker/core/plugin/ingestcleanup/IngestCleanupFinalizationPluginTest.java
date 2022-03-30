@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,7 +55,6 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 
-import static fr.gouv.vitam.worker.core.utils.JsonLineTestUtils.assertJsonlReportsEqual;
 import static fr.gouv.vitam.worker.core.utils.JsonLineTestUtils.assertJsonlReportsEqualUnordered;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;

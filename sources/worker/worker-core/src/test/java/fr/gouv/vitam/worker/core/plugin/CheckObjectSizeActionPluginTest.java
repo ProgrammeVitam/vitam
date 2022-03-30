@@ -121,7 +121,7 @@ public class CheckObjectSizeActionPluginTest {
             .thenReturn(Response.status(Response.Status.OK).entity(objectGroup).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Response.Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                    .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
         CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();
@@ -219,7 +219,7 @@ public class CheckObjectSizeActionPluginTest {
             .thenReturn(Response.status(Response.Status.OK).entity(objectGroup).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Response.Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                    .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
         CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();

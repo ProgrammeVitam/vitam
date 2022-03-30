@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,7 @@ import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class OntologyResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
@@ -105,12 +105,14 @@ public class OntologyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try (OntologyService ontologyService =
             new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
-            RequestResponse<OntologyModel> requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
+            RequestResponse<OntologyModel> requestResponse =
+                ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
@@ -171,23 +173,23 @@ public class OntologyResource {
     public Response findOntologiesForCache(JsonNode queryDsl) {
 
         try (OntologyService ontologyService =
-                     new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
-                    ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
+                ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
-                    .entity(ontologyModelList)
-                    .build();
+                .entity(ontologyModelList)
+                .build();
 
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 

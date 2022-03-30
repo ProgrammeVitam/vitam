@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,12 @@
  */
 package fr.gouv.vitam.storage.engine.common.model.response;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseStorage;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

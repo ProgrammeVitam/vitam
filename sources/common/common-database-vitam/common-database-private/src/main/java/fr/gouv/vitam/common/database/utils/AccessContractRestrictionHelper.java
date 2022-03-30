@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.database.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
-import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -38,25 +37,20 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultip
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
@@ -77,7 +71,8 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForUnitForSelect(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForUnitForSelect(JsonNode queryDsl,
+        AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
@@ -94,7 +89,8 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForObjectGroupForSelect(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForObjectGroupForSelect(JsonNode queryDsl,
+        AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
@@ -111,7 +107,8 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl,
+        AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(queryDsl);
@@ -128,7 +125,8 @@ public final class AccessContractRestrictionHelper {
      * @return JsonNode contains restriction
      * @throws InvalidCreateOperationException
      */
-    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract, boolean isUnit) throws InvalidCreateOperationException {
+    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
+        boolean isUnit) throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
 
@@ -169,7 +167,8 @@ public final class AccessContractRestrictionHelper {
         if (!contract.getEveryOriginatingAgency()) {
             Set<String> prodServices = contract.getOriginatingAgencies();
 
-            InQuery originatingAgencyRestriction = in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
+            InQuery originatingAgencyRestriction =
+                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
 
             Query restriction = isUnit
                 ? or().add(originatingAgencyRestriction, eq(UNITTYPE.exactToken(), HOLDING_UNIT.name()))
@@ -196,8 +195,10 @@ public final class AccessContractRestrictionHelper {
 
     private static Query getRulesRestrictionQuery(AccessContractModel contract) throws InvalidCreateOperationException {
         BooleanQuery rulesRestrictionQuery = and();
-        for(RuleType ruleType : contract.getRuleCategoryToFilter()) {
-            String ruleFieldName = BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES.exactToken() + "." + ruleType.name() + ".MaxEndDate";
+        for (RuleType ruleType : contract.getRuleCategoryToFilter()) {
+            String ruleFieldName =
+                BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES.exactToken() + "." + ruleType.name() +
+                    ".MaxEndDate";
             CompareQuery maxEndDateExistsAndReached = lt(ruleFieldName, LocalDate.now().toString());
             rulesRestrictionQuery.add(maxEndDateExistsAndReached);
         }

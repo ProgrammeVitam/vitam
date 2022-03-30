@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.server.application.configuration;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
+
+import java.util.List;
 
 /**
  * Implementation of DbConfiguraton Interface
@@ -52,8 +52,8 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     /**
      * DbConfiguration constructor with authentication
      *
-     * @param mongoDbNodes     database server IP address and port
-     * @param dbName           database name
+     * @param mongoDbNodes database server IP address and port
+     * @param dbName database name
      * @param dbAuthentication
      * @param dbUserName
      * @param dbPassword
@@ -80,7 +80,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * DbConfiguration constructor
      *
      * @param mongoDbNodes database server IP address and port
-     * @param dbName       database name
+     * @param dbName database name
      * @throws IllegalArgumentException if host or dbName null or empty, or if port &lt;= 0
      */
     public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName) {

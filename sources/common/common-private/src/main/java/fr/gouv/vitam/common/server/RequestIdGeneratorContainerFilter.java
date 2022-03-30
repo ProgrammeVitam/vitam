@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,12 @@
  */
 package fr.gouv.vitam.common.server;
 
-import static fr.gouv.vitam.common.server.HeaderIdHelper.getHeaderString;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
-import java.io.IOException;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -37,12 +40,9 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.VitamSession;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import static fr.gouv.vitam.common.server.HeaderIdHelper.getHeaderString;
 
 /**
  * generate a X-request-Id, and add-it on VitamSession

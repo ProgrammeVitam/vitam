@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -44,6 +41,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Ingest Internal web server application
@@ -108,7 +108,7 @@ public class IngestInternalMain {
 
     /**
      * Start application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -117,7 +117,7 @@ public class IngestInternalMain {
 
     /**
      * Start and join application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -126,7 +126,7 @@ public class IngestInternalMain {
 
     /**
      * Stop application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {
@@ -135,7 +135,7 @@ public class IngestInternalMain {
 
     /**
      * Get the Vitam Starter
-     * 
+     *
      * @return
      */
     public VitamStarter getVitamStarter() {

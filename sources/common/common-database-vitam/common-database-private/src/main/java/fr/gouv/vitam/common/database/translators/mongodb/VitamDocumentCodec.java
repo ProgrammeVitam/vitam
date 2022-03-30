@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import java.lang.reflect.Constructor;
-
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.bson.BsonReader;
 import org.bson.BsonValue;
 import org.bson.BsonWriter;
@@ -37,14 +37,12 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.DocumentCodec;
 import org.bson.codecs.EncoderContext;
 
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import java.lang.reflect.Constructor;
 
 /**
  * MongoDB Codec for all VitamDocument
  *
  * @param <T> The parameter of the class
- *
  */
 public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<T> {
     private final DocumentCodec documentCodec;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -58,6 +47,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -68,6 +59,13 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * IndexUnitAction Plugin
@@ -131,33 +129,40 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 QueryCache query = null;
                 try {
 
-                    query = indexArchiveUnit(workerParameters, workerParameters.getContainerName(), workerParameters.getObjectName(), handlerIO);
+                    query = indexArchiveUnit(workerParameters, workerParameters.getContainerName(),
+                        workerParameters.getObjectName(), handlerIO);
                     if (!query.update) {
                         queryCaches.add(query);
                         itemStatus.increment(StatusCode.OK);
-                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        ItemStatus itemsStatus =
+                            new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                         itemStatuses.add(itemsStatus);
                     } else {
-                        metadataClient.updateUnitById(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(), query.unitId);
+                        metadataClient.updateUnitById(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(),
+                            query.unitId);
                         itemStatus.increment(StatusCode.OK);
-                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        ItemStatus itemsStatus =
+                            new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                         itemStatuses.add(itemsStatus);
                     }
 
                 } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
                     LOGGER.error(e);
                     itemStatus.increment(StatusCode.KO);
-                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus =
+                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                     itemStatuses.add(itemsStatus);
 
                 } catch (final ProcessingException e) {
                     LOGGER.error(e);
                     itemStatus.increment(StatusCode.FATAL);
-                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus =
+                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                     itemStatuses.add(itemsStatus);
                 } catch (InvalidParseOperationException e) {
                     itemStatus.increment(StatusCode.FATAL);
-                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus =
+                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                     itemStatuses.add(itemsStatus);
                     throw new IllegalArgumentException(e);
                 } catch (final MetaDataNotFoundException e) {
@@ -191,7 +196,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 for (int i = 0; i < workerParameters.getObjectNameList().size(); i++) {
                     final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
                     itemStatus.increment(statusCode);
-                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus =
+                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                     itemStatuses.set(i, itemsStatus);
                 }
             }
@@ -206,12 +212,11 @@ public class IndexUnitActionPlugin extends ActionHandler {
     /**
      * Index archive unit
      *
-     * @param params      work parameters
+     * @param params work parameters
      * @param operationId operation Id
-     * @param unitId      id unit
-     * @param handlerIO   handlerIO
-     *
-     * @throws ProcessingException             when error in execution
+     * @param unitId id unit
+     * @param handlerIO handlerIO
+     * @throws ProcessingException when error in execution
      * @throws InvalidCreateOperationException
      */
     private QueryCache indexArchiveUnit(WorkerParameters params, String operationId, String unitId, HandlerIO handlerIO)
@@ -269,11 +274,12 @@ public class IndexUnitActionPlugin extends ActionHandler {
             LOGGER.error("InvalidCreateOperationException for " + (query != null ? query.toString() : ""));
             throw e;
         } finally {
-        	IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(input);
         }
     }
 
-    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName, HandlerIO handlerIO)
+    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName,
+        HandlerIO handlerIO)
         throws InvalidParseOperationException, ProcessingException {
         try {
             ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);

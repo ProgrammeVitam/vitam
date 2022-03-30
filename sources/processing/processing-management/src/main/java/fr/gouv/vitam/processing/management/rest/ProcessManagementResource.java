@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,7 +84,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Path("/processing/v1")
 @ApplicationPath("webresources")
-@Tag(name="Processing")
+@Tag(name = "Processing")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final String WORKFLOW = "workflow";

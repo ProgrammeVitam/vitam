@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.lifecycles.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -59,7 +58,7 @@ public interface LogbookLifeCycles {
      * @param idLc the lifecycle unit identifier
      * @param parameters the logbook lifecycle parameters
      * @throws LogbookAlreadyExistsException if an LifeCycle with the same eventIdentifierProcess and outcome="Started"
-     *         already exists
+     * already exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void createUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
@@ -72,7 +71,7 @@ public interface LogbookLifeCycles {
      * @param idLc the lifecycle identifier
      * @param parameters the logbook lifecycle parameters
      * @throws LogbookAlreadyExistsException if an LifeCycle with the same eventIdentifierProcess and outcome="Started"
-     *         already exists
+     * already exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void createObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
@@ -143,7 +142,7 @@ public interface LogbookLifeCycles {
      * @param select the select request in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
@@ -160,7 +159,7 @@ public interface LogbookLifeCycles {
      * @param queryDsl the select projection in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
      * @return the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
@@ -168,8 +167,10 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
-            throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException;
+    LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
+        LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException,
+        InvalidCreateOperationException;
 
     /**
      * Rollback logbook LifeCycle entries
@@ -367,13 +368,16 @@ public interface LogbookLifeCycles {
 
     /**
      * updateLogbookLifeCycleBulk
+     *
      * @param lifecycleUnitInProcess lifecycleUnitInProcess
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      */
-    void updateLogbookLifeCycleBulk(LogbookCollections lifecycleUnitInProcess, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+    void updateLogbookLifeCycleBulk(LogbookCollections lifecycleUnitInProcess,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
 
     /**
      * delete LifeCycle ObjectGroups
+     *
      * @param objectGroupIds objectGroupIds
      * @throws DatabaseException DatabaseException
      */
@@ -381,6 +385,7 @@ public interface LogbookLifeCycles {
 
     /**
      * delete LifeCycle Units
+     *
      * @param unitsIdentifier units lfc Identifier
      * @throws DatabaseException DatabaseException
      */

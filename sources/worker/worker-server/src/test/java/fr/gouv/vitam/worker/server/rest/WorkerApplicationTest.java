@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,24 +26,20 @@
  */
 package fr.gouv.vitam.worker.server.rest;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.processing.common.exception.PluginException;
+import java.io.File;
+
+import static org.junit.Assert.fail;
 
 
 /**

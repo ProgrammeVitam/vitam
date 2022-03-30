@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -309,7 +309,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             return updateResponse.toResponse();
         } catch (Exception e) {
             return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(),
-                INGEST_INTERNAL_MODULE))
+                    INGEST_INTERNAL_MODULE))
                 .build();
         }
     }
@@ -520,7 +520,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 case INIT:
                     workspaceClient.checkStatus();
                     try (ProcessingManagementClient processManagementClient = processingManagementClientFactory
-                            .getClient()) {
+                        .getClient()) {
                         // No need to backup operation context. In case of workspace crash, current ingests should be cleaned and ingests should be re-executed
                         // Initialize a new process
                         processManagementClient.initVitamProcess(guid, contextId);
@@ -543,7 +543,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                     parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                            "Try to call processing...");
+                        "Try to call processing...");
                     return Response.status(Status.ACCEPTED).build();
 
                 default:
@@ -591,23 +591,24 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws IngestInternalException
      * @throws ContentAddressableStorageException
      */
-    private void prepareToStartProcess(InputStream uploadedInputStream, String archiveMimeType, final GUID containerGUID)
-            throws LogbookClientBadRequestException, IngestInternalException, ContentAddressableStorageException {
+    private void prepareToStartProcess(InputStream uploadedInputStream, String archiveMimeType,
+        final GUID containerGUID)
+        throws LogbookClientBadRequestException, IngestInternalException, ContentAddressableStorageException {
         LOGGER.debug("Starting up the save file sip");
         ItemStatus stpUploadItemStatus = new ItemStatus(UPLOAD_SIP);
-        try{
+        try {
             pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType, uploadedInputStream, stpUploadItemStatus);
             stpUploadItemStatus.increment(OK);
         } catch (final ZipFilesNameNotAllowedException e) {
             stpUploadItemStatus.increment(KO);
             throw e;
-        } catch( final ContentAddressableStorageException e){
+        } catch (final ContentAddressableStorageException e) {
             stpUploadItemStatus.increment(FATAL);
             throw e;
         } finally {
             try {
                 workspaceClientFactory.getClient().putObject(containerGUID.getId(), STP_UPLOAD_RESULT_JSON,
-                        JsonHandler.writeToInpustream(stpUploadItemStatus));
+                    JsonHandler.writeToInpustream(stpUploadItemStatus));
             } catch (InvalidParseOperationException e) {
                 throw new IngestInternalException(e);
             }
@@ -658,7 +659,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param archiveMimeType inputStream mimeType
      * @throws ContentAddressableStorageException
      */
-    private void pushSipStreamToWorkspace(final String containerName,final String archiveMimeType,
+    private void pushSipStreamToWorkspace(final String containerName, final String archiveMimeType,
         final InputStream uploadedInputStream, ItemStatus stpUploadItemStatus)
         throws ContentAddressableStorageException {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-
-import javax.ws.rs.client.Client;
-
-import org.junit.Test;
-
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -45,6 +44,7 @@ public class VitamClientFactoryTest {
     private static final String RESOURCE_PATH = "service/v1";
     private static final ClientConfiguration CONFIGURATION =
         new ClientConfigurationImpl(TestVitamClientFactory.LOCALHOST, 1234);
+
 
     private static class ClientFactoryTest extends VitamClientFactory<BasicClient> {
 
@@ -73,7 +73,8 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.PRODUCTION, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(), cft.getClientConfiguration());
+            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
+                cft.getClientConfiguration());
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
     }
@@ -88,7 +89,8 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.MOCK, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(), cft.getClientConfiguration());
+            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
+                cft.getClientConfiguration());
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
 

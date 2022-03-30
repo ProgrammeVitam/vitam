@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -66,6 +66,7 @@ public class IngestExternalMain {
 
     /**
      * This constructor is used for test
+     *
      * @param configurationFile
      * @param testBusinessApplication Custom BusinessApplication
      * @param testAdminApplication Custom AdminApplication
@@ -76,11 +77,11 @@ public class IngestExternalMain {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         if (null == testBusinessApplication) {
-            testBusinessApplication =  BusinessApplication.class;
+            testBusinessApplication = BusinessApplication.class;
         }
 
         if (null == testAdminApplication) {
-            testAdminApplication =  AdminApplication.class;
+            testAdminApplication = AdminApplication.class;
         }
         vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
             testBusinessApplication, testAdminApplication);

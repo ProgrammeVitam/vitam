@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -95,7 +95,7 @@ public class ProbativeCreateReport extends ActionHandler {
         throws ProcessingException {
 
         try {
-            if(!handler.isExistingFileInWorkspace("distributionFile.jsonl")) {
+            if (!handler.isExistingFileInWorkspace("distributionFile.jsonl")) {
                 return buildItemStatus(HANDLER_ID, StatusCode.WARNING);
             }
 
@@ -121,7 +121,7 @@ public class ProbativeCreateReport extends ActionHandler {
             // Report already stored in workspace (idempotency)
             return;
         }
-        
+
 
         File reportFile = handler.getNewLocalFile(reportFileName);
         try (InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");

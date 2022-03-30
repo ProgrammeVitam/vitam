@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
@@ -67,21 +66,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Storage step
  */
-public class StorageStep extends CommonStep{
+public class StorageStep extends CommonStep {
     private String fileName;
     private static final String TEST_URI = "testStorage";
     private final String guid;
@@ -143,7 +138,8 @@ public class StorageStep extends CommonStep{
 
                 StorageLogBackupResult storageLogTraceabilityResult = response.getResults().get(0);
 
-                assertThat(storageLogTraceabilityResult.getOperationId()).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                assertThat(storageLogTraceabilityResult.getOperationId()).as(
+                    format("%s not found for request", X_REQUEST_ID)).isNotNull();
                 world.setOperationId(storageLogTraceabilityResult.getOperationId());
             } catch (Exception e) {
                 throw new CompletionException(e);
@@ -162,7 +158,8 @@ public class StorageStep extends CommonStep{
 
                 StorageLogTraceabilityResult storageLogTraceabilityResult = response.getResults().get(0);
 
-                assertThat(storageLogTraceabilityResult.getOperationId()).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                assertThat(storageLogTraceabilityResult.getOperationId()).as(
+                    format("%s not found for request", X_REQUEST_ID)).isNotNull();
                 world.setOperationId(storageLogTraceabilityResult.getOperationId());
             } catch (Exception e) {
                 throw new CompletionException(e);
@@ -204,7 +201,7 @@ public class StorageStep extends CommonStep{
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws.subList(1, raws.size())) {
             String strategy = raw.get(1);
-            try(CloseableIterator<ObjectEntry> result = container_has_files(strategy)) {
+            try (CloseableIterator<ObjectEntry> result = container_has_files(strategy)) {
                 assertThat(result).isNotNull();
                 assertThat(result.hasNext()).isTrue();
             }
@@ -236,7 +233,8 @@ public class StorageStep extends CommonStep{
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 response =
-                    world.getStorageClient().getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                    world.getStorageClient()
+                        .getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
 
             } catch (Exception | AssertionError e) {

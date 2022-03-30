@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,6 @@ public class SSLKey {
 
     /**
      * @param keyPath the keyPath to set
-     *
      * @return this
      * @throws IllegalArgumentException if keyPath is null or empty
      */
@@ -83,7 +82,6 @@ public class SSLKey {
 
     /**
      * @param keyPassword the keyPassword to set
-     *
      * @return this
      * @throws IllegalArgumentException if keyPassword is null or empty
      */

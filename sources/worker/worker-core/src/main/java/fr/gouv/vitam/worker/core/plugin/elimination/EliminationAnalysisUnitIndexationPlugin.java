@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -125,7 +125,8 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
         try {
             return JsonHandler.getFromJsonNode(params.getObjectMetadata(), EliminationAnalysisResult.class);
         } catch (Exception e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not retrieve unit elimination analysis information",
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "Could not retrieve unit elimination analysis information",
                 e);
         }
     }

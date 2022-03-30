@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -121,7 +121,8 @@ public final class JsonHandler {
 
         // Replace objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
         objectMapper.configOverride(Map.class)
-            .setIncludeAsProperty(JsonInclude.Value.construct(JsonInclude.Include.USE_DEFAULTS, JsonInclude.Include.ALWAYS));
+            .setIncludeAsProperty(
+                JsonInclude.Value.construct(JsonInclude.Include.USE_DEFAULTS, JsonInclude.Include.ALWAYS));
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -342,7 +343,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", inputStream, clasz);
-            if(JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
+            if (JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
                 // Fast deserialization for JsonNode types
                 return (T) OBJECT_MAPPER.readTree(inputStream);
             }
@@ -365,7 +366,7 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
 
-            if(JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
+            if (JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
                 // Fast deserialization for JsonNode types
                 return (T) OBJECT_MAPPER.readTree(value);
             }
@@ -454,7 +455,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, valueTypeRef);
-            if(JSON_NODE_TYPE_REFERENCE.getType() == valueTypeRef.getType()) {
+            if (JSON_NODE_TYPE_REFERENCE.getType() == valueTypeRef.getType()) {
                 // Fast deserialization for JsonNode types
                 return (T) OBJECT_MAPPER.readTree(file);
             }

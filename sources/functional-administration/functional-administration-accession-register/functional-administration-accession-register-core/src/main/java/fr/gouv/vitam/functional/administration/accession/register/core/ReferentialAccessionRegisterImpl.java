@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -108,6 +108,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     /**
      * Constructor
+     *
      * @param dbConfiguration the mongo access configuration
      * @param metaDataClientFactory
      * @param configuration
@@ -121,7 +122,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     /**
      * Constructor
-     *  @param dbConfiguration the mongo access configuration
+     *
+     * @param dbConfiguration the mongo access configuration
      * @param metaDataClientFactory
      * @param accessionRegisterSymbolicThreadPoolSize
      */
@@ -155,7 +157,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                                 alertService.createAlert(VitamLogLevel.ERROR,
                                     "An error occurred during AccessionRegisterSymbolic update for tenant " + tenantId);
                                 throw new RuntimeException(
-                                    "An error occurred during AccessionRegisterSymbolic update for tenant " + tenantId, e);
+                                    "An error occurred during AccessionRegisterSymbolic update for tenant " + tenantId,
+                                    e);
                             }
                         }, executorService);
                 completableFutures.add(completableFuture);
@@ -386,7 +389,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             actions.add(new IncAction(AccessionRegisterDetail.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
                 registerDetail.getObjectSize().getRemained()));
 
-            actions.add(new SetAction(AccessionRegisterDetail.STATUS, registerDetail.getStatus().name() ));
+            actions.add(new SetAction(AccessionRegisterDetail.STATUS, registerDetail.getStatus().name()));
 
             RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
                 .setOperation(registerDetail.getOpc())

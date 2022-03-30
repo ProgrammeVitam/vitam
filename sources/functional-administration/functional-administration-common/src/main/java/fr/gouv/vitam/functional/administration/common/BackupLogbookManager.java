@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,8 +41,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -65,7 +65,8 @@ public class BackupLogbookManager {
         this.logbookClientFactory = LogbookOperationsClientFactory.getInstance();
     }
 
-    @VisibleForTesting public BackupLogbookManager(LogbookOperationsClientFactory logbookClientFactory) {
+    @VisibleForTesting
+    public BackupLogbookManager(LogbookOperationsClientFactory logbookClientFactory) {
         this.logbookClientFactory = logbookClientFactory;
     }
 
@@ -75,7 +76,8 @@ public class BackupLogbookManager {
      * @param eventType the event type to be logged
      * @throws VitamException thrown if the logbook could not be updated
      */
-    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName, String objectIdentifier)
+    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName,
+        String objectIdentifier)
         throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
@@ -99,17 +101,18 @@ public class BackupLogbookManager {
         LogbookOperationsClient logbookClient = logbookClientFactory.getClient();
         logbookClient.update(logbookParameters);
     }
-  
+
     /**
      * log error (system or technical error)
+     *
      * @param logbookOperationMasterId
      * @param eventType eventType
-     * @param errorsDetails  the detail error
+     * @param errorsDetails the detail error
      * @throws VitamException
      */
     public void logError(GUID logbookOperationMasterId, String eventType, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
-        
+
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
             .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId,

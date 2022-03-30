@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,8 @@ public class AccessContractIdContainerFilter implements ContainerRequestFilter {
             LOGGER.error(e);
 
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
-                .entity(JsonHandler.createObjectNode().put("Error", e.getMessage())).type(MediaType.APPLICATION_JSON_TYPE).build());
+                .entity(JsonHandler.createObjectNode().put("Error", e.getMessage()))
+                .type(MediaType.APPLICATION_JSON_TYPE).build());
         }
     }
 

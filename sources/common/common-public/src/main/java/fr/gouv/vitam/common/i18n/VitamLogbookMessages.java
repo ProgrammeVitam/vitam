@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.i18n;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 import java.util.Locale;
 import java.util.Map;
-
-import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Vitam Messages Helper for Logbooks
@@ -51,7 +51,6 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
      * @param propertyFilename
      */
     private VitamLogbookMessages(String propertyFilename) {
@@ -59,7 +58,6 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
      * @param propertyFilename
      * @param locale
      */
@@ -97,8 +95,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @return the final EventType code
      */
     public static final String getEventTypeStarted(String stepOrHandler) {
@@ -106,8 +103,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @return the final EventType code
      */
     public static final String getEventTypeLfc(String stepOrHandler) {
@@ -115,9 +111,8 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
-     * @param subTaskName name of the sub task                     
+     * @param stepOrHandler step or handler name or full name
+     * @param subTaskName name of the sub task
      * @return the final EventType code
      */
     public static final String getSubTaskEventTypeLfc(String stepOrHandler, String subTaskName) {
@@ -125,9 +120,8 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
-     * @param subTaskName name of the sub task                     
+     * @param stepOrHandler step or handler name or full name
+     * @param subTaskName name of the sub task
      * @return the final EventType code
      */
     public static final String getSubTaskEventTypeOp(String stepOrHandler, String subTaskName) {
@@ -158,8 +152,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
@@ -168,8 +161,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @param code of status
      * @return the code to place within outcomeDetail (Logbooks)
      */
@@ -178,8 +170,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @param transaction transaction transaction name (within this handler)
      * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
@@ -189,21 +180,20 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @param transaction transaction transaction name (within this handler)
      * @param detailedOutcome the detailed outcome for the transaction
      * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
-    public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, String detailedOutcome, 
+    public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, String detailedOutcome,
         StatusCode code) {
-        return getEventTypeLfc(stepOrHandler) + SEPARATOR + transaction + SEPARATOR + detailedOutcome + SEPARATOR + code;
+        return getEventTypeLfc(stepOrHandler) + SEPARATOR + transaction + SEPARATOR + detailedOutcome + SEPARATOR +
+            code;
     }
 
     /**
-     *
-     * @param stepOrHandler step or handler name or full name 
+     * @param stepOrHandler step or handler name or full name
      * @param transaction transaction transaction name (within this handler)
      * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
@@ -321,7 +311,7 @@ public class VitamLogbookMessages {
      */
     public static final String getCodeLfc(String stepOrHandler, String transaction, String detailedOutcome,
         StatusCode code, Object... args) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, 
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction,
             detailedOutcome, code), args);
     }
 
@@ -340,7 +330,6 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
      * @return String
      */
     public static final String getSeparator() {
@@ -348,7 +337,6 @@ public class VitamLogbookMessages {
     }
 
     /**
-     *
      * @param key
      * @return boolean true/false
      */

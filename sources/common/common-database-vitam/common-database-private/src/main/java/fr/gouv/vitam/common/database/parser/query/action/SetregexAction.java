@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public class SetregexAction extends fr.gouv.vitam.common.database.builder.query.action.SetregexAction {
     /**
      * parsing
+     *
      * @param action UPDATEACTION
      * @param adapter VarNameAdapter
      * @param request JsonNode

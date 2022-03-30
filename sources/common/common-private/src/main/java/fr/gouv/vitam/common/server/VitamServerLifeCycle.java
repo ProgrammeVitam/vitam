@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,8 +32,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle.Listener;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
  * VitamServerLifeCycle is used to be able to do actions when server is going to stop or when started
  * This implementation is for jetty server.
@@ -50,7 +48,8 @@ public class VitamServerLifeCycle implements Listener {
 
 
     @Override
-    public void lifeCycleStarting(LifeCycle event) {}
+    public void lifeCycleStarting(LifeCycle event) {
+    }
 
     @Override
     public void lifeCycleStarted(LifeCycle event) {

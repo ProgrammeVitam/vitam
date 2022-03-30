@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -93,7 +93,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,6 +104,7 @@ import java.util.Map;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -116,7 +116,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class IngestContractImplTest {
 
@@ -163,7 +162,8 @@ public class IngestContractImplTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME), Collections::emptyList, indexManager);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME), Collections::emptyList,
+                indexManager);
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
@@ -861,7 +861,8 @@ public class IngestContractImplTest {
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-        final SetAction setComputeInheritedRulesAtIngest = UpdateActionHelper.set("ComputeInheritedRulesAtIngest", true);
+        final SetAction setComputeInheritedRulesAtIngest =
+            UpdateActionHelper.set("ComputeInheritedRulesAtIngest", true);
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", identifier));
@@ -1137,7 +1138,8 @@ public class IngestContractImplTest {
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
-        List<VitamError<IngestContractModel>> errors = ((VitamError<IngestContractModel>) updateContractStatus).getErrors();
+        List<VitamError<IngestContractModel>> errors =
+            ((VitamError<IngestContractModel>) updateContractStatus).getErrors();
         assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
             "Échec du processus de mise à jour du contrat d'entrée : une valeur ne correspond pas aux valeurs attendues")
         ).isTrue();

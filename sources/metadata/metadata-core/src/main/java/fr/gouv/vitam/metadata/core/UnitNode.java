@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,6 +32,7 @@ import java.util.Set;
 
 /**
  * Object to build the graph of unit
+ *
  * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitNode {
@@ -42,7 +43,8 @@ public class UnitNode {
     /**
      * Empty Constructor
      */
-    public UnitNode() {}
+    public UnitNode() {
+    }
 
     /**
      * constructor with UnitSimplified
@@ -82,7 +84,7 @@ public class UnitNode {
     }
 
     private void addChild(UnitNode childNode) {
-        this.childs.put(childNode.unit.getId() , childNode);
+        this.childs.put(childNode.unit.getId(), childNode);
     }
 
 
@@ -112,7 +114,7 @@ public class UnitNode {
     }
 
     /**
-     * @return the map of all unit node 
+     * @return the map of all unit node
      */
     public Map<String, UnitNode> getAllUnitNode() {
         return allUnitNode;
@@ -120,7 +122,7 @@ public class UnitNode {
 
     /**
      * @param allUnitNode map of all unit node
-     * @return UnitNOde and allUnitNode is setted 
+     * @return UnitNOde and allUnitNode is setted
      */
     public UnitNode setAllUnitNode(Map<String, UnitNode> allUnitNode) {
         this.allUnitNode = allUnitNode;

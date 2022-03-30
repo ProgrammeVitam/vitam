@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.client.Client;
-
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+
+import javax.ws.rs.client.Client;
 
 /**
  * Default VitamClientFactory for Test purpose only

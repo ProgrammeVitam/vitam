@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -498,7 +498,9 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importContractsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json"))).build());
+            Response.status(Status.CREATED)
+                .entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json")))
+                .build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
             InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json")) {
@@ -545,7 +547,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importAccessContractsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_access_ok.json")))
+            Response.status(Status.CREATED)
+                .entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_access_ok.json")))
                 .build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
@@ -583,7 +586,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importManagementContractsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_management_ok.json")))
+            Response.status(Status.CREATED)
+                .entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_management_ok.json")))
                 .build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
@@ -644,7 +648,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void findAllManagementContractsThenReturnContracts()
         throws VitamClientException {
 
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getManagementContracts()).build());
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getManagementContracts()).build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<ManagementContractModel> resp =
                 client.findManagementContracts(new VitamContext(TENANT_ID).setAccessContract(null),
@@ -952,7 +957,9 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importContextsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json"))).build());
+            Response.status(Status.CREATED)
+                .entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json")))
+                .build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
             InputStream fileContexts = PropertiesUtils.getResourceAsStream("contexts_ok.json")) {
@@ -973,7 +980,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertThat(
                 client.findAccessionRegister(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
                     JsonHandler.getFromString(queryDsql)).getHttpCode())
-                        .isEqualTo(Status.OK.getStatusCode());
+                .isEqualTo(Status.OK.getStatusCode());
         }
     }
 
@@ -992,7 +999,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterDetail()).build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.getAccessionRegisterDetail(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
-                JsonHandler.getFromString(queryDsql))
+                    JsonHandler.getFromString(queryDsql))
                 .getHttpCode()).isEqualTo(Status.OK.getStatusCode());
         }
     }
@@ -1002,7 +1009,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.getAccessionRegisterDetail(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
-                JsonHandler.getFromString(queryDsql))
+                    JsonHandler.getFromString(queryDsql))
                 .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
         }
     }
@@ -1027,8 +1034,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThatCode(() -> client
-                    .downloadTraceabilityOperationFile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID))
-                            .doesNotThrowAnyException();
+                .downloadTraceabilityOperationFile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID))
+                .doesNotThrowAnyException();
 
         }
     }
@@ -1041,7 +1048,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(
                 client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption).getHttpCode())
-                    .isEqualTo(Status.OK.getStatusCode());
+                .isEqualTo(Status.OK.getStatusCode());
         }
     }
 
@@ -1085,7 +1092,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.updateProfile(
                 new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                    .isTrue();
+                .isTrue();
         }
     }
 
@@ -1105,7 +1112,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertEquals(resp2.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
             when(mock.get()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
-            RequestResponse<ProcessDetail> resp3 = client.listOperationsDetails(new VitamContext(0), mock(ProcessQuery.class));
+            RequestResponse<ProcessDetail> resp3 =
+                client.listOperationsDetails(new VitamContext(0), mock(ProcessQuery.class));
             assertEquals(resp3.getStatus(), Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
         }
     }
@@ -1346,7 +1354,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.updateArchiveUnitProfile(
                 new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                    .isTrue();
+                .isTrue();
         }
     }
 
@@ -1385,7 +1393,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<ItemStatus> result = client.exportProbativeValue(new VitamContext(TENANT_ID), new ProbativeValueRequest(dsl, "BinaryMaster", "1"));
+            RequestResponse<ItemStatus> result = client.exportProbativeValue(new VitamContext(TENANT_ID),
+                new ProbativeValueRequest(dsl, "BinaryMaster", "1"));
             assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
         }
     }
@@ -1469,7 +1478,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     /**
      * Testing creation of external operations
-     * 
+     *
      * @throws LogbookExternalClientException
      */
     @Test
@@ -1505,7 +1514,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertEquals(resp.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
         }
 
-        
+
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {

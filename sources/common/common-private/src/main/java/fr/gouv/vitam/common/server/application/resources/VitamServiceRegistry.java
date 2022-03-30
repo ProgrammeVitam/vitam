@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,7 @@
  */
 package fr.gouv.vitam.common.server.application.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -44,6 +38,10 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * VItam Service Registry that contains all dependencies for the current Application
@@ -119,7 +117,6 @@ public class VitamServiceRegistry {
     }
 
     /**
-     *
      * @return the number of registered services, including itself
      */
     public int getRegisteredServices() {

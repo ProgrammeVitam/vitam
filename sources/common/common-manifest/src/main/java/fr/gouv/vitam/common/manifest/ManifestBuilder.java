@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,11 +57,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
 import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -89,7 +87,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -275,10 +272,10 @@ public class ManifestBuilder implements AutoCloseable {
     @Nonnull
     private String getExtension(BinaryDataObjectType binaryDataObjectType) {
         String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
-        if(Strings.isNullOrEmpty(extension)) {
+        if (Strings.isNullOrEmpty(extension)) {
             extension = FilenameUtils.getExtension(binaryDataObjectType.getFileInfo().getFilename());
         }
-        if(Strings.isNullOrEmpty(extension)) {
+        if (Strings.isNullOrEmpty(extension)) {
             extension = "";
             LOGGER.warn("cannot find extension for object" + binaryDataObjectType.getId());
         }
@@ -293,26 +290,27 @@ public class ManifestBuilder implements AutoCloseable {
             dataObjectGroup), writer);
     }
 
-    public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap, Map<String, String> ogs)
+    public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
+        Map<String, String> ogs)
         throws JAXBException, DatatypeConfigurationException {
-      ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
-      marshaller.marshal(archiveUnitType, writer);
+        ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
+        marshaller.marshal(archiveUnitType, writer);
 
-      return archiveUnitModel;
+        return archiveUnitModel;
     }
 
     public ArchiveUnitModel writeArchiveUnitWithLFC(ListMultimap<String, String> multimap, Map<String, String> ogs,
-                                                    LogbookLifeCycleUnit logbookLFC, ArchiveUnitModel archiveUnitModel)
+        LogbookLifeCycleUnit logbookLFC, ArchiveUnitModel archiveUnitModel)
         throws DatatypeConfigurationException, JAXBException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
-      LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
-      archiveUnitType.getManagement().setLogBook(logBookType);
-      marshaller.marshal(archiveUnitType, writer);
-      return archiveUnitModel;
+        LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
+        archiveUnitType.getManagement().setLogBook(logBookType);
+        marshaller.marshal(archiveUnitType, writer);
+        return archiveUnitModel;
     }
 
     private ArchiveUnitType mapUnitModelToXML(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
-                                              Map<String, String> ogs)
+        Map<String, String> ogs)
         throws DatatypeConfigurationException {
 
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
@@ -342,7 +340,7 @@ public class ManifestBuilder implements AutoCloseable {
             xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
         }
 
-      return xmlUnit;
+        return xmlUnit;
     }
 
     private LogBookType addArchiveUnitLogbookType(LogbookLifeCycleUnit logbookLFC) {
@@ -611,7 +609,8 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndDocument();
     }
 
-    public void validate(ExportType exportType, ExportRequestParameters exportRequestParameters) throws ExportException {
+    public void validate(ExportType exportType, ExportRequestParameters exportRequestParameters)
+        throws ExportException {
 
         if (null == exportRequestParameters) {
             throw new ExportException("Export type (" + exportType + ") export request parameters mustn't be null");

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,14 +30,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LoginModel {
-    
+
     private String tokenCSRF;
 
     @JsonCreator
     public LoginModel(@JsonProperty("tokenCSRF") String tokenCSRF) {
         this.tokenCSRF = tokenCSRF;
     }
-    
+
     public String getTokenCSRF() {
         return tokenCSRF;
     }

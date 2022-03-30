@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,7 @@ public enum LogbookParameterName {
      * It is the identifier of the parent event if exists
      */
     parentEventIdentifier,
-    
+
     /**
      * Event type: should use one global Enum ActionType <br>
      * <br>
@@ -110,7 +110,6 @@ public enum LogbookParameterName {
     agentIdentifierApplicationSession,
     /**
      * W-Request-Id from top request
-     *
      */
     eventIdentifierRequest,
 
@@ -137,7 +136,7 @@ public enum LogbookParameterName {
      * If null objectIdentifier is used to determine the LifeCycle to update.
      */
     lifeCycleIdentifier,
-    
+
     /**
      * Object Identifier of the "process" using a request <br>
      * <br>

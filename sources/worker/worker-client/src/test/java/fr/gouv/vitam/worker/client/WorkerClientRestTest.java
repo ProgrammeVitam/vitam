@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -166,9 +165,10 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     @Test
     public void submitAsyncDataRetryException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        List<WorkerAccessRequest> entity = List.of(new WorkerAccessRequest("accessRequestId1", "strategyId1", "offerId"),
-            new WorkerAccessRequest("accessRequestId2", "strategyId1", "offerId"),
-            new WorkerAccessRequest("accessRequestId3", "strategyId2",null));
+        List<WorkerAccessRequest> entity =
+            List.of(new WorkerAccessRequest("accessRequestId1", "strategyId1", "offerId"),
+                new WorkerAccessRequest("accessRequestId2", "strategyId1", "offerId"),
+                new WorkerAccessRequest("accessRequestId3", "strategyId2", null));
 
         when(mock.post()).thenReturn(
             Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())

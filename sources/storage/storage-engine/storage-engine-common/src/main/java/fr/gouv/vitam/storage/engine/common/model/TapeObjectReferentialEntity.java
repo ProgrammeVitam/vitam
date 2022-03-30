@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,8 @@ public class TapeObjectReferentialEntity {
     }
 
     public TapeObjectReferentialEntity(TapeLibraryObjectReferentialId id, long size, String digestType,
-        String digest, String storageId, TapeLibraryObjectStorageLocation location, String lastObjectModifiedDate, String lastUpdateDate) {
+        String digest, String storageId, TapeLibraryObjectStorageLocation location, String lastObjectModifiedDate,
+        String lastUpdateDate) {
         ParametersChecker.checkParameter("Id is required", id);
         this.id = id;
         this.size = size;

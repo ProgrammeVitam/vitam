@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -834,7 +834,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<GriffinModel> importGriffins(List<GriffinModel> griffinModelList)
         throws AdminManagementClientServerException;
 
-    RequestResponse<PreservationScenarioModel> importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
+    RequestResponse<PreservationScenarioModel> importPreservationScenarios(
+        List<PreservationScenarioModel> preservationScenarioModels)
         throws AdminManagementClientServerException;
 
     RequestResponse<GriffinModel> findGriffinByID(String id)

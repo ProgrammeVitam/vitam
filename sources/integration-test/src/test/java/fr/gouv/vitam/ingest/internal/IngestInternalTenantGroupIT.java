@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -250,8 +250,10 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), TENANT_GROUP),
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), TENANT_GROUP),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), TENANT_GROUP),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
     }
 

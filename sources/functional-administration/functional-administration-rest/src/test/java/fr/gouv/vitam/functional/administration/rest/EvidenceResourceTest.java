@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,21 +27,10 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -69,6 +58,16 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.when;
 
 /**
  * EvidenceResource Test
@@ -101,7 +100,7 @@ public class EvidenceResourceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
         AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true)
-                .setEveryDataObjectVersion(true);
+            .setEveryDataObjectVersion(true);
         accessContract.setIdentifier("fakeContract");
         when(dbRequestResult.getDocuments(any(), any())).thenReturn(Arrays.asList(accessContract));
         when(mongoDbAccess.findDocuments(any(), any())).thenReturn(dbRequestResult);
@@ -149,7 +148,8 @@ public class EvidenceResourceTest {
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
 
 
-        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(anyString(), any(), any());
+        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient)
+            .putObject(anyString(), any(), any());
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 

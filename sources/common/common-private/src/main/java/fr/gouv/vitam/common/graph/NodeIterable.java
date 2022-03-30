@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,6 +43,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
     private int n;
 
     // FIXME P1 missing a "clear" (memory pressure) or a default clear while getting next (help the GC)
+
 
     // helper linked list class
     private static class Node<Item> {
@@ -105,7 +106,6 @@ public class NodeIterable<Item> implements Iterable<Item> {
         private Node<E> current;
 
         /**
-         *
          * @param first
          */
         public ListIterator(Node<E> first) {

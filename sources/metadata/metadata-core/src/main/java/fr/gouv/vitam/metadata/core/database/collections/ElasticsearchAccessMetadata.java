@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -146,7 +146,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     protected final Result<MetadataDocument<?>> search(final MetadataCollections collection, final Integer tenantId,
         final QueryBuilder query, final List<SortBuilder<?>> sorts, int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, boolean trackTotalHits)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        boolean trackTotalHits)
         throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
@@ -282,13 +283,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         Collection<? extends MetadataDocument<?>> documents)
         throws MetaDataExecutionException {
 
-            try {
-                ElasticsearchIndexAlias indexAlias =
-                    this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
-                super.indexEntries(indexAlias, documents);
-            } catch (DatabaseException e) {
-                throw new MetaDataExecutionException(e);
-            }
+        try {
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+            super.indexEntries(indexAlias, documents);
+        } catch (DatabaseException e) {
+            throw new MetaDataExecutionException(e);
+        }
     }
 
 

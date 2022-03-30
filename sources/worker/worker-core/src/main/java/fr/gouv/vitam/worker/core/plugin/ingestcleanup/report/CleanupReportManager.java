@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -89,14 +89,16 @@ public class CleanupReportManager {
 
     public void reportObjectGroupError(String id, String message) {
         IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups().computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+            cleanupReport.getObjectGroups()
+                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.addError(message);
         objectGroupReportEntry.updateStatus(StatusCode.KO);
     }
 
     public void reportObjectGroupWarning(String id, String message) {
         IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups().computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+            cleanupReport.getObjectGroups()
+                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.addWarning(message);
         objectGroupReportEntry.updateStatus(StatusCode.WARNING);
     }
@@ -109,7 +111,8 @@ public class CleanupReportManager {
 
     public void reportDeletedObjectGroup(String id, List<String> objects) {
         IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups().computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+            cleanupReport.getObjectGroups()
+                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.updateStatus(StatusCode.OK);
         objectGroupReportEntry.setObjects(objects);
     }
@@ -121,7 +124,8 @@ public class CleanupReportManager {
                 statusCode = unitReportEntry.getStatus();
             }
         }
-        for (IngestCleanupObjectGroupReportEntry objectGroupReportEntry : this.cleanupReport.getObjectGroups().values()) {
+        for (IngestCleanupObjectGroupReportEntry objectGroupReportEntry : this.cleanupReport.getObjectGroups()
+            .values()) {
             if (statusCode.compareTo(objectGroupReportEntry.getStatus()) < 0) {
                 statusCode = objectGroupReportEntry.getStatus();
             }

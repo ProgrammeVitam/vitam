@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -149,7 +149,7 @@ public interface LogbookDbAccess {
      * @param operationItem
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void createLogbookOperation(final LogbookOperationParameters operationItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -161,7 +161,7 @@ public interface LogbookDbAccess {
      * @param lifecycleItem
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void createLogbookLifeCycleUnit(final String idOperation, final LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -173,7 +173,7 @@ public interface LogbookDbAccess {
      * @param lifecycleItem
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void createLogbookLifeCycleObjectGroup(final String idOperation,
         final LogbookLifeCycleObjectGroupParameters lifecycleItem)
@@ -204,7 +204,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc,
         LogbookLifeCycleUnitParameters lifecycleItem)
@@ -222,7 +222,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc,
         LogbookLifeCycleUnitParameters lifecycleItem, boolean commit)
@@ -239,7 +239,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
@@ -257,7 +257,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem,
@@ -297,7 +297,7 @@ public interface LogbookDbAccess {
      * Create one Logbook Operation with already multiple sub-events
      *
      * @param operationItems with first and next events to add/update
-     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -308,7 +308,7 @@ public interface LogbookDbAccess {
      * Create one Logbook LifeCycle with already multiple sub-events
      *
      * @param lifecycleItems with first and next events to add/update
-     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -319,7 +319,7 @@ public interface LogbookDbAccess {
      * Create one Logbook LifeCycle with already multiple sub-events
      *
      * @param lifecycleItems with first and next events to add/update
-     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -345,7 +345,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param lifecycleItems
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
@@ -359,7 +359,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param lifecycleItems
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
@@ -382,7 +382,7 @@ public interface LogbookDbAccess {
      */
     VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced, boolean crossTenant)
         throws LogbookDatabaseException, VitamDBException;
-    
+
     /**
      * Get a list of Logbook LifeCycles through Closeable MongoCursor
      *
@@ -396,8 +396,8 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException if no result
      */
     LogbookLifeCycle<?> getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
-            throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
-    
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
+
     /**
      * Get a list of Logbook LifeCycles through Closeable MongoCursor
      *
@@ -580,5 +580,6 @@ public interface LogbookDbAccess {
     void bulkInsert(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
         throws DatabaseException;
 
-    void updateLogbookLifeCycle(LogbookCollections collection, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+    void updateLogbookLifeCycle(LogbookCollections collection,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
 }

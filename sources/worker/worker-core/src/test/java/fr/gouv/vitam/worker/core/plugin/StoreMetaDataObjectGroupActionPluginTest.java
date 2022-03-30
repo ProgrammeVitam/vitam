@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -174,7 +174,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
@@ -197,7 +197,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
@@ -224,9 +224,11 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         // Then
         checkItemStatus(response, StatusCode.OK);
 
-        JsonNode objectGroupWithLfc1CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json"));
+        JsonNode objectGroupWithLfc1CreatedFile = JsonHandler.getFromFile(
+            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json"));
         JsonNode objectGroupWithLfc1MockFile = JsonHandler.getFromFile(objectGroupWithLfc1);
-        JsonNode objectGroupWithLfc2CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json"));
+        JsonNode objectGroupWithLfc2CreatedFile = JsonHandler.getFromFile(
+            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json"));
         JsonNode objectGroupWithLfc2MockFile = JsonHandler.getFromFile(objectGroupWithLfc2);
         assertThat(objectGroupWithLfc1CreatedFile).isEqualTo(objectGroupWithLfc1MockFile);
         assertThat(objectGroupWithLfc2CreatedFile).isEqualTo(objectGroupWithLfc2MockFile);
@@ -240,7 +242,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     public void givenMetadataClientWhensearchOGThenThrowsException() throws Exception {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
@@ -264,7 +266,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     public void givenLogbookLifeCycleClientWhenSearchLfcThenThrowsException() throws Exception {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
@@ -293,7 +295,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 

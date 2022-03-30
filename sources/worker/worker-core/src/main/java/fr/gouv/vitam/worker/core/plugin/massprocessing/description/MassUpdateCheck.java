@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -34,7 +35,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 
 import java.util.List;
@@ -62,9 +62,11 @@ public class MassUpdateCheck extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-            List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(handler.getJsonFromWorkspace("query.json"));
+            List<String> internalKeyFields =
+                internalActionKeysRetriever.getInternalActionKeyFields(handler.getJsonFromWorkspace("query.json"));
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format("Invalid DSL query: cannot contains '%s' internal field(s).", String.join(", ", internalKeyFields));
+                String message = String.format("Invalid DSL query: cannot contains '%s' internal field(s).",
+                    String.join(", ", internalKeyFields));
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
 

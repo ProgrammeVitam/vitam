@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.purge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
@@ -115,7 +114,7 @@ public class PurgeObjectGroupPreparationHandlerTest {
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
@@ -224,7 +223,7 @@ public class PurgeObjectGroupPreparationHandlerTest {
     private void checkObjectGroupToDelete(List<JsonLineModel> objectGroupsToDelete, String id, String... objectIds)
         throws InvalidParseOperationException {
         JsonLineModel objectGroupToDelete = objectGroupsToDelete.stream().filter(o -> o.getId().equals(id)).findFirst()
-                .get();
+            .get();
 
         assertThat(objectGroupToDelete.getDistribGroup()).isNull();
         ObjectNode expectedResponse = JsonHandler.createObjectNode();
@@ -238,7 +237,7 @@ public class PurgeObjectGroupPreparationHandlerTest {
         assertThat(objectGroupToDelete.getParams().get("objects").isArray()).isTrue();
         for (String objectId : objectIds) {
             assertThat(((ArrayNode) objectGroupToDelete.getParams().get("objects")))
-                    .contains(JsonHandler.createObjectNode().put("id", objectId).put("strategyId", "default"));
+                .contains(JsonHandler.createObjectNode().put("id", objectId).put("strategyId", "default"));
         }
     }
 

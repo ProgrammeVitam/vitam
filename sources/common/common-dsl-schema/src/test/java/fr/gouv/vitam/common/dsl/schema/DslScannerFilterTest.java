@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,9 +32,9 @@ import org.junit.Test;
 
 import javax.ws.rs.container.ContainerRequestContext;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * DslScannerFilterTest

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.io.IOUtils;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -48,12 +54,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.commons.io.IOUtils;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
  * InterceptorResource : intercept request between elastic and kibana replace underscore by sharp and suppress
@@ -81,9 +81,9 @@ public class InterceptorResource {
     /**
      * Juste Filter the request not the response
      *
-     * @param url     url
-     * @param info    UriInfo
-     * @param req     HttpServletRequest
+     * @param url url
+     * @param info UriInfo
+     * @param req HttpServletRequest
      * @param headers HttpHeaders
      * @return elasticSearch response.
      */
@@ -97,7 +97,7 @@ public class InterceptorResource {
 
         String urlEs = getUrlEs(req);
         ResteasyWebTarget target =
-                ((ResteasyClientBuilder)ClientBuilder.newBuilder()).build().target(urlEs);
+            ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
 
         // Add Query Params to the request
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
@@ -137,9 +137,9 @@ public class InterceptorResource {
     /**
      * Filter kibana request and response
      *
-     * @param url     url
-     * @param info    UriInfo
-     * @param req     HttpServletRequest
+     * @param url url
+     * @param info UriInfo
+     * @param req HttpServletRequest
      * @param headers HttpHeaders
      * @return the given elasticsearch Response filtered with sharp
      * @throws IOException IOException
@@ -158,7 +158,7 @@ public class InterceptorResource {
         ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(interceptorConfiguration.getWhitelist());
         String urlEs = getUrlEs(req);
         ResteasyWebTarget target =
-                ((ResteasyClientBuilder)ClientBuilder.newBuilder()).build()
+            ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build()
                 .target(urlEs);
         // Query Params
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
@@ -178,7 +178,7 @@ public class InterceptorResource {
                 replacePatternUtils.replaceSharpByUnderscore(IOUtils.toString(inputStream, UTF_8));
             response =
                 request.build(req.getMethod(),
-                    Entity.entity(IOUtils.toInputStream(requestBodyWithoutSharp, UTF_8), headers.getMediaType()))
+                        Entity.entity(IOUtils.toInputStream(requestBodyWithoutSharp, UTF_8), headers.getMediaType()))
                     .invoke();
         } else {
             response = request.build(req.getMethod()).invoke();

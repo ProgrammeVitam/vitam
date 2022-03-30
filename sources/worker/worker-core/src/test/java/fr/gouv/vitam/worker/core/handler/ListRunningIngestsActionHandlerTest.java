@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,8 +73,9 @@ import static org.mockito.Mockito.when;
 
 public class ListRunningIngestsActionHandlerTest {
 
-    private static final  ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
-    private static final ProcessingManagementClientFactory processManagementClientFactory = mock(ProcessingManagementClientFactory.class);
+    private static final ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
+    private static final ProcessingManagementClientFactory processManagementClientFactory =
+        mock(ProcessingManagementClientFactory.class);
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private List<ProcessDetail> list;
@@ -84,7 +85,8 @@ public class ListRunningIngestsActionHandlerTest {
     private List<IOParameter> out;
     private ProcessDetail pw = new ProcessDetail();
 
-    private ListRunningIngestsActionHandler plugin = new ListRunningIngestsActionHandler(processManagementClientFactory);
+    private ListRunningIngestsActionHandler plugin =
+        new ListRunningIngestsActionHandler(processManagementClientFactory);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -107,10 +109,11 @@ public class ListRunningIngestsActionHandlerTest {
 
         reset(workspaceClient);
         reset(processManagementClient);
-        when(processManagementClientFactory.getClient())  .thenReturn(processManagementClient);
+        when(processManagementClientFactory.getClient()).thenReturn(processManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        action = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(), "workerId", Lists.newArrayList());
+        action = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
+            "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON)));

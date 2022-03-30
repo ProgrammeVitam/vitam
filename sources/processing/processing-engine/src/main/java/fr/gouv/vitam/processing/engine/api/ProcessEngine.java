@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ package fr.gouv.vitam.processing.engine.api;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
@@ -55,8 +54,8 @@ public interface ProcessEngine {
      *
      * @param step the ProcessStep object
      * @param workerParameters the worker parameters
-     * @throws ProcessingEngineException thrown if step could not be started
      * @return
+     * @throws ProcessingEngineException thrown if step could not be started
      */
     CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
         throws ProcessingEngineException;

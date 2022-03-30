@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,6 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -76,7 +75,7 @@ public class PreservationStorageMetadataAndLfcTest {
 
     private final String GOT_ID = "aebaaaaaaahuq4l4aa4zsalhgwcreaiaaaaq";
     private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
-            .withRequestId("REQUEST_ID_TEST").build();
+        .withRequestId("REQUEST_ID_TEST").build();
     private static final String JSON = ".json";
 
     private PreservationStorageMetadataAndLfc plugin;
@@ -114,21 +113,23 @@ public class PreservationStorageMetadataAndLfcTest {
         parameter.setObjectNameList(Collections.singletonList(GOT_ID));
         handlerIO = new TestHandlerIO();
         plugin = new PreservationStorageMetadataAndLfc(metaDataClientFactory, logbookLifeCyclesClientFactory,
-                storageClientFactory);
+            storageClientFactory);
 
         FormatIdentifierResponse format = new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111",
-                "");
+            "");
         StoredInfoResult value = new StoredInfoResult();
         OutputPreservation output = new OutputPreservation();
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         WorkflowBatchResult.OutputExtra outputExtra = new WorkflowBatchResult.OutputExtra(output, "binaryGUID",
-                Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(), Optional.empty(), Optional.empty());
+            Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(),
+            Optional.empty(), Optional.empty());
 
         WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId",
-                Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy", Collections.singletonList("unitId"));
+            Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy",
+            Collections.singletonList("unitId"));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"),
-                Collections.singletonList(batchResult));
+            Collections.singletonList(batchResult));
 
         handlerIO.addOutputResult(0, batchResults);
         handlerIO.setInputs(batchResults);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,8 @@ public class KeyChoiceFormat extends Format {
         setMin(1); // TODO Document the fact that min is 1 by default for keychoice
     }
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         for (Map.Entry<String, Format> entry : choices.entrySet()) {
             entry.getValue().setName(entry.getKey());
         }
@@ -58,7 +59,8 @@ public class KeyChoiceFormat extends Format {
         this.choices = choices;
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         if (!node.isObject()) {
             validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
             return;
@@ -69,7 +71,7 @@ public class KeyChoiceFormat extends Format {
             Format subProperty = entry.getValue();
 
             JsonNode value = null;
-            if(name.equals("$subobject") && node.get(name) != null && node.get(name).fields().hasNext()) {
+            if (name.equals("$subobject") && node.get(name) != null && node.get(name).fields().hasNext()) {
                 value = node.get(name).fields().next().getValue();
             } else {
                 value = node.get(name);
@@ -86,14 +88,16 @@ public class KeyChoiceFormat extends Format {
         // In case of error, let field consumption reporter report the error;
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
         for (Format property : choices.values()) {
             property.walk(consumer);
         }
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
         boolean notFirst = false;

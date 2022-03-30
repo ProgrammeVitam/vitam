@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -90,7 +90,8 @@ public class ReconstructionService {
 
     /**
      * Constructor
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository
      * @param indexManager
      */
@@ -103,7 +104,8 @@ public class ReconstructionService {
 
     /**
      * Constructor for tests
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
@@ -176,7 +178,8 @@ public class ReconstructionService {
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-            Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), offset, limit);
+            Iterator<List<OfferLog>> listing =
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), offset, limit);
 
             while (listing.hasNext()) {
 
@@ -188,7 +191,8 @@ public class ReconstructionService {
                     try {
 
                         LogbookBackupModel model =
-                            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), offerLog.getFileName(), offerLog.getSequence());
+                            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(),
+                                offerLog.getFileName(), offerLog.getSequence());
 
                         if (model.getLogbookOperation() == null || model.getLogbookId() == null) {
                             throw new StorageException(String.format(
@@ -211,7 +215,8 @@ public class ReconstructionService {
                 if (!bulkData.isEmpty()) {
                     reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
                     LogbookBackupModel last = Iterables.getLast(bulkData);
-                    offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK, last.getOffset());
+                    offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
+                        last.getOffset());
                 }
 
                 // log the reconstruction of Vitam collection.

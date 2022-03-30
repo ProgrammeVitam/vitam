@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,7 @@ public class CustodialHistoryMapper {
 
     /**
      * Map an object {@link CustodialHistoryType} to a {@link CustodialHistoryModel}
-     * 
+     *
      * @param custodialHistory
      * @return the custodial history as a {@link CustodialHistoryMapper} object
      */
@@ -60,10 +60,10 @@ public class CustodialHistoryMapper {
         DataObjectRefType dataObjectRefType = custodialHistory.getCustodialHistoryFile();
         if (dataObjectRefType != null) {
             DataObjectReference custodialHistoryFile = new DataObjectReference();
-            if(dataObjectRefType.getDataObjectGroupReferenceId() != null){
+            if (dataObjectRefType.getDataObjectGroupReferenceId() != null) {
                 custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectRefType.getDataObjectGroupReferenceId());
             }
-            if(dataObjectRefType.getDataObjectReferenceId() != null){
+            if (dataObjectRefType.getDataObjectReferenceId() != null) {
                 custodialHistoryFile.setDataObjectReferenceId(dataObjectRefType.getDataObjectReferenceId());
             }
             custodialHistoryModel.setCustodialHistoryFile(custodialHistoryFile);

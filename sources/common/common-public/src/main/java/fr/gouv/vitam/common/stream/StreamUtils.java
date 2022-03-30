@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.common.stream;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,17 +46,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
-
-import javax.ws.rs.core.Response;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * This class supports Helpers on streams.
@@ -204,7 +202,7 @@ public class StreamUtils {
         }
         try {
             // Try read first byte before allocating buffers...
-            if(inputStream.read() == -1) {
+            if (inputStream.read() == -1) {
                 return read;
             }
             read++;

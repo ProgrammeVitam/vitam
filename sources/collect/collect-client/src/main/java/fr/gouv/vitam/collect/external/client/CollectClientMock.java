@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,26 +44,31 @@ import java.util.UUID;
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
     ObjectMapper mapper = new ObjectMapper();
+
     @Override
-    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
+        throws InvalidParseOperationException {
         transactionDto.setId(UUID.randomUUID().toString());
         return new RequestResponseOK<JsonNode>()
-                .setHttpCode(Response.Status.OK.getStatusCode())
-                .addResult(mapper.valueToTree(transactionDto));
+            .setHttpCode(Response.Status.OK.getStatusCode())
+            .addResult(mapper.valueToTree(transactionDto));
     }
 
     @Override
-    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+        throws InvalidParseOperationException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
+        JsonNode objectJsonNode) throws InvalidParseOperationException {
         return null;
     }
 
     @Override
-    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException {
+    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+        throws InvalidParseOperationException {
         return null;
     }
 

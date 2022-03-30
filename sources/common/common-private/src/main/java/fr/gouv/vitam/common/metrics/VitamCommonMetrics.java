@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,12 +54,13 @@ public class VitamCommonMetrics {
 
     /**
      * Compute reconstruction duration by tenant and container.
-     *  Should be aggregated by instance, to differentiate between metadata, logbook and functional administration
+     * Should be aggregated by instance, to differentiate between metadata, logbook and functional administration
      * This will count number of events and sum durations
      */
     public static final Histogram RECONSTRUCTION_DURATION = Histogram.build()
         .name(VitamMetricsNames.VITAM_RECONSTRUCTION_DURATION)
         .labelNames("tenant", "container")
-        .help("Vitam reconstruction histogram duration metric. Useful for metadata, logbook and function administration")
+        .help(
+            "Vitam reconstruction histogram duration metric. Useful for metadata, logbook and function administration")
         .register();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
 
-import java.io.IOException;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+
+import java.io.IOException;
+import java.util.Map.Entry;
 
 /**
  * StorageLogbookParameters Serializer for Jackson
@@ -46,7 +46,8 @@ class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookPa
     }
 
     @Override
-    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers)
+        throws IOException {
         gen.writeStartObject();
         for (final Entry<StorageLogbookParameterName, String> item : value.getMapParameters().entrySet()) {
             gen.writeStringField(item.getKey().name(), item.getValue());

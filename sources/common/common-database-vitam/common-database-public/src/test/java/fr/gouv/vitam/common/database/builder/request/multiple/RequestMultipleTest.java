@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,9 +32,11 @@ import org.junit.Before;
 public class RequestMultipleTest {
 
     @Before
-    public void setUp() throws Exception {}
+    public void setUp() throws Exception {
+    }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
 }

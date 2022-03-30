@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -506,8 +506,9 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 });
             assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailCreatedByPreservation.getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
-                    ReportType.DELETE_GOT_VERSIONS.name())));
+                accessRegisterDetailCreatedByPreservation.getEvents().stream()
+                    .anyMatch(elmt -> elmt.getOperationType().equals(
+                        ReportType.DELETE_GOT_VERSIONS.name())));
             assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
             assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }

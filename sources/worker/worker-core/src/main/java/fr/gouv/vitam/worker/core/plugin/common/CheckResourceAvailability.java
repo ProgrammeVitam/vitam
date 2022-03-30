@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -174,7 +174,7 @@ public abstract class CheckResourceAvailability extends ActionHandler {
                 while (objectIdsIterator.hasNext()) {
                     List<String> objectIdsBulk = objectIdsIterator.next();
                     objectIdsBulk.forEach(item -> {
-                        LOGGER.debug("Create access requests if required for "+
+                        LOGGER.debug("Create access requests if required for " +
                             context.getStrategyId() + " " + context.getOfferId() + " " + type + " " + item);
                     });
                     Optional<String> accessRequestId =

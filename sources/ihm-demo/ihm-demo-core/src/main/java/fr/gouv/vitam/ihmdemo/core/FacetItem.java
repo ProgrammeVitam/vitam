@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,12 +100,12 @@ public class FacetItem {
     @JsonProperty("filters")
     private List<FacetFiltersItem> filters;
 
-    private static final Map<String, String> nestedFields = Stream.of(new String[][]{
-            {"#qualifiers.versions.FormatIdentification.FormatLitteral", "#qualifiers.versions"},
-            {"#qualifiers.versions.DataObjectVersion", "#qualifiers.versions"},
-        }).collect(Collectors.collectingAndThen(
-            Collectors.toMap(data -> data[0], data -> data[1]),
-            Collections::<String, String>unmodifiableMap));
+    private static final Map<String, String> nestedFields = Stream.of(new String[][] {
+        {"#qualifiers.versions.FormatIdentification.FormatLitteral", "#qualifiers.versions"},
+        {"#qualifiers.versions.DataObjectVersion", "#qualifiers.versions"},
+    }).collect(Collectors.collectingAndThen(
+        Collectors.toMap(data -> data[0], data -> data[1]),
+        Collections::<String, String>unmodifiableMap));
 
     /**
      * Constructor.
@@ -115,7 +115,8 @@ public class FacetItem {
     }
 
     public FacetItem(String name, FacetType facetType, String field, Integer size,
-        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters, Optional<String> subobject) {
+        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters,
+        Optional<String> subobject) {
         this.name = name;
         this.facetType = facetType;
         this.field = field;
@@ -160,7 +161,7 @@ public class FacetItem {
      */
     public void setField(String field) {
         this.field = field;
-        if(nestedFields.containsKey(field)) {
+        if (nestedFields.containsKey(field)) {
             this.subobject = nestedFields.get(field);
         }
     }

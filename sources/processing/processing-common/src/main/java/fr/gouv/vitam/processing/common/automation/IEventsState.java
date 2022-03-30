@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,7 @@ public interface IEventsState {
     /**
      * Do an evaluation of the State RUNNING If the state is not permitted a StateNotAllowedException is thrown Else
      * call doRunning method
-     * 
+     *
      * @param workerParameters
      * @throws StateNotAllowedException
      */
@@ -48,7 +48,7 @@ public interface IEventsState {
 
     /**
      * Like a resume but pause at the next step
-     * 
+     *
      * @param workerParameters
      * @throws StateNotAllowedException
      * @throws ProcessingException
@@ -64,14 +64,14 @@ public interface IEventsState {
      * After next or resume occurs on paused processWorkflow, It will starts from the step pauseCancelAction equals to
      * PauseOrCancelAction.ACTION_PAUSE if exists and update pauseCancelAction to be PauseOrCancelAction.ACTION_RECOVER
      * Else starts normally from the next step
-     * 
+     *
      * @throws StateNotAllowedException
      */
     void pause() throws StateNotAllowedException;
-    
+
     /**
      * Replay the last executed step, or if it s stated, the step passed as a parameter
-     * 
+     *
      * @param workerParameters
      * @throws StateNotAllowedException
      * @throws ProcessingException
@@ -83,7 +83,6 @@ public interface IEventsState {
      *
      * To prevent deadlock, this method is not synchronized, Because onComplete and onPauseOrCancel are synchronized and
      * called from ProcessEngine
-     * 
      */
     void shutdown();
 
@@ -91,7 +90,7 @@ public interface IEventsState {
      * Cancel as soon as possible the processWorkflow, To do that, the step pauseCancelAction is updated to be
      * PauseOrCancelAction.ACTION_CANCEL Unlike pause, - The final step should be executed, -
      * PauseOrCancelAction.ACTION_CANCEL have no impact on the final step - The final step cannot be cancelled
-     * 
+     *
      * @throws StateNotAllowedException
      */
     void cancel() throws StateNotAllowedException;

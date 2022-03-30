@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,8 @@ public class PreservationDistributionLine {
 
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy, String scenarioId, String griffinIdentifier, Set<String> unitsForExtractionAU) {
+        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy,
+        String scenarioId, String griffinIdentifier, Set<String> unitsForExtractionAU) {
         this.id = id;
         this.formatId = formatId;
         this.filename = filename;
@@ -175,11 +176,11 @@ public class PreservationDistributionLine {
     public void setSourceUse(String sourceUse) {
         this.sourceUse = sourceUse;
     }
-    
+
     public String getSourceStrategy() {
         return sourceStrategy;
     }
-    
+
     public void setSourceStrategy(String sourceStrategy) {
         this.sourceStrategy = sourceStrategy;
     }

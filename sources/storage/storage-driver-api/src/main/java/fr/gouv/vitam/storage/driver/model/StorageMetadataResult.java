@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.driver.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.MetadatasObject;
 
 public class StorageMetadataResult extends MetadatasObject {
@@ -43,7 +42,7 @@ public class StorageMetadataResult extends MetadatasObject {
 
     /**
      * Constructor to initialize the needed parameters for get metadata results
-     * 
+     *
      * @param object_name
      * @param type
      * @param digest
@@ -52,9 +51,9 @@ public class StorageMetadataResult extends MetadatasObject {
      * @param last_modified_date
      */
     public StorageMetadataResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
-            @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
-            @JsonProperty("last_access_date") String last_access_date,
-            @JsonProperty("last_modified_date") String last_modified_date) {
+        @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
+        @JsonProperty("last_access_date") String last_access_date,
+        @JsonProperty("last_modified_date") String last_modified_date) {
         super(object_name, type, digest, file_size, last_access_date, last_modified_date);
     }
 }

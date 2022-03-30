@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -104,7 +104,7 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
 
         try {
 
-            storeReportEntriesToOffers(param,handler);
+            storeReportEntriesToOffers(param, handler);
 
             generateTraceabilityReportToWorkspace(param, handler);
 
@@ -122,7 +122,7 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
 
     private void storeReportEntriesToOffers(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-            if(handler.isExistingFileInWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE)) {
+            if (handler.isExistingFileInWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE)) {
                 List<String> operationsId = new ArrayList<>();
                 JsonLineGenericIterator<JsonLineModel> iterator =
                     new JsonLineGenericIterator<>(handler.getInputStreamFromWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE),
@@ -131,26 +131,26 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
                 iterator.forEachRemaining(lineModel -> operationsId.add(lineModel.getId()));
 
                 List<TraceabilityReportEntry> reports = operationsId.stream().map(
-                    operationId -> {
+                        operationId -> {
+                            try {
+                                return handler
+                                    .getJsonFromWorkspace(operationId + File.separator + WorkspaceConstants.REPORT);
+                            } catch (ProcessingException e) {
+                                LOGGER.error(e);
+                                return null;
+                            }
+                        }
+                    ).filter(Objects::nonNull).map(jsonNode -> {
                         try {
-                            return handler
-                                .getJsonFromWorkspace(operationId + File.separator + WorkspaceConstants.REPORT);
-                        } catch (ProcessingException e) {
+                            return JsonHandler.getFromJsonNode(jsonNode, TraceabilityReportEntry.class);
+                        } catch (InvalidParseOperationException e) {
                             LOGGER.error(e);
                             return null;
                         }
-                    }
-                ).filter(Objects::nonNull).map(jsonNode -> {
-                    try {
-                        return JsonHandler.getFromJsonNode(jsonNode, TraceabilityReportEntry.class);
-                    } catch (InvalidParseOperationException e) {
-                        LOGGER.error(e);
-                        return null;
-                    }
-                }).filter(Objects::nonNull)
+                    }).filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
-            traceabilityReportService.appendEntries(param.getContainerName(), reports);
+                traceabilityReportService.appendEntries(param.getContainerName(), reports);
             }
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | ProcessingStatusException | IOException e) {
             throw new ProcessingException(e);
@@ -202,7 +202,8 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
             String outDetail = lastEvent.get(LogbookEvent.OUT_DETAIL).asText();
             String outMsg = lastEvent.get(LogbookEvent.OUT_MESSG).asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get(LogbookEvent.EV_DET_DATA).asText());
-            JsonNode rSI = JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
+            JsonNode rSI =
+                JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
             return new OperationSummary(tenantId, processId, evType, outcome, outDetail, outMsg, rSI,
                 evDetData);
         } catch (InvalidParseOperationException e) {
@@ -222,7 +223,8 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
     private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
-            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) && logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
+                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
                 ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
                 if (results.size() > 0) {
                     return results.get(0);

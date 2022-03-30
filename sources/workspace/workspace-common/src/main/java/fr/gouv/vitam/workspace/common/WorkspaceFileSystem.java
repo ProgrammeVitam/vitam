@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -633,17 +632,20 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     /**
      * This method get all files in folder and return a map with the uri as a key and the value is a FileParams
-     * that contains whatever it needs. This method can have a huge usage of memory so extract only useful data 
+     * that contains whatever it needs. This method can have a huge usage of memory so extract only useful data
      * in callable clients.
+     *
      * @param containerName
      * @param folderName
      * @return
      * @throws ContentAddressableStorageException
      */
     @Override
-    public Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName) throws ContentAddressableStorageException {
+    public Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName)
+        throws ContentAddressableStorageException {
 
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),containerName);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
         ParametersChecker.checkParameter(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
 
         if (!isExistingContainer(containerName)) {
@@ -656,7 +658,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
         try {
             Path folderPath = getFolderPath(containerName, folderName);
-            final Map<String,FileParams> filesWithParamsMap = new HashMap<>();
+            final Map<String, FileParams> filesWithParamsMap = new HashMap<>();
             Files.walkFileTree(folderPath, new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {

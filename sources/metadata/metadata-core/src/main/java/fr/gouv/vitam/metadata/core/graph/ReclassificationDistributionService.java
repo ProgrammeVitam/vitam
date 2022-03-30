@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -151,7 +151,8 @@ public class ReclassificationDistributionService {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit());
 
         return new SpliteratorIterator<>(scrollRequest);
     }

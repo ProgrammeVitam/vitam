@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -161,7 +161,8 @@ public class DefaultClientTest extends ResteasyTestApplication {
         headers.add("X-Test", "testvalue");
         LOGGER.warn("Coinfig: " + client.getClientFactory().getDefaultConfigCient());
         Response message =
-            client.make(VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept());
+            client.make(
+                VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
@@ -181,7 +182,8 @@ public class DefaultClientTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withHeaders(headers).withBody("{}"));
+        message =
+            client.make(VitamRequestBuilder.get().withPath("/status").withJson().withHeaders(headers).withBody("{}"));
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
     }
 
@@ -255,14 +257,16 @@ public class DefaultClientTest extends ResteasyTestApplication {
             LOGGER.info(e);
         }
         try {
-            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}"));
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson()
+                .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}"));
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore
             LOGGER.info(e);
         }
         try {
-            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").withChunckedMode(true));
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson()
+                .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").withChunckedMode(true));
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore

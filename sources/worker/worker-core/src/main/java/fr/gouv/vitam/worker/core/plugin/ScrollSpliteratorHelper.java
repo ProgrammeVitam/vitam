@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,7 +55,8 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createUnitScrollSplitIterator(client, selectMultiQuery, VitamConfiguration.getElasticSearchScrollLimit());
+        return createUnitScrollSplitIterator(client, selectMultiQuery,
+            VitamConfiguration.getElasticSearchScrollLimit());
 
 
     }
@@ -110,7 +111,8 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createObjectGroupScrollSplitIterator(client, selectMultiQuery, VitamConfiguration.getElasticSearchScrollLimit());
+        return createObjectGroupScrollSplitIterator(client, selectMultiQuery,
+            VitamConfiguration.getElasticSearchScrollLimit());
     }
 
     public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(SelectMultiQuery request,
@@ -123,12 +125,15 @@ public class ScrollSpliteratorHelper {
                 } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit());
     }
 
-    /**Check number of result
+    /**
+     * Check number of result
+     *
      * @param itemStatus itemStatus
-     * @param total      total of elements
+     * @param total total of elements
      * @return boolean
      */
     public static boolean checkNumberOfResultQuery(ItemStatus itemStatus, long total) {

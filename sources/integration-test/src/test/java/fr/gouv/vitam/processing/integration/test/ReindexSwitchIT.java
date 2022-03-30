@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -233,7 +233,9 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         List<ReindexationResult> idxResults = ((RequestResponseOK<ReindexationResult>) result).getResults();
         String newIndexName = idxResults.get(0).getIndexOK().get(0).getIndexName();
 
-        String switchOrder = "[{\"collection\" : \"" + collection + "\", \"alias\" : \"" + alias + "\", \"indexName\" : \"" + newIndexName + "\"}]";
+        String switchOrder =
+            "[{\"collection\" : \"" + collection + "\", \"alias\" : \"" + alias + "\", \"indexName\" : \"" +
+                newIndexName + "\"}]";
         RequestResponse<ReindexationResult> resultSwitch = client.switchIndexes(JsonHandler.getFromString(switchOrder));
         assertTrue(resultSwitch.isOk());
 

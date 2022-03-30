@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,13 +36,11 @@ public interface Location {
 
     /**
      * Scope of the location, ex. region, zone, host
-     *
      */
     LocationScope getScope();
 
     /**
      * Unique ID provided by the provider (us-standard, miami, etc)
-     *
      */
     String getId();
 
@@ -63,9 +61,9 @@ public interface Location {
 
     /**
      * @return if known, the IS0 3166 or 3166-2 divisions where this service may run. ex. a set of
-     *         strings like "US" or "US-CA"; otherwise returns an empty list.
+     * strings like "US" or "US-CA"; otherwise returns an empty list.
      * @see <a
-     *      href="http://www.iso.org/iso/country_codes/background_on_iso_3166/what_is_iso_3166.htm">3166</a>
+     * href="http://www.iso.org/iso/country_codes/background_on_iso_3166/what_is_iso_3166.htm">3166</a>
      */
     Set<String> getIso3166Codes();
 }

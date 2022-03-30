@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -323,7 +323,8 @@ public class ManagementContractImplTest {
         assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(5);
         assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
             .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).contains("Identifier")
+        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).contains(
+                "Identifier")
             .contains("mandatory");
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -368,7 +369,8 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains("Import management contracts error >");
+        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains(
+            "Import management contracts error >");
         assertThat(response.getStatus()).isEqualTo(500);
         assertThat(response.getHttpCode())
             .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -757,7 +759,8 @@ public class ManagementContractImplTest {
 
         assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains("Import management contracts error >");
+        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains(
+            "Import management contracts error >");
         assertThat(response.getStatus()).isEqualTo(400);
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -881,8 +884,10 @@ public class ManagementContractImplTest {
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo("Management contract update error");
+        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo(
+            "ManagementContract service error");
+        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo(
+            "Management contract update error");
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
         assertThat((response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
@@ -917,8 +922,10 @@ public class ManagementContractImplTest {
         verify(logbookOperationsClient, never()).update(logbookOperationParametersCaptor.capture());
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo("Management contract update error");
+        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo(
+            "ManagementContract service error");
+        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo(
+            "Management contract update error");
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
@@ -1218,7 +1225,8 @@ public class ManagementContractImplTest {
 
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo(
+            "ManagementContract service error");
         assertThat(((VitamError<ManagementContractModel>) response).getDescription())
             .isEqualTo("Update management contract error > error data update");
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
@@ -1269,7 +1277,8 @@ public class ManagementContractImplTest {
 
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo(
+            "ManagementContract service error");
         assertThat(((VitamError<ManagementContractModel>) response).getDescription())
             .isEqualTo("Update management contract error > mongo schema error");
         assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
@@ -1595,7 +1604,8 @@ public class ManagementContractImplTest {
         assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
             .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.VERSION_RETENTION_POLICY_ERROR.KO");
         assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription())
-            .isEqualTo("The version retention policy's IntermediaryVersion parameter in Default usage is invalid in the contract New name.");
+            .isEqualTo(
+                "The version retention policy's IntermediaryVersion parameter in Default usage is invalid in the contract New name.");
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());

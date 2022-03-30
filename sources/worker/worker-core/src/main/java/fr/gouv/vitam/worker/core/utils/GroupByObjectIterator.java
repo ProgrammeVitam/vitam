@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,8 @@ public class GroupByObjectIterator implements Iterator<Pair<String, List<String>
         this.iterator = (PeekingIterator<Pair<String, String>>) IteratorUtils.peekingIterator(iterator);
     }
 
-    @Override public boolean hasNext() {
+    @Override
+    public boolean hasNext() {
         return iterator.hasNext();
     }
 

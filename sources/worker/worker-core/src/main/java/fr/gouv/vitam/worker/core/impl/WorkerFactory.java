@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,6 +46,7 @@ public final class WorkerFactory {
 
     /**
      * create a new worker factory.
+     *
      * @param pluginLoader
      */
     private WorkerFactory(PluginLoader pluginLoader) {
@@ -60,7 +61,7 @@ public final class WorkerFactory {
      * @return {@link WorkerFactory}
      */
     public static synchronized WorkerFactory getInstance(PluginLoader pluginLoader) {
-        if (WORKER_FACTORY == null ) {
+        if (WORKER_FACTORY == null) {
             WORKER_FACTORY = new WorkerFactory(pluginLoader);
         }
         return WORKER_FACTORY;

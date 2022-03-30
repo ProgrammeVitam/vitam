@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,8 +65,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -90,8 +91,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -117,8 +119,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -144,8 +147,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -171,8 +175,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -199,8 +204,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -230,8 +236,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -259,8 +266,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -287,8 +295,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -317,8 +326,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -346,8 +356,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -379,8 +390,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -418,8 +430,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -454,8 +467,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -490,8 +504,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -515,8 +530,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -558,8 +574,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -602,8 +619,9 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.HOLDING_UNIT, OPERATION_ID,
-            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult =
+            instance.analyzeElimination("unit1", UnitType.HOLDING_UNIT, OPERATION_ID,
+                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);

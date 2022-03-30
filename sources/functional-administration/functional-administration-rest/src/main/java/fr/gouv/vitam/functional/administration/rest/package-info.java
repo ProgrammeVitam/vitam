@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,5 @@
  */
 /**
  * Provides the web server application and configuration for the Functional administration module and the rest resource it uses
- *
  */
 package fr.gouv.vitam.functional.administration.rest;

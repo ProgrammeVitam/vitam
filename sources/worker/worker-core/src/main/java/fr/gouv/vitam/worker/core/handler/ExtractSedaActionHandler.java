@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -379,6 +379,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Map<String, JsonNode> existingGOTs;
     private boolean asyncIO = true;
     private Map<String, Long> fileWithParmsFromFolder;
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -464,7 +465,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
 
         UnitType workflowUnitType = getUnitType();
-        
+
         loadFilesWithSizesFromWorkspace(handlerIO);
 
         try (LogbookLifeCyclesClient lifeCycleClient = handlerIO.getLifecyclesClient()) {
@@ -597,7 +598,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.error("ProcessingObjectReferenceException: archive unit references more than one got");
             ObjectNode error = JsonHandler.createObjectNode();
             error.put("error", e.getMessage());
-            updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error), AU_REFRENCES_MULTIPLE_GOT);
+            updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error),
+                AU_REFRENCES_MULTIPLE_GOT);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);
@@ -836,8 +838,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // Retrieve storage info
             final JsonNode storageInfo = JsonHandler.getFromFile((File) handlerIO.getInput(STORAGE_INFO_INPUT_RANK));
             contracts = JsonHandler.getFromFile(
-                    (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
-                    ContractsDetailsModel.class);
+                (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
+                ContractsDetailsModel.class);
             IngestContractModel ic = contracts.getIngestContractModel();
             ic.setDefaultParams();
             contracts.setIngestContractModel(ic);
@@ -845,15 +847,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
             JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
-            if (contracts.getManagementContractModel() != null && contracts.getManagementContractModel().getStorage() != null) {
+            if (contracts.getManagementContractModel() != null &&
+                contracts.getManagementContractModel().getStorage() != null) {
                 if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getUnitStrategy())) {
-                    storageUnitInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getUnitStrategy());
+                    storageUnitInfo =
+                        storageInfo.get(contracts.getManagementContractModel().getStorage().getUnitStrategy());
                 }
-                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
-                    storageObjectGroupInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy());
+                if (StringUtils.isNotBlank(
+                    contracts.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
+                    storageObjectGroupInfo =
+                        storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy());
                 }
                 if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectStrategy())) {
-                    storageObjectInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectStrategy());
+                    storageObjectInfo =
+                        storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectStrategy());
                 }
             }
 
@@ -1189,7 +1196,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup();
             saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
-                    storageObjectGroupInfo, storageObjectInfo);
+                storageObjectGroupInfo, storageObjectInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveObjectGroup",
                 saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
@@ -1248,6 +1255,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Transform xml file to a clean xml file (whithout comments and indent)
+     *
      * @param handlerIO used to get xml file
      * @return xml file as InputStream
      * @throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException
@@ -1549,18 +1557,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void createExternalLifeCycleLogbook(List<LogbookEvent> externalModelEvents, String processId, String guid) throws LogbookClientNotFoundException, ProcessingMalformedDataException {
+    private void createExternalLifeCycleLogbook(List<LogbookEvent> externalModelEvents, String processId, String guid)
+        throws LogbookClientNotFoundException, ProcessingMalformedDataException {
         LogbookLifeCycleParameters parent = createExternalParentLogbookLifeCycle(processId, guid);
         handlerIO.getHelper().updateDelegate(parent);
 
         for (LogbookEvent eventModel : externalModelEvents) {
-            LogbookLifeCycleParameters external = toLogbookLifeCycleParameters(eventModel, parent.getParameterValue(eventIdentifier), processId, guid);
+            LogbookLifeCycleParameters external =
+                toLogbookLifeCycleParameters(eventModel, parent.getParameterValue(eventIdentifier), processId, guid);
             handlerIO.getHelper().updateDelegateWithKey(guid, external);
         }
     }
 
     private LogbookLifeCycleParameters createExternalParentLogbookLifeCycle(String processId, String guid) {
-        LogbookLifeCycleParameters parent = new LogbookLifeCycleParameters(LogbookParameterHelper.getDefaultLifeCycleMandatory());
+        LogbookLifeCycleParameters parent =
+            new LogbookLifeCycleParameters(LogbookParameterHelper.getDefaultLifeCycleMandatory());
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), GUIDFactory.newGUID().getId());
         parameters.put(eventType.name(), "LFC.EXTERNAL_LOGBOOK");
@@ -1569,29 +1580,35 @@ public class ExtractSedaActionHandler extends ActionHandler {
         parameters.put(eventIdentifierProcess.name(), processId);
         parameters.put(outcome.name(), StatusCode.OK.name());
         parameters.put(outcomeDetail.name(), "LFC.EXTERNAL_LOGBOOK.OK");
-        parameters.put(outcomeDetailMessage.name(), "Succès de la récupération des journaux de cycle de vie de l’archive transférée");
+        parameters.put(outcomeDetailMessage.name(),
+            "Succès de la récupération des journaux de cycle de vie de l’archive transférée");
         parameters.put(objectIdentifier.name(), guid);
         parent.setMap(parameters);
         return parent;
     }
 
-    private LogbookLifeCycleParameters toLogbookLifeCycleParameters(LogbookEvent eventModel, String parentId, String identifierProcess, String guid) throws ProcessingMalformedDataException {
-        LogbookLifeCycleParameters logbookLifeCycleParameters = new LogbookLifeCycleParameters(Collections.singleton(LogbookParameterName.eventDateTime));
+    private LogbookLifeCycleParameters toLogbookLifeCycleParameters(LogbookEvent eventModel, String parentId,
+        String identifierProcess, String guid) throws ProcessingMalformedDataException {
+        LogbookLifeCycleParameters logbookLifeCycleParameters =
+            new LogbookLifeCycleParameters(Collections.singleton(LogbookParameterName.eventDateTime));
 
         checkEveDateTime(eventModel);
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), eventModel.getEvId());
-        parameters.put(parentEventIdentifier.name(), StringUtils.isBlank(eventModel.getEvParentId()) ? parentId : eventModel.getEvParentId());
+        parameters.put(parentEventIdentifier.name(),
+            StringUtils.isBlank(eventModel.getEvParentId()) ? parentId : eventModel.getEvParentId());
         parameters.put(eventType.name(), eventModel.getEvType());
         parameters.put(eventDateTime.name(), eventModel.getEvDateTime());
-        parameters.put(eventIdentifierProcess.name(), StringUtils.isBlank(eventModel.getEvIdProc()) ? identifierProcess : eventModel.getEvIdProc());
+        parameters.put(eventIdentifierProcess.name(),
+            StringUtils.isBlank(eventModel.getEvIdProc()) ? identifierProcess : eventModel.getEvIdProc());
         parameters.put(eventTypeProcess.name(), eventModel.getEvTypeProc());
         parameters.put(outcome.name(), eventModel.getOutcome());
         parameters.put(outcomeDetail.name(), eventModel.getOutDetail());
         parameters.put(outcomeDetailMessage.name(), eventModel.getOutMessg());
         parameters.put(agentIdentifier.name(), eventModel.getAgId());
-        parameters.put(objectIdentifier.name(), StringUtils.isBlank(eventModel.getObId()) ? guid : eventModel.getObId());
+        parameters.put(objectIdentifier.name(),
+            StringUtils.isBlank(eventModel.getObId()) ? guid : eventModel.getObId());
 
         logbookLifeCycleParameters.setMap(parameters);
         return logbookLifeCycleParameters;
@@ -1600,9 +1617,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void checkEveDateTime(LogbookEvent eventModel) throws ProcessingMalformedDataException {
         String evDateTime = eventModel.getEvDateTime();
         LocalDateTime now = LocalDateUtil.now();
-        LocalDateTime localDateTime = LocalDateUtil.parseMongoFormattedDate(Objects.requireNonNull(evDateTime, "EventDateTime cannot be null."));
+        LocalDateTime localDateTime =
+            LocalDateUtil.parseMongoFormattedDate(Objects.requireNonNull(evDateTime, "EventDateTime cannot be null."));
         if (localDateTime.isAfter(now)) {
-            throw new ProcessingMalformedDataException(String.format("EventDateTime in Logbook Event cannot be in the future, here '%s' is after '%s'.", evDateTime, now));
+            throw new ProcessingMalformedDataException(
+                String.format("EventDateTime in Logbook Event cannot be in the future, here '%s' is after '%s'.",
+                    evDateTime, now));
         }
     }
 
@@ -1668,17 +1688,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
 
             String repositoryArchiveUnitPID = relatedObjectReferenceItem.getRepositoryArchiveUnitPID();
-            if (repositoryArchiveUnitPID != null && (unitIdToGuid.containsKey(repositoryArchiveUnitPID)) )  {
-                    relatedObjectReferenceItem.setRepositoryArchiveUnitPID(unitIdToGuid.get(repositoryArchiveUnitPID));
+            if (repositoryArchiveUnitPID != null && (unitIdToGuid.containsKey(repositoryArchiveUnitPID))) {
+                relatedObjectReferenceItem.setRepositoryArchiveUnitPID(unitIdToGuid.get(repositoryArchiveUnitPID));
             }
 
             String repositoryObjectPID = relatedObjectReferenceItem.getRepositoryObjectPID();
-            if (repositoryObjectPID != null && (unitIdToGuid.containsKey(repositoryObjectPID)) )  {
+            if (repositoryObjectPID != null && (unitIdToGuid.containsKey(repositoryObjectPID))) {
                 relatedObjectReferenceItem.setRepositoryObjectPID(unitIdToGuid.get(repositoryObjectPID));
             }
 
             String externalReference = relatedObjectReferenceItem.getExternalReference();
-            if (externalReference != null)  {
+            if (externalReference != null) {
                 relatedObjectReferenceItem.setExternalReference(externalReference);
             }
         }
@@ -2162,7 +2182,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                         jsonWriter.add(event);
                         jsonWriter.add(eventFactory.createEndDocument());
-                        if(BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) && bo.getSize() == null){
+                        if (BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) && bo.getSize() == null) {
                             bo.setSize(fileWithParmsFromFolder.get(bo.getUri()));
                             ObjectNode diffJsonNodeToPopulate = JsonHandler.createObjectNode();
                             diffJsonNodeToPopulate.put("- " + SedaConstants.TAG_SIZE, "");
@@ -2266,7 +2286,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         case SedaConstants.TAG_SIZE: {
                             long gotSize = Long.parseLong(reader.getElementText());
                             Long binaryFileSize = fileWithParmsFromFolder.get(bo.getUri());
-                            if( binaryFileSize!= null && binaryFileSize != gotSize) {
+                            if (binaryFileSize != null && binaryFileSize != gotSize) {
                                 ObjectNode diffJsonNodeToPopulate = JsonHandler.createObjectNode();
                                 diffJsonNodeToPopulate.put("- " + SedaConstants.TAG_SIZE, gotSize);
                                 diffJsonNodeToPopulate.put("+ " + SedaConstants.TAG_SIZE, binaryFileSize);
@@ -2331,10 +2351,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 dataObjectIdToObjectGroupId.remove(dataObjectId);
                 postDataObjectActions(elementGuid + JSON_EXTENSION, dataObjectId);
             }
-        } catch (final InvalidParseOperationException | IOException | XMLStreamException e)  {
+        } catch (final InvalidParseOperationException | IOException | XMLStreamException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
-        } 
+        }
         return groupGuid;
     }
 
@@ -2693,7 +2713,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         JsonNode storageObjectGroupInfo, JsonNode storageObjectInfo)
         throws ProcessingException {
         boolean existingGot = false;
-        Map<String , ObjectNode> listObjectToValidate = new HashMap<>();
+        Map<String, ObjectNode> listObjectToValidate = new HashMap<>();
         completeDataObjectToObjectGroupMap();
 
         // Save maps
@@ -2853,13 +2873,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.set(SedaConstants.PREFIX_ORIGINATING_AGENCIES,
                     JsonHandler.createArrayNode().add(originatingAgency));
                 ObjectNode storageObjectGroup = JsonHandler.createObjectNode();
-                storageObjectGroup.put(SedaConstants.STRATEGY_ID, storageObjectGroupInfo.get(SedaConstants.STRATEGY_ID).asText());
+                storageObjectGroup.put(SedaConstants.STRATEGY_ID,
+                    storageObjectGroupInfo.get(SedaConstants.STRATEGY_ID).asText());
                 objectGroup.set(SedaConstants.STORAGE, storageObjectGroup);
                 // In case of attachment, this will be true, we will then add information about existing og in work
                 if (existingGot) {
                     String existingOg = existingUnitIdWithExistingObjectGroup.get(unitParentGUID);
                     workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID, existingOg);
-                    if(existingOg != null) {
+                    if (existingOg != null) {
                         listObjectToValidate.put(existingOg, objectGroup);
                     }
                 }
@@ -2925,7 +2946,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
         // Check Linking to Object Group by bad SP
-        if(!listObjectToValidate.isEmpty()){
+        if (!listObjectToValidate.isEmpty()) {
             try {
                 checkOriginatingAgencyAttachementConformity(listObjectToValidate);
             } catch (ProcessingStatusException e) {
@@ -2940,7 +2961,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         Set<String> objectGroupIds = listObjectToValidate.keySet();
         boolean objectGroupsExistedIdsWithSp = loadExistingObjectGroups(objectGroupIds);
 
-        if(!objectGroupsExistedIdsWithSp) {
+        if (!objectGroupsExistedIdsWithSp) {
             throw new ProcessingNotValidLinkingException(
                 "Not allowed object attachement of originating agency (" + originatingAgency +
                     ") to other originating agency");
@@ -2968,7 +2989,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 JsonNode jsonNode = client.selectObjectGroups(selectMultiQuery.getFinalSelect());
                 RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
 
-                if(!requestResponseOK.getResults().isEmpty()){
+                if (!requestResponseOK.getResults().isEmpty()) {
                     return false;
                 }
             }
@@ -3082,7 +3103,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return qualifiersArray;
     }
 
-    private ObjectNode getObjectGroupWork(Map<String, List<JsonNode>> categoryMap, String containerId, JsonNode storageObjectInfo) {
+    private ObjectNode getObjectGroupWork(Map<String, List<JsonNode>> categoryMap, String containerId,
+        JsonNode storageObjectInfo) {
         final ObjectNode workObject = JsonHandler.createObjectNode();
         final ObjectNode qualifierObject = JsonHandler.createObjectNode();
         for (final Entry<String, List<JsonNode>> entry : categoryMap.entrySet()) {
@@ -3098,7 +3120,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     objectNode.set(SedaConstants.TAG_PHYSICAL_ID, node.get(SedaConstants.TAG_PHYSICAL_ID));
                 } else {
                     ObjectNode storageObject = JsonHandler.createObjectNode();
-                    storageObject.put(SedaConstants.STRATEGY_ID, storageObjectInfo.get(SedaConstants.STRATEGY_ID).asText());
+                    storageObject.put(SedaConstants.STRATEGY_ID,
+                        storageObjectInfo.get(SedaConstants.STRATEGY_ID).asText());
                     objectNode.set(SedaConstants.STORAGE, storageObject);
                 }
 
@@ -3128,7 +3151,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 ObjectNode diffSizeJson = objectGuidToDataObject.get(guid).getDiffSizeJson();
                 if (!JsonHandler.isNullOrEmpty(diffSizeJson)) {
                     ObjectNode work = JsonHandler.createObjectNode();
-                    work.put(IngestWorkflowConstants.IS_SIZE_INCORRECT, objectGuidToDataObject.get(guid).getSizeIncorrect());
+                    work.put(IngestWorkflowConstants.IS_SIZE_INCORRECT,
+                        objectGuidToDataObject.get(guid).getSizeIncorrect());
                     work.put(IngestWorkflowConstants.DIFF_SIZE_JSON, diffSizeJson);
                     objectNode.put(SedaConstants.PREFIX_WORK, work);
                 }

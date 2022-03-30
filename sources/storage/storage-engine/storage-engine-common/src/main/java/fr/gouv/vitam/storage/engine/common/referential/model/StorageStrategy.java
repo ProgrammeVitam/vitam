@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.storage.engine.common.referential.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a storage strategy (that may be mapped from Json but not
@@ -58,7 +57,7 @@ public class StorageStrategy {
     public void setId(String id) {
         this.id = id;
     }
-    
+
     /**
      * @return the list of offer references
      */
@@ -72,7 +71,7 @@ public class StorageStrategy {
     public void setOffers(List<OfferReference> offers) {
         this.offers = offers;
     }
-    
+
     public Integer getCopy() {
         return getOffers().size();
     }

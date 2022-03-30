@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,7 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -51,6 +37,18 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * StorageClientMock test
@@ -83,14 +81,14 @@ public class StorageClientMockTest {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
-                "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
+            "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         final StoredInfoResult expectedResult = generateStoredInfoResult("guid");
 
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final StoredInfoResult result = client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "guid",
-                description);
+            description);
         assertEquals(result.getId(), expectedResult.getId());
     }
 
@@ -99,7 +97,7 @@ public class StorageClientMockTest {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
         Map<String, Boolean> existsResult = client.exists("idStrategy", DataCategory.OBJECT, "guid",
-                Arrays.asList("offerId"));
+            Arrays.asList("offerId"));
         assertNotNull(existsResult);
         assertEquals(existsResult.size(), 1);
         assertTrue(existsResult.containsKey("offerId"));
@@ -113,7 +111,8 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws Exception {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final InputStream stream = client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
+        final InputStream stream =
+            client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
                 .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
