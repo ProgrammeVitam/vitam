@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,8 +38,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
+import fr.gouv.vitam.functional.administration.common.FileRules;
 
 import javax.annotation.Nonnull;
 import java.time.LocalDate;
@@ -113,7 +113,7 @@ public class ArchiveUnitUpdateUtils {
     public static JsonNode computeEndDate(@Nonnull ObjectNode updatingRule, JsonNode ruleModel) {
         final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        if(!updatingRule.has(START_DATE)) {
+        if (!updatingRule.has(START_DATE)) {
             return updatingRule;
         }
 

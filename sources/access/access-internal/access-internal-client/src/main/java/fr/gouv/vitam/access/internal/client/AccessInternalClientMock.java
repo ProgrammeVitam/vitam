@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,12 +101,13 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
     }
-    
+
     @Override
-    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries)
+        throws InvalidParseOperationException {
         throw new IllegalStateException("Stop using mocks in production");
     }
-    
+
 
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)

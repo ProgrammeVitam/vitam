@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -78,7 +78,8 @@ public class CallTraceabilityLFCTest {
     @Test
     public void testTraceabilityLFCOKThenSuccess() throws Exception {
         // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient).traceabilityLfcUnit();
+        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
+            .traceabilityLfcUnit();
 
         doReturn(new LifecycleTraceabilityStatus(true, false, "", false))
             .when(logbookOperationsClient).checkLifecycleTraceabilityWorkflowStatus(anyString());
@@ -96,7 +97,8 @@ public class CallTraceabilityLFCTest {
     @Test
     public void testTraceabilityLFCFatalThenOK() throws Exception {
         // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient).traceabilityLfcUnit();
+        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
+            .traceabilityLfcUnit();
 
         doAnswer(
             (args) -> {

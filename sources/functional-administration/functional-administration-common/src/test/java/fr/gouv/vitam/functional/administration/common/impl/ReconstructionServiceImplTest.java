@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupServiceTest;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
@@ -130,7 +129,8 @@ public class ReconstructionServiceImplTest {
     @Captor
     private ArgumentCaptor<Integer> tenantCaptor;
 
-    private ElasticsearchFunctionalAdminIndexManager indexManager = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     private ReconstructionServiceImpl reconstructionService;
 

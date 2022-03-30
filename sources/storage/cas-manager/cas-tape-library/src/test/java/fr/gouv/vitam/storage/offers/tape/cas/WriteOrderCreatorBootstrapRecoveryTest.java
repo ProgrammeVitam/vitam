@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,10 +28,10 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.collect.ImmutableSet;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.junit.Before;
@@ -48,8 +48,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.TMP_EXTENSION;
-import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.createTarId;
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder;
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.createTarId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
@@ -116,7 +116,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
     @Test
@@ -129,7 +130,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
     @Test
@@ -172,8 +174,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(2)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
-            WriteOrder::getFilePath)
+                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+                WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId1, BUCKED_ID, "digest1", 10L,
                     archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId1)),
@@ -189,7 +191,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         assertThat(targetFile1).exists();
         assertThat(targetFile2).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
     @Test
@@ -225,7 +228,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(archiveReferentialRepository).find(tarId);
         assertThat(tarFile).doesNotExist();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
     @Test
@@ -268,15 +272,16 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
-            WriteOrder::getFilePath)
+                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+                WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId, BUCKED_ID, "digest1", 10L,
                     archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId))
             );
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
     @Test
@@ -316,8 +321,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
-            WriteOrder::getFilePath)
+                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+                WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId, BUCKED_ID, "digest1", 10L,
                     archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId))
@@ -325,7 +330,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 
 
@@ -437,8 +443,8 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(4)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
-            WriteOrder::getFilePath)
+                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+                WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId2, BUCKED_ID, "digest2", 11L,
                     archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId2)),
@@ -460,6 +466,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         assertThat(tarFile5).exists();
         assertThat(tmpTarFile5).doesNotExist();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
+            tarFileRapairer);
     }
 }

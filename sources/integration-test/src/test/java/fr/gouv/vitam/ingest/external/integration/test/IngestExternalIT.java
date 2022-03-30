@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -79,13 +79,12 @@ import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -192,7 +191,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(itemStatus).isNotNull();
             assertThat(itemStatus.getGlobalState()).isEqualTo(ProcessState.COMPLETED);
             assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
-                .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                    .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
                 .isEqualTo(StatusCode.OK);
         }
     }
@@ -238,7 +237,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
                 ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
                 assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
-                    .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                        .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
                     .isEqualTo(StatusCode.OK);
 
 
@@ -267,7 +266,8 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(numberOfIngestSteps).isEqualTo(0);
 
             // Get logbook and check all events
-            Document operation = LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
+            Document operation =
+                LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
                     .first();
             InputStream expected =
                 PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
@@ -447,7 +447,8 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
                 .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
                     .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
-            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
+            LogbookOperation logbookOperation =
+                ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
 
             assertThat(logbookOperation.getEvents().stream()
                 .filter(event -> Arrays.asList("CHECK_OBJECT_SIZE.WARNING", "STP_OG_CHECK_AND_TRANSFORME.WARNING")
@@ -484,7 +485,8 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
                 .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
                     .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
-            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
+            LogbookOperation logbookOperation =
+                ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
 
             assertThat(logbookOperation).isNotNull();
             assertThat(logbookOperation.getEvents()).isNotNull();
@@ -506,12 +508,14 @@ public class IngestExternalIT extends VitamRuleRunner {
 
         // requesting with another tenant than ingest
         assertThatCode(() -> getLogbookOperation(operationId, accessTenant, tenant1Contract))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Not Found");
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Not Found");
 
         // verifying that in the correct tenant we have the logbook (to prevent false-ok test)
-        RequestResponse<LogbookOperation> logbookOperationRequestResponse = getLogbookOperation(operationId, ingestTenant, ACCESS_CONTRACT);
-        assertThat(((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getResults().size()).isEqualTo(1);
+        RequestResponse<LogbookOperation> logbookOperationRequestResponse =
+            getLogbookOperation(operationId, ingestTenant, ACCESS_CONTRACT);
+        assertThat(
+            ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getResults().size()).isEqualTo(1);
 
         // retrieve one unit we ingest
         RequestResponse<JsonNode> units = getUnitsFromTitle("UnitB", ingestTenant, ACCESS_CONTRACT);
@@ -521,17 +525,17 @@ public class IngestExternalIT extends VitamRuleRunner {
 
         String unitId = ((ObjectNode) results.get(0)).get("#id").asText();
         VitamContext vitamContextIngestTenant = new VitamContext(ingestTenant)
-                .setApplicationSessionId(APPLICATION_SESSION_ID)
-                .setAccessContract(ACCESS_CONTRACT);
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
 
         final String queryDsql =
-                "{\n" +
-                        "  \"$projection\": {}\n" +
-                        "}";
+            "{\n" +
+                "  \"$projection\": {}\n" +
+                "}";
 
         // in the correct tenant we should find the unit
         RequestResponse<JsonNode> result = accessExternalClient.selectUnitbyId(vitamContextIngestTenant,
-                JsonHandler.getFromString(queryDsql), unitId);
+            JsonHandler.getFromString(queryDsql), unitId);
         assertTrue(result.isOk());
         List<JsonNode> resultUnit = ((RequestResponseOK<JsonNode>) result).getResults();
         assertNotNull(resultUnit);
@@ -539,36 +543,36 @@ public class IngestExternalIT extends VitamRuleRunner {
 
         // in the wrong tenant, we should not find the unit
         VitamContext vitamContextAccessTenant = new VitamContext(accessTenant)
-                .setApplicationSessionId(APPLICATION_SESSION_ID)
-                .setAccessContract("newContract");
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract("newContract");
 
         assertThatCode(() -> accessExternalClient.selectUnitbyId(vitamContextAccessTenant,
-                JsonHandler.getFromString(queryDsql), unitId))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Not Found");
+            JsonHandler.getFromString(queryDsql), unitId))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Not Found");
 
         result = accessExternalClient.selectObjectMetadatasByUnitId(vitamContextIngestTenant,
-                JsonHandler.getFromString(queryDsql), unitId);
+            JsonHandler.getFromString(queryDsql), unitId);
         assertTrue(result.isOk());
         List<JsonNode> resultGots = ((RequestResponseOK<JsonNode>) result).getResults();
         assertNotNull(resultGots);
         assertThat(resultGots.size()).isGreaterThan(0);
 
         assertThatCode(() -> accessExternalClient.selectObjectMetadatasByUnitId(vitamContextAccessTenant,
-                JsonHandler.getFromString(queryDsql), unitId))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Not Found");
+            JsonHandler.getFromString(queryDsql), unitId))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Not Found");
     }
 
     private RequestResponse<JsonNode> getUnitsFromTitle(String title, int tenant, String accessContract)
-            throws VitamClientException, InvalidParseOperationException {
+        throws VitamClientException, InvalidParseOperationException {
         VitamContext vitamContext = new VitamContext(tenant)
-                .setApplicationSessionId(APPLICATION_SESSION_ID)
-                .setAccessContract(accessContract);
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(accessContract);
         final String queryDsql =
-                "{ \"$query\" : [ { \"$eq\": { \"Title\" : \"" + title + "\" } } ], " +
-                        " \"$projection\" : { \"$fields\" : { \"#id\": 1} } " +
-                        " }";
+            "{ \"$query\" : [ { \"$eq\": { \"Title\" : \"" + title + "\" } } ], " +
+                " \"$projection\" : { \"$fields\" : { \"#id\": 1} } " +
+                " }";
         return accessExternalClient.selectUnits(vitamContext, JsonHandler.getFromString(queryDsql));
     }
 
@@ -576,15 +580,15 @@ public class IngestExternalIT extends VitamRuleRunner {
     @Test
     public void test_ingest_with_invalid_type_sip_ko() throws Exception {
         try (InputStream inputStream =
-                     PropertiesUtils.getResourceAsStream(UNKNOWN_FORMAT_SIP_KO)) {
+            PropertiesUtils.getResourceAsStream(UNKNOWN_FORMAT_SIP_KO)) {
             IngestRequestParameters ingestRequestParameters =
-                    new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             RequestResponse response = ingestExternalClient
-                    .ingest(
-                            new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                                    .setAccessContract("aName3"),
-                            inputStream,
-                            ingestRequestParameters);
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract("aName3"),
+                    inputStream,
+                    ingestRequestParameters);
 
             assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
 
@@ -594,16 +598,16 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
             boolean process_timeout = vitamPoolingClient
-                    .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
                 Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
 
             RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
-                    .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                            .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
             LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>)
-                    logbookOperationRequestResponse).getFirstResult();
+                logbookOperationRequestResponse).getFirstResult();
             String logbookOperationStr = JsonHandler.prettyPrint(JsonHandler.toJsonNode(logbookOperation));
 
             assertThat(logbookOperationStr).contains("PROCESS_SIP_UNITARY.KO");
@@ -611,24 +615,25 @@ public class IngestExternalIT extends VitamRuleRunner {
         }
     }
 
-    private RequestResponse<LogbookOperation> getLogbookOperation(String operationId, int tenantId, String accessContract)
-            throws VitamClientException {
+    private RequestResponse<LogbookOperation> getLogbookOperation(String operationId, int tenantId,
+        String accessContract)
+        throws VitamClientException {
         VitamContext vitamContext = new VitamContext(tenantId)
-                .setApplicationSessionId(APPLICATION_SESSION_ID)
-                .setAccessContract(accessContract);
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(accessContract);
         return accessExternalClient
-                .selectOperationbyId(vitamContext, operationId, new Select().getFinalSelectById());
+            .selectOperationbyId(vitamContext, operationId, new Select().getFinalSelectById());
     }
 
     private String ingestResource(String resource, int tenantId) throws Exception {
         try (InputStream inputStream = PropertiesUtils.getResourceAsStream(resource)) {
             IngestRequestParameters ingestRequestParameters =
-                    new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             RequestResponse<Void> response = ingestExternalClient.ingest(
-                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                            .setAccessContract(ACCESS_CONTRACT),
-                    inputStream,
-                    ingestRequestParameters);
+                new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT),
+                inputStream,
+                ingestRequestParameters);
             assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -636,12 +641,13 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
             boolean process_timeout = vitamPoolingClient
-                    .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
                 Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
 
-            RequestResponse<ItemStatus> operationResponse = adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
+            RequestResponse<ItemStatus> operationResponse =
+                adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
             assertTrue(operationResponse.isOk());
             return operationId;
         }

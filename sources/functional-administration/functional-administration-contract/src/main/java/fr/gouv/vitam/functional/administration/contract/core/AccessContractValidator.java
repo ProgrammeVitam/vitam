@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,7 @@ import java.util.Optional;
  * Used to validate contracts (any class that extends AbstractContractModel) and to apply acceptance rules.
  *
  * Bellow the example of usage :
- *<pre>
+ * <pre>
  * {@code
  * private static GenericContractValidator checkDuplicateInDatabaseValidator() {
  *    return (contract, contractName) -> {
@@ -55,7 +55,6 @@ import java.util.Optional;
  * GenericRejectionCause rejection = checkDuplicateInDatabaseValidator().validate(c, c.getName());
  *
  * Check if rejection is present then do the resolution
- *
  */
 @FunctionalInterface
 public interface AccessContractValidator extends GenericContractValidator<AccessContractModel> {

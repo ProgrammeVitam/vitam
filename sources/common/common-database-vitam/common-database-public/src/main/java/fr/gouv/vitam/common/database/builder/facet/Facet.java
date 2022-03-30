@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,10 +27,9 @@
 package fr.gouv.vitam.common.database.builder.facet;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,7 +44,7 @@ public class Facet {
 
     /**
      * Constructor
-     * 
+     *
      * @param name name
      */
     public Facet(String name) {
@@ -68,7 +67,6 @@ public class Facet {
     }
 
     /**
-     * 
      * @return FACET token
      */
     public FACET getCurrentTokenFACET() {
@@ -77,7 +75,7 @@ public class Facet {
 
     /**
      * Retrieve the current facet
-     * 
+     *
      * @return facet as an ObjectNode
      */
     public ObjectNode getCurrentFacet() {
@@ -89,7 +87,7 @@ public class Facet {
 
     /**
      * Check if parameter is valid
-     * 
+     *
      * @param param parameter name
      * @param value parameter value
      * @throws InvalidCreateOperationException

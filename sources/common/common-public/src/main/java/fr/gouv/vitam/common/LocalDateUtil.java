@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,13 +45,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * LocalDateTime utilities
@@ -196,6 +194,7 @@ public final class LocalDateUtil {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         return dateFormat.format(date);
     }
+
     /**
      * @param date date
      * @return formatted date
@@ -203,6 +202,7 @@ public final class LocalDateUtil {
     public static String getFormattedDate(LocalDateTime date) {
         return date.format(DateTimeFormatter.ofPattern(LONG_SECOND_DATE_FORMAT));
     }
+
     /**
      * @param date date
      * @return formatted date
@@ -248,7 +248,7 @@ public final class LocalDateUtil {
      * @param date the date to format for database
      * @return the formatted date for database
      * @throws DateTimeParseException thrown when cannot parse String date (not ISO_LOCAL_DATE_TIME, not
-     *         ZONED_DATE_TIME_FORMAT and not ISO_DATE date format)
+     * ZONED_DATE_TIME_FORMAT and not ISO_DATE date format)
      */
     public static String getFormattedDateForMongo(String date) {
         LocalDateTime ldt;
@@ -327,6 +327,7 @@ public final class LocalDateUtil {
 
     /**
      * return a DateTimeFormatter suitable for filename in the format yyyyMMddHHmmssSSS
+     *
      * @return
      */
     public static DateTimeFormatter getDateTimeFormatterForFileNames() {
@@ -346,6 +347,7 @@ public final class LocalDateUtil {
 
         return LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
     }
+
     public static long currentTimeMillis() {
         return clock.millis();
     }

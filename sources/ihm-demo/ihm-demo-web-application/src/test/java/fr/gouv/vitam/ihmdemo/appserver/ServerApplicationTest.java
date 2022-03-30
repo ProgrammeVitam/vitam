@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,16 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import static io.restassured.RestAssured.given;
-
-import java.io.File;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.Test;
-
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+
+import static io.restassured.RestAssured.given;
 
 public class ServerApplicationTest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -54,7 +53,7 @@ import java.io.InputStream;
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
-@Tag(name="Tape")
+@Tag(name = "Tape")
 public class AdminTapeResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminTapeResource.class);

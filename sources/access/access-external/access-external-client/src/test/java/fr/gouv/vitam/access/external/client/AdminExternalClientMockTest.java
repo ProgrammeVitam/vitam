@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,7 @@ public class AdminExternalClientMockTest {
 
     @Before
     public void givenMockConfExistWhenAccessExternalCreateMockedClientThenReturnOK() {
-        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration) null);
         client = AdminExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
     }
@@ -160,10 +160,10 @@ public class AdminExternalClientMockTest {
                 new ProcessQuery()).getHttpCode(),
             Status.OK.getStatusCode());
         assertEquals(client
-            .downloadRulesReport(new VitamContext(TENANT_ID), "ID").getStatus(),
+                .downloadRulesReport(new VitamContext(TENANT_ID), "ID").getStatus(),
             Status.OK.getStatusCode());
         assertEquals(client
-            .downloadAgenciesCsvAsStream(new VitamContext(TENANT_ID), "ID").getStatus(),
+                .downloadAgenciesCsvAsStream(new VitamContext(TENANT_ID), "ID").getStatus(),
             Status.OK.getStatusCode());
 
         assertEquals(

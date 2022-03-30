@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -238,13 +238,13 @@ public class AccessInternalResourceTest {
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        update.addActions(UpdateActionHelper.set("Title","My title"));
+        update.addActions(UpdateActionHelper.set("Title", "My title"));
 
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("queries",queries);
-        
+        requestBody.set("queries", queries);
+
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
         // When
@@ -270,13 +270,13 @@ public class AccessInternalResourceTest {
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        update.addActions(UpdateActionHelper.set("Title","My title"));
+        update.addActions(UpdateActionHelper.set("Title", "My title"));
 
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("queries",queries);
-        
+        requestBody.set("queries", queries);
+
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
 
@@ -297,13 +297,13 @@ public class AccessInternalResourceTest {
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        update.addActions(UpdateActionHelper.set("Title","My title"));
+        update.addActions(UpdateActionHelper.set("Title", "My title"));
 
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("queries",queries);
-        
+        requestBody.set("queries", queries);
+
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
 
@@ -324,16 +324,16 @@ public class AccessInternalResourceTest {
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        update.addActions(UpdateActionHelper.set("Title","My title"));
+        update.addActions(UpdateActionHelper.set("Title", "My title"));
 
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("queries",queries);
-        
+        requestBody.set("queries", queries);
+
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
         doThrow(ContentAddressableStorageServerException.class).when(workspaceClient).putObject(any(), any(), any());
-        
+
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
 
@@ -354,24 +354,24 @@ public class AccessInternalResourceTest {
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        update.addActions(UpdateActionHelper.set("Title","My title"));
+        update.addActions(UpdateActionHelper.set("Title", "My title"));
 
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("queries",queries);
-        
+        requestBody.set("queries", queries);
+
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
         doThrow(BadRequestException.class).when(processingClient).initVitamProcess(any());
-        
+
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
-    
-    
+
+
     private void checkLogbookStarted(Contexts event)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor = forClass(LogbookOperationParameters.class);
@@ -393,11 +393,13 @@ public class AccessInternalResourceTest {
 
         verify(processingClient).initVitamProcess(processingEntryArgumentCaptor.capture());
 
-        assertThat(processingEntryArgumentCaptor.getValue().getContainer()).isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+        assertThat(processingEntryArgumentCaptor.getValue().getContainer()).isEqualTo(
+            VitamThreadUtils.getVitamSession().getRequestId());
         assertThat(processingEntryArgumentCaptor.getValue().getWorkflow()).isEqualTo(context.getEventType());
 
         verify(processingClient)
-            .executeOperationProcess(VitamThreadUtils.getVitamSession().getRequestId(), context.name(), ProcessAction.RESUME.getValue());
+            .executeOperationProcess(VitamThreadUtils.getVitamSession().getRequestId(), context.name(),
+                ProcessAction.RESUME.getValue());
     }
 
     private void checkSaveFileToWorkspace(String s) throws ContentAddressableStorageServerException {

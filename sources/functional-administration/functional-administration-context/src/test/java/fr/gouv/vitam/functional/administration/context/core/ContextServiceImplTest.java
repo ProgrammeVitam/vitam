@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -146,13 +146,14 @@ public class ContextServiceImplTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,esNodes, indexManager));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList, indexManager);
 
         final List<Integer> tenants = Arrays.asList(TENANT_ID, 0, EXTERNAL_TENANT);
         VitamConfiguration.setTenants(tenants);
@@ -177,7 +178,8 @@ public class ContextServiceImplTest {
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 vitamCounterService, ingestContractService, accessContractService, securityProfileService,
                 functionalBackupService);
     }
@@ -321,7 +323,8 @@ public class ContextServiceImplTest {
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
         verifyZeroInteractions(functionalBackupService);
     }
 
@@ -341,7 +344,8 @@ public class ContextServiceImplTest {
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
         verifyZeroInteractions(ingestContractService);
         verifyZeroInteractions(functionalBackupService);
     }
@@ -357,7 +361,8 @@ public class ContextServiceImplTest {
         String ACCESS_CONTRACT_ID = "NON-EXISTING-ACCESS_CONTRACT";
         when(accessContractService.findByIdentifier(ACCESS_CONTRACT_ID)).thenReturn(null);
 
-        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_and_access_contract.json");
+        final File fileContexts =
+            PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_and_access_contract.json");
         final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
@@ -365,10 +370,14 @@ public class ContextServiceImplTest {
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
-        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
-        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 1 does not exist");
-        assertThat(((VitamError) response).getErrors().get(3).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 1 does not exist");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+            "The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
+            "The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 1 does not exist");
+        assertThat(((VitamError) response).getErrors().get(3).getDescription()).isEqualTo(
+            "The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 1 does not exist");
         verifyZeroInteractions(functionalBackupService);
     }
 
@@ -405,7 +414,7 @@ public class ContextServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final ContextModel context = getContextModel("Contexte_KO_Champ_Statut_manquant");
         assertEquals(context.getStatus(), ContextStatus.INACTIVE);
-        assertEquals(context.getIdentifier(),"Context_Identifier");
+        assertEquals(context.getIdentifier(), "Context_Identifier");
 
         verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());
 
@@ -423,7 +432,8 @@ public class ContextServiceImplTest {
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The tenant field for permissions should not be null");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The tenant field for permissions should not be null");
         verifyZeroInteractions(functionalBackupService);
 
     }
@@ -478,8 +488,10 @@ public class ContextServiceImplTest {
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The tenant 112211 does not exist");
-        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The tenant 112211 does not exist");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo(
+            "STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO");
     }
 
     @Test
@@ -510,8 +522,10 @@ public class ContextServiceImplTest {
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
-        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The field Identifier is mandatory");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo(
+            "STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO");
         verifyNoMoreInteractions(functionalBackupService);
     }
 

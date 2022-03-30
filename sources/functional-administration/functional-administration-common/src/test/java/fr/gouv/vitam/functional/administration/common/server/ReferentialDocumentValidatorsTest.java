@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -164,7 +164,7 @@ public class ReferentialDocumentValidatorsTest {
         schemaValidator.validateDocument(
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE)));
     }
-    
+
 
     @Test
     public void valid_ManagementContract() {
@@ -176,7 +176,7 @@ public class ReferentialDocumentValidatorsTest {
         // When / Then
         assertThatCode(() -> {
             schemaValidator.validateDocument(
-                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MANAGEMENT_CONTRACT_OK_JSON_FILE)));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MANAGEMENT_CONTRACT_OK_JSON_FILE)));
         }).doesNotThrowAnyException();
     }
 }

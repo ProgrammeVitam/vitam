@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,7 @@
  * accept its terms.
  */
 package fr.gouv.vitam.metadata.core.ExportsPurge;
+
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -80,12 +81,13 @@ public class ExportsPurgeService {
                 storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, null,
                 Order.ASC, VitamConfiguration.getChunkSize(), null);
 
-            while(offerLogIterator.hasNext()) {
+            while (offerLogIterator.hasNext()) {
                 OfferLog offerLog = offerLogIterator.next();
                 switch (offerLog.getAction()) {
                     case WRITE:
                         LOGGER.info("Deleting DIP file " + offerLog.getFileName());
-                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, offerLog.getFileName());
+                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP,
+                            offerLog.getFileName());
                         break;
                     case DELETE:
                         // NOP

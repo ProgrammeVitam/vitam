@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,19 +27,16 @@
 package fr.gouv.vitam.common.external.client;
 
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.VitamRequestBuilder;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Vitam Restassured like client for Junit test</br>
@@ -81,7 +78,6 @@ public class VitamRestTestClient extends DefaultClient {
     }
 
     /**
-     *
      * @return a VitamRestTest using this client
      */
     public VitamRestTest given() {
@@ -127,7 +123,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @return this
          */
         public VitamRestTest then() {
@@ -135,7 +130,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @return this
          */
         public VitamRestTest when() {
@@ -143,7 +137,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param status the expected status
          * @return this
          */
@@ -153,7 +146,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param statusCode the expected status
          * @return this
          */
@@ -163,7 +155,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param accept the accept MediaType
          * @return this
          */
@@ -173,7 +164,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param body
          * @param mediaType
          * @return this
@@ -185,7 +175,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param key
          * @param value
          * @return this
@@ -228,7 +217,9 @@ public class VitamRestTestClient extends DefaultClient {
             Response response = null;
             try {
                 final String finalPath = getFinalPath(path);
-                response = client.make(requestBuilder.withPath(finalPath).withHeaders(headers).withBody(body).withContentType(contentType).withAccept(acceptMediaType));
+                response = client.make(
+                    requestBuilder.withPath(finalPath).withHeaders(headers).withBody(body).withContentType(contentType)
+                        .withAccept(acceptMediaType));
                 final int status = response.getStatus();
                 checkStatus(status);
                 reset();
@@ -239,7 +230,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -249,7 +239,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -259,7 +248,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -269,7 +257,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -279,7 +266,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -289,7 +275,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -303,7 +288,9 @@ public class VitamRestTestClient extends DefaultClient {
             Response response = null;
             try {
                 final String finalPath = getFinalPath(path);
-                response = client.make(requestBuilder.withPath(finalPath).withHeaders(headers).withBody(body).withContentType(contentType).withAccept(acceptMediaType));
+                response = client.make(
+                    requestBuilder.withPath(finalPath).withHeaders(headers).withBody(body).withContentType(contentType)
+                        .withAccept(acceptMediaType));
                 final int status = response.getStatus();
                 checkStatus(status);
                 reset();
@@ -314,7 +301,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -325,7 +311,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -336,7 +321,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -347,7 +331,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -358,7 +341,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>

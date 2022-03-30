@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -62,7 +62,7 @@ public enum SequenceType {
      * Profile collection
      */
     PROFILE_SEQUENCE(FunctionalAdminCollections.PROFILE, "PR"),
-    
+
     /**
      * Archive Unit Profile collection
      */
@@ -93,9 +93,9 @@ public enum SequenceType {
      */
     ACCESSION_REGISTER_SYMBOLIC(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, "REGISTER_SYMBOLIC"),
 
-    GRIFFIN(FunctionalAdminCollections.GRIFFIN,"GR"),
+    GRIFFIN(FunctionalAdminCollections.GRIFFIN, "GR"),
 
-    PRESERVATION_SCENARIO(FunctionalAdminCollections.PRESERVATION_SCENARIO,"PSC"),
+    PRESERVATION_SCENARIO(FunctionalAdminCollections.PRESERVATION_SCENARIO, "PSC"),
 
     /**
      * Accession Register Detail sequence type

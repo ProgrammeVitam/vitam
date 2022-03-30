@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -351,7 +351,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/ingestcleanup/{operationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId, @PathParam("operationId") String operationId) {
+    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
+        @PathParam("operationId") String operationId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         // Hack to invoke the admin port of functional admin
@@ -360,9 +362,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ("http://%s:%s/adminmanagement/v1/invalidIngestCleanup/%s",
                 this.functionalAdminAdmin.getFunctionalAdminServerHost(),
                 this.functionalAdminAdmin.getFunctionalAdminServerPort(),
-            operationId)
+                operationId)
         );
-        String basicAuth = "Basic " + BaseXx.getBase64((this.functionalAdminAdmin.getAdminBasicAuth().getUserName()+":"+this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
+        String basicAuth = "Basic " + BaseXx.getBase64(
+            (this.functionalAdminAdmin.getAdminBasicAuth().getUserName() + ":" +
+                this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
 
         Invocation.Builder builder = target.request();
         Response response = builder.header("Content-Type", MediaType.APPLICATION_JSON)

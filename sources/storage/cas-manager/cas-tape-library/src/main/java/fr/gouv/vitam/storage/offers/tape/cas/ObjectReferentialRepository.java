@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,12 +35,12 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.bson.Document;
 
@@ -80,8 +80,8 @@ public class ObjectReferentialRepository {
         Document document;
         try {
             document = collection.find(
-                Filters.eq(TapeObjectReferentialEntity.ID,
-                    toBson(new TapeLibraryObjectReferentialId(containerName, objectName))))
+                    Filters.eq(TapeObjectReferentialEntity.ID,
+                        toBson(new TapeLibraryObjectReferentialId(containerName, objectName))))
                 .first();
         } catch (MongoException ex) {
             throw new ObjectReferentialException("Could not find storage location by id " +
@@ -114,7 +114,8 @@ public class ObjectReferentialRepository {
                 try {
                     result.add(fromBson(document, TapeObjectReferentialEntity.class));
                 } catch (InvalidParseOperationException e) {
-                    throw new IllegalStateException("Could not parse documents from DB " + BsonHelper.stringify(document), e);
+                    throw new IllegalStateException(
+                        "Could not parse documents from DB " + BsonHelper.stringify(document), e);
                 }
             }
             return result;

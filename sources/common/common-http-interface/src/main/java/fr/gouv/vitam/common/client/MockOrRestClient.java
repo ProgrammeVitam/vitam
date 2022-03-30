@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
 
 /**
  * Basic client api for vitam client either in Mock or Rest mode
@@ -62,8 +62,8 @@ public interface MockOrRestClient extends VitamAutoCloseable {
     /**
      * Check the status from the service
      * used to passe "X-SSL-CLIENT-CERT" header that contain a pem certificate
-     * @param headers
      *
+     * @param headers
      * @throws VitamApplicationServerException if the Server is unavailable
      */
     void checkStatus(MultivaluedHashMap<String, Object> headers) throws VitamApplicationServerException;

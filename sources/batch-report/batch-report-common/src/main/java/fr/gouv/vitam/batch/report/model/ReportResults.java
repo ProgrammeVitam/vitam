@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,7 @@ public class ReportResults {
     private Integer nbWarning;
 
     public ReportResults() {
-        this(0,0,0);
+        this(0, 0, 0);
     }
 
     public ReportResults(Integer nbOk, Integer nbKo, Integer nbWarning) {

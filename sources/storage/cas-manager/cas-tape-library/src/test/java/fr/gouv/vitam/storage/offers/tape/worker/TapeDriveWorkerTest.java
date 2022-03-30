@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,8 +30,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -129,7 +129,8 @@ public class TapeDriveWorkerTest {
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, archiveReferentialRepository, readRequestReferentialRepository,
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer,
+                archiveReferentialRepository, readRequestReferentialRepository,
                 null, "/tmp", false, archiveOutputRetentionPolicy);
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
@@ -137,7 +138,8 @@ public class TapeDriveWorkerTest {
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository, readRequestReferentialRepository,
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository,
+                readRequestReferentialRepository,
                 null, "/tmp", false, archiveOutputRetentionPolicy);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
@@ -145,7 +147,8 @@ public class TapeDriveWorkerTest {
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, readRequestReferentialRepository, null,
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null,
+                readRequestReferentialRepository, null,
                 "/tmp", false, archiveOutputRetentionPolicy);
             Assertions.fail("Should fail archiveReferentialRepository required");
         } catch (Exception e) {
@@ -153,15 +156,17 @@ public class TapeDriveWorkerTest {
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, archiveReferentialRepository, null, null,
-                    "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, null, null,
+                "/tmp", false, archiveOutputRetentionPolicy);
             Assertions.fail("Should fail readRequestReferentialRepository required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, archiveReferentialRepository, readRequestReferentialRepository, null,
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, readRequestReferentialRepository, null,
                 "/tmp", false, null);
             Assertions.fail("Should fail archiveOutputRetentionPolicy required");
         } catch (Exception e) {

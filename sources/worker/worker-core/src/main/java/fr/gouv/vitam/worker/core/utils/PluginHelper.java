@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -106,7 +106,8 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus).setMessage(message);
     }
 
-    public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode, TEventDetails eventDetails, Object masterDataValue) {
+    public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode,
+        TEventDetails eventDetails, Object masterDataValue) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
@@ -114,7 +115,8 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
     }
 
-    public static <T> ItemStatus buildItemStatusSubItems(String itemId, Stream<String> subItemIds, StatusCode statusCode, T eventDetails) {
+    public static <T> ItemStatus buildItemStatusSubItems(String itemId, Stream<String> subItemIds,
+        StatusCode statusCode, T eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(itemId);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);

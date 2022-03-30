@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,22 +27,20 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObject;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 
 
 /**
@@ -77,7 +75,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * Constructor from LogbookOperationParameters for update purpose
      *
      * @param parameters the logbook parameters
-     * @param forUpdate  specifies if the parameters should not contain fields for update
+     * @param forUpdate specifies if the parameters should not contain fields for update
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookOperation(LogbookOperationParameters parameters, boolean forUpdate) {
@@ -131,6 +129,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     public LogbookOperation() {
         //Empty
     }
+
     @Override
     public VitamDocument<LogbookOperation> newInstance(JsonNode content) {
         return new LogbookOperation(content);
@@ -141,7 +140,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     }
 
     /**
-     *
      * @return the ParameterName as id in collection
      */
     public static LogbookParameterName getIdParameterName() {
@@ -162,12 +160,12 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         if (object instanceof BasicDBObject) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
                 map.put(name.getLogbookParameterName(),
-                        ((BasicDBObject) object).getString(name.getDbname()));
+                    ((BasicDBObject) object).getString(name.getDbname()));
             }
         } else if (object instanceof Document) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
                 map.put(name.getLogbookParameterName(),
-                        ((Document) object).getString(name.getDbname()));
+                    ((Document) object).getString(name.getDbname()));
             }
         }
         return parameters;

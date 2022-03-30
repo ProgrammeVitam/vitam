@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -91,9 +91,9 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -260,7 +260,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         module.addSerializer(TextType.class, new TextTypeSerializer());
         module.addSerializer(LevelType.class, new LevelTypeSerializer());
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
-        module.addSerializer(OrganizationDescriptiveMetadataType.class, new OrganizationDescriptiveMetadataTypeSerializer());
+        module.addSerializer(OrganizationDescriptiveMetadataType.class,
+            new OrganizationDescriptiveMetadataTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeyType.class, new KeywordTypeSerializer());
@@ -584,7 +585,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             String repositoryArchiveUnitPID = relatedObjectReferenceItem.getRepositoryArchiveUnitPID();
             if (repositoryArchiveUnitPID != null) {
                 if (dataObjectIdToGuid.containsKey(repositoryArchiveUnitPID)) {
-                    relatedObjectReferenceItem.setRepositoryArchiveUnitPID(objectGroupIdToGuid.get(repositoryArchiveUnitPID));
+                    relatedObjectReferenceItem.setRepositoryArchiveUnitPID(
+                        objectGroupIdToGuid.get(repositoryArchiveUnitPID));
                 } else {
                     isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
                 }
@@ -601,7 +603,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             String externalReference = relatedObjectReferenceItem.getExternalReference();
             if (externalReference != null) {
-                    relatedObjectReferenceItem.setExternalReference(externalReference);
+                relatedObjectReferenceItem.setExternalReference(externalReference);
             }
         }
     }

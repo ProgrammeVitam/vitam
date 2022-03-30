@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,7 +83,7 @@ public class HandlerUtils {
         } catch (final InvalidParseOperationException e) {
             throw new IOException(e);
         }
-        handlerIO.transferFileToWorkspace(workspacePath,firstMapTmpFile,true,false);
+        handlerIO.transferFileToWorkspace(workspacePath, firstMapTmpFile, true, false);
     }
 
     /**
@@ -93,10 +93,11 @@ public class HandlerUtils {
      * @param map the data map to write
      * @param rank the output rank
      * @param removeTmpFile if remove temp output file
-     * @throws IOException if cannot write file in json format 
+     * @throws IOException if cannot write file in json format
      * @throws ProcessingException if processing exception occurred
      */
-    public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile, boolean asyncIO)
+    public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile,
+        boolean asyncIO)
         throws IOException, ProcessingException {
         final String tmpFilePath = handlerIO.getOutput(rank).getPath();
         final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,50 +26,8 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -88,6 +46,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -101,6 +60,44 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * StorageClientRest Test
@@ -117,7 +114,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static StorageClientFactory factory = StorageClientFactory.getInstance();
-    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(StorageClientRestTest.class, factory);
+    private static VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(StorageClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -267,7 +265,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             @PathParam("folder") String folder, BulkObjectStoreRequest bulkObjectStoreRequest) {
             return expectedResponse.post();
         }
-        
+
         @GET
         @Path("/strategies")
         @Produces(MediaType.APPLICATION_JSON)
@@ -588,9 +586,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(
                 new RequestResponseOK<StorageLogBackupResult>()
-                    .addResult(new StorageLogBackupResult().setTenantId(0).setOperationId(GUIDFactory.newGUID().getId()))
-                    .addResult(new StorageLogBackupResult().setTenantId(1).setOperationId(GUIDFactory.newGUID().getId()))
-                ).build());
+                    .addResult(
+                        new StorageLogBackupResult().setTenantId(0).setOperationId(GUIDFactory.newGUID().getId()))
+                    .addResult(
+                        new StorageLogBackupResult().setTenantId(1).setOperationId(GUIDFactory.newGUID().getId()))
+            ).build());
         client.storageLogBackup(Arrays.asList(0, 1));
     }
 
@@ -669,11 +669,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void bulkCreateFromWorkspaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).entity(
-                new BulkObjectStoreResponse(
-                    Arrays.asList("offer1", "offer2"),
-                    DigestType.SHA512.getName(),
-                    ImmutableMap.of("ob1", "digest1", "ob2", "digest2"))
-            ).build());
+            new BulkObjectStoreResponse(
+                Arrays.asList("offer1", "offer2"),
+                DigestType.SHA512.getName(),
+                ImmutableMap.of("ob1", "digest1", "ob2", "digest2"))
+        ).build());
         client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
     }
 
@@ -759,10 +759,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test
     public void getStrategiesOk() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(new RequestResponseOK<StorageStrategy>()).build());
+        when(mock.get()).thenReturn(
+            Response.status(Response.Status.OK).entity(new RequestResponseOK<StorageStrategy>()).build());
         client.getStorageStrategies();
     }
-    
+
     @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
     public void getStrategiesStorageServerClientException() throws Exception {

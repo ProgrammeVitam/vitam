@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,6 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -620,7 +619,8 @@ public class StateMachineTest {
                 workParams.getContainerName()
             );
 
-        when(processDistributorMock.distribute(eq(workParams), any(Step.class), eq(workParams.getContainerName()))).thenReturn(new ItemStatus().increment(StatusCode.OK));
+        when(processDistributorMock.distribute(eq(workParams), any(Step.class),
+            eq(workParams.getContainerName()))).thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setTargetState(ProcessState.PAUSE);

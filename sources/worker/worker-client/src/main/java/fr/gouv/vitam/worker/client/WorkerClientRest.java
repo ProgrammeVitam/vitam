@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,8 +41,6 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 import javax.ws.rs.core.Response;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
@@ -89,7 +87,8 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                         step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 } catch (final VitamThreadAccessException e) {
                     LOGGER.error(
-                        INTERNAL_SERVER_ERROR.getReasonPhrase() + " during execution of <unknown request id> Request, stepname:  " +
+                        INTERNAL_SERVER_ERROR.getReasonPhrase() +
+                            " during execution of <unknown request id> Request, stepname:  " +
                             step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());

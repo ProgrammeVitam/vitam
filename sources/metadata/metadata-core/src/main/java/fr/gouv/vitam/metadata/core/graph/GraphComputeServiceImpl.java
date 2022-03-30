@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -250,7 +250,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
                     // WARN: But if we want to use it in workflow, then we have to distinguish between KO and FATAL
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit());
     }
 
 
@@ -275,7 +276,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             final MongoCursor<Document> cursor = vitamRepositoryProvider
                 .getVitamMongoRepository(metadataCollections.getVitamCollection())
                 .findDocuments(in(Unit.ID, documentsId), VitamConfiguration.getBatchSize())
-                .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.VALID_COMPUTED_INHERITED_RULES))
+                .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES,
+                    Unit.VALID_COMPUTED_INHERITED_RULES))
                 .iterator();
 
             List<Document> documents = new ArrayList<>();

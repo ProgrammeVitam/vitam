@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,8 @@ public class OperationWithClosestPreviousOperation {
     private final LogbookOperation operation;
     private final LogbookOperation closestToReferenceOperation;
 
-    public OperationWithClosestPreviousOperation(LogbookOperation operation, LogbookOperation closestToReferenceOperation) {
+    public OperationWithClosestPreviousOperation(LogbookOperation operation,
+        LogbookOperation closestToReferenceOperation) {
         this.operation = operation;
         this.closestToReferenceOperation = closestToReferenceOperation;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -210,7 +210,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category, String offerId)
+    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
+        String offerId)
         throws StorageException;
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,8 +37,18 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.metadata.core.model.InheritedRuleModel;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 /**
  * POJO for the result of Inherited Rule
+ *
  * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitInheritedRule {
@@ -166,7 +167,7 @@ public class UnitInheritedRule {
      * Herite rule from parent with unit management
      *
      * @param unitManagement as ObjectNode
-     * @param unitId         as String
+     * @param unitId as String
      * @return UnitInheritedRule created
      * @throws InvalidParseOperationException
      */
@@ -318,7 +319,7 @@ public class UnitInheritedRule {
     /**
      * @param unitManagementRuleCategory the ruleCategory of the unit
      * @param newRule
-     * @param unitRuleCategory           the name of the category
+     * @param unitRuleCategory the name of the category
      * @param ruleCategoryFromUnit
      * @param parentCategoryList
      */
@@ -338,9 +339,11 @@ public class UnitInheritedRule {
                 categoryFinalAction
                     .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_FINAL_ACTION));
                 categoryClassificationLevel
-                    .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL));
+                    .put(unitRuleCategory,
+                        unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL));
                 categoryClassificationOwner
-                    .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER));
+                    .put(unitRuleCategory,
+                        unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER));
 
                 ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
                 parentCategoryList.add(unitRuleCategory);

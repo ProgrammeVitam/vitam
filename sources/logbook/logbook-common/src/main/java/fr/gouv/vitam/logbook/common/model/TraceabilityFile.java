@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -72,7 +72,7 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * @param file the targeted file to store tmp zip file
      * @throws FileNotFoundException if the given file is missing
-     * @throws ArchiveException      if any error occurs while creating ZipArchiveOutputStram
+     * @throws ArchiveException if any error occurs while creating ZipArchiveOutputStram
      */
     public TraceabilityFile(File file) throws FileNotFoundException, ArchiveException {
         final OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
@@ -147,8 +147,8 @@ public class TraceabilityFile implements AutoCloseable {
      * Add an additionalInformation file with the given data in the zipFile
      *
      * @param numberOfLine of the extracted data secured by the traceability process
-     * @param startDate    of the traceability process
-     * @param endDate      of the traceability process
+     * @param startDate of the traceability process
+     * @param endDate of the traceability process
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void storeAdditionalInformation(long numberOfLine, String startDate,
@@ -162,7 +162,7 @@ public class TraceabilityFile implements AutoCloseable {
         archive.write(LINE_SEPARATOR);
         archive.write(String.format("endDate=%s", endDate).getBytes());
         archive.write(LINE_SEPARATOR);
-        archive.write((SECURISATION_VERSION_LABEL+"="+SECURISATION_VERSION).getBytes());
+        archive.write((SECURISATION_VERSION_LABEL + "=" + SECURISATION_VERSION).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.closeArchiveEntry();
     }
@@ -170,10 +170,10 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * Add an computedInformation file with the traceability data in the zipFile
      *
-     * @param currentHash              hash of the new merkleTree root
-     * @param previousHash             hash of the last traceability operation merkleTree root
+     * @param currentHash hash of the new merkleTree root
+     * @param previousHash hash of the last traceability operation merkleTree root
      * @param currentHashMinusOneMonth hash of the (Month - 1) traceability operation merkleTree root
-     * @param currentHashMinusOneYear  hash of the (Year - 1) traceability operation merkleTree root
+     * @param currentHashMinusOneYear hash of the (Year - 1) traceability operation merkleTree root
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void storeComputedInformation(String currentHash,

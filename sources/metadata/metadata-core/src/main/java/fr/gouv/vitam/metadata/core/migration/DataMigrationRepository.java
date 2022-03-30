@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -191,21 +191,21 @@ public class DataMigrationRepository {
 
         AggregateIterable<Unit> units =
             MetadataCollections.UNIT.<Unit>getCollection().aggregate(
-                Arrays.asList(
-                    // Skip already migrated data
-                    match(
-                        exists(Unit.GRAPH_LAST_PERSISTED_DATE, false)
-                    ),
-                    // Select _id and $size(_us)
-                    project(fields(
-                        include(Unit.ID),
-                        computed(NB_UNIT_UPS, new BasicDBObject("$size", "$" + Unit.UNITUPS))
-                    )),
-                    // Order by $size(_us)
-                    Aggregates.sort(Sorts.orderBy(
-                        Sorts.ascending(NB_UNIT_UPS)
+                    Arrays.asList(
+                        // Skip already migrated data
+                        match(
+                            exists(Unit.GRAPH_LAST_PERSISTED_DATE, false)
+                        ),
+                        // Select _id and $size(_us)
+                        project(fields(
+                            include(Unit.ID),
+                            computed(NB_UNIT_UPS, new BasicDBObject("$size", "$" + Unit.UNITUPS))
+                        )),
+                        // Order by $size(_us)
+                        Aggregates.sort(Sorts.orderBy(
+                            Sorts.ascending(NB_UNIT_UPS)
+                        ))
                     ))
-                ))
                 // Batch
                 .batchSize(bulkSize)
                 // Aggregation query requires more than 100MB to proceed.
@@ -325,7 +325,7 @@ public class DataMigrationRepository {
 
         FindIterable<ObjectGroup> objectGroups =
             MetadataCollections.OBJECTGROUP.<ObjectGroup>getCollection().find(
-                exists(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, false))
+                    exists(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, false))
                 // Batch
                 .batchSize(bulkSize);
 

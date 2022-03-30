@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -103,15 +103,23 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_MANAGEMENT_CONTRACT";
 
 
-    private static final String EMPTY_REQUIRED_FIELD = CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
-    private static final String DUPLICATE_IN_DATABASE = CONTRACTS_IMPORT_EVENT + ContractLogbookService.DUPLICATE_IN_DATABASE;
-    private static final String STRATEGY_VALIDATION_ERROR = CONTRACTS_IMPORT_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
-    private static final String CONTRACT_BAD_REQUEST = CONTRACTS_IMPORT_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
+    private static final String EMPTY_REQUIRED_FIELD =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
+    private static final String DUPLICATE_IN_DATABASE =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.DUPLICATE_IN_DATABASE;
+    private static final String STRATEGY_VALIDATION_ERROR =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
+    private static final String CONTRACT_BAD_REQUEST =
+        CONTRACTS_IMPORT_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
 
-    private static final String UPDATE_CONTRACT_NOT_FOUND = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_CONTRACT_NOT_FOUND;
-    private static final String UPDATE_CONTRACT_BAD_REQUEST = CONTRACT_UPDATE_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
-    private static final String UPDATE_VALUE_NOT_IN_ENUM = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_VALUE_NOT_IN_ENUM;
-    private static final String UPDATE_STRATEGY_VALIDATION_ERROR = CONTRACT_UPDATE_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
+    private static final String UPDATE_CONTRACT_NOT_FOUND =
+        CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_CONTRACT_NOT_FOUND;
+    private static final String UPDATE_CONTRACT_BAD_REQUEST =
+        CONTRACT_UPDATE_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
+    private static final String UPDATE_VALUE_NOT_IN_ENUM =
+        CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_VALUE_NOT_IN_ENUM;
+    private static final String UPDATE_STRATEGY_VALIDATION_ERROR =
+        CONTRACT_UPDATE_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
 
 
 
@@ -131,13 +139,13 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
     public ManagementContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this(mongoAccess, vitamCounterService, StorageClientFactory.getInstance().getClient(),
-                LogbookOperationsClientFactory.getInstance().getClient(),
-                new FunctionalBackupService(vitamCounterService));
+            LogbookOperationsClientFactory.getInstance().getClient(),
+            new FunctionalBackupService(vitamCounterService));
     }
 
     public ManagementContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-            StorageClient storageClient, LogbookOperationsClient logbookOperationsClient,
-            FunctionalBackupService functionalBackupService) {
+        StorageClient storageClient, LogbookOperationsClient logbookOperationsClient,
+        FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
@@ -147,7 +155,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
     @Override
     public RequestResponse<ManagementContractModel> createContracts(List<ManagementContractModel> contractModelList)
-            throws VitamException {
+        throws VitamException {
         ParametersChecker.checkParameter(CONTRACT_IS_MANDATORY_PARAMETER, contractModelList);
 
         if (contractModelList.isEmpty()) {
@@ -155,19 +163,20 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         }
 
         boolean slaveMode = vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                SequenceType.MANAGEMENT_CONTRACT_SEQUENCE.getCollection(), ParameterHelper.getTenantParameter());
+            SequenceType.MANAGEMENT_CONTRACT_SEQUENCE.getCollection(), ParameterHelper.getTenantParameter());
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
 
-        ManagementContractValidationService validationService = new ManagementContractValidationService(storageClient, mongoAccess);
-        ContractLogbookService logbookService = new ContractLogbookService(logbookClient,eip, CONTRACTS_IMPORT_EVENT,
-                CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
+        ManagementContractValidationService validationService =
+            new ManagementContractValidationService(storageClient, mongoAccess);
+        ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
+            CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
 
         logbookService.logStarted();
 
         final VitamError error = getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                "Management contract import error")
-                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            "Management contract import error")
+            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
             for (final ManagementContractModel mcm : contractModelList) {
@@ -175,8 +184,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 // if a contract have and id
                 if (null != mcm.getId()) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            GenericContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(mcm.getName())
-                                    .getReason()));
+                        GenericContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(mcm.getName())
+                            .getReason()));
                     continue;
                 }
 
@@ -190,9 +199,9 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
                 if (slaveMode) {
                     final Optional<GenericContractValidator.GenericRejectionCause> result = validationService
-                            .checkEmptyIdentifierSlaveModeValidator().validate(mcm, mcm.getIdentifier());
+                        .checkEmptyIdentifierSlaveModeValidator().validate(mcm, mcm.getIdentifier());
                     result.ifPresent(t -> error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            result.get().getReason()).setMessage(EMPTY_REQUIRED_FIELD)));
+                        result.get().getReason()).setMessage(EMPTY_REQUIRED_FIELD)));
                 }
 
             }
@@ -201,17 +210,17 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 // log book + application log
                 // stop
                 final String errorsDetails = error.getErrors().stream().map(VitamError::getDescription).distinct()
-                        .collect(Collectors.joining(","));
+                    .collect(Collectors.joining(","));
 
                 logbookService.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT,
-                        error.getErrors().get(0).getMessage());
+                    error.getErrors().get(0).getMessage());
                 return error;
             }
 
             ArrayNode contractsToPersist = JsonHandler.createArrayNode();
             for (final ManagementContractModel mcm : contractModelList) {
                 ContractHelper.setIdentifier(slaveMode, mcm, vitamCounterService,
-                        SequenceType.MANAGEMENT_CONTRACT_SEQUENCE);
+                    SequenceType.MANAGEMENT_CONTRACT_SEQUENCE);
                 final ObjectNode managementContractNode = (ObjectNode) JsonHandler.toJsonNode(mcm);
                 JsonNode hashId = managementContractNode.remove(VitamFieldsHelper.id());
                 if (hashId != null) {
@@ -234,40 +243,40 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.MANAGEMENT_CONTRACT).close();
 
             functionalBackupService.saveCollectionAndSequence(eip, CONTRACT_BACKUP_EVENT,
-                    FunctionalAdminCollections.MANAGEMENT_CONTRACT, eip.toString());
+                FunctionalAdminCollections.MANAGEMENT_CONTRACT, eip.toString());
 
             logbookService.logSuccess();
 
             return new RequestResponseOK<ManagementContractModel>().addAllResults(contractModelList)
-                    .setHttpCode(Response.Status.CREATED.getStatusCode());
+                .setHttpCode(Response.Status.CREATED.getStatusCode());
 
         } catch (SchemaValidationException | BadRequestException exp) {
             LOGGER.error(exp);
             final String err = new StringBuilder("Import management contracts error > ").append(exp.getMessage())
-                    .toString();
+                .toString();
             logbookService.logValidationError(err, CONTRACTS_IMPORT_EVENT, CONTRACT_BAD_REQUEST);
             return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
-                    .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (final Exception exp) {
             LOGGER.error(exp);
             final String err = new StringBuilder("Import management contracts error > ").append(exp.getMessage())
-                    .toString();
+                .toString();
             logbookService.logFatalError(err, CONTRACTS_IMPORT_EVENT);
             return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err)
-                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
 
-    private static VitamError getVitamError (String vitamCode, String error){
+    private static VitamError getVitamError(String vitamCode, String error) {
         return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO);
     }
 
     @Override
     public RequestResponse<ManagementContractModel> updateContract(String identifier, JsonNode queryDsl)
-            throws VitamException {
+        throws VitamException {
         VitamError error = getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                "Management contract update error")
-                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            "Management contract update error")
+            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
@@ -277,16 +286,17 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         if (managementContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    MANAGEMENT_CONTRACT_NOT_FOUND + identifier).setMessage(UPDATE_CONTRACT_NOT_FOUND));
+                MANAGEMENT_CONTRACT_NOT_FOUND + identifier).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
         RequestResponseOK response = new RequestResponseOK<>();
 
-        ManagementContractValidationService validationService = new ManagementContractValidationService(storageClient, mongoAccess);
-        ContractLogbookService logbookService = new ContractLogbookService(logbookClient,eip, CONTRACTS_IMPORT_EVENT,
-                CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
+        ManagementContractValidationService validationService =
+            new ManagementContractValidationService(storageClient, mongoAccess);
+        ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
+            CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
 
         logbookService.logUpdateStarted(managementContractModel.getId());
 
@@ -302,7 +312,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 }
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
                 ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
@@ -312,8 +322,9 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 final String errorsDetails = error.getErrors().stream().map(VitamError::getDescription)
-                        .collect(Collectors.joining(","));
-                logbookService.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT, error.getErrors().get(0).getMessage());
+                    .collect(Collectors.joining(","));
+                logbookService.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT,
+                    error.getErrors().get(0).getMessage());
 
                 return error;
             }
@@ -321,31 +332,31 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.MANAGEMENT_CONTRACT);
             updateDiffs = result.getDiffs();
             response.addResult(new DbRequestResult(result)).setTotal(result.getTotal()).setQuery(queryDsl)
-                    .setHttpCode(Response.Status.OK.getStatusCode());
+                .setHttpCode(Response.Status.OK.getStatusCode());
 
             result.close();
 
             functionalBackupService.saveCollectionAndSequence(eip, CONTRACT_BACKUP_EVENT,
-                    FunctionalAdminCollections.MANAGEMENT_CONTRACT, managementContractModel.getId());
+                FunctionalAdminCollections.MANAGEMENT_CONTRACT, managementContractModel.getId());
 
             logbookService.logUpdateSuccess(managementContractModel.getId(), identifier,
-                    updateDiffs.get(managementContractModel.getId()));
+                updateDiffs.get(managementContractModel.getId()));
             return response;
 
         } catch (SchemaValidationException | BadRequestException exp) {
             LOGGER.error(exp);
             final String err = new StringBuilder("Update management contract error > ").append(exp.getMessage())
-                    .toString();
+                .toString();
             logbookService.logValidationError(err, CONTRACT_UPDATE_EVENT, UPDATE_CONTRACT_BAD_REQUEST);
             return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
-                    .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                .setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (Exception e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Update management contract error > ").append(e.getMessage())
-                    .toString();
+                .toString();
             logbookService.logFatalError(err, CONTRACT_UPDATE_EVENT);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err)
-                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
             return error;
         }
@@ -353,12 +364,12 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
     @Override
     public ManagementContractModel findByIdentifier(String identifier)
-            throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(identifier);
         try (DbRequestResult result = ContractHelper.findByIdentifier(identifier,
-                FunctionalAdminCollections.MANAGEMENT_CONTRACT, mongoAccess)) {
+            FunctionalAdminCollections.MANAGEMENT_CONTRACT, mongoAccess)) {
             final List<ManagementContractModel> list = result.getDocuments(ManagementContract.class,
-                    ManagementContractModel.class);
+                ManagementContractModel.class);
             if (list.isEmpty()) {
                 return null;
             }
@@ -368,10 +379,10 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
     @Override
     public RequestResponseOK<ManagementContractModel> findContracts(JsonNode queryDsl)
-            throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkJsonAll(queryDsl);
         try (DbRequestResult result = mongoAccess.findDocuments(queryDsl,
-                FunctionalAdminCollections.MANAGEMENT_CONTRACT)) {
+            FunctionalAdminCollections.MANAGEMENT_CONTRACT)) {
             return result.getRequestResponseOK(queryDsl, ManagementContract.class, ManagementContractModel.class);
         }
     }
@@ -382,8 +393,9 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         storageClient.close();
     }
 
-    private void validateUpdateAction(ManagementContractValidationService validationService, String contractName, final VitamError error,
-            final String field, final JsonNode value) {
+    private void validateUpdateAction(ManagementContractValidationService validationService, String contractName,
+        final VitamError error,
+        final String field, final JsonNode value) {
 
         switch (field) {
             case ManagementContract.STATUS: {
@@ -461,6 +473,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
 
     }
+
     /**
      * Contract validator
      */
@@ -489,12 +502,12 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
             for (final ManagementContractValidator validator : validators.keySet()) {
                 final Optional<GenericContractValidator.GenericRejectionCause> result = validator.validate(contract,
-                        jsonFormat);
+                    jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            result.get().getReason()).setMessage(validators.get(validator)));
+                        result.get().getReason()).setMessage(validators.get(validator)));
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -512,7 +525,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 GenericContractValidator.GenericRejectionCause rejection = null;
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
                     rejection = GenericContractValidator.GenericRejectionCause
-                            .rejectMandatoryMissing(ManagementContract.NAME);
+                        .rejectMandatoryMissing(ManagementContract.NAME);
                 }
 
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
@@ -548,7 +561,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
-                                LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
+                            LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error management contract parse dates", e);
@@ -560,12 +573,12 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     } else {
 
                         contract.setDeactivationdate(
-                                LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate()));
+                            LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error management contract parse dates", e);
                     rejection = GenericContractValidator.GenericRejectionCause
-                            .rejectMandatoryMissing("DeactivationDate");
+                        .rejectMandatoryMissing("DeactivationDate");
                 }
 
                 contract.setLastupdate(now);
@@ -583,11 +596,11 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             return (contract, contractName) -> {
                 if (ParametersChecker.isNotEmpty(contract.getIdentifier())) {
                     try (DbRequestResult result = ContractHelper.findByIdentifier(contract.getIdentifier(),
-                            FunctionalAdminCollections.MANAGEMENT_CONTRACT, mongoAccess)) {
+                        FunctionalAdminCollections.MANAGEMENT_CONTRACT, mongoAccess)) {
                         final boolean exist = result.getCount() > 0;
                         if (exist) {
                             return Optional.of(GenericContractValidator.GenericRejectionCause
-                                    .rejectDuplicatedInDatabase(contract.getIdentifier()));
+                                .rejectDuplicatedInDatabase(contract.getIdentifier()));
                         }
                     } catch (ReferentialException | InvalidParseOperationException e) {
                         throw new VitamRuntimeException(e);
@@ -606,7 +619,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             return (contract, contractIdentifier) -> {
                 if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional.of(GenericContractValidator.GenericRejectionCause
-                            .rejectMandatoryMissing(ManagementContract.IDENTIFIER));
+                        .rejectMandatoryMissing(ManagementContract.IDENTIFIER));
                 }
                 return Optional.empty();
             };
@@ -624,7 +637,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
                     StorageDetailModel storage = contract.getStorage();
                     if (storage == null || (storage.getObjectGroupStrategy() == null
-                            && storage.getUnitStrategy() == null && storage.getObjectStrategy() == null)) {
+                        && storage.getUnitStrategy() == null && storage.getObjectStrategy() == null)) {
                         return Optional.empty();
                     }
 
@@ -634,37 +647,38 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                         throw new StorageException("Exception while retrieving storage strategies");
                     }
                     List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
-                            .getResults();
+                        .getResults();
 
                     try {
                         if (storage.getObjectGroupStrategy() != null) {
                             StorageStrategyUtils.checkStrategy(storage.getObjectGroupStrategy(), strategies,
-                                    ManagementContract.OBJECTGROUP_STRATEGY, true);
+                                ManagementContract.OBJECTGROUP_STRATEGY, true);
                         }
                         if (storage.getUnitStrategy() != null) {
                             StorageStrategyUtils.checkStrategy(storage.getUnitStrategy(), strategies,
-                                    ManagementContract.UNIT_STRATEGY, true);
+                                ManagementContract.UNIT_STRATEGY, true);
                         }
 
                         if (storage.getObjectStrategy() != null) {
                             StorageStrategyUtils.checkStrategy(storage.getObjectStrategy(), strategies,
-                                    ManagementContract.OBJECT_STRATEGY, false);
+                                ManagementContract.OBJECT_STRATEGY, false);
                         }
                     } catch (StorageStrategyNotFoundException storageStrategyNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
-                                storageStrategyNotFoundException.getStrategyId(), storageStrategyNotFoundException.getVariableName()));
+                            storageStrategyNotFoundException.getStrategyId(),
+                            storageStrategyNotFoundException.getVariableName()));
                     } catch (StorageStrategyReferentOfferException storageStrategyReferentOfferException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause
-                                .rejectStorageStrategyDoesNotContainsOneReferent(
-                                        storageStrategyReferentOfferException.getStrategyId(),
-                                        storageStrategyReferentOfferException.getVariableName()));
+                            .rejectStorageStrategyDoesNotContainsOneReferent(
+                                storageStrategyReferentOfferException.getStrategyId(),
+                                storageStrategyReferentOfferException.getVariableName()));
                     }
 
 
                     return Optional.empty();
                 } catch (Exception e) {
                     return Optional.of(GenericRejectionCause.rejectExceptionOccurred(contract.getName(),
-                            "Error checking storage", e));
+                        "Error checking storage", e));
                 }
 
             };

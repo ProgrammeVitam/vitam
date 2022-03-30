@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,8 @@ public class UnitValidatorTest {
     private static final String AU_JSON_MAIL_FILE = "au_mail.json";
     private static final String SCHEMA_JSON_MAIL_FILE = "schema_mail.json";
     private static final String OBJECT_BIRTH_PLACE_JSON_FILE = "object_birth_place_archive_unit.json";
-    private static final String OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE = "test_unit_with_organizationDescriptiveMetadata.json";
+    private static final String OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE =
+        "test_unit_with_organizationDescriptiveMetadata.json";
     private static final String STRING_BIRTH_PLACE_JSON_FILE = "string_birth_place_archive_unit.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
     private static final String AU_SAME_DATES_JSON_FILE = "archive_unit_same_dates.json";
@@ -80,7 +81,8 @@ public class UnitValidatorTest {
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+                PropertiesUtils.getResourceAsStream(OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE))
+            .get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -359,7 +361,7 @@ public class UnitValidatorTest {
         JsonNode unitJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_MAIL_FILE));
 
         // When / Then
-        unitValidator.validateUnit((ObjectNode)unitJson);
+        unitValidator.validateUnit((ObjectNode) unitJson);
     }
 
     @Test

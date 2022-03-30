@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -105,9 +105,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static final int tenantId = 0;
     private static final List<Integer> tenantList = Collections.singletonList(0);
 
-    private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils.createTestIndexManager(
-        tenantList, Collections.emptyMap()
-    );
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(
+            tenantList, Collections.emptyMap()
+        );
 
     // ObjectGroup
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;

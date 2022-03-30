@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,14 @@
  */
 package fr.gouv.vitam.worker.client;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>
@@ -58,39 +59,43 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  * You can change the type of the client to get. The types are defined in the enum {@link WorkerClient}. Use the
  * changeDefaultClientType method to change the client type.
- *
  */
 
 public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "worker-client.conf";
 
-    private static final Map <WorkerClientConfiguration, WorkerClientFactory> workersSetFactory = new ConcurrentHashMap<>();
-    private static final WorkerClientFactory defaultWorkerClientFactory =  new WorkerClientFactory (null );
+    private static final Map<WorkerClientConfiguration, WorkerClientFactory> workersSetFactory =
+        new ConcurrentHashMap<>();
+    private static final WorkerClientFactory defaultWorkerClientFactory = new WorkerClientFactory(null);
     /**
      * RESOURCE PATH
      */
     public static final String RESOURCE_PATH = "/worker/v1";
+
     /**
      * Get the WorkerClientFactory instance given a configuration
      *
-     * @param  configuration the worker client configuration
+     * @param configuration the worker client configuration
      */
     private WorkerClientFactory(WorkerClientConfiguration configuration) {
         super(configuration, RESOURCE_PATH, false);
     }
+
     /**
      * get Specifique workerfactory instance
+     *
      * @param configuration the worker client configuration
      * @return an instance of WorkerClientFactory
      */
     public static WorkerClientFactory getInstance(WorkerClientConfiguration configuration) {
-        if( configuration == null ) {
-            return  defaultWorkerClientFactory ;
+        if (configuration == null) {
+            return defaultWorkerClientFactory;
         }
         workersSetFactory.computeIfAbsent(configuration, k -> new WorkerClientFactory(configuration));
         return workersSetFactory.get(configuration);
     }
+
     /**
      * Get the default worker client
      *
@@ -118,7 +123,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      * @param configurationPath the path to the configuration file
      * @return un instance of WorkerClientConfiguration
      */
-    public  static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
+    public static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
         WorkerClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
@@ -137,7 +142,6 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     public static final void changeMode(WorkerClientConfiguration configuration) {

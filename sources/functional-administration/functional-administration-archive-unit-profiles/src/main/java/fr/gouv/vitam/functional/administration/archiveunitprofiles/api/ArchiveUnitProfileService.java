@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,18 +27,16 @@
 package fr.gouv.vitam.functional.administration.archiveunitprofiles.api;
 
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.util.List;
 
 /**
  * This service manages CRUD on Archive unit profiles
@@ -56,7 +54,7 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * <li>A field has an invalid format</li>
      * <li>One or many profile already exist in the database</li>
      *
-     * @param profileModelList the list of profiles to be created 
+     * @param profileModelList the list of profiles to be created
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
@@ -70,7 +68,7 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * @param queryDsl the query as a json to be executed
      * @return list of ProfileModel
      * @throws ReferentialException thrown if the query could not be executed
-     * @throws InvalidParseOperationException thrown if the query could not be executed 
+     * @throws InvalidParseOperationException thrown if the query could not be executed
      */
     RequestResponseOK<ArchiveUnitProfileModel> findArchiveUnitProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
@@ -84,7 +82,8 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * <li>- LastUpdate</li>
      * <li>- Status</li>
      * </ul>
-     *@param id identifier of the archive unit profile to update
+     *
+     * @param id identifier of the archive unit profile to update
      * @param queryDsl the given dsl for update
      * @return RequestResponseOK on success or VitamError else
      * @throws VitamException if in error occurs while validating contracts

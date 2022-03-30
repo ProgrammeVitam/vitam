@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.common.json;
 
-import java.io.File;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.File;
 
 /**
  * Default base class for Data stored as Json or Xml. </br>
@@ -65,7 +64,7 @@ public abstract class AbstractJsonType {
 
     /**
      * @return the XML string representation
-     * @throws InvalidParseOperationException if parse exception occurred when writing a JsonNode 
+     * @throws InvalidParseOperationException if parse exception occurred when writing a JsonNode
      */
     public String generateJsonString() throws InvalidParseOperationException {
         return JsonHandler.writeAsString(this);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,10 +50,10 @@ public class PerformanceLogger {
     /**
      * log performance information with step, action and task.
      *
-     * @param step   name of the step
+     * @param step name of the step
      * @param action name of the action
-     * @param task   optional, use to log a treatment or a part of treatment
-     * @param time   duration of the treatment
+     * @param task optional, use to log a treatment or a part of treatment
+     * @param time duration of the treatment
      */
     public void log(String step, String action, String task, long time) {
         LOGGER.debug("{},{},{},{}", step, action, task, time);
@@ -63,7 +63,7 @@ public class PerformanceLogger {
      * @param step
      * @param action
      * @param task
-     * @param size   of object
+     * @param size of object
      * @param time
      */
     public void log(String step, String action, String task, long size, long time) {
@@ -73,9 +73,9 @@ public class PerformanceLogger {
     /**
      * log performance information with step and action.
      *
-     * @param step   name of the step
+     * @param step name of the step
      * @param action name of the action
-     * @param time   duration of the treatment
+     * @param time duration of the treatment
      */
     public void log(String step, String action, long time) {
         LOGGER.debug("{},{},{},{}", step, action, "", time);

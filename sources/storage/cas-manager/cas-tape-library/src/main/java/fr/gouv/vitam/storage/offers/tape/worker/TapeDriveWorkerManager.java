@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -280,12 +280,12 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         // TODO: 28/03/19 parallelism (parallel drive by bucket)
         Set<String> activeBuckets =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
 
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -299,11 +299,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         Set<String> activeTapeCodes =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 

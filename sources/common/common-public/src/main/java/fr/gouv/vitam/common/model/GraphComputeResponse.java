@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,6 +51,7 @@ public class GraphComputeResponse {
     private Integer gotCount = 0;
 
     private String errorMessage;
+
     /**
      * Default constructor
      */
@@ -59,6 +60,7 @@ public class GraphComputeResponse {
 
     /**
      * Constructor
+     *
      * @param unitCount
      * @param gotCount
      */
@@ -70,6 +72,7 @@ public class GraphComputeResponse {
 
     /**
      * Increment unit of got count
+     *
      * @param graphComputeAction
      * @param count
      * @return GraphComputeResponse
@@ -91,6 +94,7 @@ public class GraphComputeResponse {
 
     /**
      * Increment unit and got count from given graphComputeResponse
+     *
      * @param graphComputeResponse
      * @return GraphComputeResponse
      */
@@ -104,6 +108,7 @@ public class GraphComputeResponse {
 
     /**
      * Getter
+     *
      * @return unitCount
      */
     public Integer getUnitCount() {
@@ -112,6 +117,7 @@ public class GraphComputeResponse {
 
     /**
      * Setter
+     *
      * @param unitCount
      * @return GraphComputeResponse
      */
@@ -122,6 +128,7 @@ public class GraphComputeResponse {
 
     /**
      * Getter
+     *
      * @return gotCount
      */
     public Integer getGotCount() {
@@ -131,6 +138,7 @@ public class GraphComputeResponse {
 
     /**
      * Setter
+     *
      * @param gotCount
      * @return GraphComputeResponse
      */

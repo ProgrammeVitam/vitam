@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -154,14 +154,16 @@ public class ReferentialAuditService {
 
                     if (!list.isEmpty()) {
                         String message = String
-                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                                collectionName,
                                 tenant);
                         alertService.createAlert(VitamLogLevel.ERROR, message);
                         throw new AuditVitamException(message);
                     }
-                }catch (InvalidParseOperationException e) {
+                } catch (InvalidParseOperationException e) {
                     String message = String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                            collectionName,
                             tenant);
                     alertService.createAlert(VitamLogLevel.ERROR, message);
                     throw new AuditVitamException(message);
@@ -205,7 +207,8 @@ public class ReferentialAuditService {
                     .collect(Collectors.toSet());
                 if (offersWhichCoherentWithDB.isEmpty()) {
                     String message = String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                            collectionName,
                             tenant);
                     alertService.createAlert(VitamLogLevel.ERROR, message);
                     throw new AuditVitamException(message);
@@ -261,7 +264,7 @@ public class ReferentialAuditService {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             return storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP);
         } catch (StorageNotFoundClientException e) {
-            return new ArrayIterator<>(new ObjectEntry[]{});
+            return new ArrayIterator<>(new ObjectEntry[] {});
         }
     }
 

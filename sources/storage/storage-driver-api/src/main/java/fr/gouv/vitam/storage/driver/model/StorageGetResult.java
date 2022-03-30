@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,14 +39,10 @@ public class StorageGetResult extends StorageObjectResult {
     /**
      * Initialize the needed parameters for get results
      *
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
-     * @param guid
-     *            the object guid
-     * @param object
-     *            Response of the object in the offer
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
+     * @param object Response of the object in the offer
      */
     public StorageGetResult(Integer tenantId, String type, String guid, Response object) {
         super(tenantId, type, guid);

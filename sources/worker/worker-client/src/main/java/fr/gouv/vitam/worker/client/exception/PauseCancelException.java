@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,7 @@ public class PauseCancelException extends RuntimeException {
 
     /**
      * Constructor
-     * 
+     *
      * @param pauseCancelAction
      */
     public PauseCancelException(PauseOrCancelAction pauseCancelAction) {
@@ -46,7 +46,7 @@ public class PauseCancelException extends RuntimeException {
 
     /**
      * Get the action
-     * 
+     *
      * @return PauseOrCancelAction
      */
     public PauseOrCancelAction getPauseOrCancelAction() {

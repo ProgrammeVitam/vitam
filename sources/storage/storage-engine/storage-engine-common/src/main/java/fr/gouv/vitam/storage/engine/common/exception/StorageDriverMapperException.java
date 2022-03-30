@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,26 +38,22 @@ public class StorageDriverMapperException extends StorageException {
     private static final long serialVersionUID = -2554398476938127836L;
 
     /**
-     * @param message
-     *            associated message
+     * @param message associated message
      */
     public StorageDriverMapperException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
-     *            associated cause
+     * @param cause associated cause
      */
     public StorageDriverMapperException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage
-     *            associated message
-     * @param cause
-     *            associated cause
+     * @param messsage associated message
+     * @param cause associated cause
      */
     public StorageDriverMapperException(String messsage, Throwable cause) {
         super(messsage, cause);

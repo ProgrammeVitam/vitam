@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -385,24 +385,26 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public void deleteLifecycleUnitsBulk(Collection<String> listIds)
         throws LogbookClientBadRequestException, LogbookClientServerException {
-        throw  new IllegalArgumentException("Stop mocking in production ");
+        throw new IllegalArgumentException("Stop mocking in production ");
 
     }
 
     @Override
     public void deleteLifecycleObjectGroupBulk(Collection<String> listIds)
         throws LogbookClientBadRequestException, LogbookClientServerException {
-        throw  new IllegalArgumentException("Stop mocking in production ");
+        throw new IllegalArgumentException("Stop mocking in production ");
     }
 
 
     @Override
-    public void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+    public void bulkLifeCycleTemporary(String operationId, DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
         // do nothing
     }
 
     @Override
-    public void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+    public void bulkLifeCycle(String operationId, DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
         // do nothing
     }
 

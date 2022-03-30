@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,18 @@
  */
 package fr.gouv.vitam.ihmdemo.common.pagination;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Vector;
-import javax.servlet.http.HttpServletRequest;
-
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Vector;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class OffsetBasedPaginationTest {
 
@@ -85,7 +85,8 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {}
+        } catch (final VitamException e) {
+        }
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
             new Vector(Collections.singletonList("-1")).elements());
@@ -93,7 +94,8 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {}
+        } catch (final VitamException e) {
+        }
 
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
@@ -104,7 +106,8 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {}
+        } catch (final VitamException e) {
+        }
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
             new Vector(Collections.singletonList("0")).elements());
@@ -112,7 +115,8 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {}
+        } catch (final VitamException e) {
+        }
 
     }
 }

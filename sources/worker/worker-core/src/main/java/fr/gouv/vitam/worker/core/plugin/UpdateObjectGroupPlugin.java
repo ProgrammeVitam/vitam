@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,7 +55,7 @@ public class UpdateObjectGroupPlugin extends ActionHandler {
     private static final String OBJECT_GROUP_UPDATE = "OBJECT_GROUP_UPDATE";
 
     /**
-     * @param params    {@link WorkerParameters}
+     * @param params {@link WorkerParameters}
      * @param handlerIO
      * @return
      * @throws ProcessingException

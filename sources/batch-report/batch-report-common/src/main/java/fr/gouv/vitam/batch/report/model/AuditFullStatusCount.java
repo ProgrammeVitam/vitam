@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Counter of different status for all statuses of an object group
- *
  */
 public class AuditFullStatusCount {
 

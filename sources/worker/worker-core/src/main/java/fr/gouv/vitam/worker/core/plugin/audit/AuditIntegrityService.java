@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -43,10 +36,15 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -73,7 +71,7 @@ public class AuditIntegrityService {
 
     /**
      * Check the integrity of all binary objects in GOT.
-     * 
+     *
      * @param gotDetail got details
      * @param storageStrategies deployed storage strategies
      * @return result of integrity check
@@ -93,9 +91,10 @@ public class AuditIntegrityService {
                 AuditCheckObjectResult auditCheckObjectResult = new AuditCheckObjectResult();
                 auditCheckObjectResult.setIdObject(object.getId());
                 StorageJson storageInformation = object.getStorage();
-                List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
+                List<String> offerIds =
+                    StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                 JsonNode offerToMetadata = storageClient.getInformation(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), offerIds, true);
+                    DataCategory.OBJECT, object.getId(), offerIds, true);
                 for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
                     if (metadata == null || object.getMessageDigest() == null || !metadata.has("digest")) {

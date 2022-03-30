@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -214,8 +214,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 return true;
             }
 
-            final ProcessState state = ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
-            final StatusCode status = StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            final ProcessState state =
+                ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
+            final StatusCode status =
+                StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
             if (ProcessState.PAUSE.equals(state) && status.isGreaterOrEqualToStarted()) {
                 return (null == expectedProcessState || expectedProcessState.equals(state));
@@ -377,7 +379,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     private void checkWithSpecificException(Response response)
-        throws ReferentialNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException, DatabaseConflictException,
+        throws ReferentialNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException,
+        DatabaseConflictException,
         VitamClientInternalException, PreconditionFailedClientException, InternalServerException {
         final Status status = fromStatusCode(response.getStatus());
 

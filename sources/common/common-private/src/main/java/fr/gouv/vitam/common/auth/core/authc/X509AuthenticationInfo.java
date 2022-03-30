@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,14 +29,13 @@
  */
 package fr.gouv.vitam.common.auth.core.authc;
 
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
+
+import javax.security.auth.x500.X500Principal;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -57,7 +56,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     private final String serialNumber;
 
     /**
-     *
      * @param principal
      * @param clientCertificate
      * @param grantedIssuers
@@ -80,7 +78,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @param principal
      * @param issuerDN
      * @param serialNumber
@@ -95,7 +92,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @param principal
      * @param subjectDN
      * @param realmName
@@ -109,7 +105,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @return the clientCertificate
      */
     public X509Certificate getX509Certificate() {
@@ -117,7 +112,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @return the subjectDN of the certificate
      */
     public X500Principal getSubjectDN() {
@@ -125,7 +119,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @return the issuerDN of the certificate
      */
     public X500Principal getIssuerDN() {
@@ -133,7 +126,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @return the serialNumber of the certificate
      */
     public String getHexSerialNumber() {
@@ -141,7 +133,6 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     *
      * @return the trusted certificates
      */
     public Set<TrustAnchor> getGrantedTrustAnchors() {

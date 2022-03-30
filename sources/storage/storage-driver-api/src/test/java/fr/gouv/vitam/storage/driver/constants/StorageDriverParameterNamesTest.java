@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,14 @@
  */
 package fr.gouv.vitam.storage.driver.constants;
 
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 /**
  * StorageDriverParameterNames Test
@@ -44,7 +44,8 @@ public class StorageDriverParameterNamesTest {
 
     @Test
     public void testIt() {
-        final List<String> collect = Stream.of(StorageDriverParameterNames.values()).map(Enum::name).collect(Collectors.toList());
+        final List<String> collect =
+            Stream.of(StorageDriverParameterNames.values()).map(Enum::name).collect(Collectors.toList());
         if (!VALUES.containsAll(collect)) {
             fail("Enum has changed ?");
         }

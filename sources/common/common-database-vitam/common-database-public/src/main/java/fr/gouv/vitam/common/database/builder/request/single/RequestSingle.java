@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.common.database.builder.request.single;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -43,6 +37,11 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Request for Single Mode Query
  */
@@ -50,7 +49,6 @@ public abstract class RequestSingle extends AbstractRequest {
     protected Query query;
 
     /**
-     *
      * @return this Request
      */
     public final RequestSingle resetQuery() {
@@ -71,7 +69,6 @@ public abstract class RequestSingle extends AbstractRequest {
     }
 
     /**
-     *
      * @param query of request
      * @return this Request
      * @throws InvalidCreateOperationException whern query is invalid
@@ -174,7 +171,6 @@ public abstract class RequestSingle extends AbstractRequest {
     }
 
     /**
-     *
      * @return the multiple data to insert at once
      */
     public ArrayNode getDatas() {

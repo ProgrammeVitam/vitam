@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
@@ -69,7 +68,9 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationInsertionAuMetadata.class);
 
     private static final String ITEM_ID = "PRESERVATION_INSERTION_AU_METADATA";
-    private static final TypeReference<RequestResponseOK<JsonNode>> REQUEST_RESPONSE_TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<RequestResponseOK<JsonNode>> REQUEST_RESPONSE_TYPE_REFERENCE =
+        new TypeReference<>() {
+        };
 
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -83,7 +84,8 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         LOGGER.debug("Starting {}.'", ITEM_ID);
 
         List<String> units = workerParameters.getObjectNameList();
@@ -99,7 +101,9 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
                 );
 
                 String unitId = units.get(i);
-                RequestResponseOK<JsonNode> requestResponse = JsonHandler.getFromJsonNode(mdClient.updateUnitById(update.getFinalUpdate(), unitId), REQUEST_RESPONSE_TYPE_REFERENCE);
+                RequestResponseOK<JsonNode> requestResponse =
+                    JsonHandler.getFromJsonNode(mdClient.updateUnitById(update.getFinalUpdate(), unitId),
+                        REQUEST_RESPONSE_TYPE_REFERENCE);
                 JsonNode unitAsNode = requestResponse.getFirstResult();
 
                 UpdateUnitKey key = UpdateUnitKey.valueOf(unitAsNode.get(KEY).asText());
@@ -108,11 +112,14 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
                 String diff = unitAsNode.get(DIFF).asText();
 
                 if (!KO.equals(status) && !FATAL.equals(status) && !OK.equals(status)) {
-                    throw new VitamRuntimeException(String.format("Status must be of type KO, FATAL or OK here '%s'.", status));
+                    throw new VitamRuntimeException(
+                        String.format("Status must be of type KO, FATAL or OK here '%s'.", status));
                 }
 
                 if (KO.equals(status) || FATAL.equals(status)) {
-                    itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, status, String.format("Failed to add extracted metadata for unit: '%s', in database with message '%s' and key '%s'.", unitId, message, key)));
+                    itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, status, String.format(
+                        "Failed to add extracted metadata for unit: '%s', in database with message '%s' and key '%s'.",
+                        unitId, message, key)));
                 } else {
                     itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, OK, diff));
                 }

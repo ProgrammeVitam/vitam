@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -802,8 +802,10 @@ public class WorkspaceResourceTest {
             .delete("/containers/" + CONTAINER_NAME + "/old_files");
 
         // Then
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
     }
 
     @Test

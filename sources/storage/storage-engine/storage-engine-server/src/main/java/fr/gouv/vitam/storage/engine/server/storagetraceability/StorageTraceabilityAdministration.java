@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,7 @@ public class StorageTraceabilityAdministration {
             validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
         this.storageLogTraceabilityThreadPoolSize = storageLogTraceabilityThreadPoolSize;
         this.tmpFolder = new File(tmpFolder);
-        if(!this.tmpFolder.exists() && !this.tmpFolder.mkdirs()) {
+        if (!this.tmpFolder.exists() && !this.tmpFolder.mkdirs()) {
             throw new VitamFatalRuntimeException("Could not initialize temp folder " + tmpFolder);
         }
     }

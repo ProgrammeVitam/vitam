@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -227,8 +227,9 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
-            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
+            .isEqualTo(List.of(
+                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
     }
 
     @Test
@@ -346,8 +347,9 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
-            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
+            .isEqualTo(List.of(
+                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}}"));
     }
 
     @Test
@@ -424,7 +426,8 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
-            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
+            .isEqualTo(List.of(
+                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
     }
 }

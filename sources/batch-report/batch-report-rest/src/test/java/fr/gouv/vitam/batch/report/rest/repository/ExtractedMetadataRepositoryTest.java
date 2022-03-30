@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,10 +31,7 @@ import com.mongodb.bulk.BulkWriteUpsert;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.BulkWriteOptions;
-import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateOneModel;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import org.bson.Document;
 import org.junit.Rule;
@@ -47,7 +44,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -96,7 +92,8 @@ public class ExtractedMetadataRepositoryTest {
         extractedMetadataRepository.addExtractedMetadataForAu(extractedMetadatas);
 
         // Then
-        assertThat(captor.getValue()).extracting(UpdateOneModel::getUpdate).extracting(i -> ((Document) ((Document) i).get("$set")).get("processId")).contains(PROCESS_ID);
+        assertThat(captor.getValue()).extracting(UpdateOneModel::getUpdate)
+            .extracting(i -> ((Document) ((Document) i).get("$set")).get("processId")).contains(PROCESS_ID);
     }
 
     @Test
@@ -105,12 +102,14 @@ public class ExtractedMetadataRepositoryTest {
         FindIterable findResultMock = Mockito.mock(FindIterable.class);
         MongoCursor expectedCursorResult = Mockito.mock(MongoCursor.class);
 
-        given(extractedMetadataForAuCollection.find(and(eq("processId", PROCESS_ID), eq("tenant", TENANT)))).willReturn(findResultMock);
+        given(extractedMetadataForAuCollection.find(and(eq("processId", PROCESS_ID), eq("tenant", TENANT)))).willReturn(
+            findResultMock);
         given(findResultMock.map(any())).willReturn(findResultMock);
         given(findResultMock.cursor()).willReturn(expectedCursorResult);
 
         // When
-        MongoCursor<ExtractedMetadata> metadataMongoCursorResult = extractedMetadataRepository.getExtractedMetadataByProcessId(PROCESS_ID, TENANT);
+        MongoCursor<ExtractedMetadata> metadataMongoCursorResult =
+            extractedMetadataRepository.getExtractedMetadataByProcessId(PROCESS_ID, TENANT);
 
         // Then
         assertThat(metadataMongoCursorResult).isEqualTo(expectedCursorResult);

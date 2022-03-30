@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,7 @@
 package fr.gouv.vitam.common.exception;
 
 /**
-// * This exception must be used when an error occured while creating, configuring or starting a {@link fr.gouv.vitam.common.server.VitamServer}
+ * // * This exception must be used when an error occured while creating, configuring or starting a {@link fr.gouv.vitam.common.server.VitamServer}
  */
 public class VitamApplicationServerException extends VitamException {
     private static final long serialVersionUID = -5149603175155853974L;

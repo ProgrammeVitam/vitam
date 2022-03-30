@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -171,8 +171,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @param startDate the selection start date
      * @param endDate the selection end date
      * @param maxEntries max entries to export (soft limit)
-     * @throws LogbookClientException
      * @return json line stream of raw life cycles
+     * @throws LogbookClientException
      */
     InputStream exportRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
         int maxEntries)
@@ -188,8 +188,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @param startDate the selection start date
      * @param endDate the selection end date
      * @param maxEntries max entries to export (soft limit)
-     * @throws LogbookClientException
      * @return json line stream of raw life cycles
+     * @throws LogbookClientException
      */
     InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
         int maxEntries)
@@ -445,36 +445,43 @@ public interface LogbookLifeCyclesClient extends BasicClient {
 
     /**
      * deleteLifecycleUnitsBulk
+     *
      * @param listIds unit lfc ids
      * @throws LogbookClientBadRequestException LogbookClientBadRequestException
      * @throws LogbookClientServerException LogbookClientServerException
      */
     void deleteLifecycleUnitsBulk(Collection<String> listIds)
-        throws  LogbookClientBadRequestException, LogbookClientServerException;
+        throws LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
      * deleteLifecycleObjectGroupBulk
+     *
      * @param listIds object group lfc ids
      * @throws LogbookClientBadRequestException LogbookClientBadRequestException
      * @throws LogbookClientServerException LogbookClientServerException
      */
-    void deleteLifecycleObjectGroupBulk(Collection<String> listIds)  throws  LogbookClientBadRequestException, LogbookClientServerException;
+    void deleteLifecycleObjectGroupBulk(Collection<String> listIds)
+        throws LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
      * bulkLifeCycleTemporary
+     *
      * @param operationId operationId
      * @param type type
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
+    void bulkLifeCycleTemporary(String operationId, DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
 
     /**
-     *  bulkLifeCycle
+     * bulkLifeCycle
+     *
      * @param operationId operationId
      * @param type type
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
+    void bulkLifeCycle(String operationId, DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
 }

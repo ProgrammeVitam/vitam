@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -128,8 +128,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     /**
      * Constructor
      *
-     * @param mongoAccess             MongoDB client
-     * @param vitamCounterService     the vitam counter service
+     * @param mongoAccess MongoDB client
+     * @param vitamCounterService the vitam counter service
      * @param functionalBackupService the functional backup service
      */
     public ArchiveUnitProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess,
@@ -145,10 +145,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     /**
      * Constructor
      *
-     * @param mongoAccess             MongoDB client
-     * @param vitamCounterService     the vitam counter service
+     * @param mongoAccess MongoDB client
+     * @param vitamCounterService the vitam counter service
      * @param functionalBackupService the functional backup service
-     * @param checkOntology           true or false to determine if ontology check is required
+     * @param checkOntology true or false to determine if ontology check is required
      */
     @VisibleForTesting
     public ArchiveUnitProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess,
@@ -541,9 +541,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
      * Validate dsl action
      *
      * @param profileModel
-     * @param error        thrown errors
-     * @param field        the field to check
-     * @param value        the calue to check
+     * @param error thrown errors
+     * @param field the field to check
+     * @param value the calue to check
      */
     private void validateUpdateAction(ArchiveUnitProfileModel profileModel, final VitamError error, final String field,
         final JsonNode value, ArchiveUnitProfileManager manager) {

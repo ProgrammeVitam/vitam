@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,8 @@ public class EvidenceAuditStatsModel {
     public EvidenceAuditStatsModel() {
     }
 
-    public EvidenceAuditStatsModel(int nbObjectGroups, int nbUnits, int nbObjects, EvidenceAuditFullStatusCount globalResults) {
+    public EvidenceAuditStatsModel(int nbObjectGroups, int nbUnits, int nbObjects,
+        EvidenceAuditFullStatusCount globalResults) {
         super();
         this.nbObjectGroups = nbObjectGroups;
         this.nbUnits = nbUnits;
@@ -73,6 +74,7 @@ public class EvidenceAuditStatsModel {
     public void setNbUnits(int nbUnits) {
         this.nbUnits = nbUnits;
     }
+
     public int getNbObjects() {
         return nbObjects;
     }
@@ -88,8 +90,9 @@ public class EvidenceAuditStatsModel {
     public void setGlobalResults(EvidenceAuditFullStatusCount globalResults) {
         this.globalResults = globalResults;
     }
+
     @JsonIgnore
-    public int getTotal(){
+    public int getTotal() {
         return nbObjectGroups + nbUnits + nbObjects;
     }
 

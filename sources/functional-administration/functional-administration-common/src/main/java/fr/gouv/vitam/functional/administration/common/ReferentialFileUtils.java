@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,12 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Common utils for masterdata referential sevices.
@@ -43,7 +41,7 @@ public final class ReferentialFileUtils {
     /**
      * Add into a logbookOperation's evDetdata the filename information. If evDetData does not exists create the
      * evDetData.
-     * 
+     *
      * @param filename the filename information
      * @param logbookParameters logbookoperation parameters
      * @throws InvalidParseOperationException if the existing evDetData is not valid

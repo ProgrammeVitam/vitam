@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -86,7 +86,9 @@ public class OfferLogHelperTest {
                         .map(o -> new OfferLog(o, LocalDateUtil.now(), "0_unit", "file" + o, OfferLogAction.WRITE))
                         .collect(Collectors.toList()));
             }
-        ).when(storageClient).getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+        ).when(storageClient)
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(),
+                eq(Order.ASC));
     }
 
     @Test
@@ -97,7 +99,8 @@ public class OfferLogHelperTest {
         givenOfferLogOffsets(filesOffsets);
 
         Iterator<OfferLog> offerLogIterator =
-            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 20L, Order.ASC, 5, 7);
+            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT,
+                20L, Order.ASC, 5, 7);
 
         // When
         assertThat(offerLogIterator)
@@ -105,6 +108,7 @@ public class OfferLogHelperTest {
             .containsExactly("file20", "file30", "file40", "file50", "file60", "file70", "file80");
 
         verify(storageClient, times(2))
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(),
+                eq(Order.ASC));
     }
 }

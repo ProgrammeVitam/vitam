@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -325,10 +325,10 @@ public class ManifestBuilder implements AutoCloseable {
     @Nonnull
     private String getExtension(BinaryDataObjectType binaryDataObjectType) {
         String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
-        if(Strings.isNullOrEmpty(extension)) {
+        if (Strings.isNullOrEmpty(extension)) {
             extension = FilenameUtils.getExtension(binaryDataObjectType.getFileInfo().getFilename());
         }
-        if(Strings.isNullOrEmpty(extension)) {
+        if (Strings.isNullOrEmpty(extension)) {
             extension = "";
             LOGGER.warn("cannot find extension for object" + binaryDataObjectType.getId());
         }
@@ -364,14 +364,16 @@ public class ManifestBuilder implements AutoCloseable {
         }
     }
 
-    ArchiveUnitModel writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+    ArchiveUnitModel writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs,
+        boolean exportWithLogBookLFC)
         throws JsonProcessingException, JAXBException, DatatypeConfigurationException, ProcessingException {
         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
         writeArchiveUnit(archiveUnitModel, multimap, ogs, exportWithLogBookLFC);
         return archiveUnitModel;
     }
 
-    private void writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+    private void writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
+        Map<String, String> ogs, boolean exportWithLogBookLFC)
         throws DatatypeConfigurationException, JAXBException, ProcessingException {
 
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);

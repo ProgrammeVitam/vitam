@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -48,7 +47,7 @@ public class OffsetRepositoryTest {
     private final static String COLLECTIONNAME = "Offset" + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(),COLLECTIONNAME);
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), COLLECTIONNAME);
 
     private OffsetRepository offsetRepository;
 

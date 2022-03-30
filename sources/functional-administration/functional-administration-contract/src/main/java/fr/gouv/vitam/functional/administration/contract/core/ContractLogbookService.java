@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,8 +39,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 
@@ -60,18 +60,18 @@ public class ContractLogbookService {
     public static final String MC_GLOBAL_ERROR = "ManagementContract service error";
     public static final String IC_GLOBAL_ERROR = "IngestContract service error";
     public static final String AC_GLOBAL_ERROR = "AccessContract service error";
-    
+
     public static final String EMPTY_REQUIRED_FIELD = ".EMPTY_REQUIRED_FIELD.KO";
     public static final String WRONG_FIELD_FORMAT = ".TO_BE_DEFINED.KO";
     public static final String DUPLICATE_IN_DATABASE = ".IDENTIFIER_DUPLICATION.KO";
-    public static final String PROFILE_NOT_FOUND_IN_DATABASE = ".PROFILE_NOT_FOUND.KO";    
+    public static final String PROFILE_NOT_FOUND_IN_DATABASE = ".PROFILE_NOT_FOUND.KO";
     public static final String AGENCY_NOT_FOUND_IN_DATABASE = ".AGENCY_NOT_FOUND.KO";
     public static final String CONTRACT_VALIDATION_ERROR = ".VALIDATION_ERROR.KO";
     public static final String FORMAT_NOT_FOUND = ".FORMAT_NOT_FOUND.KO";
     public static final String FORMAT_MUST_BE_EMPTY = ".FORMAT_MUST_BE_EMPTY.KO";
     public static final String FORMAT_MUST_NOT_BE_EMPTY = ".FORMAT_MUST_NOT_BE_EMPTY.KO";
     public static final String MANAGEMENTCONTRACT_NOT_FOUND = ".MANAGEMENTCONTRACT_NOT_FOUND.KO";
-    
+
     public static final String CONTRACT_BAD_REQUEST = ".BAD_REQUEST.KO";
     public static final String UPDATE_CONTRACT_NOT_FOUND = ".CONTRACT_NOT_FOUND.KO";
     public static final String UPDATE_VALUE_NOT_IN_ENUM = ".NOT_IN_ENUM.KO";
@@ -82,7 +82,7 @@ public class ContractLogbookService {
     private static final String UPDATED_DIFFS = "updatedDiffs";
 
     public ContractLogbookService(LogbookOperationsClient logbookClient, GUID eip, String contractsImportEventCode,
-            String contractUpdateEventCode, String collectionType, String contractCheckKey) {
+        String contractUpdateEventCode, String collectionType, String contractCheckKey) {
         this.logbookClient = logbookClient;
         this.eip = eip;
         this.contractsImportEventCode = contractsImportEventCode;
@@ -97,12 +97,12 @@ public class ContractLogbookService {
      * @param errorsDetails
      */
     public void logValidationError(final String errorsDetails, final String eventType, final String KOEventType)
-            throws VitamException {
+        throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+            VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
         logbookMessageError(errorsDetails, logbookParameters, KOEventType);
         logbookClient.update(logbookParameters);
@@ -118,8 +118,8 @@ public class ContractLogbookService {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+            eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType + "." + StatusCode.FATAL);
         logbookMessageError(errorsDetails, logbookParameters);
         logbookClient.update(logbookParameters);
@@ -140,52 +140,52 @@ public class ContractLogbookService {
     }
 
     private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
-            String KOEventType) {
+        String KOEventType) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 String evDetDataKey = null;
                 String detailKo = KOEventType.replaceFirst(this.contractsImportEventCode, "")
-                        .replaceFirst(this.contractUpdateEventCode, "");
+                    .replaceFirst(this.contractUpdateEventCode, "");
                 switch (detailKo) {
-                case EMPTY_REQUIRED_FIELD:
-                    evDetDataKey = "Mandatory Fields";
-                    break;
-                case WRONG_FIELD_FORMAT:
-                case UPDATE_WRONG_FILEFORMAT:
-                    evDetDataKey = "Incorrect Field and value";
-                    break;
-                case DUPLICATE_IN_DATABASE:
-                    evDetDataKey = "Duplicate Field";
-                    break;
-                case UPDATE_CONTRACT_NOT_FOUND:
-                    evDetDataKey = "Contract not found";
-                    break;
-                case UPDATE_VALUE_NOT_IN_ENUM:
-                    evDetDataKey = "Not in Enum";
-                    break;
-                case PROFILE_NOT_FOUND_IN_DATABASE:
-                    evDetDataKey = "Profile not found";
-                    break;
-                case AGENCY_NOT_FOUND_IN_DATABASE:
-                    evDetDataKey = "Agency not found";
-                    break;
-                case CONTRACT_VALIDATION_ERROR:
-                    evDetDataKey = "Validation error";
-                    break;
-                case STRATEGY_VALIDATION_ERROR:
-                case CONTRACT_BAD_REQUEST:
-                case FORMAT_NOT_FOUND:
-                case FORMAT_MUST_BE_EMPTY:
-                case FORMAT_MUST_NOT_BE_EMPTY:
-                case MANAGEMENTCONTRACT_NOT_FOUND:
-                case AC_GLOBAL_ERROR:
-                case IC_GLOBAL_ERROR:
-                case MC_GLOBAL_ERROR:
-                    evDetDataKey = this.contractCheckKey;
-                    break;
-                default:
-                    throw new IllegalArgumentException(detailKo + " not found in detail ko values");
+                    case EMPTY_REQUIRED_FIELD:
+                        evDetDataKey = "Mandatory Fields";
+                        break;
+                    case WRONG_FIELD_FORMAT:
+                    case UPDATE_WRONG_FILEFORMAT:
+                        evDetDataKey = "Incorrect Field and value";
+                        break;
+                    case DUPLICATE_IN_DATABASE:
+                        evDetDataKey = "Duplicate Field";
+                        break;
+                    case UPDATE_CONTRACT_NOT_FOUND:
+                        evDetDataKey = "Contract not found";
+                        break;
+                    case UPDATE_VALUE_NOT_IN_ENUM:
+                        evDetDataKey = "Not in Enum";
+                        break;
+                    case PROFILE_NOT_FOUND_IN_DATABASE:
+                        evDetDataKey = "Profile not found";
+                        break;
+                    case AGENCY_NOT_FOUND_IN_DATABASE:
+                        evDetDataKey = "Agency not found";
+                        break;
+                    case CONTRACT_VALIDATION_ERROR:
+                        evDetDataKey = "Validation error";
+                        break;
+                    case STRATEGY_VALIDATION_ERROR:
+                    case CONTRACT_BAD_REQUEST:
+                    case FORMAT_NOT_FOUND:
+                    case FORMAT_MUST_BE_EMPTY:
+                    case FORMAT_MUST_NOT_BE_EMPTY:
+                    case MANAGEMENTCONTRACT_NOT_FOUND:
+                    case AC_GLOBAL_ERROR:
+                    case IC_GLOBAL_ERROR:
+                    case MC_GLOBAL_ERROR:
+                        evDetDataKey = this.contractCheckKey;
+                        break;
+                    default:
+                        throw new IllegalArgumentException(detailKo + " not found in detail ko values");
                 }
 
                 object.put(evDetDataKey, errorsDetails);
@@ -205,10 +205,10 @@ public class ContractLogbookService {
      */
     public void logStarted() throws VitamException {
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
-                contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.STARTED), eip);
+            contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.STARTED), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                contractsImportEventCode + "." + StatusCode.STARTED);
+            contractsImportEventCode + "." + StatusCode.STARTED);
         logbookClient.create(logbookParameters);
     }
 
@@ -219,10 +219,10 @@ public class ContractLogbookService {
      */
     public void logUpdateStarted(String id) throws VitamException {
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
-                contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.STARTED), eip);
+            contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.STARTED), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                contractUpdateEventCode + "." + StatusCode.STARTED);
+            contractUpdateEventCode + "." + StatusCode.STARTED);
         if (null != id && !id.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
         }
@@ -238,10 +238,10 @@ public class ContractLogbookService {
     public void logSuccess() throws VitamException {
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                eipUsage, contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.OK), eip);
+            eipUsage, contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.OK), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                contractsImportEventCode + "." + StatusCode.OK);
+            contractsImportEventCode + "." + StatusCode.OK);
         logbookClient.update(logbookParameters);
     }
 
@@ -259,14 +259,14 @@ public class ContractLogbookService {
         final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                eipUsage, contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.OK), eip);
+            eipUsage, contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.OK), eip);
         if (null != id && !id.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
         }
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                contractUpdateEventCode + "." + StatusCode.OK);
+            contractUpdateEventCode + "." + StatusCode.OK);
         logbookClient.update(logbookParameters);
     }
 

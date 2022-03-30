@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -308,7 +308,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 if (!(object instanceof File)) {
                     throw new ProcessingException("Not a File but WORKSPACE out parameter: " + uri);
                 }
-                transferFileToWorkspace(currentObjectId + File.separator + uri.getPath(), (File) object, deleteLocal, asyncIO);
+                transferFileToWorkspace(currentObjectId + File.separator + uri.getPath(), (File) object, deleteLocal,
+                    asyncIO);
                 break;
             case WORKSPACE:
                 if (!(object instanceof File)) {
@@ -363,7 +364,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             return workspaceClient.isExistingObject(containerName, workspacePath);
         } catch (final ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Cannot check file existence in workspace: " + containerName + "/" + workspacePath, e);
+            throw new ProcessingException(
+                "Cannot check file existence in workspace: " + containerName + "/" + workspacePath, e);
         }
     }
 
@@ -550,9 +552,10 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             return JsonHandler
-                .getFromStringAsTypeReference(workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+                .getFromStringAsTypeReference(
+                    workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
+                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                    });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
@@ -653,7 +656,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName) throws ProcessingException {
+    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
+        throws ProcessingException {
         Map<String, Long> mapResults = new HashMap<>();
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             RequestResponse<Map<String, FileParams>> filesWithParamsFromFolderRequest =

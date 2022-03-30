@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -102,7 +102,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     }
 
     @Before
-    public void  before() {
+    public void before() {
         reset(mock);
     }
 
@@ -706,24 +706,26 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectUnitBulkTest_Ok() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        List<RequestResponseOK<JsonNode>> response = Collections.singletonList(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()));
+        List<RequestResponseOK<JsonNode>> response =
+            Collections.singletonList(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()));
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(response).build());
         assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
     }
-    
+
     @Test
     public void selectUnitBulkTest_VitamError() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                .setContext("METADATA")
-                .setState("CODE_VITAM")
-                .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .setDescription("Horror exception just because");
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(
+                Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .setContext("METADATA")
+            .setState("CODE_VITAM")
+            .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+            .setDescription("Horror exception just because");
         when(mock.get()).thenReturn(Response.status(Status.USE_PROXY).entity(vitamResponse).build());
         assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataExecutionException.class);
     }
-    
+
     @Test
     public void selectUnitBulkTest_WrongResponseFormat() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
@@ -732,7 +734,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> client.selectUnitsBulk(queries))
             .isInstanceOf(IllegalStateException.class);
     }
-    
+
     @Test
     public void selectUnitBulkTest_NullParam() throws InvalidParseOperationException {
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
@@ -785,7 +787,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             .isInstanceOf(MetaDataClientServerException.class);
     }
 
-// UpdateUnitBulk
+    // UpdateUnitBulk
 
     @Test
     public void atomicUpdateBulkTest_Ok() throws InvalidParseOperationException {
@@ -799,11 +801,12 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void atomicUpdateBulkTest_VitamError() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                .setContext("METADATA")
-                .setState("CODE_VITAM")
-                .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .setDescription("Too bad another exception");
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(
+                Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .setContext("METADATA")
+            .setState("CODE_VITAM")
+            .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+            .setDescription("Too bad another exception");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(vitamResponse).build());
         assertThatCode(() -> client.atomicUpdateBulk(queries)).doesNotThrowAnyException();
     }
@@ -814,14 +817,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.FOUND).entity("wrong format").build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void atomicUpdateBulkTest_NullParam() throws InvalidParseOperationException {
         when(mock.post()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(null))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -830,7 +833,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(InvalidParseOperationException.class);
+            .isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -839,7 +842,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -848,7 +851,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(MetaDataExecutionException.class);
+            .isInstanceOf(MetaDataExecutionException.class);
     }
 
     @Test
@@ -857,7 +860,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(MetaDataDocumentSizeException.class);
+            .isInstanceOf(MetaDataDocumentSizeException.class);
     }
 
     @Test
@@ -866,7 +869,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-                .isInstanceOf(MetaDataNotFoundException.class);
+            .isInstanceOf(MetaDataNotFoundException.class);
     }
 
     @Test

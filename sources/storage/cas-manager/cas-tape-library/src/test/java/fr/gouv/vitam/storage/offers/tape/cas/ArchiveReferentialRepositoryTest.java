@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,10 +31,10 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -208,7 +208,8 @@ public class ArchiveReferentialRepositoryTest {
             TapeLibraryOnTapeArchiveStorageLocation.class);
         assertThat(((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getTapeCode())
             .isEqualTo("tapeCode");
-        assertThat(((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition())
+        assertThat(
+            ((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition())
             .isEqualTo(12);
         assertThat(tarReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date1");
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,7 @@ public class DataLoader {
     private final int tenant1 = 1;
     private final int tenantId = 0;
     private String dataFodler;
-    private TypeReference<List<AccessContractModel>> valueTypeRef= new TypeReference<>() {
+    private TypeReference<List<AccessContractModel>> valueTypeRef = new TypeReference<>() {
     };
 
     public DataLoader(String dataFodler) {
@@ -115,15 +115,15 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             List<OntologyModel> ontology = JsonHandler
-                    .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                        new TypeReference<>() {
-                        });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                    new TypeReference<>() {
+                    });
             try (InputStream externalOntologyStream = PropertiesUtils
-                    .getResourceAsStream(dataFodler + "/addition_ext_ontology.json")) {
+                .getResourceAsStream(dataFodler + "/addition_ext_ontology.json")) {
                 if (externalOntologyStream != null) {
                     List<OntologyModel> externalOntology = JsonHandler.getFromInputStreamAsTypeReference(
-                            externalOntologyStream, new TypeReference<>() {
-                            });
+                        externalOntologyStream, new TypeReference<>() {
+                        });
                     ontology.addAll(externalOntology);
                 }
             } catch (FileNotFoundException e) {
@@ -210,7 +210,8 @@ public class DataLoader {
         }
     }
 
-    private void importAgenciesTenant1(AdminManagementClient client) throws ReferentialException, FileNotFoundException {
+    private void importAgenciesTenant1(AdminManagementClient client)
+        throws ReferentialException, FileNotFoundException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
         VitamThreadUtils.getVitamSession().setTenantId(tenant1);
         client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
@@ -218,7 +219,8 @@ public class DataLoader {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
     }
 
-    private void importOptionnalContractTenant1(AdminManagementClient client) throws fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
+    private void importOptionnalContractTenant1(AdminManagementClient client)
+        throws fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
         File fileAccessContracts;
         List<AccessContractModel> accessContractModelList;
         try {
@@ -230,7 +232,8 @@ public class DataLoader {
     }
 
     private void importContract(AdminManagementClient client, String filename)
-            throws FileNotFoundException, fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
+        throws FileNotFoundException, fr.gouv.vitam.common.exception.InvalidParseOperationException,
+        AdminManagementClientServerException {
         File fileAccessContracts;
         List<AccessContractModel> accessContractModelList;
         fileAccessContracts = PropertiesUtils.getResourceFile(dataFodler + "/" + filename);

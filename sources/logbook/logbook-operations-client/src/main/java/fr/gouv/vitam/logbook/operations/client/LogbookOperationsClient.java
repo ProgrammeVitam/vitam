@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -90,7 +90,8 @@ public interface LogbookOperationsClient extends BasicClient {
      */
     JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
-    JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException;
 
     JsonNode selectOperationById(String processId, JsonNode query, boolean isSliced, boolean isCrossTenant)
         throws LogbookClientException, InvalidParseOperationException;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -657,7 +657,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * @param vitamContext the vitam context
      * @param action an action as a string among "RESUME" (resume workflow till the end), "NEXT" (launch next step),
-     *        "REPLAY" (replay the step) and PAUSE" (pause the workflow)
+     * "REPLAY" (replay the step) and PAUSE" (pause the workflow)
      * @param operationId
      * @return the status
      * @throws VitamClientException
@@ -949,7 +949,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return RequestResponse status of the insertion
      * @throws LogbookExternalClientException
      */
-    RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
+    RequestResponse createExternalOperation(VitamContext vitamContext,
+        LogbookOperationParameters logbookOperationparams)
         throws LogbookExternalClientException;
 
 }

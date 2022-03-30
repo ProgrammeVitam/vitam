@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,8 +55,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 public class PrepareUpdateUnitsTest {
@@ -69,21 +69,21 @@ public class PrepareUpdateUnitsTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
     private static final int TENANT_ID = 0;
     private static final int DISTRIBUTION_FILE_RANK = 0;
-    
+
     private PrepareUpdateUnits prepareUpdateUnits;
-    
+
     @Before
     public void setUp() throws Exception {
         prepareUpdateUnits = new PrepareUpdateUnits(metaDataClientFactory, 5);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givingQueryThenGenerateUnitsListInFile() throws Exception {
@@ -92,25 +92,26 @@ public class PrepareUpdateUnitsTest {
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        
+
         JsonNode queryNode = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
+            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
 
         given(metaDataClient.selectUnits(any())).willReturn(
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/PrepareUpdateUnits/metadataResult.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/PrepareUpdateUnits/metadataResult.json")));
 
         File distributionFile = tempFolder.newFile();
-        given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+        given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(
+            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
-        
+
         // when
         ItemStatus itemStatus = prepareUpdateUnits.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
-       
+
         // then
         assertThat(itemStatus).isNotNull();
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        
+
         List<String> lines = Files.readAllLines(Paths.get(distributionFile.toURI()));
         assertThat(lines).isNotNull();
         assertThat(lines.size()).isEqualTo(16);
@@ -128,13 +129,14 @@ public class PrepareUpdateUnitsTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
+            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
 
         given(metaDataClient.selectUnits(any())).willThrow(MetaDataClientServerException.class);
 
         File distributionFile = tempFolder.newFile();
-        given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+        given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(
+            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when

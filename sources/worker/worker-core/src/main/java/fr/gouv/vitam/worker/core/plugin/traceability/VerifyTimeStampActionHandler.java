@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -79,7 +79,6 @@ import org.bouncycastle.asn1.ess.SigningCertificateV2;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.cms.SignerInformationVerifier;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.DigestCalculator;
@@ -158,9 +157,10 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps are not equal", e);
                 // lets stop the process and return an error
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP, subItemStatusTokenComparison.increment(StatusCode.KO));
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenComparison.increment(StatusCode.KO));
                 updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                    TraceabilityError.INEQUAL_TIMESTAMP)
+                        TraceabilityError.INEQUAL_TIMESTAMP)
                     .setMessage("Timestamps are not equal"));
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -178,7 +178,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
                     subItemStatusTokenValidation.increment(StatusCode.KO));
                 updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                    TraceabilityError.INVALID_TIMESTAMP)
+                        TraceabilityError.INVALID_TIMESTAMP)
                     .setMessage("Timestamps is not valid"));
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -201,7 +201,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
                     subItemStatusTokenVerification.increment(StatusCode.KO));
                 updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                    TraceabilityError.INVALID_TIMESTAMP)
+                        TraceabilityError.INVALID_TIMESTAMP)
                     .setMessage("Timestamps is not valid"));
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -234,7 +234,8 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         }
     }
 
-    private void verifyTimestamp(String encodedTimeStampToken, String computingInformationPath, String merkleTreePath, HandlerIO handler)
+    private void verifyTimestamp(String encodedTimeStampToken, String computingInformationPath, String merkleTreePath,
+        HandlerIO handler)
         throws ProcessingException {
         try (InputStream computingInformation = handler.getInputStreamFromWorkspace(computingInformationPath);
             InputStream merkleTreeInformation = handler.getInputStreamFromWorkspace(merkleTreePath)) {
@@ -246,23 +247,31 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             String computingCurrentDigest = computingProperties.getProperty(currentHash);
 
             if (!Objects.equals(merkleTreeDigest, computingCurrentDigest)) {
-                throw new ProcessingException(String.format("Not same digest %s %s.", merkleTreeDigest, computingCurrentDigest));
+                throw new ProcessingException(
+                    String.format("Not same digest %s %s.", merkleTreeDigest, computingCurrentDigest));
             }
 
             TimeStampService timeStampService = new TimeStampService();
 
             byte[] rootMerkleTree = timeStampService.getDigestAsBytes(computingCurrentDigest);
-            byte[] prevTimeStampToken = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
-            byte[] prevTimestampTokenMinusOneMonth = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
-            byte[] prevTimestampTokenMinusOneYear = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
+            byte[] prevTimeStampToken =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
+            byte[] prevTimestampTokenMinusOneMonth =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
+            byte[] prevTimestampTokenMinusOneYear =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
 
             TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(encodedTimeStampToken);
 
             byte[] timeStampDataFromFile = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
-            byte[] computedTimeStampData = timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth, prevTimestampTokenMinusOneYear);
+            byte[] computedTimeStampData =
+                timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth,
+                    prevTimestampTokenMinusOneYear);
 
             if (!Arrays.equals(timeStampDataFromFile, computedTimeStampData)) {
-                throw new ProcessingException(String.format("Not same digest %s %s.", BaseXx.getBase16(timeStampDataFromFile), BaseXx.getBase16(computedTimeStampData)));
+                throw new ProcessingException(
+                    String.format("Not same digest %s %s.", BaseXx.getBase16(timeStampDataFromFile),
+                        BaseXx.getBase16(computedTimeStampData)));
             }
         } catch (Exception e) {
             throw new ProcessingException(e);

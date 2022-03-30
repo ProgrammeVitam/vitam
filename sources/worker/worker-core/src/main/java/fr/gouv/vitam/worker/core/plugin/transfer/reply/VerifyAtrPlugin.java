@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,8 +82,10 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class VerifyAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(SEDA_XSD_VERSION));
-    private static final URL CATALOG_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
+    private static final URL SEDA_XSD_URL =
+        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(SEDA_XSD_VERSION));
+    private static final URL CATALOG_URL =
+        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
 
     private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -107,8 +109,9 @@ public class VerifyAtrPlugin extends ActionHandler {
         try (InputStream atr = handler.getInputStreamFromWorkspace("ATR-for-transfer-reply-in-workspace.xml")) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
             Unmarshaller unmarshaller = createUnmarshaller();
-            ArchiveTransferReplyType transferReply = unmarshaller.unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
-                .getValue();
+            ArchiveTransferReplyType transferReply =
+                unmarshaller.unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
+                    .getValue();
 
             handler.addOutputResult(0, transferReply);
 
@@ -117,7 +120,8 @@ public class VerifyAtrPlugin extends ActionHandler {
                 return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("ATR file is valid and serialized."));
             }
 
-            return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of("Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation."));
+            return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(
+                "Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation."));
         } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
@@ -133,19 +137,21 @@ public class VerifyAtrPlugin extends ActionHandler {
         return replyCode.equals("OK") || replyCode.equals("WARNING");
     }
 
-    private boolean hasExistingTransferOperation(IdentifierType messageRequestIdentifier) throws InvalidParseOperationException, LogbookClientException {
+    private boolean hasExistingTransferOperation(IdentifierType messageRequestIdentifier)
+        throws InvalidParseOperationException, LogbookClientException {
         if (messageRequestIdentifier == null || StringUtils.isBlank(messageRequestIdentifier.getValue())) {
             return false;
         }
 
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()){
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode result = client.selectOperationById(messageRequestIdentifier.getValue());
             RequestResponseOK<JsonNode> resultResponseOk = RequestResponseOK.getFromJsonNode(result);
             if (resultResponseOk.isEmpty() || !resultResponseOk.isOk()) {
                 return false;
             }
 
-            LogbookOperation transferOperation = JsonHandler.getFromJsonNode(resultResponseOk.getFirstResult(), LogbookOperation.class);
+            LogbookOperation transferOperation =
+                JsonHandler.getFromJsonNode(resultResponseOk.getFirstResult(), LogbookOperation.class);
             if (!transferOperation.getEvType().equals(ARCHIVE_TRANSFER.name())) {
                 return false;
             }

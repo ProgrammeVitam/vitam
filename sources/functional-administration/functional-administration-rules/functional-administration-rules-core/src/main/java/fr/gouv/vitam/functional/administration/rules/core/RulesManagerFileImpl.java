@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,9 +96,9 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteE
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -619,7 +619,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             if (rule.getRuleMeasurement() != null) {
                 try {
                     ruleMeasurement = RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement());
-                }catch (IllegalStateException e) {
+                } catch (IllegalStateException e) {
                     errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
                         lineNumber, rule));
                 }
@@ -637,7 +637,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             if (!errors.isEmpty()) {
                 errorsMap.put(lineNumber, errors);
                 rulesModel.put(rule.getRuleId(), new FileRulesModel());
-            }else {
+            } else {
                 FileRulesModel fileRulesModel = getFileRulesModelFromCSV(rule);
                 rulesModel.put(rule.getRuleId(), fileRulesModel);
             }

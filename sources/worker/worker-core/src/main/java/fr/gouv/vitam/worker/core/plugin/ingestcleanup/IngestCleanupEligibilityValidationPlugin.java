@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,6 @@ import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.CleanupReportManager;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.service.IngestCleanupEligibilityService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -107,8 +106,10 @@ public class IngestCleanupEligibilityValidationPlugin extends ActionHandler {
     private void checkObjectGroups(String ingestOperationId, CleanupReportManager cleanupReportManager)
         throws ProcessingStatusException {
 
-        ingestCleanupEligibilityService.checkObjectGroupUpdatesFromOtherOperations(ingestOperationId, cleanupReportManager);
-        ingestCleanupEligibilityService.checkObjectAttachmentsToExistingObjectGroups(ingestOperationId, cleanupReportManager);
+        ingestCleanupEligibilityService.checkObjectGroupUpdatesFromOtherOperations(ingestOperationId,
+            cleanupReportManager);
+        ingestCleanupEligibilityService.checkObjectAttachmentsToExistingObjectGroups(ingestOperationId,
+            cleanupReportManager);
     }
 }
 

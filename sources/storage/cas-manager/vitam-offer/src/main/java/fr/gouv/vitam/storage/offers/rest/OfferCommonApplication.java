@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -105,7 +105,7 @@ public class OfferCommonApplication {
             if (Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
                 this.storageConfiguration
                     .setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
-            }else {
+            } else {
                 this.storageConfiguration
                     .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
             }
@@ -134,7 +134,8 @@ public class OfferCommonApplication {
                 configuration.getBatchMetadataComputationTimeout()
             );
             // Decorate default offer service with a sanity check wrapper
-            this.defaultOfferService = new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
+            this.defaultOfferService =
+                new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
 
         } catch (Exception e) {
             LOGGER.error(e);

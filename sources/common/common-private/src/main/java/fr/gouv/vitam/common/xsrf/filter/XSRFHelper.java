@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.xsrf.filter;
 
-import java.security.SecureRandom;
-
 import org.apache.commons.lang.RandomStringUtils;
+
+import java.security.SecureRandom;
 
 /**
  * XSRF Filter Helper
@@ -37,9 +37,10 @@ public class XSRFHelper {
 
     /**
      * generate CSRF token randomly
+     *
      * @return String
      */
     public static final String generateCSRFToken() {
-        return RandomStringUtils.random(20, 0, 0, true, true, null, new SecureRandom());   
+        return RandomStringUtils.random(20, 0, 0, true, true, null, new SecureRandom());
     }
 }

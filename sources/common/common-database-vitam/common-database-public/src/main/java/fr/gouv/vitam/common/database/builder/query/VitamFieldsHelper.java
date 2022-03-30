@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -334,12 +334,14 @@ public class VitamFieldsHelper {
     public static String history() {
         return HISTORY.exactToken();
     }
+
     /**
      * @return #version
      */
     public static String sedaVersion() {
         return SEDAVERSION.exactToken();
     }
+
     /**
      * @return #version
      */
@@ -351,9 +353,13 @@ public class VitamFieldsHelper {
         return COMPUTED_INHERITED_RULES.exactToken();
     }
 
-    public static String validComputedInheritedRules() { return VALID_COMPUTED_INHERITED_RULES.exactToken(); }
+    public static String validComputedInheritedRules() {
+        return VALID_COMPUTED_INHERITED_RULES.exactToken();
+    }
 
-    public static String opts() { return OPERATION_TRANSFERS.exactToken(); }
+    public static String opts() {
+        return OPERATION_TRANSFERS.exactToken();
+    }
 
 
 

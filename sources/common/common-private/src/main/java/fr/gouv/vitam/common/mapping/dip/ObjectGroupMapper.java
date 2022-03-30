@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -192,10 +191,10 @@ public class ObjectGroupMapper {
     /**
      * Map Common informations contains in MinimalDataObjectType
      *
-     * @param version               the version of the model to map
+     * @param version the version of the model to map
      * @param minimalDataObjectType the given minimalDataObjectType to complete can be (physicalDataObjectType or
-     *                              binaryDataObjectType
-     * @param <T>                   object that extend MinimalDataObjectType
+     * binaryDataObjectType
+     * @param <T> object that extend MinimalDataObjectType
      */
     private <T extends MinimalDataObjectType> void mapCommonInformations(final VersionsModel version,
         T minimalDataObjectType) {

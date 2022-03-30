@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,11 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
-import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
-import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.SECURISATION_VERSION_LABEL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import fr.gouv.vitam.common.security.merkletree.MerkleTree;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.InputStream;
@@ -37,12 +38,10 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import fr.gouv.vitam.common.security.merkletree.MerkleTree;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.SECURISATION_VERSION_LABEL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * TraceabilityFile ClassTest

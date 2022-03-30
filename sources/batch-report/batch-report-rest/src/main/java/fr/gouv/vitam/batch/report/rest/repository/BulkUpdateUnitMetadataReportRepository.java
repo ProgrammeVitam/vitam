@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,6 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
-import com.mongodb.operation.AggregateOperation;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,8 +56,8 @@ import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataRepor
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.QUERY;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.RESULT_KEY;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.STATUS;
-import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.TENANT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.STATUS_ID;
+import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.TENANT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.UNIT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
@@ -118,7 +117,8 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
         return collection
-            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), sort(Sorts.descending(STATUS_ID)), PROJECTION))
+            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))),
+                sort(Sorts.descending(STATUS_ID)), PROJECTION))
             .allowDiskUse(true)
             .iterator();
     }

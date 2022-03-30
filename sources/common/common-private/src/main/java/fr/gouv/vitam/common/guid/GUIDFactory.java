@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,7 @@ public final class GUIDFactory {
      * Keep in case in the future it could be useful.
      *
      * @param existingGUID used to get the objectType parent ({@link GUIDObjectType}), tenantId,
-     *        serverIdentity.getPlatformId() and Worm
+     * serverIdentity.getPlatformId() and Worm
      * @return a new GUID
      */
     static final GUID newChildrenGUID(final GUID existingGUID) {
@@ -170,7 +170,8 @@ public final class GUIDFactory {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     public static final GUID newStorageOperationGUID(final int tenantId, final boolean worm) {
-        return new GUIDImplPrivate(GUIDObjectType.STORAGE_OPERATION_TYPE, tenantId, serverIdentity.getGlobalPlatformId(),
+        return new GUIDImplPrivate(GUIDObjectType.STORAGE_OPERATION_TYPE, tenantId,
+            serverIdentity.getGlobalPlatformId(),
             worm);
     }
 
@@ -303,6 +304,7 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
+
     /**
      * Create a Agencies GUID
      *
@@ -321,14 +323,13 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    public static final GUID newAccessionRegisterDetailGUID( int tenantId) {
+    public static final GUID newAccessionRegisterDetailGUID(int tenantId) {
         final int type = GUIDObjectType.ACCESSION_REGISTER_DETAIL_TYPE;
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
 
     /**
-     *
      * @param uuid
      * @return True if the given GUID is using a WORM media
      */

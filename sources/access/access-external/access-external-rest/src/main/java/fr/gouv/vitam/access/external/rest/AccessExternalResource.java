@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -477,8 +477,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     *
-     *
      * @param id operationId correponding to the current dip
      * @return Response
      */
@@ -508,7 +506,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -529,7 +527,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                    ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -556,13 +554,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Update archive units by Id with Json query
      *
+     * @param queryJson the update query (null not allowed)
+     * @param idUnit units identifier
+     * @return a archive unit result list
      * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
      * <p> Use {@link AccessExternalResource#massUpdateUnits(JsonNode)} or
      * {@link AccessExternalResource#massUpdateUnitsRules(MassUpdateUnitRuleRequest)} instead.
-     *
-     * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
-     * @return a archive unit result list
      */
     @Deprecated
     @PUT
@@ -625,8 +622,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -659,7 +656,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-                BadRequestException | InvalidCreateOperationException e) {
+            BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -695,7 +692,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId  the id of archive unit
+     * @param unitId the id of archive unit
      * @return response
      */
     @GET
@@ -926,7 +923,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
-    
+
 
     /**
      * Bulk atomic update of archive units with json queries.
@@ -1081,9 +1078,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     private String idObjectGroup(String idu)
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException, AccessUnauthorizedException,
-            BadRequestException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        BadRequestException, InvalidCreateOperationException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {

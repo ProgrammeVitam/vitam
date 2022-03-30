@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.Date;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
+import java.util.Date;
+
 /**
  * Compare Query
- *
  */
 public class CompareQuery extends Query {
     private static final String IS_NOT_AN_COMPARE_QUERY = " is not an Compare Query";

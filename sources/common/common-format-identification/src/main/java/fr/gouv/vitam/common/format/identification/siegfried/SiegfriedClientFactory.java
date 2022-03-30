@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -88,8 +88,7 @@ public class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> 
     }
 
     /**
-     *
-     * @param server the server name to instance 
+     * @param server the server name to instance
      * @param port the server port to instance
      */
     // TODO P2 should not be public (but IT test)
@@ -98,7 +97,6 @@ public class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> 
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     // TODO P2 should not be public (but IT test)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,26 +26,25 @@
  */
 package fr.gouv.vitam.common.alert;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLogger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLogger;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class AlertServiceImplTest {
-    
-    
+
+
     private static AlertService alertService;
     static VitamLogger logger = mock(VitamLogger.class);
-    private String message="message";
-    
+    private String message = "message";
+
     @BeforeClass
-    public static void setUpBeforeClass() {        
-        alertService=new AlertServiceImpl(logger);      
+    public static void setUpBeforeClass() {
+        alertService = new AlertServiceImpl(logger);
     }
 
     @AfterClass
@@ -53,15 +52,15 @@ public class AlertServiceImplTest {
     }
 
     @Test
-    public void testCreateDebugAlert() {       
+    public void testCreateDebugAlert() {
         alertService.createAlert(VitamLogLevel.DEBUG, message);
-        verify(logger).log(VitamLogLevel.DEBUG,message);
+        verify(logger).log(VitamLogLevel.DEBUG, message);
     }
-    
+
     @Test
     public void testCreateAlert() {
         alertService.createAlert(message);
-        verify(logger).log(VitamLogLevel.INFO,message);
+        verify(logger).log(VitamLogLevel.INFO, message);
     }
 
 }

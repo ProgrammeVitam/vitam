@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -189,9 +189,10 @@ public class PreservationStep {
             select.setQuery(and().add(QueryHelper.exists("Name")).add(eq(VitamFieldsHelper.tenant(), tenant)));
             JsonNode queryDsl = select.getFinalSelect();
 
-            RequestResponse<PreservationScenarioModel> scenarioList = world.getAdminClient().findPreservationScenario(vitamContext, queryDsl);
+            RequestResponse<PreservationScenarioModel> scenarioList =
+                world.getAdminClient().findPreservationScenario(vitamContext, queryDsl);
             List resultsAsJsonNodes = ((RequestResponseOK) scenarioList).getResultsAsJsonNodes();
-            if (!resultsAsJsonNodes.isEmpty()){
+            if (!resultsAsJsonNodes.isEmpty()) {
                 InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
                 world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, EMPTY_JSON_FILE);
             }

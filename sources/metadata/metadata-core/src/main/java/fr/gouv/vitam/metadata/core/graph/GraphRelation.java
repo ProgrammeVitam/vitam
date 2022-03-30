@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,16 +35,16 @@ import java.util.Objects;
  * parent: the parent unit of the current treated unit
  * parentOriginatingAgency: the originatingAgency of the parent unit
  * depth: the depth of the relation
- *      AU1
- *    /  \  \
- *   /    \  \
- *  AU2  AU3  \
- *   \    /    \
- *    \  /      |
- *    AU4      /
- *        \   /
- *         \ /
- *         AU5
+ * AU1
+ * /  \  \
+ * /    \  \
+ * AU2  AU3  \
+ * \    /    \
+ * \  /      |
+ * AU4      /
+ * \   /
+ * \ /
+ * AU5
  *
  * AU1/AU2 depth = 1
  * AU1/AU5 depth = 1
@@ -52,7 +52,6 @@ import java.util.Objects;
  * AU2/AU4 depth = 2
  * AU3/AU4 depth = 2
  * AU4/AU5 depth = 3 (ignored as we have already /AU5 with depth 1)
- *
  */
 public class GraphRelation {
 
@@ -63,6 +62,7 @@ public class GraphRelation {
 
     /**
      * Constructor
+     *
      * @param unit
      * @param parent
      * @param parentOriginatingAgency
@@ -78,6 +78,7 @@ public class GraphRelation {
 
     /**
      * Get unit
+     *
      * @return unit
      */
     public String getUnit() {
@@ -87,6 +88,7 @@ public class GraphRelation {
 
     /**
      * Set unit
+     *
      * @param unit
      */
     public void setUnit(String unit) {
@@ -95,6 +97,7 @@ public class GraphRelation {
 
     /**
      * Get parent unit
+     *
      * @return parent
      */
     public String getParent() {
@@ -103,6 +106,7 @@ public class GraphRelation {
 
     /**
      * Set parent unit
+     *
      * @param parent
      */
     public void setParent(String parent) {
@@ -111,6 +115,7 @@ public class GraphRelation {
 
     /**
      * Get parentOriginatingAgency
+     *
      * @return parentOriginatingAgency
      */
     public String getParentOriginatingAgency() {
@@ -119,6 +124,7 @@ public class GraphRelation {
 
     /**
      * Set parentOriginatingAgency
+     *
      * @param parentOriginatingAgency
      */
     public void setParentOriginatingAgency(String parentOriginatingAgency) {
@@ -127,6 +133,7 @@ public class GraphRelation {
 
     /**
      * Get depth
+     *
      * @return depth
      */
     public Integer getDepth() {
@@ -135,6 +142,7 @@ public class GraphRelation {
 
     /**
      * Set depth
+     *
      * @param depth
      */
     public void setDepth(Integer depth) {
@@ -150,7 +158,8 @@ public class GraphRelation {
     public boolean equals(Object obj) {
         if (obj instanceof GraphRelation) {
             GraphRelation graphRelation = (GraphRelation) obj;
-            return Objects.equals(getUnit(), graphRelation.getUnit()) && Objects.equals(getParent(), graphRelation.getParent());
+            return Objects.equals(getUnit(), graphRelation.getUnit()) &&
+                Objects.equals(getParent(), graphRelation.getParent());
         }
         return false;
     }

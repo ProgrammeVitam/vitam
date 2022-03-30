@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,7 @@ public class FileRulesCSV {
     }
 
     public FileRulesCSV(String ruleId, String ruleType, String ruleValue, String ruleDescription,
-                          String ruleDuration, String ruleMeasurement) {
+        String ruleDuration, String ruleMeasurement) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -171,13 +171,13 @@ public class FileRulesCSV {
 
         final FileRulesCSV objectToCompare = (FileRulesCSV) obj;
         return new EqualsBuilder()
-                .append(this.ruleId, objectToCompare.getRuleId())
-                .append(this.ruleDuration, objectToCompare.getRuleDuration())
-                .append(this.ruleMeasurement, objectToCompare.getRuleMeasurement())
-                .append(this.ruleDescription, objectToCompare.getRuleDescription())
-                .append(this.ruleValue, objectToCompare.getRuleValue())
-                .append(this.ruleType, objectToCompare.getRuleType())
-                .isEquals();
+            .append(this.ruleId, objectToCompare.getRuleId())
+            .append(this.ruleDuration, objectToCompare.getRuleDuration())
+            .append(this.ruleMeasurement, objectToCompare.getRuleMeasurement())
+            .append(this.ruleDescription, objectToCompare.getRuleDescription())
+            .append(this.ruleValue, objectToCompare.getRuleValue())
+            .append(this.ruleType, objectToCompare.getRuleType())
+            .isEquals();
 
     }
 
@@ -185,10 +185,10 @@ public class FileRulesCSV {
         return rule != null && rule.getRuleId().equals(this.ruleId);
     }
 
-        @Override
+    @Override
     public String toString() {
         return "ruleId=" + ruleId + ", ruleType=" + ruleType +
-                ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-                ", ruleMeasurement=" + ruleMeasurement;
+            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
+            ", ruleMeasurement=" + ruleMeasurement;
     }
 }

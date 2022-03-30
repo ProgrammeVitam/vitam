@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,10 +37,10 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -66,7 +66,7 @@ public class AdminFunctionalApplication extends Application {
 
     /**
      * Construcror
-     * 
+     *
      * @param servletConfig the configuration for the application
      */
     public AdminFunctionalApplication(@Context ServletConfig servletConfig) {
@@ -118,12 +118,13 @@ public class AdminFunctionalApplication extends Application {
             singletons.add(adminContextResource);
 
             OntologyResource ontologyResource = new OntologyResource(mongoDbAccess, functionalBackupService);
-            AdminOntologyResource adminOntologyResource = new AdminOntologyResource(ontologyResource, mongoDbAccess, functionalBackupService );
+            AdminOntologyResource adminOntologyResource =
+                new AdminOntologyResource(ontologyResource, mongoDbAccess, functionalBackupService);
             singletons.add(adminOntologyResource);
 
             SecurityProfileResource securityProfileResource =
                 new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                        adminManagementClient);
+                    adminManagementClient);
             AdminSecurityProfileResource adminSecurityProfileResource =
                 new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);

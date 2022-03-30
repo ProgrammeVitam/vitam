@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,23 +26,22 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static org.mockito.Mockito.mock;
 
 /**
  * Application server without mongo and elasticsearch
@@ -57,8 +56,8 @@ public class ServerApplicationWithoutMongo extends Application {
     private Set<Object> singletons;
 
     /**
-     * BusinessApplication Constructor 
-     * 
+     * BusinessApplication Constructor
+     *
      * @param servletConfig
      */
     public ServerApplicationWithoutMongo(@Context ServletConfig servletConfig) {
@@ -67,13 +66,14 @@ public class ServerApplicationWithoutMongo extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final WebApplicationConfig configuration =
                 PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
-            
+
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            
-            final WebApplicationResource resource = new WebApplicationResource(configuration, userInterfaceTransactionManager,
-                PaginationHelper.getInstance(), DslQueryHelper.getInstance(), null);
+
+            final WebApplicationResource resource =
+                new WebApplicationResource(configuration, userInterfaceTransactionManager,
+                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), null);
             singletons.add(resource);
         } catch (IOException e) {
             throw new RuntimeException(e);

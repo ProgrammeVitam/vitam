@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -49,11 +49,12 @@ public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer
     }
 
     @Override
-    public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen, SerializerProvider provider)
+    public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen,
+        SerializerProvider provider)
         throws IOException {
         ElementMapper elementMapper = new ElementMapper();
         Map<String, Object> stringObjectMap = elementMapper.toMap(organizationDescriptiveMetadataType.getAny());
-        provider.defaultSerializeValue(stringObjectMap,gen);
+        provider.defaultSerializeValue(stringObjectMap, gen);
     }
 
 }

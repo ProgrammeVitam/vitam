@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -198,8 +198,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                         offset,
                         size, null, null, null, false);
             } else {
-                ElasticsearchIndexAlias adminTenantIndex = this.indexManager.getElasticsearchIndexAliasResolver(collection)
-                    .resolveIndexName(VitamConfiguration.getAdminTenant());
+                ElasticsearchIndexAlias adminTenantIndex =
+                    this.indexManager.getElasticsearchIndexAliasResolver(collection)
+                        .resolveIndexName(VitamConfiguration.getAdminTenant());
                 finalQuery.must(new BoolQueryBuilder()
                     .should(currentTenantQuery)
                     .should(new BoolQueryBuilder()

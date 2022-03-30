@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RetryableOnException<T, E extends Exception> implements Retryable<T, E> {
-    private static final Consumer<Exception> NOOP = e -> {};
+    private static final Consumer<Exception> NOOP = e -> {
+    };
     private static final Predicate<Exception> ALL = e -> true;
 
     private final AtomicInteger counter = new AtomicInteger();
@@ -44,7 +45,8 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
 
     private RetryableParameters param;
 
-    public RetryableOnException(RetryableParameters param, Predicate<Exception> retryOn, Consumer<Exception> onException) {
+    public RetryableOnException(RetryableParameters param, Predicate<Exception> retryOn,
+        Consumer<Exception> onException) {
         this.param = Objects.requireNonNull(param);
         this.retryOn = Objects.requireNonNull(retryOn);
         this.onException = Objects.requireNonNull(onException);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,6 @@ public class LogbookInternalStep {
 
     /**
      * call vitam to generate a secured logbook
-     * 
      */
     @When("^je génère un journal des opérations sécurisé")
     public void generate_secured_logbook() {
@@ -62,7 +61,7 @@ public class LogbookInternalStep {
                     world.getLogbookOperationsClient().traceability(Collections.singletonList(world.getTenantId()));
 
                 String operationId = response.getResults().get(0).getOperationId();
-                world.setOperationId(operationId);                
+                world.setOperationId(operationId);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
                 fail("should not produce an exception ", e);

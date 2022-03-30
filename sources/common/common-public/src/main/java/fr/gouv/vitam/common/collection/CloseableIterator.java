@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.common.collection;
 
-import java.util.Iterator;
-
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+
+import java.util.Iterator;
 
 /**
  * Iterator with a close method.
  *
  * @param <E> Data type of the iterator
- *
  */
 public interface CloseableIterator<E> extends Iterator<E>, VitamAutoCloseable {
 }

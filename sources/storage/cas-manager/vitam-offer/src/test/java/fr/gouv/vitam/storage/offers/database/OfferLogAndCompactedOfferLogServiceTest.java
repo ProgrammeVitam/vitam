@@ -4,10 +4,10 @@ import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -87,7 +87,8 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName()).deleteMany(new Document());
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
+            .deleteMany(new Document());
         mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_LOG.getName()).deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.COMPACTED_OFFER_LOG;
         collectionPrefixed.setPrefix(PREFIX);

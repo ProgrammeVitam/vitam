@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,11 +35,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -51,7 +51,8 @@ import java.io.InputStream;
  */
 public class CheckClassificationLevelActionPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckClassificationLevelActionPlugin.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(CheckClassificationLevelActionPlugin.class);
 
     private static final String CHECK_CLASSIFICATION_LEVEL_TASK_ID = "CHECK_CLASSIFICATION_LEVEL";
     private static final int UNIT_INPUT_RANK = 0;
@@ -67,7 +68,7 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
 
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler){
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         final ItemStatus itemStatus = new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID);
 
         try {
@@ -75,21 +76,25 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
             JsonNode archiveUnit = getArchiveUnit(param, handler);
             if (!ClassificationLevelUtil.checkClassificationLevel(archiveUnit)) {
                 itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
+                return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(
+                    CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
             }
 
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Workspace Server Error");
             itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
+            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                itemStatus);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("File couldnt be converted into json", e);
             itemStatus.increment(StatusCode.KO);
-            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
+            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                itemStatus);
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
+        return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+            itemStatus);
     }
 
     @Override
@@ -97,7 +102,8 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         // Nothing to check
     }
 
-    private JsonNode getArchiveUnit(WorkerParameters params, HandlerIO handlerIO) throws IOException, InvalidParseOperationException,
+    private JsonNode getArchiveUnit(WorkerParameters params, HandlerIO handlerIO)
+        throws IOException, InvalidParseOperationException,
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();
@@ -108,7 +114,8 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
                 archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
             } else {
                 try (InputStream inputStream =
-                    handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+                    handlerIO.getInputStreamFromWorkspace(
+                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
                     archiveUnit = JsonHandler.getFromInputStream(inputStream);
                 }
             }

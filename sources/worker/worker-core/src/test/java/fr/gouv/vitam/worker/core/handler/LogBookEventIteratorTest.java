@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,15 +77,18 @@ public class LogBookEventIteratorTest {
         assertThat(event).extracting(LogbookEvent::getEvDateTime).isEqualTo("2019-09-17T08:19:25.206");
         assertThat(event).extracting(LogbookEvent::getOutcome).isEqualTo("OK");
         assertThat(event).extracting(LogbookEvent::getOutDetail).isEqualTo("LFC.CHECK_MANIFEST.OK");
-        assertThat(event).extracting(LogbookEvent::getOutMessg).isEqualTo("Succès de la vérification de la cohérence du bordereau de transfert");
+        assertThat(event).extracting(LogbookEvent::getOutMessg)
+            .isEqualTo("Succès de la vérification de la cohérence du bordereau de transfert");
         assertThat(event).extracting(LogbookEvent::getEvDetData).isEqualTo("{ }");
-        assertThat(event).extracting(LogbookEvent::getAgId).isEqualTo("{\"Name\":\"5ca8d99a4a94\",\"Role\":\"worker\",\"ServerId\":1555631311,\"SiteId\":1,\"GlobalPlatformId\":213454031}");
+        assertThat(event).extracting(LogbookEvent::getAgId).isEqualTo(
+            "{\"Name\":\"5ca8d99a4a94\",\"Role\":\"worker\",\"ServerId\":1555631311,\"SiteId\":1,\"GlobalPlatformId\":213454031}");
     }
 
     @Test
     public void should_return_empty_iterator_when_no_events() throws Exception {
         // Given
-        XMLEventReader xmlEventReader = createXmlEventReader(new ByteArrayInputStream("<LogBook></LogBook>".getBytes()));
+        XMLEventReader xmlEventReader =
+            createXmlEventReader(new ByteArrayInputStream("<LogBook></LogBook>".getBytes()));
 
         // When
         LogBookEventIterator logbookEvents = new LogBookEventIterator(xmlEventReader);
@@ -97,7 +100,8 @@ public class LogBookEventIteratorTest {
     @Test
     public void should_throw_error_when_not_expected_element_in_events() throws Exception {
         // Given
-        XMLEventReader xmlEventReader = createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events_unexpected_element.xml"));
+        XMLEventReader xmlEventReader =
+            createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events_unexpected_element.xml"));
 
         // When
         ThrowingCallable createIterator = () -> new LogBookEventIterator(xmlEventReader).next();
@@ -109,7 +113,8 @@ public class LogBookEventIteratorTest {
     @Test
     public void should_throw_error_when_missing_mandatory_element_EventDateTime() throws Exception {
         // Given
-        XMLEventReader xmlEventReader = createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events_missing_mandatory.xml"));
+        XMLEventReader xmlEventReader =
+            createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events_missing_mandatory.xml"));
 
         // When
         ThrowingCallable createIterator = () -> new LogBookEventIterator(xmlEventReader).next();

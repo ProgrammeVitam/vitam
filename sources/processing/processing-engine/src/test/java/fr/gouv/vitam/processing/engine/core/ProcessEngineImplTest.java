@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -64,7 +63,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.HEAD;
 import java.io.FileNotFoundException;
 import java.util.concurrent.CompletableFuture;
 
@@ -133,7 +131,8 @@ public class ProcessEngineImplTest {
 
         processData = ProcessDataAccessImpl.getInstance();
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        processEngine = ProcessEngineFactory.get().create(workParams, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
+        processEngine = ProcessEngineFactory.get()
+            .create(workParams, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachineCallback);
     }
 

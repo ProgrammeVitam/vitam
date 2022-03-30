@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -283,7 +283,6 @@ public class DbRequest {
     }
 
     /**
-     * 
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
@@ -292,7 +291,8 @@ public class DbRequest {
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
-    public Result<MetadataDocument<?>> execRequest(final RequestParserMultiple requestParser, List<OntologyModel> ontologies)
+    public Result<MetadataDocument<?>> execRequest(final RequestParserMultiple requestParser,
+        List<OntologyModel> ontologies)
         throws MetaDataExecutionException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
@@ -529,7 +529,7 @@ public class DbRequest {
         }
 
         boolean trackTotalHits = false;
-        if(isLastQuery) {
+        if (isLastQuery) {
             trackTotalHits = requestParser.trackTotalHits();
         }
 
@@ -855,7 +855,8 @@ public class DbRequest {
                 } else if (checkConsistency) {
                     // check the consistency between elasticSearch and MongoDB
                     desynchronizedResults.add(id);
-                    VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+                    VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                        String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                     // desynchronization logs
                     LOGGER.error(String.format(
                         CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
@@ -865,7 +866,8 @@ public class DbRequest {
 
             // As soon as we detect a synchronization error MongoDB / ES, we return an error.
             if (!desynchronizedResults.isEmpty()) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                 throw new VitamDBException(
                     "[Consistency ERROR] : An internal data consistency error has been detected !");
             }
@@ -909,7 +911,8 @@ public class DbRequest {
             } else if (checkConsistency) {
                 // check the consistency between elasticSearch and MongoDB
                 desynchronizedResults.add(id);
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                 // desynchronization logs
                 LOGGER.error(String.format(
                     CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
@@ -919,7 +922,8 @@ public class DbRequest {
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!desynchronizedResults.isEmpty()) {
-            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()),
+                "DbRequest").inc();
             throw new VitamDBException(
                 "[Consistency ERROR] : An internal data consistency error has been detected !");
         }
@@ -929,7 +933,7 @@ public class DbRequest {
 
     private UpdatedDocument updateDocumentWithRetries(String documentId,
         RequestParserMultiple requestParser, MetadataCollections metadataCollection,
-        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels, 
+        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels,
         boolean forceUpdate)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetadataValidationException {
@@ -977,9 +981,10 @@ public class DbRequest {
             // Ontology checks & format transformation
             final ObjectNode transformedUpdatedDocument =
                 ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
-            
+
             if (metadataCollection == MetadataCollections.UNIT) {
-                if (!forceUpdate && !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
+                if (!forceUpdate &&
+                    !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
                     return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
                 }
             }
@@ -1022,27 +1027,27 @@ public class DbRequest {
     /**
      * Generates a diff between two version of a Unit Json document, exclude internal
      * modification and return true if there are other modification.<br>
-     * The excluded internal modification are : _v, _av, _glpd, _ops, _history<br>  
-     * 
+     * The excluded internal modification are : _v, _av, _glpd, _ops, _history<br>
+     *
      * @param oldDocument original document
      * @param newDocument modifies document
      * @return true if at least one modification has been made on a descriptive
-     *         metadata, false if not
+     * metadata, false if not
      */
     private boolean hasModificationOfUnitDescriptiveMetadata(final JsonNode oldDocument,
-            final JsonNode newDocument) {
-        
+        final JsonNode newDocument) {
+
         List<String> diffLines = VitamDocument.getConcernedDiffLines(
-                VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(oldDocument),
-                    JsonHandler.prettyPrint(newDocument)));
+            VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(oldDocument),
+                JsonHandler.prettyPrint(newDocument)));
         long metadataModifications = diffLines.stream()
-                .filter(line -> !(line.contains("\"" + MetadataDocument.VERSION + "\"")))
-                .filter(line -> !(line.contains("\"" + MetadataDocument.ATOMIC_VERSION + "\"")))
-                .filter(line -> !(line.contains("\"" + MetadataDocument.GRAPH_LAST_PERSISTED_DATE + "\"")))
-                .filter(line -> !(line.contains("\"" + MetadataDocument.OPS + "\"")))
-                .filter(line -> !(line.contains("\"_history\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.VERSION + "\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.ATOMIC_VERSION + "\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.GRAPH_LAST_PERSISTED_DATE + "\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.OPS + "\"")))
+            .filter(line -> !(line.contains("\"_history\"")))
             .count();
-        
+
         return metadataModifications > 0;
     }
 

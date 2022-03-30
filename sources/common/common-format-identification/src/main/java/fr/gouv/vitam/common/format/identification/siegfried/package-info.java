@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Provides the Siegfried implementation for the Format Identification module 
+ * Provides the Siegfried implementation for the Format Identification module
  */
 package fr.gouv.vitam.common.format.identification.siegfried;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,13 +94,13 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Test
     public void shouldCreateStrategiesOutput() throws ContentAddressableStorageServerException, ProcessingException,
-            IOException, InvalidParseOperationException {
+        IOException, InvalidParseOperationException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(handler.getOutput(0)).thenReturn(new ProcessingUri(UriPrefix.WORKSPACE,"StorageInfo/strategies.json"));
+        when(handler.getOutput(0)).thenReturn(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/strategies.json"));
 
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
@@ -117,9 +117,12 @@ public class PrepareStorageStrategiesPluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
 
-        JsonNode strategies = JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
+        JsonNode strategies =
+            JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
         assertThat(strategies).isNotNull();
-        List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<List<StorageStrategy>>() { });
+        List<StorageStrategy> strategiesFileResults =
+            JsonHandler.getFromJsonNode(strategies, new TypeReference<List<StorageStrategy>>() {
+            });
         assertThat(strategiesFileResults.size()).isEqualTo(1);
         assertThat(strategiesFileResults.get(0)).isNotNull();
         assertThat(strategiesFileResults.get(0).getId()).isEqualTo("default");
@@ -127,8 +130,9 @@ public class PrepareStorageStrategiesPluginTest {
     }
 
     @Test
-    public void shouldFailFromStrategyRetrievalException() throws ContentAddressableStorageServerException, ProcessingException,
-            InvalidParseOperationException, StorageServerClientException {
+    public void shouldFailFromStrategyRetrievalException()
+        throws ContentAddressableStorageServerException, ProcessingException,
+        InvalidParseOperationException, StorageServerClientException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -145,14 +149,16 @@ public class PrepareStorageStrategiesPluginTest {
     }
 
     @Test
-    public void shouldFailFromStrategyRetrievalKO() throws ContentAddressableStorageServerException, ProcessingException,
-            InvalidParseOperationException, StorageServerClientException {
+    public void shouldFailFromStrategyRetrievalKO()
+        throws ContentAddressableStorageServerException, ProcessingException,
+        InvalidParseOperationException, StorageServerClientException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(storageClient.getStorageStrategies()).thenReturn(VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error"));
+        when(storageClient.getStorageStrategies()).thenReturn(
+            VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error"));
 
         // When
         ItemStatus itemStatus = prepareStorageStrategiesPlugin.execute(workerParameters, handler);
@@ -162,7 +168,7 @@ public class PrepareStorageStrategiesPluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.FATAL);
     }
 
-    private RequestResponse<StorageStrategy> loadStorageStrategiesMock(){
+    private RequestResponse<StorageStrategy> loadStorageStrategiesMock() {
         StorageStrategy defaultStrategy = new StorageStrategy();
         defaultStrategy.setId("default");
         OfferReference offer1 = new OfferReference();

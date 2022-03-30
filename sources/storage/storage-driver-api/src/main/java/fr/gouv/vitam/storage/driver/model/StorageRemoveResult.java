@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.storage.driver.model;
 
-import fr.gouv.vitam.common.digest.DigestType;
-
 /**
  * Holds result data that come as a result of a request to remove an object on
  * the distant storage offer
@@ -39,17 +37,13 @@ public class StorageRemoveResult extends StorageObjectResult {
     /**
      * Initialize the needed parameters for remove results
      *
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
+     * @param tenantId The request tenantId
+     * @param type the type The request type
      * @param guid
-
-     * @param objectDeleted
-     *            true if the object has been deleted
+     * @param objectDeleted true if the object has been deleted
      */
     public StorageRemoveResult(Integer tenantId, String type, String guid,
-            boolean objectDeleted) {
+        boolean objectDeleted) {
         super(tenantId, type, guid);
         this.objectDeleted = objectDeleted;
     }

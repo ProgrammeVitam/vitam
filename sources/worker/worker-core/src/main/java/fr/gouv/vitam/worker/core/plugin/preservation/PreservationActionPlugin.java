@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -120,7 +119,8 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         List<PreservationDistributionLine> entries = IntStream.range(0, workerParameters.getObjectNameList().size())
             .mapToObj(index -> mapToParamsPreservationDistributionFile(workerParameters, index))
             .collect(Collectors.toList());
@@ -148,7 +148,8 @@ public class PreservationActionPlugin extends ActionHandler {
             createReport(workflowResults, entries, tenantId, requestId);
 
             return workflowResults.stream()
-                .map(w -> buildItemStatus(PLUGIN_NAME, w.getGlobalStatus(), EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
+                .map(w -> buildItemStatus(PLUGIN_NAME, w.getGlobalStatus(),
+                    EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             tryDeleteLocalPreservationFiles(Paths.get(griffinInputFolder, griffinId, batchId));
@@ -156,9 +157,11 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private PreservationDistributionLine mapToParamsPreservationDistributionFile(WorkerParameters workerParameters, int index) {
+    private PreservationDistributionLine mapToParamsPreservationDistributionFile(WorkerParameters workerParameters,
+        int index) {
         try {
-            return JsonHandler.getFromJsonNode(workerParameters.getObjectMetadataList().get(index), PreservationDistributionLine.class);
+            return JsonHandler.getFromJsonNode(workerParameters.getObjectMetadataList().get(index),
+                PreservationDistributionLine.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }
@@ -182,13 +185,15 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory)
+    private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient,
+        Path inputFilesDirectory)
         throws IOException, StorageNotFoundException, StorageServerClientException {
         Response fileResponse = null;
         InputStream src = null;
         try {
             fileResponse = storageClient
-                .getContainerAsync(entryParams.getSourceStrategy(), entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
+                .getContainerAsync(entryParams.getSourceStrategy(), entryParams.getObjectId(), OBJECT,
+                    getNoLogAccessLog());
             src = fileResponse.readEntity(InputStream.class);
             Path target = inputFilesDirectory.resolve(entryParams.getObjectId());
             Files.copy(src, target, REPLACE_EXISTING);
@@ -198,7 +203,8 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private void createParametersBatchFile(List<PreservationDistributionLine> lines, Path batchDirectory, String requestId, String batchId)
+    private void createParametersBatchFile(List<PreservationDistributionLine> lines, Path batchDirectory,
+        String requestId, String batchId)
         throws VitamException {
         List<InputPreservation> inputsPreservation = lines.stream()
             .map(this::mapToInput)
@@ -216,7 +222,8 @@ public class PreservationActionPlugin extends ActionHandler {
         return new InputPreservation(entryParams.getObjectId(), entryParams.getFormatId());
     }
 
-    private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout) throws IOException, InterruptedException,
+    private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout)
+        throws IOException, InterruptedException,
         InvalidParseOperationException {
         Path griffinExecutable = Paths.get(execFolder, griffinId, EXECUTABLE_FILE_NAME);
 
@@ -225,7 +232,7 @@ public class PreservationActionPlugin extends ActionHandler {
 
         Process griffin = processBuilder.start();
 
-        if(!griffin.waitFor(timeout, SECONDS)) {
+        if (!griffin.waitFor(timeout, SECONDS)) {
             LOGGER.error("Griffin {} was not completed before timeout", griffinId);
             griffin.destroyForcibly();
         }
@@ -243,7 +250,8 @@ public class PreservationActionPlugin extends ActionHandler {
         return JsonHandler.getFromFile(batchDirectory.resolve(RESULT_JSON).toFile(), ResultPreservation.class);
     }
 
-    private List<WorkflowBatchResult> generateWorkflowBatchResults(ResultPreservation result, List<PreservationDistributionLine> entries) {
+    private List<WorkflowBatchResult> generateWorkflowBatchResults(ResultPreservation result,
+        List<PreservationDistributionLine> entries) {
         return entries.stream()
             .map(e -> mapToWorkflowBatchResult(e, result))
             .collect(Collectors.toList());
@@ -256,17 +264,20 @@ public class PreservationActionPlugin extends ActionHandler {
             .map(OutputExtra::of)
             .collect(Collectors.toList());
         return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras,
-                e.getSourceUse(), e.getSourceStrategy(), new ArrayList<>(e.getUnitsForExtractionAU()));
+            e.getSourceUse(), e.getSourceStrategy(), new ArrayList<>(e.getUnitsForExtractionAU()));
     }
 
-    private void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
+    private void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries,
+        Integer tenantId,
         String requestId) throws ProcessingStatusException {
-        List<PreservationReportEntry> reportModels = toReportModel(workflowResults, entries, tenantId, now(), requestId);
+        List<PreservationReportEntry> reportModels =
+            toReportModel(workflowResults, entries, tenantId, now(), requestId);
         reportService.appendEntries(requestId, reportModels);
 
     }
 
-    private List<PreservationReportEntry> toReportModel(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries,
+    private List<PreservationReportEntry> toReportModel(List<WorkflowBatchResult> workflowResults,
+        List<PreservationDistributionLine> entries,
         Integer tenantId, LocalDateTime now, String requestId) {
         return workflowResults.stream()
             .flatMap(w -> w.getOutputExtras().stream()
@@ -276,7 +287,8 @@ public class PreservationActionPlugin extends ActionHandler {
 
     private PreservationReportEntry getPreservationReportModel(String requestId, int tenant, LocalDateTime now,
         OutputExtra value, List<PreservationDistributionLine> entries) {
-        PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getOutput().getInputPreservation().getName()));
+        PreservationDistributionLine model = IterableUtils.find(entries,
+            j -> j.getObjectId().equals(value.getOutput().getInputPreservation().getName()));
         return new PreservationReportEntry(
             GUIDFactory.newGUID().toString(),
             requestId,

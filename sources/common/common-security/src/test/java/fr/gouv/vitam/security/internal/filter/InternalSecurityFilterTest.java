@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,6 @@ import org.junit.Test;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -203,6 +202,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When not certificate in the request attribute
+     *
      * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
@@ -212,6 +212,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When no certificate in the request attribute but certificate pem in the header
+     *
      * @throws Exception
      */
     @Test
@@ -233,6 +234,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When the context status is false
+     *
      * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
@@ -253,6 +255,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When status uri then verify only certificate
+     *
      * @throws Exception
      */
     @Test
@@ -272,6 +275,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When tenant uri then verify only certificate
+     *
      * @throws Exception
      */
     @Test
@@ -291,6 +295,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * when other uri then verify tenant KO
+     *
      * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
@@ -310,6 +315,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When other uri then verify tenant OK
+     *
      * @throws Exception
      */
     @Test
@@ -329,6 +335,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control true and contract in the header is not exists in the context then KO
+     *
      * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
@@ -349,6 +356,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control is true and the contract in the header exists in the context then OK
+     *
      * @throws Exception
      */
     @Test
@@ -371,6 +379,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control is false and contract in the header not exists in the context then OK
+     *
      * @throws Exception
      */
     @Test
@@ -393,6 +402,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control is true and not ingest contract in the context then KO
+     *
      * @throws Exception
      */
     @Test(expected = VitamSecurityException.class)
@@ -412,6 +422,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control is true and ingest contract is not empty in the context then OK
+     *
      * @throws Exception
      */
     @Test
@@ -433,6 +444,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * When context enable control is false and ingest contracts is empty in the context then OK
+     *
      * @throws Exception
      */
     @Test
@@ -453,6 +465,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * Get Fake Context Model for test
+     *
      * @param status
      * @param enableControl
      * @param accessContract
@@ -487,6 +500,7 @@ public class InternalSecurityFilterTest {
 
     /**
      * Get Fake IdentityModel for test
+     *
      * @param cert
      * @return
      */

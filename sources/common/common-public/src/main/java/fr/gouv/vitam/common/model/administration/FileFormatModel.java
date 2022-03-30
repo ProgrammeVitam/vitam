@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.ModelConstants;
+
+import java.util.List;
 
 /**
  * POJO java use for mapping FileFormat
@@ -79,7 +78,6 @@ public class FileFormatModel {
 
     /**
      * Constructor without fields
-     *
      */
     public FileFormatModel() {
     }
@@ -114,7 +112,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return createdDate
      */
     public String getCreatedDate() {
@@ -122,7 +119,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param createdDate value to set
      * @return this
      */
@@ -132,7 +128,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return versionPronom
      */
     public String getVersionPronom() {
@@ -140,7 +135,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param versionPronom value to set
      * @return this
      */
@@ -150,7 +144,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return version
      */
     public String getVersion() {
@@ -158,7 +151,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param version value to set
      * @return this
      */
@@ -168,7 +160,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return hasPriorityOverFileFormatIDs
      */
     public List<String> getHasPriorityOverFileFormatIDs() {
@@ -176,7 +167,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param hasPriorityOverFileFormatIDs value to set
      * @return this
      */
@@ -186,7 +176,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return mimeType
      */
     public String getMimeType() {
@@ -194,7 +183,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param mimeType value to set
      * @return this
      */
@@ -211,7 +199,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param name value to set
      * @return this
      */
@@ -221,7 +208,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return group
      */
     public String getGroup() {
@@ -229,7 +215,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param group value to set
      * @return this
      */
@@ -239,7 +224,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return alert
      */
     public Boolean isAlert() {
@@ -247,7 +231,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param alert value to set
      * @return this
      */
@@ -257,7 +240,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return String
      */
     public String getComment() {
@@ -265,7 +247,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param comment value to set
      * @return this
      */
@@ -275,7 +256,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return List of String
      */
     public List<String> getExtensions() {
@@ -283,7 +263,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param extensions value to set
      * @return this
      */
@@ -293,7 +272,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @return puid
      */
     public String getPuid() {
@@ -301,7 +279,6 @@ public class FileFormatModel {
     }
 
     /**
-     *
      * @param puid value to set
      * @return this
      */

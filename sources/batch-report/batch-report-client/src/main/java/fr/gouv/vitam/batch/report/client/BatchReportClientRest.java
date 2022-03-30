@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -109,7 +109,8 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest) throws VitamClientInternalException {
+    public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
 
         VitamRequestBuilder request = post()
@@ -153,12 +154,13 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException {
+    public void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata)
+        throws VitamClientInternalException {
         VitamRequestBuilder request = post()
-                .withPath(STORE_EXTRACTED_METADATA_FOR_AU)
-                .withBody(extractedMetadata)
-                .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-                .withJson();
+            .withPath(STORE_EXTRACTED_METADATA_FOR_AU)
+            .withBody(extractedMetadata)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
         try (Response response = make(request)) {
             check(response);
         }

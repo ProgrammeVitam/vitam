@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * GUID Interface
- *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,
     property = "@class")
@@ -149,7 +148,6 @@ public interface GUID extends Comparable<GUID> {
     int getPlatformId();
 
     /**
-     *
      * @return the String representation of this GUID
      */
     @JsonGetter("id")

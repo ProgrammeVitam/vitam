@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,29 +26,30 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.yaml.snakeyaml.introspector.PropertyUtils;
+import static org.junit.Assert.assertEquals;
 
 
 public class ElasticsearchUtilTest {
 
     private static final String FILE_JSON = "/test.json";
-    private static final String mapping = 
+    private static final String mapping =
         "{\n" +
-        "  \"properties\": {\n" +
-        "    \"Tenant\": {\n" +
-        "      \"type\": \"text\"\n" +
-        "    }\n" +
-        "  }\n" +
-        "}";
-    
+            "  \"properties\": {\n" +
+            "    \"Tenant\": {\n" +
+            "      \"type\": \"text\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
     @Test
     public void test() throws IOException {
-        String mappingTrans = ElasticsearchUtil.transferJsonToMapping(PropertyUtils.class.getResourceAsStream(FILE_JSON));
+        String mappingTrans =
+            ElasticsearchUtil.transferJsonToMapping(PropertyUtils.class.getResourceAsStream(FILE_JSON));
         System.out.println(mappingTrans);
         System.out.println(mapping);
         assertEquals(mapping, mappingTrans);

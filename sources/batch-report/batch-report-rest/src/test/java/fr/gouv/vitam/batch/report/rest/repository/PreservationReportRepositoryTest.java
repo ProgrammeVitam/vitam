@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,9 +29,9 @@ package fr.gouv.vitam.batch.report.rest.repository;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -91,13 +91,17 @@ public class PreservationReportRepositoryTest {
 
         // When
         Document report = preservationReportCollection.find(
-            and(eq(PreservationReportEntry.DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportEntry.TENANT, 0))).first();
+            and(eq(PreservationReportEntry.DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"),
+                eq(PreservationReportEntry.TENANT, 0))).first();
 
         // Then
         assertThat(report.get(PreservationReportEntry.DETAIL_ID)).isEqualTo(preservationReportEntry.getDetailId());
-        assertThat(report.get(PreservationReportEntry.OBJECT_GROUP_ID)).isEqualTo(preservationReportEntry.getObjectGroupId());
-        assertThat(PreservationStatus.valueOf(report.get(PreservationReportEntry.STATUS).toString())).isEqualTo(preservationReportEntry.getStatus());
-        assertThat(report.get(PreservationReportEntry.ANALYSE_RESULT)).isEqualTo(preservationReportEntry.getAnalyseResult());
+        assertThat(report.get(PreservationReportEntry.OBJECT_GROUP_ID)).isEqualTo(
+            preservationReportEntry.getObjectGroupId());
+        assertThat(PreservationStatus.valueOf(report.get(PreservationReportEntry.STATUS).toString())).isEqualTo(
+            preservationReportEntry.getStatus());
+        assertThat(report.get(PreservationReportEntry.ANALYSE_RESULT)).isEqualTo(
+            preservationReportEntry.getAnalyseResult());
     }
 
     @Test

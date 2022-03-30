@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,20 @@
  */
 package fr.gouv.vitam.common.database.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import org.junit.Test;
 
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ScrollSpliteratorTest {
 
@@ -53,7 +53,8 @@ public class ScrollSpliteratorTest {
         Spliterator<Long> longSpliterator = new ScrollSpliterator<>(query, function, 3, 4);
 
         // When
-        longSpliterator.forEachRemaining(item -> {});
+        longSpliterator.forEachRemaining(item -> {
+        });
 
         // Then
         verify(function).apply(query);
@@ -74,7 +75,8 @@ public class ScrollSpliteratorTest {
         RequestResponseOK<Long> requestResponseOK2 = new RequestResponseOK<>();
         requestResponseOK2.addResult(4L);
         requestResponseOK2.setHits(4, 0, 3, 1);
-        given(function.apply(any(SelectMultiQuery.class))).willReturn(requestResponseOK1).willReturn(requestResponseOK2);
+        given(function.apply(any(SelectMultiQuery.class))).willReturn(requestResponseOK1)
+            .willReturn(requestResponseOK2);
 
         SelectMultiQuery query = new SelectMultiQuery();
         Spliterator<Long> longSpliterator = new ScrollSpliterator<>(query, function, 3, 4);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,24 +43,21 @@ public interface ServerIdentityInterface {
     String getRole();
 
     /**
-     * 
      * @return the uniq Id of the Server
      */
     int getServerId();
-    
+
     /**
-     * 
      * @return the SideId
      */
     int getSiteId();
-    
+
     /**
      * @return the global uniq Id of the server (global along all sites)
      */
     int getGlobalPlatformId();
 
     /**
-     *
      * @return the Logger Message prepend
      */
     String getLoggerMessagePrepend();

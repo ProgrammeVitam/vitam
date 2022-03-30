@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,11 +101,11 @@ public enum LogbookMongoDbName {
     /**
      * agencies details
      */
-    agIdExt("agIdExt",LogbookParameterName.agIdExt),
+    agIdExt("agIdExt", LogbookParameterName.agIdExt),
     /**
      * rightsStatementIdentifier
      */
-    rightsStatementIdentifier("rightsStatementIdentifier",LogbookParameterName.rightsStatementIdentifier),
+    rightsStatementIdentifier("rightsStatementIdentifier", LogbookParameterName.rightsStatementIdentifier),
 
     /**
      * objectIdentifier
@@ -129,7 +129,6 @@ public enum LogbookMongoDbName {
     }
 
     /**
-     *
      * @return the corresponding dbname
      */
     public final String getDbname() {
@@ -137,7 +136,6 @@ public enum LogbookMongoDbName {
     }
 
     /**
-     *
      * @return the corresponding {@link LogbookParameterName}
      */
     public final LogbookParameterName getLogbookParameterName() {
@@ -145,7 +143,6 @@ public enum LogbookMongoDbName {
     }
 
     /**
-     *
      * @param name as {@link LogbookParameterName}
      * @return the corresponding {@link LogbookMongoDbName}
      */
@@ -154,7 +151,6 @@ public enum LogbookMongoDbName {
     }
 
     /**
-     *
      * @param name as db field name
      * @return the corresponding {@link LogbookMongoDbName}
      */
@@ -168,9 +164,9 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.agentIdentifierApplicationSession;
 
             case "agIdExt":
-              return LogbookMongoDbName.agIdExt;
+                return LogbookMongoDbName.agIdExt;
             case "rightsStatementIdentifier":
-              return LogbookMongoDbName.rightsStatementIdentifier;
+                return LogbookMongoDbName.rightsStatementIdentifier;
             case "evDateTime":
                 return LogbookMongoDbName.eventDateTime;
             case "evId":
@@ -200,7 +196,7 @@ public enum LogbookMongoDbName {
             case "outcome":
                 return LogbookMongoDbName.outcome;
             case "agIdPers":
-                return LogbookMongoDbName.agentIdentifierPersonae;                
+                return LogbookMongoDbName.agentIdentifierPersonae;
             default:
                 throw new IllegalArgumentException("Unknown name: " + name);
         }

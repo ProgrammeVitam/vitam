@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,8 +40,6 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -509,7 +507,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
         return Response.status(Status.OK).entity(
-            new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
+                new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
             .build();
     }
 
@@ -533,7 +531,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         List<String> offerIdHeaders =
-            Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)).orElse(Collections.emptyList());
+            Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER))
+                .orElse(Collections.emptyList());
         try {
             if (CollectionUtils.isEmpty(offerIdHeaders)) {
                 return new VitamAsyncInputStreamResponse(

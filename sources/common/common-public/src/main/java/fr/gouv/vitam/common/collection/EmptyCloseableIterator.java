@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.collection;
  * EmptyCloseableIterator implementation
  *
  * @param <E> the object class of the objects contained in the iterator
- *
  */
 public class EmptyCloseableIterator<E> implements CloseableIterator<E> {
     /**

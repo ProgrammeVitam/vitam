@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import java.util.Map;
-
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
+import java.util.Map;
 
 /**
  * This interface aims at providing a set of method that are common with no
@@ -42,20 +42,17 @@ public interface StorageStrategyProvider {
     /**
      * Retrieve a storage strategy by its id
      *
-     * @param idStrategy
-     *            the id of the storage strategy to retrieve
+     * @param idStrategy the id of the storage strategy to retrieve
      * @return an object representation of a storage strategy
-     * @throws StorageTechnicalException
-     *             if any unwanted technical issue happens
+     * @throws StorageTechnicalException if any unwanted technical issue happens
      */
     StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException;
-    
+
     /**
      * Retrieve all the available storage strategies
      *
      * @return all storage strategies by id
-     * @throws StorageTechnicalException
-     *             if any unwanted technical issue happens
+     * @throws StorageTechnicalException if any unwanted technical issue happens
      */
     Map<String, StorageStrategy> getStorageStrategies() throws StorageTechnicalException;
 

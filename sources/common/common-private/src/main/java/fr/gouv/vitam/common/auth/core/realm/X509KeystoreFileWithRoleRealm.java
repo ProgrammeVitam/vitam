@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,8 @@
  */
 package fr.gouv.vitam.common.auth.core.realm;
 
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
@@ -39,8 +35,11 @@ import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
 
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * X509 Keystore File Realm with Role/Permissions

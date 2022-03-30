@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,14 @@
  */
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
 
 /**
  *
@@ -58,7 +58,7 @@ public class StorageOfferProviderFactoryTest {
         try {
             provider.getStorageOffer("inactiveOffer", false);
             fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
+        } catch (StorageNotFoundException ex) {
         }
     }
 }

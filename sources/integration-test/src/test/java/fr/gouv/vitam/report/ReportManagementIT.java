@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -418,12 +418,13 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_store_Extracted_Metadata_For_Au() throws Exception {
         // Given
         List<ExtractedMetadata> extractedMetadata = Collections.singletonList(
-                new ExtractedMetadata("BATMAN", "processId", 0, Collections.singletonList("unitId"),
-                Collections.singletonMap("key",Collections.singletonList("value"))));
+            new ExtractedMetadata("BATMAN", "processId", 0, Collections.singletonList("unitId"),
+                Collections.singletonMap("key", Collections.singletonList("value"))));
 
         // When
         // Then
-        assertThatCode(() -> batchReportClient.storeExtractedMetadataForAu(extractedMetadata)).doesNotThrowAnyException();
+        assertThatCode(
+            () -> batchReportClient.storeExtractedMetadataForAu(extractedMetadata)).doesNotThrowAnyException();
     }
 
     private ReportBody getReportBody(String processId, List<String> unitsIds) {
@@ -432,6 +433,6 @@ public class ReportManagementIT extends VitamRuleRunner {
             .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
             .collect(Collectors.toList());
         return new ReportBody<>(processId,
-                ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+            ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
     }
 }

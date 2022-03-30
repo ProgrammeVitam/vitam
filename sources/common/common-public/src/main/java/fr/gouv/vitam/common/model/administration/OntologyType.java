@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,16 +28,16 @@
 package fr.gouv.vitam.common.model.administration;
 
 public enum OntologyType {
-    TEXT ("TEXT", true),
-    KEYWORD ("KEYWORD", false),
-    DATE ("DATE", false),
-    LONG ("LONG", false),
-    DOUBLE ("DOUBLE", false),
-    BOOLEAN ("BOOLEAN", false),
+    TEXT("TEXT", true),
+    KEYWORD("KEYWORD", false),
+    DATE("DATE", false),
+    LONG("LONG", false),
+    DOUBLE("DOUBLE", false),
+    BOOLEAN("BOOLEAN", false),
     @Deprecated
-    GEO_POINT ("GEO_POINT", false),
+    GEO_POINT("GEO_POINT", false),
     @Deprecated
-    ENUM ("ENUM", false);
+    ENUM("ENUM", false);
 
     private String type;
     private boolean analyzed;

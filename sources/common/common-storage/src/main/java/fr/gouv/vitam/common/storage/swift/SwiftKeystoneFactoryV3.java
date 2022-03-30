@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,19 +70,21 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
 
 
     public SwiftKeystoneFactoryV3(StorageConfiguration configuration)
-            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         domainIdentifier = Identifier.byName(configuration.getSwiftDomain());
         projectIdentifier = Identifier.byName(configuration.getSwiftProjectName());
         configOS4J = Config.newConfig()
-                .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
-                .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
-                .withReadTimeout(configuration.getSwiftReadTimeout())
-                .withMaxConnections(configuration.getSwiftMaxConnections())
-                .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
+            .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
+            .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
+            .withReadTimeout(configuration.getSwiftReadTimeout())
+            .withMaxConnections(configuration.getSwiftMaxConnections())
+            .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
 
         if (configuration.getSwiftKeystoneAuthUrl().startsWith("https")) {
             File file = new File(configuration.getSwiftTrustStore());
-            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustStorePassword().toCharArray()).build();
+            SSLContext sslContext =
+                SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustStorePassword().toCharArray())
+                    .build();
 
             configOS4J.withSSLContext(sslContext);
         }
@@ -94,7 +96,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
     public OSClient.OSClientV3 get() {
         Token currentToken = atomicToken.get();
         // First call to we have to authenticate
-        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
+        Date nearTime = LocalDateUtil.getDate(
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
         if (currentToken == null || currentToken.getExpires().before(nearTime)) {
             synchronized (monitor) {
                 currentToken = atomicToken.get();
@@ -109,7 +112,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         }
 
         // Renew Token before expiration only one thread should re-authenticate
-        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
+        Date farTime = LocalDateUtil.getDate(
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
         if (currentToken.getExpires().before(farTime)) {
             // Only one thread should re-authentication
             if (oneThread.compareAndSet(true, false)) {
@@ -125,7 +129,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         }
 
         // If current client already exists
-        OSClientSession.OSClientSessionV3 currentClient = (OSClientSession.OSClientSessionV3) OSClientSession.OSClientSessionV3.getCurrent();
+        OSClientSession.OSClientSessionV3 currentClient =
+            (OSClientSession.OSClientSessionV3) OSClientSession.OSClientSessionV3.getCurrent();
         if (null != currentClient && currentToken.equals(currentClient.getToken())) {
             return currentClient;
         }
@@ -139,12 +144,13 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         LOGGER.info("No token or token is expired, let's get authenticate again");
         try {
             return OSFactory.builderV3().endpoint(configuration.getSwiftKeystoneAuthUrl())
-                    .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
-                    .scopeToProject(projectIdentifier, domainIdentifier)
-                    .withConfig(configOS4J)
-                    .authenticate();
+                .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
+                .scopeToProject(projectIdentifier, domainIdentifier)
+                .withConfig(configOS4J)
+                .authenticate();
         } finally {
-            PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "AUTHENTICATE", "RENEW_TOKEN", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log("STP_AUTHENTICATION", "AUTHENTICATE", "RENEW_TOKEN", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 }

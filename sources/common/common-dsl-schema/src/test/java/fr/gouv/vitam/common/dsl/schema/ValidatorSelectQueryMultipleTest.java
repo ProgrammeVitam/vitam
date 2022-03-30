@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -371,11 +371,13 @@ public class ValidatorSelectQueryMultipleTest {
     }
 
     @Test
-    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters_filters() throws Exception {
+    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters_filters()
+        throws Exception {
         JsonNode test1Json =
             JsonHandler
                 .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters_filters.json"));
+                    PropertiesUtils.getResourceFile(
+                        "select_multiple_complete_facet_filters_empty_filters_filters.json"));
         final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
 
@@ -383,6 +385,7 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("Validating $query_filters")
             .hasMessageContaining("ELEMENT_TOO_SHORT");
     }
+
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_name() throws Exception {
         JsonNode test1Json =
@@ -396,6 +399,7 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("Validating $name")
             .hasMessageContaining("MANDATORY");
     }
+
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_query() throws Exception {
         JsonNode test1Json =

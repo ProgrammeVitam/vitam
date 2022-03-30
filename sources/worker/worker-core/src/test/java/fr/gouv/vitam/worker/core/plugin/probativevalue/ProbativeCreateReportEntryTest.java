@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,45 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
-import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry.NO_BINARY_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.Collections;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -92,6 +58,37 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.util.Collections;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
+import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry.NO_BINARY_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 public class ProbativeCreateReportEntryTest {
     @Rule
@@ -131,7 +128,8 @@ public class ProbativeCreateReportEntryTest {
     }
 
     @Test
-    public void should_return_item_status_FATAL_with_empty_ProbativeReportEntry_when_cannot_found_GOT_from_database() throws Exception {
+    public void should_return_item_status_FATAL_with_empty_ProbativeReportEntry_when_cannot_found_GOT_from_database()
+        throws Exception {
         // Given
         ObjectNode metadata = objectMapper.createObjectNode();
         metadata.set("unitIds", objectMapper.createArrayNode().add("unitId"));
@@ -159,7 +157,8 @@ public class ProbativeCreateReportEntryTest {
     }
 
     @Test
-    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_versionModel_from_database() throws Exception {
+    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_versionModel_from_database()
+        throws Exception {
         // Given
         ObjectNode metadata = objectMapper.createObjectNode();
         metadata.set("unitIds", objectMapper.createArrayNode().add("unitId"));
@@ -175,7 +174,8 @@ public class ProbativeCreateReportEntryTest {
         TestHandlerIO handler = new TestHandlerIO();
         handler.setNewLocalFile(reportFile);
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
+            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -187,7 +187,8 @@ public class ProbativeCreateReportEntryTest {
     }
 
     @Test
-    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_digest_from_storage() throws Exception {
+    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_digest_from_storage()
+        throws Exception {
         // Given
         ObjectNode metadata = objectMapper.createObjectNode();
         metadata.set("unitIds", objectMapper.createArrayNode().add("unitId"));
@@ -211,8 +212,10 @@ public class ProbativeCreateReportEntryTest {
 
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true))
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
+            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
+        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId,
+            Collections.singletonList(storageId), true))
             .willReturn(storageInformation);
 
         // When
@@ -225,7 +228,8 @@ public class ProbativeCreateReportEntryTest {
     }
 
     @Test
-    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_object_group_LFC_digest_from_logbook() throws Exception {
+    public void should_return_item_status_KO_with_empty_ProbativeReportEntry_when_cannot_found_object_group_LFC_digest_from_logbook()
+        throws Exception {
         // Given
         ObjectNode metadata = objectMapper.createObjectNode();
         metadata.set("unitIds", objectMapper.createArrayNode().add("unitId"));
@@ -247,10 +251,12 @@ public class ProbativeCreateReportEntryTest {
         String usageVersion = "BinaryMaster_25";
         String strategyId = "other_strategy";
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
+            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
         given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true))
             .willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
-        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
+        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(
+            objectMapper.valueToTree(new LogbookLifecycle()));
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -286,20 +292,36 @@ public class ProbativeCreateReportEntryTest {
         String logbookLFCDate = "lastPersistedDate";
         String logbookOperationLastpersiteddate = "LOGBOOK_OPERATION_lastpersiteddate";
 
-        LogbookOperation logBookOperationWith = createLogBookOperationWith("dateOp1", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1", "fileName");
-        LogbookOperation logBookOperationWith1 = createLogBookOperationWith("dateOp2", LOGBOOK_TRACEABILITY.getEventType(), "op2", "fileName");
+        LogbookOperation logBookOperationWith =
+            createLogBookOperationWith("dateOp1", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1", "fileName");
+        LogbookOperation logBookOperationWith1 =
+            createLogBookOperationWith("dateOp2", LOGBOOK_TRACEABILITY.getEventType(), "op2", "fileName");
 
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, opi));
-        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
-        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
-        given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
+            getResponseWith(versionId, storageId, strategyId, usageVersion, opi));
+        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId),
+            true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(
+            objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
+        given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(
+            createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
 
-        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate))).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith)));
-        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(), logbookOperationLastpersiteddate))).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith1)));
+        given(logbookOperationsClient.selectOperation(
+            createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate))).willReturn(
+            objectMapper.valueToTree(createOperation(logBookOperationWith)));
+        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(),
+            logbookOperationLastpersiteddate))).willReturn(
+            objectMapper.valueToTree(createOperation(logBookOperationWith1)));
 
-        given(logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith))).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith("", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1Closest", "fileName"))));
-        given(logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith1))).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith("", LOGBOOK_TRACEABILITY.getEventType(), "op2Closest", "fileName"))));
+        given(logbookOperationsClient.selectOperation(
+            createSelectClosestTraceabilityWith(logBookOperationWith))).willReturn(objectMapper.valueToTree(
+            createOperation(createLogBookOperationWith("", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1Closest",
+                "fileName"))));
+        given(logbookOperationsClient.selectOperation(
+            createSelectClosestTraceabilityWith(logBookOperationWith1))).willReturn(objectMapper.valueToTree(
+            createOperation(
+                createLogBookOperationWith("", LOGBOOK_TRACEABILITY.getEventType(), "op2Closest", "fileName"))));
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -330,17 +352,21 @@ public class ProbativeCreateReportEntryTest {
         return responseOK;
     }
 
-    private LogbookOperation createLogBookOperationWith(String date, String evType, String id) throws JsonProcessingException {
+    private LogbookOperation createLogBookOperationWith(String date, String evType, String id)
+        throws JsonProcessingException {
         return createLogBookOperationWith(date, evType, id, "not important");
     }
 
-    private LogbookOperation createLogBookOperationWith(String date, String evType, String id, String fileName) throws JsonProcessingException {
+    private LogbookOperation createLogBookOperationWith(String date, String evType, String id, String fileName)
+        throws JsonProcessingException {
         LogbookOperation operation = new LogbookOperation();
         operation.setEvType(evType);
         operation.setLastPersistedDate(date);
         operation.setId(id);
         operation.setEvDateTime("Date operation");
-        TraceabilityEvent value = new TraceabilityEvent(null, null,null,null,null,null,null,null,1, fileName,1,null,false,null,null);
+        TraceabilityEvent value =
+            new TraceabilityEvent(null, null, null, null, null, null, null, null, 1, fileName, 1, null, false, null,
+                null);
         operation.setEvDetData(objectMapper.writeValueAsString(value));
         return operation;
     }
@@ -362,11 +388,13 @@ public class ProbativeCreateReportEntryTest {
         return select.getFinalSelect();
     }
 
-    private JsonNode createObjectGroupLifecycleFrom(String versionId, String messageDigest, String lastPersistedDate) throws JsonProcessingException {
+    private JsonNode createObjectGroupLifecycleFrom(String versionId, String messageDigest, String lastPersistedDate)
+        throws JsonProcessingException {
         LogbookEvent o = new LogbookEvent();
         o.setObId(versionId);
         o.setOutDetail(STORING_OBJECT_TASK_ID + EvidenceStatus.OK.name());
-        o.setEvDetData(objectMapper.writeValueAsString(objectMapper.createObjectNode().put(MESSAGE_DIGEST, messageDigest)));
+        o.setEvDetData(
+            objectMapper.writeValueAsString(objectMapper.createObjectNode().put(MESSAGE_DIGEST, messageDigest)));
         o.setLastPersistedDate(lastPersistedDate);
         LogbookLifecycle fromValue = new LogbookLifecycle();
         fromValue.setEvents(Collections.singletonList(o));
@@ -379,7 +407,8 @@ public class ProbativeCreateReportEntryTest {
         return storageInformation;
     }
 
-    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId, String usageVersion, String opi) {
+    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId,
+        String usageVersion, String opi) {
         DbVersionsModel versionsModel = new DbVersionsModel();
         versionsModel.setDataObjectVersion(usageVersion);
         versionsModel.setId(versionId);

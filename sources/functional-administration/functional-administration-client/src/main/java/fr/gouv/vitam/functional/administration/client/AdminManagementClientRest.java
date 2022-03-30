@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1562,7 +1562,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     }
 
-    private void checkCreation(Response response) throws VitamClientInternalException, AdminManagementClientBadRequestException {
+    private void checkCreation(Response response)
+        throws VitamClientInternalException, AdminManagementClientBadRequestException {
         final Status status = fromStatusCode(response.getStatus());
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
             return;

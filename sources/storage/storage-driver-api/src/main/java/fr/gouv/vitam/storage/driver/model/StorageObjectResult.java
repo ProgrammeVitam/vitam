@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,13 +36,10 @@ public class StorageObjectResult extends StorageResult {
 
     /**
      * Initialize the needed data for result on an object.
-     * 
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
-     * @param guid
-     *            the object guid
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
      */
     public StorageObjectResult(Integer tenantId, String type, String guid) {
         super(tenantId, type);
@@ -51,7 +48,7 @@ public class StorageObjectResult extends StorageResult {
 
     /**
      * Gets the guid
-     * 
+     *
      * @return the guid
      */
     public String getGuid() {

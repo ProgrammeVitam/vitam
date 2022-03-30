@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,16 @@
  */
 package fr.gouv.vitam.security.internal.rest.server;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.security.internal.common.service.CRLService;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
@@ -60,6 +58,8 @@ import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * rest module declaring admin resource
@@ -103,8 +103,10 @@ public class AdminIdentityApplication extends Application {
                 CRLService crlService = new CRLServiceImpl(identityRepository, personalRepository);
                 singletons.add(new AdminCRLResource(crlService));
 
-                SecurityDataMigrationRepository securityDataMigrationRepository = new SecurityDataMigrationRepository(mongoDbAccess);
-                SecurityDataMigrationService securityDataMigrationService = new SecurityDataMigrationService(securityDataMigrationRepository);
+                SecurityDataMigrationRepository securityDataMigrationRepository =
+                    new SecurityDataMigrationRepository(mongoDbAccess);
+                SecurityDataMigrationService securityDataMigrationService =
+                    new SecurityDataMigrationService(securityDataMigrationRepository);
                 singletons.add(new AdminSecurityDataMigrationResource(securityDataMigrationService));
 
                 singletons.add(new BasicAuthenticationFilter(configuration));

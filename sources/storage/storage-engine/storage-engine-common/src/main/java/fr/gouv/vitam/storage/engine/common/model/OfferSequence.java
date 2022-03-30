@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,11 +43,12 @@ public class OfferSequence {
     /**
      * Constructor, jackson usage only
      */
-    public OfferSequence() {}
+    public OfferSequence() {
+    }
 
     /**
      * Constructor
-     * 
+     *
      * @param id id
      */
     public OfferSequence(String id) {
@@ -56,7 +57,7 @@ public class OfferSequence {
 
     /**
      * Gets the id
-     * 
+     *
      * @return the id
      */
     public String getId() {
@@ -65,7 +66,7 @@ public class OfferSequence {
 
     /**
      * Sets the id
-     * 
+     *
      * @param id
      */
     public void setId(String id) {
@@ -74,7 +75,7 @@ public class OfferSequence {
 
     /**
      * Gets the counter
-     * 
+     *
      * @return counter
      */
     public long getCounter() {
@@ -83,7 +84,7 @@ public class OfferSequence {
 
     /**
      * Sets the counter
-     * 
+     *
      * @param counter counter
      */
     public void setCounter(long counter) {
@@ -97,7 +98,7 @@ public class OfferSequence {
      *
      * @return Document
      * @see <a href=
-     *      "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
+     * "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
      */
     public Document toDocument() {
         Document document = new Document();

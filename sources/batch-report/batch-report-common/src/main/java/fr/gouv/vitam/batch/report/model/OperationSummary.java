@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,7 @@ public class OperationSummary {
     }
 
     public OperationSummary(Integer tenant, String evId, String evType, String outcome, String outDetail, String outMsg,
-            JsonNode rSI, JsonNode evDetData) {
+        JsonNode rSI, JsonNode evDetData) {
         this.tenant = tenant;
         this.evId = evId;
         this.evType = evType;

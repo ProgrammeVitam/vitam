@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,11 +34,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 public class VerifyTimeStampActionConfiguration {
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
 
-    
-    
+
+
     /**
-     * VerifyTimeStampActionConfiguration constructor 
-     * 
+     * VerifyTimeStampActionConfiguration constructor
+     *
      * @param p12LogbookPassword
      * @param p12LogbookFile
      */

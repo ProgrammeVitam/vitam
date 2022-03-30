@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,8 @@ public class ParameterHelper {
 
     /**
      * Get the tenant parameter from the Vitam Session
-     *  getTenantParameter
+     * getTenantParameter
+     *
      * @return the tenantId
      * @throws IllegalArgumentException if the tenant Id is not found in the session
      * @throws fr.gouv.vitam.common.exception.VitamThreadAccessException if there is no VitamThread

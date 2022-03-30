@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -139,7 +139,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
     public static final String PROFILE_BACKUP_EVENT = "BACKUP_PROFILE";
-    public static final String PATH_UNUPDATABLE ="The path field is not updatable";
+    public static final String PATH_UNUPDATABLE = "The path field is not updatable";
     public static final String PATH_SHOULD_NOT_BE_FILLED = "The profile path should not be filled manually";
 
     /**

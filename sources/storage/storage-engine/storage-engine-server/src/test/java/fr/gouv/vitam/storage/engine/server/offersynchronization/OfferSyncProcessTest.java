@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -150,7 +150,8 @@ public class OfferSyncProcessTest {
             return Response.ok(data).build();
 
         }).when(distribution)
-            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()),anyString(), anyString(), eq(DATA_CATEGORY),
+            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()), anyString(), anyString(),
+                eq(DATA_CATEGORY),
                 eq(SOURCE));
 
         doAnswer((args) -> {

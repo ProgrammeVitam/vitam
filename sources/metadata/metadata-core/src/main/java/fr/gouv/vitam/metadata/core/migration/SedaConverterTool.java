@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.migration;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 
@@ -53,24 +50,30 @@ public class SedaConverterTool {
         Signature("Signer");
 
         String[] fields;
-        FieldsTreeToTransformToList(String... _fields){
+
+        FieldsTreeToTransformToList(String... _fields) {
             fields = _fields;
         }
 
-        String[] getFields(){
+        String[] getFields() {
             return fields;
         }
-    };
+    }
+
+
+    ;
+
 
     private enum ObjectFieldsToDelete {
         Signature("DateSignature"),
         Root("RestrictionRuleIdRef", "RestrictionValue", "RestrictionEndDate", "Href");
         String[] fields;
-        ObjectFieldsToDelete(String... _fields){
+
+        ObjectFieldsToDelete(String... _fields) {
             fields = _fields;
         }
 
-        String[] getFields(){
+        String[] getFields() {
             return fields;
         }
     }
@@ -78,47 +81,48 @@ public class SedaConverterTool {
 
     /**
      * convert given unit from seda 2.0 to seda 2.1 schema compatible
+     *
      * @param unit unit object to convert
      * @return unit converted to seda 2.1 schema (same reference given in input)
      */
     public static Unit convertUnitToSeda21(Unit unit) {
 
-        for(ObjectFieldsToDelete objectWrapperFieldsDelete : ObjectFieldsToDelete.values()) {
+        for (ObjectFieldsToDelete objectWrapperFieldsDelete : ObjectFieldsToDelete.values()) {
             //remove first level fields
-            if(ObjectFieldsToDelete.Root.compareTo(objectWrapperFieldsDelete) == 0){
-                for(String field : objectWrapperFieldsDelete.getFields()){
-                    if(unit.get(field) != null) {
+            if (ObjectFieldsToDelete.Root.compareTo(objectWrapperFieldsDelete) == 0) {
+                for (String field : objectWrapperFieldsDelete.getFields()) {
+                    if (unit.get(field) != null) {
                         unit.remove(field);
                     }
                 }
             }
             //remove embedded fields
             Object object = unit.get(objectWrapperFieldsDelete.name());
-            if (object != null && object instanceof  Document) {
-                Document document = (Document)object;
-                for(String field : objectWrapperFieldsDelete.getFields()){
-                    if(document.get(field) != null) {
+            if (object != null && object instanceof Document) {
+                Document document = (Document) object;
+                for (String field : objectWrapperFieldsDelete.getFields()) {
+                    if (document.get(field) != null) {
                         document.remove(field);
                     }
                 }
             }
         }
         //update fields
-        for(FieldsTreeToTransformToList firstLevelField : FieldsTreeToTransformToList.values()) {
+        for (FieldsTreeToTransformToList firstLevelField : FieldsTreeToTransformToList.values()) {
             Object object = unit.get(firstLevelField.name());
             if (object != null && !object.getClass().isArray() &&
                 !object.getClass().isAssignableFrom(List.class) &&
                 !object.getClass().isAssignableFrom(ArrayList.class)) {
 
-                if(object instanceof  Document &&
+                if (object instanceof Document &&
                     firstLevelField.getFields() != null &&
-                    firstLevelField.getFields().length > 0){
+                    firstLevelField.getFields().length > 0) {
 
-                    Document document = (Document)object;
-                    for(String subField : firstLevelField.getFields()) {
+                    Document document = (Document) object;
+                    for (String subField : firstLevelField.getFields()) {
                         Object subFieldValue = document.get(subField);
-                        if(subFieldValue != null){
-                               document.replace(subField, Arrays.asList(subFieldValue));
+                        if (subFieldValue != null) {
+                            document.replace(subField, Arrays.asList(subFieldValue));
                         }
                     }
                 }

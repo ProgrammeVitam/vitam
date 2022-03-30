@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,15 +101,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess.BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME;
-import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.PrepareBulkAtomicUpdate.PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME;
-import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**

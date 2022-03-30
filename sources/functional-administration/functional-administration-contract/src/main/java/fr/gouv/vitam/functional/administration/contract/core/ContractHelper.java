@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,22 +43,21 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessRefere
 
 /**
  * Common utils for contract services
- *
  */
 public class ContractHelper {
 
     /**
      * Find contracts by idenfier
-     * 
-     * @param identifier  identifier
-     * @param collection  mongo collection of the contract
+     *
+     * @param identifier identifier
+     * @param collection mongo collection of the contract
      * @param mongoAccess mongo access service
      * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
     public static DbRequestResult findByIdentifier(String identifier, FunctionalAdminCollections collection,
-            MongoDbAccessReferential mongoAccess) throws InvalidParseOperationException, ReferentialException {
+        MongoDbAccessReferential mongoAccess) throws InvalidParseOperationException, ReferentialException {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
@@ -71,18 +70,18 @@ public class ContractHelper {
 
     /**
      * Init idenfier in contract if slave not activated.
-     * 
-     * @param slaveMode           slaveMode
-     * @param cm                  contract
+     *
+     * @param slaveMode slaveMode
+     * @param cm contract
      * @param vitamCounterService counter service
-     * @param sequenceType        sequence collection
+     * @param sequenceType sequence collection
      * @throws ReferentialException
      */
     public static void setIdentifier(boolean slaveMode, AbstractContractModel cm,
-            VitamCounterService vitamCounterService, SequenceType sequenceType) throws ReferentialException {
+        VitamCounterService vitamCounterService, SequenceType sequenceType) throws ReferentialException {
         if (!slaveMode) {
             final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                    sequenceType);
+                sequenceType);
             cm.setIdentifier(code);
         }
     }

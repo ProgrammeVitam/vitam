@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,13 +46,12 @@ import javax.ws.rs.core.UriInfo;
 import java.security.cert.CertificateException;
 
 @Path("/v1/api/identity")
-@Tag(name="Security")
+@Tag(name = "Security")
 public class AdminIdentityResource {
 
     private IdentityService identityService;
 
     /**
-     *
      * @param identityService
      */
     public AdminIdentityResource(IdentityService identityService) {
@@ -60,7 +59,6 @@ public class AdminIdentityResource {
     }
 
     /**
-     *
      * @param identityInsertModel
      * @param uri
      * @return
@@ -77,7 +75,6 @@ public class AdminIdentityResource {
     }
 
     /**
-     *
      * @param identityInsertModel
      * @param uri
      * @return

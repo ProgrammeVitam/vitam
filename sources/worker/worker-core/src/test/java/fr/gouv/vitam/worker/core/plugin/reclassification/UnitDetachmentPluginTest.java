@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -106,7 +106,7 @@ public class UnitDetachmentPluginTest {
         String unitId = GUIDFactory.newGUID().toString();
         final WorkerParameters parameters =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(containedId)
+                    .newGUID().getId()).setContainerName(containedId)
                 .setObjectNameList(Lists.newArrayList(unitId))
                 .setObjectName(unitId).setCurrentStep("StepName");
 

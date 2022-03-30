@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,7 @@ public class MetaDataNotFoundException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      */
     public MetaDataNotFoundException(String message) {
@@ -46,7 +46,7 @@ public class MetaDataNotFoundException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public MetaDataNotFoundException(Throwable cause) {
@@ -55,7 +55,7 @@ public class MetaDataNotFoundException extends MetaDataException {
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

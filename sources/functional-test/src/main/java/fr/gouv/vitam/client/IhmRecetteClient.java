@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,7 +83,9 @@ public class IhmRecetteClient extends DefaultClient {
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
             return;
         }
-        String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
+        String message =
+            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase());
         LOGGER.error(message);
         throw new VitamClientInternalException(message);
     }

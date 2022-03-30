@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,11 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import java.io.BufferedInputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Invocation;
-
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.ConnectionReuseStrategy;
@@ -84,8 +74,8 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
-import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientRequestHeaders;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
@@ -93,11 +83,19 @@ import org.jboss.resteasy.tracing.RESTEasyTracingLogger;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
 import org.jboss.resteasy.util.DelegatingOutputStream;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Invocation;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Vtam Specific Apache Http Client Engine
@@ -271,8 +269,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
     @Override
     public ClientResponse invoke(Invocation clientInvocation) {
-        final HttpUriRequest request = getUriHttpRequest((ClientInvocation)clientInvocation);
-        writeOutBoundHeaders(((ClientInvocation)clientInvocation).getHeaders(), request);
+        final HttpUriRequest request = getUriHttpRequest((ClientInvocation) clientInvocation);
+        writeOutBoundHeaders(((ClientInvocation) clientInvocation).getHeaders(), request);
 
         try {
             final CloseableHttpResponse response;
@@ -282,50 +280,52 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
             final int statusCode = response.getStatusLine().getStatusCode();
 
-            final ClientResponse responseContext = new ClientResponse(((ClientInvocation)clientInvocation).getClientConfiguration(), RESTEasyTracingLogger.empty()) {
-                InputStream stream = getNativeInputStream(response);
+            final ClientResponse responseContext =
+                new ClientResponse(((ClientInvocation) clientInvocation).getClientConfiguration(),
+                    RESTEasyTracingLogger.empty()) {
+                    InputStream stream = getNativeInputStream(response);
 
-                // Bad Way but no other way to do it !
-                {
-                    setEntity(stream);
-                }
-
-                @Override
-                protected InputStream getInputStream() {
-                    return stream;
-                }
-
-                @Override
-                protected void setInputStream(InputStream is) {
-                    stream = is;
-                }
-
-                @Override
-                public void releaseConnection(boolean consumeInputStream) throws IOException {
-                    // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
-                    // otherwise the connection is never released. There is, of course, no close() method on response
-                    // to make this easier.
-                    try {
-                        // Another stupid thing...TCK is testing a specific exception from stream.close()
-                        // so, we let it propagate up.
-                        stream.close();
-                    } finally {
-                        // just in case the input stream was entirely replaced and not wrapped, we need
-                        // to close the apache client input stream.
-                        StreamUtils.closeSilently(response.getEntity().getContent());
+                    // Bad Way but no other way to do it !
+                    {
+                        setEntity(stream);
                     }
-                    response.close();
-                }
 
-                @Override
-                public void releaseConnection() throws IOException {
-                    releaseConnection(true);
-                }
-            };
-            responseContext.setProperties(((ClientInvocation)clientInvocation).getMutableProperties());
+                    @Override
+                    protected InputStream getInputStream() {
+                        return stream;
+                    }
+
+                    @Override
+                    protected void setInputStream(InputStream is) {
+                        stream = is;
+                    }
+
+                    @Override
+                    public void releaseConnection(boolean consumeInputStream) throws IOException {
+                        // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
+                        // otherwise the connection is never released. There is, of course, no close() method on response
+                        // to make this easier.
+                        try {
+                            // Another stupid thing...TCK is testing a specific exception from stream.close()
+                            // so, we let it propagate up.
+                            stream.close();
+                        } finally {
+                            // just in case the input stream was entirely replaced and not wrapped, we need
+                            // to close the apache client input stream.
+                            StreamUtils.closeSilently(response.getEntity().getContent());
+                        }
+                        response.close();
+                    }
+
+                    @Override
+                    public void releaseConnection() throws IOException {
+                        releaseConnection(true);
+                    }
+                };
+            responseContext.setProperties(((ClientInvocation) clientInvocation).getMutableProperties());
             responseContext.setStatus(statusCode);
             responseContext.setHeaders(extractHeaders(response));
-            responseContext.setClientConfiguration(((ClientInvocation)clientInvocation).getClientConfiguration());
+            responseContext.setClientConfiguration(((ClientInvocation) clientInvocation).getClientConfiguration());
             return responseContext;
         } catch (final Exception e) {
             throw new ProcessingException(e);

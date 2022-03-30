@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,11 +32,11 @@ package fr.gouv.vitam.metadata.client;
 public enum ErrorMessage {
 
     /**
-     *  message when select units query is null
+     * message when select units query is null
      */
     SELECT_UNITS_QUERY_NULL("Select units query is null"),
     /**
-     *  message when select units query bulk is null
+     * message when select units query bulk is null
      */
     SELECT_UNITS_QUERY_BULK_NULL("Select units query bulk is null"),
     /**
@@ -73,7 +73,7 @@ public enum ErrorMessage {
      */
     SIZE_TOO_LARGE("Document Size is Too Large"),
     /**
-     * message when parsing an invalid json 
+     * message when parsing an invalid json
      */
     INVALID_PARSE_OPERATION("Invalid Parse Operation"),
 
@@ -91,7 +91,7 @@ public enum ErrorMessage {
      */
     DATA_ALREADY_EXISTS("Data Already Exists"),
     /**
-     * message when querying data not found 
+     * message when querying data not found
      */
     NOT_FOUND("Not Found Exception");
 
@@ -102,7 +102,6 @@ public enum ErrorMessage {
     }
 
     /**
-     *
      * @return the associated message
      */
     public String getMessage() {

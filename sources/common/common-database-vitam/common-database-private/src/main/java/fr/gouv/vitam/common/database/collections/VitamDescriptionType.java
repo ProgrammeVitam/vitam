@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,9 @@ public class VitamDescriptionType {
     private final boolean indexed;
 
     @JsonCreator
-    public VitamDescriptionType(@JsonProperty("path") String path, @JsonProperty("pathRegex") String pathRegex, @JsonProperty("type") VitamType type, @JsonProperty("cardinality") VitamCardinality cardinality, @JsonProperty("indexed") boolean indexed) {
+    public VitamDescriptionType(@JsonProperty("path") String path, @JsonProperty("pathRegex") String pathRegex,
+        @JsonProperty("type") VitamType type, @JsonProperty("cardinality") VitamCardinality cardinality,
+        @JsonProperty("indexed") boolean indexed) {
         this.path = path;
         this.pathRegex = pathRegex;
         this.type = type;
@@ -115,6 +117,7 @@ public class VitamDescriptionType {
         signed_double,
         bool
     }
+
 
     public enum VitamCardinality {
         one,

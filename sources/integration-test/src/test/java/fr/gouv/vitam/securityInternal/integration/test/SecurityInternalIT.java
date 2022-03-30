@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -127,7 +127,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         byte[] certificate = toByteArray(stream);
         //WHEN //THEN
         assertThatThrownBy(
-            () -> InternalSecurityClientFactory.getInstance().getClient().checkPersonalCertificate(certificate, "tt:read"))
+            () -> InternalSecurityClientFactory.getInstance().getClient()
+                .checkPersonalCertificate(certificate, "tt:read"))
             .isInstanceOf(InternalSecurityException.class);
     }
 
@@ -161,7 +162,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
-        String url = "http://localhost:"+runner.PORT_SERVICE_IDENTITY_ADMIN+"/v1/api/personalCertificate";
+        String url = "http://localhost:" + runner.PORT_SERVICE_IDENTITY_ADMIN + "/v1/api/personalCertificate";
         // When
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -180,7 +181,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         should_create_certificate_transmitted();
-        String url = "http://localhost:"+runner.PORT_SERVICE_IDENTITY_ADMIN+"/v1/api/personalCertificate";
+        String url = "http://localhost:" + runner.PORT_SERVICE_IDENTITY_ADMIN + "/v1/api/personalCertificate";
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
 

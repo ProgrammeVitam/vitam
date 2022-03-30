@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.processing.common.exception;
 
 /**
  * HandlerNotFoundException thrown by worker when pool handler does not contain key of action handler
- *
  */
 public class HandlerNotFoundException extends ProcessingException {
 

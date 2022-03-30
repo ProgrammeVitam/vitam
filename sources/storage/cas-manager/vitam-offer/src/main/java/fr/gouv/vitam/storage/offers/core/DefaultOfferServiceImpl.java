@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -439,7 +439,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
 
         if (type.canUpdate()) {
-            LOGGER.error("Write file failed for " + containerName + "/" + objectId + ". No need to cleanup (object is rewritable)");
+            LOGGER.error("Write file failed for " + containerName + "/" + objectId +
+                ". No need to cleanup (object is rewritable)");
             return;
         }
 
@@ -447,12 +448,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             LOGGER
                 .warn("Cleanup partially written object: " + containerName + "/" + objectId + ". Try deleting it...");
             defaultStorage.deleteObject(containerName, objectId);
-        }catch (ContentAddressableStorageNotFoundException e) {
+        } catch (ContentAddressableStorageNotFoundException e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found", e);
+            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found",
+                e);
         } catch (Exception e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.error("Cannot delete object " + containerName + "/" + objectId + ". Potentially partially written object on WORM container", e);
+            LOGGER.error("Cannot delete object " + containerName + "/" + objectId +
+                ". Potentially partially written object on WORM container", e);
         }
     }
 
@@ -643,12 +646,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             boolean shouldTakeFromList2 = iterator2.hasNext() &&
                 (!iterator1.hasNext() || iterator1.peek().getSequence() >= iterator2.peek().getSequence());
 
-            if(shouldTakeFromList1 && shouldTakeFromList2) {
+            if (shouldTakeFromList1 && shouldTakeFromList2) {
                 results.add(iterator1.next());
                 iterator2.next();
-            } else if(shouldTakeFromList1) {
+            } else if (shouldTakeFromList1) {
                 results.add(iterator1.next());
-            } else if(shouldTakeFromList2) {
+            } else if (shouldTakeFromList2) {
                 results.add(iterator2.next());
             } else {
                 break;

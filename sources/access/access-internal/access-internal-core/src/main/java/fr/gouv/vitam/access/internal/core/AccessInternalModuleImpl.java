@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1122,7 +1122,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
 
             if (!stepStorageUpdate) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreUnit").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()), "StoreUnit").inc();
                 LOGGER.error(String.format(
                     "[Consistency Error] : The Archive Unit with guid =%s is not saved in storage, tenant : %s, requestId : %s",
                     idUnit,

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -348,6 +348,5 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .then().assertThat()
             .statusCode(Status.BAD_REQUEST.getStatusCode())
             .body(containsString("is not a valid process type"));
-        ;
     }
 }

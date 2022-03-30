@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -67,12 +67,15 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     protected static WorkerClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    private static WorkerClientFactory factory = WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
-    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
+    private static WorkerClientFactory factory =
+        WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
+    private static VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(WorkerClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {

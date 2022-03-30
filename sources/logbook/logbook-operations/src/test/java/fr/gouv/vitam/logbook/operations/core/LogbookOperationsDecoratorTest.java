@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -128,7 +128,8 @@ public class LogbookOperationsDecoratorTest {
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
         when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
         indexManager = mock(ElasticsearchLogbookIndexManager.class);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, mock(IndexationHelper.class),
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
+            mock(IndexationHelper.class),
             indexManager);
         logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();

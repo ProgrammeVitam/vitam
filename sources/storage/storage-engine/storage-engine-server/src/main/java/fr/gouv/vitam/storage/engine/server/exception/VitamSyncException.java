@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,7 @@ public class VitamSyncException extends VitamException {
 
     /**
      * @param message associated message
-     * @param cause   associated cause
+     * @param cause associated cause
      */
     public VitamSyncException(String message, Throwable cause) {
         super(message, cause);

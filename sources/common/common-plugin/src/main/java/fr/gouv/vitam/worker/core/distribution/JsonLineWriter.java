@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,7 @@ public class JsonLineWriter implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        if(isClosed) {
+        if (isClosed) {
             return;
         }
         writer.flush();

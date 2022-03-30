@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,12 +25,12 @@
  * accept its terms.
  */
 /**
- * Provides 
+ * Provides
  * <p>
  * <ul>
  * <li>Access external client interface, factory and implementations.
  * <li>Admin external client interface, factory and implementations.
  * </ul>
- * <p> 
+ * <p>
  */
 package fr.gouv.vitam.access.external.client;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialExcepti
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
 import org.bson.Document;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class ReadRequestReferentialRepository implements ReadRequestReferentialCleaner {
@@ -77,7 +76,7 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
 
         try {
             document = collection.find(
-                Filters.eq(TapeReadRequestReferentialEntity.ID, requestId))
+                    Filters.eq(TapeReadRequestReferentialEntity.ID, requestId))
                 .first();
         } catch (MongoException ex) {
             throw new ReadRequestReferentialException("Could not find read request by id " + requestId, ex);

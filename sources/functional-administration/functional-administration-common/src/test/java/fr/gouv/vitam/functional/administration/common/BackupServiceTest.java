@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,25 +27,6 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-import java.io.InputStream;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -60,6 +41,24 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.io.InputStream;
+
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class BackupServiceTest {
 
@@ -118,7 +117,7 @@ public class BackupServiceTest {
         ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
             ArgumentCaptor.forClass(ObjectDescription.class);
         //When
-        backupService.backup(inputStream, UNIT, uri,"other_strategy");
+        backupService.backup(inputStream, UNIT, uri, "other_strategy");
 
         //Then
         ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
@@ -134,7 +133,7 @@ public class BackupServiceTest {
 
         verify(workspaceClient).deleteContainer(containerArgCaptor.getValue(), true);
     }
-    
+
     @Test
     public void should_fail_when_storing_in_workSpace() throws Exception {
         //Given

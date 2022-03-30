@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -108,7 +108,8 @@ public class IngestExternalImplTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
         config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory, manifestDigestValidator);
+        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory,
+            manifestDigestValidator);
     }
 
     @RunWithCustomExecutor
@@ -349,7 +350,8 @@ public class IngestExternalImplTest {
         config.setAntiVirusScriptName(script);
         config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory, manifestDigestValidator);
+        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory,
+            manifestDigestValidator);
     }
 
     @RunWithCustomExecutor
@@ -364,7 +366,8 @@ public class IngestExternalImplTest {
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
-            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "SHA-512");
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
+            "SHA-512");
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -377,10 +380,11 @@ public class IngestExternalImplTest {
         stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid,null, responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
-            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", null);
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
+            null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -412,7 +416,8 @@ public class IngestExternalImplTest {
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
-            "baddigestf27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "SHA-512");
+            "baddigestf27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
+            "SHA-512");
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -425,10 +430,11 @@ public class IngestExternalImplTest {
         stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid,null, responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
-            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "Unknown");
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
+            "Unknown");
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 }

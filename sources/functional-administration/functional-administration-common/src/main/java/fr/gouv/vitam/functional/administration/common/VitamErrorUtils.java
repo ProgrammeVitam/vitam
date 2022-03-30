@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,9 +35,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 public class VitamErrorUtils {
 
     /**
-     * @param vitamCode   the code of vitam error
+     * @param vitamCode the code of vitam error
      * @param description the description message error
-     * @param collection  the name of the collection
+     * @param collection the name of the collection
      * @param state the status code
      * @return VitamError
      */
@@ -46,8 +46,9 @@ public class VitamErrorUtils {
             .setContext("FunctionalModule-" + collection).setDescription(description);
     }
 
-    public static VitamError getVitamErrorWithMessage(String vitamCode, String description, String collection, StatusCode state, String message) {
+    public static VitamError getVitamErrorWithMessage(String vitamCode, String description, String collection,
+        StatusCode state, String message) {
         return new VitamError(vitamCode).setMessage(message).setState(state.name())
-                .setContext("FunctionalModule-" + collection).setDescription(description);
+            .setContext("FunctionalModule-" + collection).setDescription(description);
     }
 }

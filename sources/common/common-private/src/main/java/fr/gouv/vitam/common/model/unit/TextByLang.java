@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+
 import java.util.List;
 import java.util.stream.Collectors;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
 /**
  * TextByLang class
@@ -47,7 +47,7 @@ public class TextByLang {
 
     /**
      * Constructor
-     * 
+     *
      * @param textTypes the textTypes list
      */
     public TextByLang(List<TextType> textTypes) {

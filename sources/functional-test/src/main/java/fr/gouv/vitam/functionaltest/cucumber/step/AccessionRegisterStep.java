@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -41,6 +36,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import org.assertj.core.api.Fail;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Step defining Accession register behavior
@@ -60,7 +58,7 @@ public class AccessionRegisterStep {
 
     /**
      * Search accession register summary by query
-     * 
+     *
      * @throws Throwable
      */
     @When("^je recherche les registres de fond$")
@@ -76,7 +74,7 @@ public class AccessionRegisterStep {
 
     /**
      * Search accession register detail by query in originating agency
-     * 
+     *
      * @param originatingAgency originating agency
      * @throws Throwable
      */
@@ -93,7 +91,7 @@ public class AccessionRegisterStep {
 
     /**
      * Count the number of results for accession register summary result
-     * 
+     *
      * @param numberOfResults number of results expected
      * @throws Throwable
      */
@@ -109,7 +107,7 @@ public class AccessionRegisterStep {
 
     /**
      * Count the number of results for accession details summary result
-     * 
+     *
      * @param numberOfResults number of results expected
      * @throws Throwable
      */
@@ -125,7 +123,7 @@ public class AccessionRegisterStep {
 
     /**
      * Check accession register summary data for first result
-     * 
+     *
      * @param dataTable expected results
      * @throws Throwable
      */
@@ -136,7 +134,7 @@ public class AccessionRegisterStep {
 
     /**
      * Check accession register detail data for first result
-     * 
+     *
      * @param dataTable expected results
      * @throws Throwable
      */
@@ -147,7 +145,7 @@ public class AccessionRegisterStep {
 
     /**
      * Check accession register summary data for result given
-     * 
+     *
      * @param resultNumber result number
      * @param dataTable expected results
      * @throws Throwable
@@ -166,7 +164,7 @@ public class AccessionRegisterStep {
 
     /**
      * Check accession register detail data for result given
-     * 
+     *
      * @param resultNumber result number
      * @param dataTable expected results
      * @throws Throwable

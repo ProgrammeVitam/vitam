@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,15 @@
  */
 /**
  * Storage engine common referential package
+ *
+ * Provides common Referential interfaces and factories for the Storage Engine
+ * module :
+ * <p>
+ * <ul>
+ * <li>A factory in order to get a StorageOffer
+ * <li>A factory in order to get a StorageStrategy
+ * </ul>
+ * </p>
  */
 /**
  * Provides common Referential interfaces and factories for the Storage Engine

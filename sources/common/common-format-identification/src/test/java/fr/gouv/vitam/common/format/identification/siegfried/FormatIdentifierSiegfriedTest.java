@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,26 +26,7 @@
  */
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
-import fr.gouv.vitam.common.format.identification.FormatIdentifier;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
@@ -55,6 +36,20 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 public class FormatIdentifierSiegfriedTest {
 
@@ -123,7 +118,8 @@ public class FormatIdentifierSiegfriedTest {
     @Test
     public void testSiegfriedIdentify() throws Exception {
         reset(siegfriedClientRest);
-        when(siegfriedClientRest.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK));
+        when(siegfriedClientRest.analysePath(any())).thenReturn(
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK));
 
         final List<FormatIdentifierResponse> response = siegfried.analysePath(FILE_PATH);
         assertNotNull(response);
@@ -138,7 +134,8 @@ public class FormatIdentifierSiegfriedTest {
     @Test
     public void testSiegfriedIdentifyUnknownFormatFileButWarnWithFMT() throws Exception {
         reset(siegfriedClientRest);
-        when(siegfriedClientRest.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW));
+        when(siegfriedClientRest.analysePath(any())).thenReturn(
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW));
         List<FormatIdentifierResponse> result = siegfried.analysePath(FILE_PATH);
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -148,14 +145,16 @@ public class FormatIdentifierSiegfriedTest {
     @Test(expected = FileFormatNotFoundException.class)
     public void testSiegfriedIdentifyNoFormatFile() throws Exception {
         reset(siegfriedClientRest);
-        when(siegfriedClientRest.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN));
+        when(siegfriedClientRest.analysePath(any())).thenReturn(
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN));
         siegfried.analysePath(FILE_PATH);
     }
 
     @Test(expected = FormatIdentifierBadRequestException.class)
     public void testSiegfriedIdentifyBadPath() throws Exception {
         reset(siegfriedClientRest);
-        when(siegfriedClientRest.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD));
+        when(siegfriedClientRest.analysePath(any())).thenReturn(
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD));
         siegfried.analysePath(FILE_PATH);
     }
 

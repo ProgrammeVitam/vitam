@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -60,7 +59,6 @@ import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 
 import javax.ws.rs.core.Response;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -117,13 +115,14 @@ public class EvidenceAuditPrepare extends ActionHandler {
         Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
             String name = operationId + ".jsonl";
-            response = client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), name, DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+            response = client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), name, DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog());
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             int skip = 3; // skip the three first lines of the report ( report head, report summary and report context)
             while (reader.ready()) {
-                if(skip != 0) {
+                if (skip != 0) {
                     reader.readLine();
                     skip--;
                     continue;
@@ -175,7 +174,8 @@ public class EvidenceAuditPrepare extends ActionHandler {
                     } catch (Exception e) {
                         throw new IllegalStateException(e);
                     }
-                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit());
 
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {

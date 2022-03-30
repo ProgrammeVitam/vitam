@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
@@ -40,6 +35,11 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class ReadWriteTask implements Future<ReadWriteResult> {
 
@@ -58,7 +58,8 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
             );
         } else {
             readWriteTask =
-                new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService, readRequestReferentialRepository,
+                new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,
+                    readRequestReferentialRepository,
                     archiveOutputRetentionPolicy);
         }
     }

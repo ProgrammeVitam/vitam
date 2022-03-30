@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,8 @@ public class CompactedOfferLog {
     public CompactedOfferLog() {
     }
 
-    public CompactedOfferLog(long sequenceStart, long sequenceEnd, LocalDateTime compactionDateTime, String container, List<OfferLog> logs) {
+    public CompactedOfferLog(long sequenceStart, long sequenceEnd, LocalDateTime compactionDateTime, String container,
+        List<OfferLog> logs) {
         this.sequenceStart = sequenceStart;
         this.sequenceEnd = sequenceEnd;
         this.compactionDateTime = Objects.requireNonNull(compactionDateTime);

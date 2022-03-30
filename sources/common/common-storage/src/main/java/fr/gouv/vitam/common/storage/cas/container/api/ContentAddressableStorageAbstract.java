@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,10 +70,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-                algo);
+            algo);
 
         Stopwatch sw = Stopwatch.createStarted();
         try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
@@ -84,7 +84,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageException(e);
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
-                    "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
+                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
@@ -104,6 +104,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * This handle cache already existing container
      * Prevent handling an i/o check container exists
      * Do only memory check if the container is already exists
+     *
      * @param containerName
      * @param exists
      */

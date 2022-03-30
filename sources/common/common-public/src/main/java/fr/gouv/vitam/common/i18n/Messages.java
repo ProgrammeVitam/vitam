@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.common.i18n;
 
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,10 +45,6 @@ import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.ResourceBundle.Control;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Internationalization Messages support

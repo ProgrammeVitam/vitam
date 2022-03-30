@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,8 @@ public class DynamicParserTokens {
 
     public DynamicParserTokens(VitamDescriptionResolver vitamDescriptionResolver, List<OntologyModel> ontologyModels) {
         this.vitamDescriptionResolver = vitamDescriptionResolver;
-        this.ontologyModelsByName = ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, o -> o));
+        this.ontologyModelsByName =
+            ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, o -> o));
     }
 
     public boolean isNotAnalyzed(String name) {

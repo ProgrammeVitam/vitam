@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,8 +46,10 @@ public class WorkerFamilyManagerTest {
     @Test
     public void must_run_tasks() {
         WorkerFamilyManager wfm = new WorkerFamilyManager("familyId", 3);
-        WorkerBean workerBean1 = new WorkerBean("worker1","familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
-        WorkerBean workerBean2 = new WorkerBean("worker2","familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
+        WorkerBean workerBean1 =
+            new WorkerBean("worker1", "familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
+        WorkerBean workerBean2 =
+            new WorkerBean("worker2", "familyId", 1, "active", new WorkerRemoteConfiguration("host", 0));
         workerBean1.setWorkerId("workerId1");
         workerBean2.setWorkerId("workerId2");
         wfm.registerWorker(workerBean1);
@@ -74,7 +76,7 @@ public class WorkerFamilyManagerTest {
             countDownLatch.countDown();
         }, wfm);
         // wait until task 1 and task 2 completed
-        CompletableFuture.allOf(task1,task2).join();
+        CompletableFuture.allOf(task1, task2).join();
 
 
         // wait until task 3 finish

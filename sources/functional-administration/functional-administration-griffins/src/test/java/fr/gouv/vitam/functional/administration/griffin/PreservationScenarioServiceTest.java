@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -849,8 +849,8 @@ public class PreservationScenarioServiceTest {
         assertThatThrownBy(
             () -> preservationScenarioService.importScenarios(
                 getPreservationScenarioModels("preservationScenarios/KO_scenario_unknown_value_formatList.json")))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("List: [TOTO] does not exist in the database.");
-        ;
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("List: [TOTO] does not exist in the database.");
 
     }
 

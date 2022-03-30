@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,8 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
         } else {
             LOGGER.debug(
-                "No need to move (current position=" + tape.getCurrentPosition() + ", target position=" + position + ")");
+                "No need to move (current position=" + tape.getCurrentPosition() + ", target position=" + position +
+                    ")");
         }
     }
 

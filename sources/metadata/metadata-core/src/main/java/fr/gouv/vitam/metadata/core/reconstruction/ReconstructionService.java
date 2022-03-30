@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,12 +45,12 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -144,7 +144,8 @@ public class ReconstructionService {
 
     /**
      * Constructor
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository offsetRepository
      * @param indexManager
      */
@@ -571,7 +572,7 @@ public class ReconstructionService {
         this.vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection())
             .delete(ids, tenant);
         this.vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
-            indexManager.getElasticsearchIndexAliasResolver(collection))
+                indexManager.getElasticsearchIndexAliasResolver(collection))
             .delete(ids, tenant);
     }
 

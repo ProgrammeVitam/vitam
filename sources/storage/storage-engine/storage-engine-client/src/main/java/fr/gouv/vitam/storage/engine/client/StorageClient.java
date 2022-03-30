@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -111,7 +111,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId, BulkObjectStoreRequest bulkObjectStoreRequest)
+    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
@@ -198,22 +199,24 @@ public interface StorageClient extends BasicClient {
     /**
      * Call storage accesslog backup operation.
      *
+     * @param tenants tenants list to backup
      * @return Storage logbook backup response
      * @throws StorageServerClientException
      * @throws InvalidParseOperationException
-     * @param tenants tenants list to backup
      */
-    RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log backup operation.
      *
+     * @param tenants tenants list to backup
      * @return Storage logbook backup response
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
-     * @param tenants tenants list to backup
      */
-    RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log traceability operation.
@@ -223,7 +226,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants)
+        throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage
@@ -250,7 +254,8 @@ public interface StorageClient extends BasicClient {
      * @return informations
      * @throws StorageServerClientException StorageServerClientException
      */
-    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds, Collection<String> objectIds)
+    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
+        Collection<String> offerIds, Collection<String> objectIds)
         throws StorageServerClientException;
 
     /**
@@ -278,7 +283,8 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize,
+    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize,
         List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException;
 
@@ -303,5 +309,5 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      */
     RequestResponse<StorageStrategy> getStorageStrategies() throws StorageServerClientException;
-    
+
 }

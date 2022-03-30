@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,22 @@
  */
 package fr.gouv.vitam.common.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,26 +50,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RequestResponseOKTest {
 
@@ -73,11 +68,11 @@ public class RequestResponseOKTest {
         "{\"httpCode\":400,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
             "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
             "[{\"httpCode\":0,\"code\":\"1\"}]}";
-    
+
     private static final String OK_JSON =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
             "\"$results\":[],\"$facetResults\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
-    
+
     private static final String OK_JSON_FACET =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
             "\"$results\":[],\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
@@ -126,14 +121,14 @@ public class RequestResponseOKTest {
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
-                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],"+
+                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         requestResponseOK.setHits(2, 0, 4, 2);
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":4,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
-                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],"+
+                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         try {

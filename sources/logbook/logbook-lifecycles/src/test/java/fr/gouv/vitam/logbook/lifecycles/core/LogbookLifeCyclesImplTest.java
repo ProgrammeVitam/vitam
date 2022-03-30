@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,8 +34,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -179,7 +179,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateAndCommitLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-                .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
+            .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
@@ -206,7 +206,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateAndCommitOGLCWhenOGLCNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-                .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
+            .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
@@ -224,7 +224,7 @@ public class LogbookLifeCyclesImplTest {
     @Test
     public void givenDeleteOGLCWhenOGLCNotExistsAndPurgeDisabledThenDoNotThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-                .rollbackLogbookLifeCycleObjectGroup(any(), any());
+            .rollbackLogbookLifeCycleObjectGroup(any(), any());
         VitamConfiguration.setPurgeTemporaryLFC(false);
         try {
             logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
@@ -245,28 +245,32 @@ public class LogbookLifeCyclesImplTest {
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenSelectObjectGroupLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).getLogbookLifeCycles(any(), anyBoolean(), any());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+            .getLogbookLifeCycles(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectLifeCycles(null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectObjectGroupLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).getLogbookLifeCycles(any(), anyBoolean(), any());
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+            .getLogbookLifeCycles(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectLifeCycles(null, true, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenSelectUnitLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).getLogbookLifeCycles(any(), anyBoolean(), any());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+            .getLogbookLifeCycles(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectLifeCycles(null, true, LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectUnitLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).getLogbookLifeCycles(any(), anyBoolean(), any());
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+            .getLogbookLifeCycles(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectLifeCycles(null, true, LogbookCollections.LIFECYCLE_UNIT);
     }

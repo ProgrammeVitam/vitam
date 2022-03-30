@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -275,7 +275,7 @@ public class SedaUtils {
      */
     public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params, ItemStatus itemStatus) {
         ParametersChecker.checkNullOrEmptyParameters(params);
-        try(InputStream input = checkExistenceManifest()) {
+        try (InputStream input = checkExistenceManifest()) {
             if (checkMultiManifest()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
             }
@@ -763,7 +763,7 @@ public class SedaUtils {
 
         SedaUtilInfo sedaUtilInfo;
         XMLEventReader reader = null;
-        try(InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
+        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
             IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE)) {
             final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);

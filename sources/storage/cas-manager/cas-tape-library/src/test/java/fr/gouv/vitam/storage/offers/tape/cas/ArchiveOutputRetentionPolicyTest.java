@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.mockito.internal.verification.Times;
 import org.mockito.internal.verification.VerificationModeFactory;
 
 import java.io.IOException;

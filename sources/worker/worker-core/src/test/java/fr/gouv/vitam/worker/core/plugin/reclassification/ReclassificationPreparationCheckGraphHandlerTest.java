@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,7 +107,7 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
 
         String objectId = GUIDFactory.newGUID().toString();
         parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(operationId)
+                .newGUID().getId()).setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
             .setObjectName(objectId).setCurrentStep("StepName");
 

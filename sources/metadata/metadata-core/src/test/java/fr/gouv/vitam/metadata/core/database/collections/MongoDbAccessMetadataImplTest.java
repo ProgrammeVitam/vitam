@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
@@ -195,8 +194,7 @@ public class MongoDbAccessMetadataImplTest {
             .contains(DEFAULT_MONGO5)
             .contains(DEFAULT_MONGO6)
             .contains(DEFAULT_MONGO7)
-            .contains(DEFAULT_MONGO8)
-        ;
+            .contains(DEFAULT_MONGO8);
         assertThat(UNIT.getName()).isEqualTo(PREFIX + "Unit");
         assertThat(OBJECTGROUP.getName()).isEqualTo(PREFIX + "ObjectGroup");
         assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
@@ -216,8 +214,7 @@ public class MongoDbAccessMetadataImplTest {
             .contains(DEFAULT_MONGO5)
             .contains(DEFAULT_MONGO6)
             .contains(DEFAULT_MONGO7)
-            .contains(DEFAULT_MONGO8)
-        ;
+            .contains(DEFAULT_MONGO8);
     }
 
     @Test
@@ -355,7 +352,7 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     private void initGotsForAccessionRegisterTest(String... files)
-            throws DatabaseException {
+        throws DatabaseException {
         List<Document> objectGroups = Arrays.asList(files).stream()
             .map(file -> {
                 try {

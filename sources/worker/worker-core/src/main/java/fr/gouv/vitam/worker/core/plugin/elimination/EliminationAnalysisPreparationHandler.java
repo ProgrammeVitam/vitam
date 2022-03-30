@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -173,7 +173,8 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         }
     }
 
-    private LocalDate getExpirationDate(EliminationRequestBody eliminationRequestBody) throws ProcessingStatusException {
+    private LocalDate getExpirationDate(EliminationRequestBody eliminationRequestBody)
+        throws ProcessingStatusException {
         LocalDate expirationDate;
         try {
             expirationDate = LocalDate.parse(eliminationRequestBody.getDate());

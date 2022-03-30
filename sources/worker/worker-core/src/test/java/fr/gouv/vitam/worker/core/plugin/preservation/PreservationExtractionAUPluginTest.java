@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 public class PreservationExtractionAUPluginTest {
     private final TestWorkerParameter parameter = workerParameterBuilder()
@@ -80,7 +79,8 @@ public class PreservationExtractionAUPluginTest {
         .build();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -102,12 +102,15 @@ public class PreservationExtractionAUPluginTest {
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
 
-        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg",
-            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "test", "unitId", "TEST_ID", true, 45,
-            "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId",
-            "griffinIdentifier", Collections.singleton("key"));
+        PreservationDistributionLine preservationDistributionLine =
+            new PreservationDistributionLine("fmt/43", "photo.jpg",
+                Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "test", "unitId",
+                "TEST_ID", true, 45,
+                "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId",
+                "griffinIdentifier", Collections.singleton("key"));
         parameter.setObjectNameList(Collections.singletonList("gotId"));
-        parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
+        parameter.setObjectMetadataList(
+            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
@@ -127,7 +130,8 @@ public class PreservationExtractionAUPluginTest {
         output.setOutputName("outputName");
         output.setExtractedMetadataAU(extractedMetadataForAu);
         List<WorkflowBatchResult.OutputExtra> outputExtras = Arrays.asList(WorkflowBatchResult.OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -150,8 +154,10 @@ public class PreservationExtractionAUPluginTest {
         output.setAction(ActionTypePreservation.IDENTIFY);
         output.setOutputName("outputName");
         output.setExtractedMetadataAU(extractedMetadataForAu);
-        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
+        List<WorkflowBatchResult.OutputExtra> outputExtras =
+            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -174,8 +180,10 @@ public class PreservationExtractionAUPluginTest {
         output.setAction(ActionTypePreservation.EXTRACT_AU);
         output.setOutputName("outputName");
         output.setExtractedMetadataAU(extractedMetadataForAu);
-        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
+        List<WorkflowBatchResult.OutputExtra> outputExtras =
+            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -202,8 +210,10 @@ public class PreservationExtractionAUPluginTest {
         output.setAction(ActionTypePreservation.EXTRACT_AU);
         output.setOutputName("outputName");
         output.setExtractedMetadataAU(extractedMetadataForAu);
-        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
+        List<WorkflowBatchResult.OutputExtra> outputExtras =
+            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
         doNothing().when(batchReportClient).storeExtractedMetadataForAu(listArgumentCaptor.capture());
@@ -213,6 +223,7 @@ public class PreservationExtractionAUPluginTest {
 
         // Then
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
-        assertThat(listArgumentCaptor.getValue()).extracting(ExtractedMetadata::getMetadata).containsExactly(Map.of("key", Collections.singletonList("value")));
+        assertThat(listArgumentCaptor.getValue()).extracting(ExtractedMetadata::getMetadata)
+            .containsExactly(Map.of("key", Collections.singletonList("value")));
     }
 }

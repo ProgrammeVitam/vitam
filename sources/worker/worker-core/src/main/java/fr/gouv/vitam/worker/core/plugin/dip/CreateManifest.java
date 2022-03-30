@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -250,15 +250,16 @@ public class CreateManifest extends ActionHandler {
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-                scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
-                    query -> {
-                        try {
-                            JsonNode node = client.selectUnits(query.getFinalSelect());
-                            return RequestResponseOK.getFromJsonNode(node);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
+            scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
+                query -> {
+                    try {
+                        JsonNode node = client.selectUnits(query.getFinalSelect());
+                        return RequestResponseOK.getFromJsonNode(node);
+                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit());
 
             manifestBuilder.startDescriptiveMetadata();
             StreamSupport.stream(scrollRequest, false)
@@ -268,8 +269,8 @@ public class CreateManifest extends ActionHandler {
                             manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                             List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
-                            TransferStatus status = opts.isEmpty()?
-                                TransferStatus.OK:
+                            TransferStatus status = opts.isEmpty() ?
+                                TransferStatus.OK :
                                 TransferStatus.ALREADY_IN_TRANSFER;
                             opts.add(param.getContainerName());
                             ObjectNode updateMultiQuery = getUpdateQuery(opts);
@@ -338,7 +339,8 @@ public class CreateManifest extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                handlerIO.transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile, null, false);
+                handlerIO.transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile,
+                    null, false);
             }
 
         } catch (ExportException e) {

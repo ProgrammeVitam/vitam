@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -97,7 +97,8 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             MetadataType metadataType = MetadataType.valueOf(objectIdToAudit.get(METADA_TYPE).textValue());
 
             List<StorageStrategy> storageStrategies = loadStorageStrategies(handlerIO);
-            EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType, storageStrategies);
+            EvidenceAuditParameters parameters =
+                evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType, storageStrategies);
 
             File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId + ".tmp");
             JsonHandler.writeAsFile(parameters, newLocalFile);
@@ -105,15 +106,17 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId,
                 newLocalFile, true, false);
 
-            if ( parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL) ) {
+            if (parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL)) {
                 itemStatus.increment(StatusCode.FATAL);
                 ObjectNode infoNode = JsonHandler.createObjectNode();
-                infoNode.put("Message", "Fatal Technical error "+ parameters.getAuditMessage());
+                infoNode.put("Message", "Fatal Technical error " + parameters.getAuditMessage());
                 itemStatus.setEvDetailData(unprettyPrint(infoNode));
                 evidenceAuditReportService.cleanupReport(param.getContainerName());
-                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE,
+                    itemStatus);
             }
-            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) || parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
+            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) ||
+                parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
 
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
@@ -123,9 +126,9 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, true, false);
-                if(!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
-                addReportEntry(param.getContainerName(),
-                    createEvidenceReportEntry(parameters, evidenceAuditReportLine));
+                if (!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
+                    addReportEntry(param.getContainerName(),
+                        createEvidenceReportEntry(parameters, evidenceAuditReportLine));
             }
 
             itemStatus.increment(StatusCode.OK);
@@ -186,8 +189,9 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
-            });
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK),
+                new TypeReference<List<StorageStrategy>>() {
+                });
         } catch (InvalidParseOperationException e) {
             throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }

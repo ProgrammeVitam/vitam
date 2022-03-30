@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,15 +28,15 @@ package fr.gouv.vitam.common.model.ingest;
 
 public enum CheckSanityItem {
     CHECK_ANTIVIRUS("antivirusParam", "SANITY_CHECK_SIP"),
-    CHECK_FORMAT("fileFormatParam","CHECK_CONTAINER"),
-    CHECK_FILENAME_MANIFEST("fileNameManifestParam","MANIFEST_FILE_NAME_CHECK"),
-    CHECK_DIGEST_MANIFEST("digestManifestParam","MANIFEST_DIGEST_CHECK");
+    CHECK_FORMAT("fileFormatParam", "CHECK_CONTAINER"),
+    CHECK_FILENAME_MANIFEST("fileNameManifestParam", "MANIFEST_FILE_NAME_CHECK"),
+    CHECK_DIGEST_MANIFEST("digestManifestParam", "MANIFEST_DIGEST_CHECK");
 
     private String itemParam;
     private String itemValue;
 
     CheckSanityItem(String itemParam, String itemValue) {
-        this.itemParam =  itemParam;
+        this.itemParam = itemParam;
         this.itemValue = itemValue;
     }
 

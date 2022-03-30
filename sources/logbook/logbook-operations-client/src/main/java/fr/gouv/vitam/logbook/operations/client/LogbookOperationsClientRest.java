@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -102,11 +102,12 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     @Override
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
-       return selectOperation(select, false, false);
+        return selectOperation(select, false, false);
     }
 
     @Override
-    public JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException {
         VitamRequestBuilder request = get().withPath(OPERATIONS_URL).withBody(select).withJson();
         if (isSliced) {
             request.withHeader(X_SLICED_OPERATIONS, true);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,8 @@ public class BsonHelper {
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         // Replace objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
-        objectMapper.configOverride(Map.class).setIncludeAsProperty(JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS));
+        objectMapper.configOverride(Map.class)
+            .setIncludeAsProperty(JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS));
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS); // Serialize all fields
         objectMapper.disable(SerializationFeature.INDENT_OUTPUT); // Unpretty print
 

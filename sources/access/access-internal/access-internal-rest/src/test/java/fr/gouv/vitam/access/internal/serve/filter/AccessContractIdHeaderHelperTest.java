@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -66,7 +66,8 @@ public class AccessContractIdHeaderHelperTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-    private static final  AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory =
+        mock(AdminManagementClientFactory.class);
 
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "CONTRACT_ID";
@@ -74,9 +75,9 @@ public class AccessContractIdHeaderHelperTest {
 
     @Before
     public void setUp() {
-       reset(adminManagementClient);
-       reset(adminManagementClientFactory);
-       when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        reset(adminManagementClient);
+        reset(adminManagementClientFactory);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
     }
 
     @Test

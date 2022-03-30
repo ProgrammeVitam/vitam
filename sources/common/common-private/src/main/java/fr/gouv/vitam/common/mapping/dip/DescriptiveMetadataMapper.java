@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,14 +65,14 @@ public class DescriptiveMetadataMapper {
     /**
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
      *
-     *
      * @param metadataModel
      * @param historyListModel
      * @return a descriptive Metadata Content Type
      * @throws DatatypeConfigurationException
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel, List<ArchiveUnitHistoryModel> historyListModel)
-            throws DatatypeConfigurationException {
+    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel,
+        List<ArchiveUnitHistoryModel> historyListModel)
+        throws DatatypeConfigurationException {
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
@@ -104,7 +104,7 @@ public class DescriptiveMetadataMapper {
         dmc.setOriginatingAgency(metadataModel.getOriginatingAgency());
 
 
-        if (metadataModel.getFilePlanPosition() != null && !metadataModel.getFilePlanPosition().isEmpty()){
+        if (metadataModel.getFilePlanPosition() != null && !metadataModel.getFilePlanPosition().isEmpty()) {
             dmc.getFilePlanPosition().addAll(metadataModel.getFilePlanPosition());
         }
 
@@ -112,19 +112,23 @@ public class DescriptiveMetadataMapper {
             dmc.getSystemId().addAll(metadataModel.getSystemId());
         }
 
-        if ( metadataModel.getOriginatingSystemId() != null && !metadataModel.getOriginatingSystemId().isEmpty()) {
+        if (metadataModel.getOriginatingSystemId() != null && !metadataModel.getOriginatingSystemId().isEmpty()) {
             dmc.getOriginatingSystemId().addAll(metadataModel.getOriginatingSystemId());
         }
 
-        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null && !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()){
+        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()) {
             dmc.getArchivalAgencyArchiveUnitIdentifier().addAll(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null && !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
-            dmc.getOriginatingAgencyArchiveUnitIdentifier().addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
+        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
+            dmc.getOriginatingAgencyArchiveUnitIdentifier()
+                .addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null && !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty() ){
+        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty()) {
             dmc.getTransferringAgencyArchiveUnitIdentifier().addAll(
                 metadataModel.getTransferringAgencyArchiveUnitIdentifier());
         }
@@ -133,7 +137,7 @@ public class DescriptiveMetadataMapper {
             dmc.getLanguage().addAll(metadataModel.getLanguage());
         }
 
-        if(metadataModel.getAuthorizedAgent() != null && !metadataModel.getAuthorizedAgent().isEmpty()){
+        if (metadataModel.getAuthorizedAgent() != null && !metadataModel.getAuthorizedAgent().isEmpty()) {
             dmc.getAuthorizedAgent().addAll(metadataModel.getAuthorizedAgent());
         }
 
@@ -150,7 +154,7 @@ public class DescriptiveMetadataMapper {
         if (metadataModel.getKeyword() != null && !metadataModel.getKeyword().isEmpty()) {
             dmc.getKeyword().addAll(metadataModel.getKeyword());
         }
-        
+
         dmc.setReceivedDate(metadataModel.getReceivedDate());
         dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setRelatedObjectReference(metadataModel.getRelatedObjectReference());
@@ -196,12 +200,12 @@ public class DescriptiveMetadataMapper {
 
     private SignatureType mapSignature(SignatureTypeModel signatureType) {
         SignatureType result = new SignatureType();
-        if(signatureType.getSigner() != null) {
+        if (signatureType.getSigner() != null) {
             result.getSigner().addAll(signatureType.getSigner());
         }
         result.setValidator(signatureType.getValidator());
         result.setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()));
-            // Not supported in R11
+        // Not supported in R11
         result.setMasterdata(signatureType.getMasterdata());
         return result;
     }
@@ -246,8 +250,9 @@ public class DescriptiveMetadataMapper {
         return eventType;
     }
 
-    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel, List<ManagementHistoryType> managementHistoryType)
-            throws DatatypeConfigurationException {
+    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel,
+        List<ManagementHistoryType> managementHistoryType)
+        throws DatatypeConfigurationException {
 
         for (ArchiveUnitHistoryModel historyModel : archiveUnitHistoryModel) {
 
@@ -264,7 +269,8 @@ public class DescriptiveMetadataMapper {
         }
     }
 
-    private Optional<XMLGregorianCalendar> stringToXMLGregorianCalendar(String date) throws DatatypeConfigurationException {
+    private Optional<XMLGregorianCalendar> stringToXMLGregorianCalendar(String date)
+        throws DatatypeConfigurationException {
         if (ParametersChecker.isNotEmpty(date)) {
             return Optional.of(newInstance().newXMLGregorianCalendar(date));
         } else {

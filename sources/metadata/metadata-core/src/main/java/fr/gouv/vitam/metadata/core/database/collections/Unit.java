@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -121,7 +121,6 @@ public class Unit extends MetadataDocument<Unit> {
 
 
 
-
     @SuppressWarnings("javadoc")
     static final String STORAGERULES = STORAGERULE + RULE;
     @SuppressWarnings("javadoc")
@@ -135,7 +134,7 @@ public class Unit extends MetadataDocument<Unit> {
     @SuppressWarnings("javadoc")
     static final String ACCESSEND = ACCESSRULE + END;
     @SuppressWarnings("javadoc")
-     static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
+    static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
     @SuppressWarnings("javadoc")
     static final String DISSEMINATIONEND = DISSEMINATIONRULE + END;
     @SuppressWarnings("javadoc")

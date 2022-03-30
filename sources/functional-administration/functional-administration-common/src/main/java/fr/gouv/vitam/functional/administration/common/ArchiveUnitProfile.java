@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,13 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
+import org.bson.Document;
 
 /**
  * Defines an archive unit Profile collection. </BR>
- *
  */
 public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
@@ -115,7 +112,6 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public ArchiveUnitProfile(Integer tenantId) {
@@ -139,7 +135,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * The profile id
-     * 
+     *
      * @return the id of the profile
      */
     public String getIdentifier() {
@@ -148,7 +144,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Set or change the profile id, the identifier must be unique by tenant
-     * 
+     *
      * @param identifier
      * @return this
      */
@@ -159,7 +155,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Name of the profile
-     * 
+     *
      * @return name of profile
      */
     public String getName() {
@@ -168,7 +164,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Set or change the profile name
-     * 
+     *
      * @param name to set
      * @return this
      */
@@ -179,7 +175,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Get the profile description
-     * 
+     *
      * @return this
      */
     public String getDescription() {
@@ -188,7 +184,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Set or change the profile description
-     * 
+     *
      * @param description to set to contact
      * @return this
      */
@@ -200,7 +196,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Get the profile status If toJson called without MongoClient configuration this will thow codec exception
-     * 
+     *
      * @return status of ingest contact
      */
     public ProfileStatus getStatus() {
@@ -209,7 +205,7 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
 
     /**
      * Set or change the profile status
-     * 
+     *
      * @param status to set
      * @return this
      */
@@ -298,8 +294,6 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         append(CONTROLSCHEMA, ControlSchema);
         return this;
     }
-
-
 
 
 

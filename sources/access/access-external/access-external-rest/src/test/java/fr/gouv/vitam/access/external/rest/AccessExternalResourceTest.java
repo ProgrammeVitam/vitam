@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -78,7 +78,6 @@ import org.junit.rules.ExpectedException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,18 +121,18 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$filter\": {} }";
     private static final String ELIMINATION_QUERY =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
-    
-    
-    
+
+
+
     private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"queries\" : [ { "
-            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
-            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
+        + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+        + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+
     private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"queries\" : [ { "
-            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
-            + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
-            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
+        + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+        + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
+        + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
@@ -258,7 +257,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         junitHelper.releasePort(port);
-        if(application != null) {
+        if (application != null) {
             application.stop();
         }
         VitamClientFactory.resetConnections();
@@ -440,8 +439,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void given_pathWithId_when_get_SelectByID()
-            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, InvalidCreateOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException,
+        InvalidCreateOperationException {
 
 
         SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
@@ -1218,47 +1218,47 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .thenReturn(new RequestResponseOK().addResult(result));
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
         when(accessInternalClient.selectUnits(any()))
-                .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+            .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1313,7 +1313,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
@@ -1328,7 +1328,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
@@ -1503,20 +1503,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST_SINGLE)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1565,20 +1565,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(JsonHandler.getFromString(objectnode))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1587,8 +1587,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testErrorsGetObjects()
-            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
@@ -1604,13 +1604,13 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -2024,10 +2024,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_OK() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenReturn(new RequestResponseOK().setHttpCode(202));
         given()
@@ -2040,26 +2040,26 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_Unauthorized() throws Exception {
-        
-       when(accessInternalClient.bulkAtomicUpdateUnits(any()))
-           .thenThrow(AccessUnauthorizedException.class);
-       given()
-           .contentType(ContentType.JSON)
-           .accept(ContentType.JSON)
-           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
-           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-           .when()
-           .post("/units/bulk")
-           .then()
-           .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+            .thenThrow(AccessUnauthorizedException.class);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_InternalServerError() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(AccessInternalClientServerException.class);
         given()
@@ -2097,17 +2097,17 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .post("/units/bulk")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(InvalidParseOperationException.class);
-       given()
-           .contentType(ContentType.JSON)
-           .accept(ContentType.JSON)
-           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
-           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-           .when()
-           .post("/units/bulk")
-           .then()
-           .statusCode(Status.BAD_REQUEST.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 }

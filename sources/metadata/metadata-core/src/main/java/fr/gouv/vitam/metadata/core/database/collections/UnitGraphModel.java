@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,8 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -35,8 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 
 /**
  * unit graph model.
@@ -62,7 +62,6 @@ public class UnitGraphModel {
     private Set<String> graph = new HashSet<>();
 
     /**
-     *
      * @param id unit id of unit
      * @param originatingAgency originating agency of unit
      */
@@ -75,7 +74,6 @@ public class UnitGraphModel {
     }
 
     /**
-     *
      * @param unit
      */
     public UnitGraphModel(Unit unit) {

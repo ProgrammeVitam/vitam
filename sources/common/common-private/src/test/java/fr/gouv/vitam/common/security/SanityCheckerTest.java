@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,19 @@
  */
 package fr.gouv.vitam.common.security;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Before;
+import org.junit.Test;
 
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,21 +48,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class SanityCheckerTest {
 
@@ -163,7 +160,8 @@ public class SanityCheckerTest {
             try {
                 SanityChecker.checkJsonAll(json);
                 fail("Should failed with an exception");
-            } catch (final InvalidParseOperationException e) {}
+            } catch (final InvalidParseOperationException e) {
+            }
             SanityChecker.setLimitJsonSize(10000);
             SanityChecker.checkJsonAll(json);
             SanityChecker.checkJsonAll(json.toString());

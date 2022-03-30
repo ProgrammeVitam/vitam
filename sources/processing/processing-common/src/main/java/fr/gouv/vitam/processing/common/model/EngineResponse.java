@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,32 +32,27 @@ import java.util.Map;
 
 /**
  * Model of Response from worker
- *
  */
 
 public interface EngineResponse {
 
     /**
-     *
      * @return Enum StatusCode {OK,KO,FATAL}
      */
     StatusCode getStatus();
 
     /**
-     *
      * @return StatusCode value {OK,KO,FATAL}
      */
     String getValue();
 
     /**
-     *
      * @param status ENUM statusCode
      * @return EngineResponse
      */
     EngineResponse setStatus(StatusCode status);
 
     /**
-     *
      * @return list of functional error message
      */
     Map<String, OutcomeMessage> getOutcomeMessages();
@@ -70,7 +65,6 @@ public interface EngineResponse {
     EngineResponse setOutcomeMessages(String handlerId, OutcomeMessage messages);
 
     /**
-     *
      * @return list of functional error message
      */
     int getErrorNumber();
@@ -82,13 +76,11 @@ public interface EngineResponse {
     EngineResponse setErrorNumber(int number);
 
     /**
-     *
      * @return message identifier of seda
      */
     String getMessageIdentifier();
 
     /**
-     *
      * @param message identifier of seda
      * @return EngineResponse
      */

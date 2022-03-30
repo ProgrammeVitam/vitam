@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -555,7 +555,6 @@ public class DbRequestTest {
             assertEquals(2L, result.getNbResult());
             final List<MetadataDocument<?>> docs = result.getFinal();
             LOGGER.debug("result1 title: {}", docs.get(0).get(TITLE));
-            ;
             assertTrue(docs.get(0).getString(TITLE).contains("Fake"));
             LOGGER.debug("result2 title: {}", docs.get(1).get(TITLE));
 
@@ -1430,8 +1429,8 @@ public class DbRequestTest {
     private JsonNode clientRichUpdateBuild(GUID uuid) throws InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
-            unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
-            add(ARRAY2_VAR, "val2"))
+                unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
+                add(ARRAY2_VAR, "val2"))
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
         return update.getFinalUpdate();
@@ -2401,7 +2400,6 @@ public class DbRequestTest {
             // SELECT
             JsonNode selectRequest =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("select_request_with_nested.json"));
-            ;
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
                 RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);

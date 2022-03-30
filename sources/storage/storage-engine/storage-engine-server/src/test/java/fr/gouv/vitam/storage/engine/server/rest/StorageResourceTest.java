@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -739,7 +738,7 @@ public class StorageResourceTest {
     @Test
     public void getContainerInformationIllegalArgument() {
         given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
-            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_BAD_REQUEST).when().head().then()
+                VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_BAD_REQUEST).when().head().then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -788,7 +787,7 @@ public class StorageResourceTest {
     public void backupOperationPreconditionFailed() {
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id")
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -801,9 +800,9 @@ public class StorageResourceTest {
         objectDescription.setWorkspaceContainerGUID("fake");
 
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).header(VitamHttpHeader.STRATEGY_ID.getName(),
-            VitamConfiguration.getDefaultStrategy()).accept(MediaType.APPLICATION_JSON)
+                VitamConfiguration.getDefaultStrategy()).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).body(objectDescription).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id")
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 

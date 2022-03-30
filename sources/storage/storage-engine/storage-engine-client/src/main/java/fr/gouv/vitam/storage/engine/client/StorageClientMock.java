@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -121,7 +120,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         }
     }
 
-    @Override public List<String> getOffers(String strategyId)
+    @Override
+    public List<String> getOffers(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
 
         ArrayList<String> array = new ArrayList<>();
@@ -147,6 +147,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         throws StorageServerClientException {
         return true;
     }
+
     @Override
     public boolean delete(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
@@ -238,7 +239,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds, boolean noCache)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds,
+        boolean noCache)
         throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
@@ -254,21 +256,23 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds,
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId,
+        DataCategory type, Collection<String> offerIds,
         Collection<String> objectIds) {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
     public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
         String destination, String strategyId) throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
-    @Override public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+    @Override
+    public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override

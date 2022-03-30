@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -354,6 +354,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
         return Optional.empty();
     }
+
     private Optional<JsonNode> checkRuleActionFormat(Map.Entry<String, RuleCategoryAction> entry,
         RuleAction ruleAction) {
         // Check field formats
@@ -530,7 +531,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldOwner()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldReason()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate()) &
-            !Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement());
+                !Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement());
     }
 
     private Optional<JsonNode> reportUnexpectedField(Map.Entry<String, RuleCategoryAction> entry, String fieldName) {

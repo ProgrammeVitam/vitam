@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,12 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -49,10 +39,17 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Select to MongoDb
- *
  */
 public class SelectToMongodb extends RequestToMongodb {
     private static final String UNSUPPORTED_PROJECTION = "Unsupported DSL projection node: '%s'";
@@ -98,7 +95,6 @@ public class SelectToMongodb extends RequestToMongodb {
     }
 
     /**
-     * 
      * @return True if #id was in the primary projection or empty projection
      */
     public boolean idWasInProjection() {
@@ -107,7 +103,7 @@ public class SelectToMongodb extends RequestToMongodb {
         }
         final JsonNode node = requestParser.getRequest().getProjection()
             .get(PROJECTION.FIELDS.exactToken());
-        if (! node.fieldNames().hasNext()) {
+        if (!node.fieldNames().hasNext()) {
             return true;
         }
         JsonNode value = node.get(VitamDocument.ID);
@@ -123,9 +119,8 @@ public class SelectToMongodb extends RequestToMongodb {
         }
         return true;
     }
-    
+
     /**
-     * 
      * @return True if the score is included, or false if explicitly excluded
      */
     public boolean isScoreIncluded() {

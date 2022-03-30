@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -81,11 +81,13 @@ public class OntologyStep {
     }
 
     @When("^j'importe l'ontologie en mode forcé$")
-    public void forceImportOntology() throws InvalidParseOperationException, AccessExternalClientException, IOException {
+    public void forceImportOntology()
+        throws InvalidParseOperationException, AccessExternalClientException, IOException {
         importOntology(true);
     }
 
-    private void importOntology(boolean forceUpdate) throws IOException, InvalidParseOperationException, AccessExternalClientException {
+    private void importOntology(boolean forceUpdate)
+        throws IOException, InvalidParseOperationException, AccessExternalClientException {
         try (InputStream inputStream = Files.newInputStream(fileName, StandardOpenOption.READ)) {
 
             VitamContext vitamContext = new VitamContext(world.getTenantId());
@@ -110,14 +112,14 @@ public class OntologyStep {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         RequestResponse requestResponse =
-            world.getAdminClient().findOntologyById(vitamContext,identifer);
+            world.getAdminClient().findOntologyById(vitamContext, identifer);
         assertThat(requestResponse.isOk()).isTrue();
 
         ontologyModel = (OntologyModel) ((RequestResponseOK) requestResponse).getFirstResult();
     }
 
     @Then("^le type du vocabulaire est (.*)$")
-    public void ontology_type_is(String type){
+    public void ontology_type_is(String type) {
         assertThat(ontologyModel.getType().name()).isEqualTo(type);
 
     }

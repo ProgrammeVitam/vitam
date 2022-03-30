@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,9 @@
  */
 package fr.gouv.vitam.metadata.core.utils;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -40,6 +36,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * The purpose of this class is to centralize the generation of a metadata json response
@@ -60,11 +59,11 @@ public final class MetadataJsonResponseUtils {
      * create Json response
      *
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
-     *        can be empty
+     * can be empty
      * @param selectRequest the select request of type RequestParserMultiple
      * @return ArrayNode {$hits{},$context{},$result:[{}....{}],} <br>
-     *         $context will be added later (Access)</br>
-     *         $result array of units or ObjectGroup (can be empty)
+     * $context will be added later (Access)</br>
+     * $result array of units or ObjectGroup (can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
      */
     public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
@@ -92,11 +91,11 @@ public final class MetadataJsonResponseUtils {
      * create Json response with diff information
      *
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
-     *        can be empty
+     * can be empty
      * @param diff the diff map list with the unit id as key and the diff list as value
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
-     *         $context will be added later (Access)</br>
-     *         $result array of units or ObjectGroup (can be empty)
+     * $context will be added later (Access)</br>
+     * $result array of units or ObjectGroup (can be empty)
      */
     public static ArrayNode populateJSONObjectResponse(Result result,
         Map<String, List<String>> diff) {

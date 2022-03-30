@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -218,7 +218,8 @@ public class ComputeInheritedRulesActionPluginTest {
     private ComputedInheritedRules getComputedInheritedRules(JsonNode expectedJson)
         throws InvalidParseOperationException {
         return JsonHandler
-            .getFromJsonNode(expectedJson.get("$action").get(0).get("$set").get("#computedInheritedRules"), ComputedInheritedRules.class);
+            .getFromJsonNode(expectedJson.get("$action").get(0).get("$set").get("#computedInheritedRules"),
+                ComputedInheritedRules.class);
     }
 
     @Test
@@ -263,23 +264,29 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
         JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
         ComputedInheritedRules computedInheritedRules = getComputedInheritedRules(updatedUnit);
-        assertThat(computedInheritedRules.getNeedAuthorization()).isEqualTo(expectedComputedInheritedRules.getNeedAuthorization());
+        assertThat(computedInheritedRules.getNeedAuthorization()).isEqualTo(
+            expectedComputedInheritedRules.getNeedAuthorization());
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
-        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException,
+        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
+        MetaDataExecutionException,
         MetaDataNotFoundException {
         given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        when(metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(null);
+        when(
+            metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(
+            null);
         return objectNodeArgumentCaptor;
     }
 
     private JsonNode getJsonNodeResponse() throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
+        return JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
     }
 
     private JsonNode getExpectedJsonNode() throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
+        return JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
     }
 }

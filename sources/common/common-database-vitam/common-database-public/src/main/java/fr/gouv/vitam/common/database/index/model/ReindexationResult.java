@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.database.index.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * IndexationResult pojo
@@ -74,7 +74,7 @@ public class ReindexationResult {
     }
 
     public ReindexationResult addIndexOK(ReindexationOK reindexationOK) {
-        if(this.OK == null) {
+        if (this.OK == null) {
             this.OK = new ArrayList<>();
         }
         this.OK.add(reindexationOK);
@@ -82,7 +82,7 @@ public class ReindexationResult {
     }
 
     public ReindexationResult addIndexKO(ReindexationKO reindexationKO) {
-        if(this.KO == null) {
+        if (this.KO == null) {
             this.KO = new ArrayList<>();
         }
         this.KO.add(reindexationKO);

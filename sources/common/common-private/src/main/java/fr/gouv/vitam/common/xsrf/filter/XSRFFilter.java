@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,8 @@ import java.util.Map;
 public class XSRFFilter implements Filter {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(XSRFFilter.class);
 
-    private static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED = "CSRF state token does not match one provided";
+    private static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED =
+        "CSRF state token does not match one provided";
     private static Map<String, String> tokenMap = new HashMap<>();
 
     @Override

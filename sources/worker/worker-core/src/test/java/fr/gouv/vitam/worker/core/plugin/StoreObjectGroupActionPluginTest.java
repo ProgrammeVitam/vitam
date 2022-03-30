@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -64,7 +64,6 @@ import org.mockito.ArgumentMatchers;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -77,8 +76,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -144,7 +143,7 @@ public class StoreObjectGroupActionPluginTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-        
+
         action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, CONTAINER_NAME, "workerId",
             com.google.common.collect.Lists.newArrayList());
 
@@ -162,7 +161,7 @@ public class StoreObjectGroupActionPluginTest {
     public void givenWorkspaceErrorWhenExecuteThenReturnResponseFATAL() throws Exception {
         final WorkerParameters paramsObjectGroups =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
@@ -185,7 +184,7 @@ public class StoreObjectGroupActionPluginTest {
         throws Exception {
         final WorkerParameters paramsObjectGroups =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
@@ -194,13 +193,13 @@ public class StoreObjectGroupActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         doReturn(getStorageResult("aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
-                "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"))
-                .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
+            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"))
+            .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
 
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
-        
-        
+
+
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
@@ -213,7 +212,7 @@ public class StoreObjectGroupActionPluginTest {
         throws Exception {
         final WorkerParameters paramsObjectGroups =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID_2 + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID_2 + ".json").setCurrentStep("Store ObjectGroup");
@@ -222,21 +221,23 @@ public class StoreObjectGroupActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
 
         doReturn(getStorageResult("aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq",
-                "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"))
-                .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
-        
+            "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"))
+            .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
+
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
         saveWorkspacePutObject();
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
-        
+
         ArgumentCaptor<String> fileNameArgumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"), any(InputStream.class));
-        verify(workspaceClient, atLeastOnce()).putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"),
+            any(InputStream.class));
+        verify(workspaceClient, atLeastOnce()).putObject(anyString(), fileNameArgumentCaptor.capture(),
+            any(InputStream.class));
         String gotFilename = fileNameArgumentCaptor.getAllValues().stream()
-                .filter(str -> str.startsWith("ObjectGroup/"))
-                .findFirst().get();
+            .filter(str -> str.startsWith("ObjectGroup/"))
+            .findFirst().get();
         JsonNode gotJson = getSavedWorkspaceObject(gotFilename);
         assertNotNull(gotJson);
         final JsonPointer storagePointer = JsonPointer.compile("/_qualifiers/1/versions/0/_storage");
@@ -245,7 +246,7 @@ public class StoreObjectGroupActionPluginTest {
         assertTrue(gotJson.at(storagePointer).isObject());
         assertEquals("default", gotJson.at(storageStrategyPointer).asText());
         assertTrue(gotJson.at(storageOfferIdPointer).isMissingNode());
-        
+
     }
 
     private BulkObjectStoreResponse getStorageResult(String objectId, String objectDigest) {
@@ -256,7 +257,7 @@ public class StoreObjectGroupActionPluginTest {
         storedInfoResult.setObjectDigests(objectDigests);
         return storedInfoResult;
     }
-    
+
     private void saveWorkspacePutObject() throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             String filename = invocation.getArgument(1);
@@ -267,7 +268,7 @@ public class StoreObjectGroupActionPluginTest {
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
     }
-    
+
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
         Path filePath = Paths.get(folder.getRoot().getAbsolutePath(), filename);
         return JsonHandler.getFromFile(filePath.toFile());

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Object to build the graph of unit
+ *
  * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitRuleCompute extends UnitNode {
@@ -39,7 +40,7 @@ public class UnitRuleCompute extends UnitNode {
 
     /**
      * constructor with UnitSimplified
-     * 
+     *
      * @param u UnitSimplified
      */
     public UnitRuleCompute(UnitSimplified u) {
@@ -49,7 +50,7 @@ public class UnitRuleCompute extends UnitNode {
 
     /**
      * constructor with UnitNode
-     * 
+     *
      * @param u UnitNode
      */
     public UnitRuleCompute(UnitNode u) {
@@ -59,7 +60,7 @@ public class UnitRuleCompute extends UnitNode {
 
     /**
      * Compute rule of Unit node
-     * 
+     *
      * @throws InvalidParseOperationException
      */
     public void computeRule() throws InvalidParseOperationException {

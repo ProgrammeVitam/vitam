@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,9 @@
  */
 package fr.gouv.vitam.common.model.processing;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.processing.Action;
-import fr.gouv.vitam.common.model.processing.ActionDefinition;
-import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import static org.junit.Assert.assertEquals;
 
 public class ActionTest {
     private static final String TEST = "test";

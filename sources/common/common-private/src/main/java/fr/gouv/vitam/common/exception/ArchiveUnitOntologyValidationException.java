@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.exception;
 /**
  * Exception to be thrown when archive unit contains fields declared in ontology with wrong usage (string instead of
  * long, etc...)
- * 
  **/
 public class ArchiveUnitOntologyValidationException extends VitamException {
     private static final long serialVersionUID = -944197890309351793L;

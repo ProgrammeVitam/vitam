@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,6 +27,5 @@
 /**
  * Provides core implementation (Workspace based) for the Storage Offer Default
  * module
- *
  */
 package fr.gouv.vitam.storage.offers.core;

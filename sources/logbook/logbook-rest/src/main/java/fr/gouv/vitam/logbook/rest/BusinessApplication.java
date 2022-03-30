@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -86,7 +86,8 @@ public class BusinessApplication extends Application {
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
             );
             // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(configuration, ontologyLoader, indexManager);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess =
+                LogbookMongoDbAccessFactory.create(configuration, ontologyLoader, indexManager);
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 

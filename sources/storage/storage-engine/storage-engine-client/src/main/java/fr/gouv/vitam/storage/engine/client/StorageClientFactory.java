@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.IOException;
-import java.net.URI;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -38,6 +35,9 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * <p>
@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * You can change the type of the client to get. The types are define into the
  * enum {@link StorageClient}. Use the changeDefaultClientType method to
  * change the client type.
- *
  */
 public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientFactory.class);
@@ -112,13 +111,13 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath
-     *            the path to the configuration file
+     * @param configurationPath the path to the configuration file
      */
     static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), ClientConfigurationImpl.class);
+            configuration =
+                PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
@@ -135,8 +134,7 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     /**
      * change mode client by server url For test purpose
      *
-     * @param serviceUrl
-     *            as String
+     * @param serviceUrl as String
      */
     static final void changeMode(String serviceUrl) {
         ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);

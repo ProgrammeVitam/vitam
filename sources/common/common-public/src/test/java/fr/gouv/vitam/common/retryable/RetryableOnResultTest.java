@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,8 @@ public class RetryableOnResultTest {
             return counter.get();
         };
         RetryableParameters parameters = new RetryableParameters(3, 1, 1, 1, MILLISECONDS);
-        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult = new RetryableOnResult<>(parameters, r -> r <= 3);
+        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult =
+            new RetryableOnResult<>(parameters, r -> r <= 3);
 
         // When
         Integer result = retryableOnResult.exec(delegate);
@@ -67,7 +68,8 @@ public class RetryableOnResultTest {
         int nbRetry = 10;
         Predicate<Integer> shouldRetryOnPredicate = r -> r < 3;
         RetryableParameters parameters = new RetryableParameters(nbRetry, 1, 1, 1, MILLISECONDS);
-        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult = new RetryableOnResult<>(parameters, shouldRetryOnPredicate);
+        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult =
+            new RetryableOnResult<>(parameters, shouldRetryOnPredicate);
 
         // When
         Integer nbRetryDone = retryableOnResult.exec(counter::getAndIncrement);

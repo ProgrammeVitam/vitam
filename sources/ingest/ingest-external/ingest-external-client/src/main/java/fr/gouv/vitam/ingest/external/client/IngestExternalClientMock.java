@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,7 +70,8 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     @Override
     public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
         IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
-        return this.ingest(vitamContext, stream, ingestRequestParameters.getContextId(), ingestRequestParameters.getAction());
+        return this.ingest(vitamContext, stream, ingestRequestParameters.getContextId(),
+            ingestRequestParameters.getAction());
     }
 
     @Override
@@ -96,6 +97,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
         IngestRequestParameters ingestRequestParameters)
         throws IngestExternalException {
-        return ingestLocal(vitamContext, localFile, ingestRequestParameters.getContextId(), ingestRequestParameters.getAction());
+        return ingestLocal(vitamContext, localFile, ingestRequestParameters.getContextId(),
+            ingestRequestParameters.getAction());
     }
 }

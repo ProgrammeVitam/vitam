@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,12 +48,11 @@ import java.nio.file.StandardOpenOption;
 
 /**
  * File Utility class
- *
  */
 public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
-    
+
     private static final String FILE_CANT_BE_DELETED = "File could not be deleted: ";
 
     private FileUtil() {
@@ -193,16 +192,15 @@ public final class FileUtil {
      * given filename  and fileExtension strings to generate its name.<BR>
      * Do a Path traversal attack check before creating file
      *
-     * @param  filename     The prefix string to be used in generating the file's
-     *                    name; must be at least three characters long
-     *
-     * @param  fileExtension     The suffix string to be used in generating the file's
-     *                    name; may be <code>null</code>, in which case the
-     *                    suffix <code>".tmp"</code> will be used
+     * @param filename The prefix string to be used in generating the file's
+     * name; must be at least three characters long
+     * @param fileExtension The suffix string to be used in generating the file's
+     * name; may be <code>null</code>, in which case the
+     * suffix <code>".tmp"</code> will be used
      * @return An abstract file representation for  a newly-created empty file
-     * @throws IOException  If a file could not be created
+     * @throws IOException If a file could not be created
      */
-    public static  File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension)
+    public static File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension)
         throws IOException, IllegalPathException {
 
         String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename + fileExtension;
@@ -214,6 +212,7 @@ public final class FileUtil {
 
     /**
      * retrieve the canonical path for a given file pathname
+     *
      * @param pathname
      * @return STring representing the canonical path for pathname file
      * @throws IOException If an I/O errors occurs

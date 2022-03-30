@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Optional;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
@@ -37,6 +33,10 @@ import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 /**
  * manage certificate.

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,8 @@ import java.util.function.Consumer;
 
 public class UnionFormat extends Format {
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         for (Format format : types) {
             format.setReportingType(this);
         }
@@ -48,20 +49,23 @@ public class UnionFormat extends Format {
         this.types = types;
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         for (Format format : types) {
             validator.validate(format, node, fieldReport);
         }
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
         for (Format type : types) {
             type.walk(consumer);
         }
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         StringBuilder builder = new StringBuilder();
         boolean notFirst = false;
         for (Format item : types) {

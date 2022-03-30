@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,15 @@
  */
 package fr.gouv.vitam.common.guid;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 
+import java.util.Arrays;
+
 /**
  * GUID Read only Abstract implementation *
- *
  */
 abstract class GUIDAbstract implements GUID {
     /**
@@ -47,8 +45,7 @@ abstract class GUIDAbstract implements GUID {
     /**
      * real GUID
      */
-    @JsonIgnore
-    final byte[] guid;
+    @JsonIgnore final byte[] guid;
 
     /**
      * Internal constructor

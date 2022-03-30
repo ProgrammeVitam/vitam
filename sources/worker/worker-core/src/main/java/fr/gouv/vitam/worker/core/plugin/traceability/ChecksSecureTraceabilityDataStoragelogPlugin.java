@@ -135,7 +135,7 @@ public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler 
                             traceabilityDataEvent.getFileName(), existsMap.keySet().toString()));
                     updateReport(param, handler, t ->
                         t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()).setError(
-                            TraceabilityError.FILE_NOT_FOUND)
+                                TraceabilityError.FILE_NOT_FOUND)
                             .appendExtraData(
                                 Map.of(FILE_ID, traceabilityDataEvent.getFileName(), OFFERS_HASHES, digests)));
                     return result;
@@ -216,7 +216,8 @@ public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler 
     private Map<String, String> getOfferDigests(StorageClient storageClient,
         String objectGuid,
         String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information = storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, true);
+        JsonNode information =
+            storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, true);
 
         return offerIds.stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))

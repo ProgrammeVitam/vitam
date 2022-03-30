@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +37,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 
 /**
@@ -60,14 +60,14 @@ public final class StringUtils {
     private static final String TAG_START =
         "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)\\>";
     private static final String TAG_END =
-    "\\</\\w+\\>";
+        "\\</\\w+\\>";
     private static final String TAG_SELF_CLOSING =
-    "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
+        "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
     private static final String HTML_ENTITY =
-    "&[a-zA-Z][a-zA-Z0-9]+;";
+        "&[a-zA-Z][a-zA-Z0-9]+;";
     public static final Pattern HTML_PATTERN = Pattern.compile(
-    "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
-    Pattern.DOTALL);
+        "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
+        Pattern.DOTALL);
     // Default ASCII for Param check
     public static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
     public static final List<String> RULES = new ArrayList<>();
@@ -87,19 +87,22 @@ public final class StringUtils {
 
     /**
      * Check external argument to avoid Path Traversal attack
+     *
      * @param value to check
      * @throws InvalidParseOperationException
      */
     public static String checkSanityString(String value) throws InvalidParseOperationException {
-        checkSanityString(new String[]{value});
+        checkSanityString(new String[] {value});
         return value;
     }
+
     /**
      * Check external argument
+     *
      * @param strings
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
-    public static void checkSanityString(String ...strings) throws InvalidParseOperationException {
+    public static void checkSanityString(String... strings) throws InvalidParseOperationException {
         for (String field : strings) {
             if (StringUtils.UNPRINTABLE_PATTERN.matcher(field).find()) {
                 throw new InvalidParseOperationException("Invalid input bytes");
@@ -111,6 +114,7 @@ public final class StringUtils {
             }
         }
     }
+
     /**
      * @param length the length of rray
      * @return a byte array with random values
@@ -148,7 +152,6 @@ public final class StringUtils {
     }
 
     /**
-     *
      * @param object to get its class name
      * @return the short name of the Class of this object
      */
@@ -169,7 +172,7 @@ public final class StringUtils {
 
     /**
      * Gets the String that is nested in between two Strings. Only the first match is returned.
-     * 
+     *
      * @param source
      * @param start
      * @param end
@@ -181,7 +184,7 @@ public final class StringUtils {
 
     /**
      * Gets the substring before the last occurrence of a separator. The separator is not returned.
-     * 
+     *
      * @param source
      * @param separator
      * @return the substring before the last occurrence of the separator, null if null String input

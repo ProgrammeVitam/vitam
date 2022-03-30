@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,10 +65,12 @@ public class DistributorIndex {
      * This boolean is equivalent to offset >= elements list size
      */
     private boolean levelFinished = false;
+
     public DistributorIndex() {
     }
 
-    public DistributorIndex(String level, int offset, ItemStatus itemStatus, String requestId, String stepId, List<String> remainingElements) {
+    public DistributorIndex(String level, int offset, ItemStatus itemStatus, String requestId, String stepId,
+        List<String> remainingElements) {
         this.level = level;
         this.offset = offset;
         this.itemStatus = itemStatus;

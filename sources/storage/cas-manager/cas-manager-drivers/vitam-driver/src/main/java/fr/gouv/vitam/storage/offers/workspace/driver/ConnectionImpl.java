@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -454,7 +454,8 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException, StorageDriverNotFoundException {
+    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request)
+        throws StorageDriverException, StorageDriverNotFoundException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());

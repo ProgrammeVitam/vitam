@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.common.metrics;
 
+import com.codahale.metrics.Clock;
+import com.codahale.metrics.Gauge;
+
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import com.codahale.metrics.Clock;
-import com.codahale.metrics.Gauge;
 
 /**
  * Garbage Collector Gauge

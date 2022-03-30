@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.unit;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.common.SedaConstants;
 
@@ -189,7 +188,7 @@ public class ManagementModel {
 
     /**
      * Set the rule category model
-     * 
+     *
      * @param ruleCategoryModel the model
      * @param type the rule category type
      */
@@ -224,7 +223,7 @@ public class ManagementModel {
 
     /**
      * Get the rule category model
-     * 
+     *
      * @param type rule category type
      * @return the Rule category as a {@link RuleCategoryModel}
      */

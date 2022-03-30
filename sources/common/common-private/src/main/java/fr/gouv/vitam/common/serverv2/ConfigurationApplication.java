@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,7 @@ public class ConfigurationApplication extends Application {
 
     /**
      * Set the Vitam Application Configuration
-     * 
+     *
      * @param configurationFile the configuration file
      */
     @Context
@@ -48,6 +48,7 @@ public class ConfigurationApplication extends Application {
 
     /**
      * Get the Vitam Application Configuration
+     *
      * @return the vitam application configuration as a ConfigurationFile
      */
     public ConfigurationFile getVitamApplicationConfiguration() {

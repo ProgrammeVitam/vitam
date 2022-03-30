@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,18 +28,16 @@ package fr.gouv.vitam.security.internal.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.math.BigInteger;
-
 /**
  * base model for identity
  */
 public class CertificateBaseModel {
 
-    public  static final String ISSUER_DN_TAG = "IssuerDN";
+    public static final String ISSUER_DN_TAG = "IssuerDN";
 
-    public  static final String STATUS_TAG = "Status";
+    public static final String STATUS_TAG = "Status";
 
-    public  static final String REVOCATION_DATE_TAG = "RevocationDate";
+    public static final String REVOCATION_DATE_TAG = "RevocationDate";
 
     @JsonProperty("_id")
     private String id;

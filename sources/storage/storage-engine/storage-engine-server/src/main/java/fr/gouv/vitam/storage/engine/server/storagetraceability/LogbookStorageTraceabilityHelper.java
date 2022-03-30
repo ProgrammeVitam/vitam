@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -146,7 +146,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
         Response response = null;
         try {
-            response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.STORAGETRACEABILITY);
+            response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName,
+                DataCategory.STORAGETRACEABILITY);
             try (
                 InputStream stream = response.readEntity(InputStream.class);
                 ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
@@ -201,7 +202,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             Response response = null;
             InputStream stream = null;
             try {
-                response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.STORAGELOG);
+                response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName,
+                    DataCategory.STORAGELOG);
                 stream = response.readEntity(InputStream.class);
                 byte[] hash = digest.update(stream).digest();
 
@@ -334,7 +336,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                        strategyId, DataCategory.STORAGETRACEABILITY, fileName, description);
+                    strategyId, DataCategory.STORAGETRACEABILITY, fileName, description);
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);
