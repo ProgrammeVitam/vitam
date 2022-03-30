@@ -176,11 +176,11 @@
 
 - name: Ensure consul service is started
   service:
-    name: "vitam-consul"
+    name: vitam-consul
     state: started
 
 - name: Ensure logstash service is started
   service:
-    name: "logstash"
+    name: logstash
     state: started
-    enabled: yes
+    enabled: "{{ logstash.at_boot | default(service_at_boot) }}"

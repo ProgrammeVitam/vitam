@@ -65,11 +65,11 @@
   tags:
     - update_consul_exporter_configuration
 
-- name: Ensure vitam-consul-exporter service is started and enabled at boot
+- name: Ensure vitam-consul-exporter service is started
   service:
     name: vitam-consul-exporter
     state: started
-    enabled: true
+    enabled: "{{ prometheus.consul_exporter.at_boot | default(service_at_boot) }}"
 
 - name: Wait for consul_exporter port {{ prometheus.consul_exporter.port | default(9107) }} to be open
   wait_for:

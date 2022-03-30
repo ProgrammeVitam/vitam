@@ -52,4 +52,4 @@
   service:
     name: packetbeat
     state: restarted
-    enabled: true
+    enabled: "{{ packetbeat.at_boot | default(service_at_boot) }}"

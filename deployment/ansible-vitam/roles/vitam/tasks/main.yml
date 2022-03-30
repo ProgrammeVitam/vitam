@@ -81,7 +81,7 @@
 - name: ensure {{ package_name }} service is enabled
   service:
     name: "{{ package_name }}"
-    enabled: true
+    enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
   notify:
     - restart service
   when: ( primary_site | lower == "true" ) or
