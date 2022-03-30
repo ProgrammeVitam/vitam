@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -81,8 +81,8 @@ public class StorageOffer {
     public void setId(String id) {
         this.id = id;
     }
+
     /**
-     *
      * @return the status
      */
     public ActivationStatus getStatus() {
@@ -91,6 +91,7 @@ public class StorageOffer {
 
     /**
      * principally, updated by {@link StorageStrategy} configuration and prevail upon offers configuration file
+     *
      * @param status to set
      */
 
@@ -103,7 +104,7 @@ public class StorageOffer {
     }
 
     public boolean isEnabled() {
-        return  ActivationStatus.ACTIVE.equals(this.getStatus()) ;
+        return ActivationStatus.ACTIVE.equals(this.getStatus());
     }
 
     public boolean isAsyncRead() {

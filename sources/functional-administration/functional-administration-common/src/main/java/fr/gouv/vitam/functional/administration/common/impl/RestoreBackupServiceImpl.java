@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -127,7 +127,8 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     }
 
     @Override
-    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, String offerId, FunctionalAdminCollections collection) {
+    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, String offerId,
+        FunctionalAdminCollections collection) {
 
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, offerId, DataCategory.BACKUP, collection);

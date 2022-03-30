@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.Set;
-
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import org.bson.Document;
+
+import java.util.Set;
 
 /**
  * Defines an Access contract model for SIP transfer control. </BR>
- *
  */
 public class AccessContract extends VitamDocument<AccessContract> {
     /**
@@ -110,7 +107,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public AccessContract(Integer tenantId) {
@@ -133,7 +129,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Name of the contract
-     * 
+     *
      * @return name of contract
      */
     public String getName() {
@@ -142,7 +138,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract name
-     * 
+     *
      * @param name to set
      * @return this
      */
@@ -153,7 +149,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Get the contract description
-     * 
+     *
      * @return this
      */
     public String getDescription() {
@@ -162,7 +158,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract description
-     * 
+     *
      * @param description to set to contact
      * @return this
      */
@@ -174,7 +170,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Get the contract status
-     * 
+     *
      * @return status of access contact
      */
     public ActivationStatus getStatus() {
@@ -191,7 +187,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract status
-     * 
+     *
      * @param status to set
      * @return this
      */
@@ -202,7 +198,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
 
     /**
-     *
      * @return collection of originating agencies
      */
     public Set<String> getOriginatingAgencies() {
@@ -211,7 +206,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set the collection of originating agencies
-     * 
+     *
      * @param originatingAgencies
      * @return this
      */

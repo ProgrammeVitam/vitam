@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,6 @@ public interface Worker extends VitamAutoCloseable {
      * @param step {@link Step} null not allowed
      * @param workParams {@link WorkerParameters} (one and only workItem will be in workParams)
      * @return List EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
-     *
      * @throws IllegalArgumentException throws when arguments are null
      * @throws ProcessingException throws when error in execution
      */

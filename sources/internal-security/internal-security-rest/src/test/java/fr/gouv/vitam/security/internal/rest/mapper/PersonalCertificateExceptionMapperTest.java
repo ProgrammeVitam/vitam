@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,14 +27,13 @@
 package fr.gouv.vitam.security.internal.rest.mapper;
 
 
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.assertj.core.api.Assertions.assertThat;
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalCertificateExceptionMapperTest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,7 @@ public class CompressInformation {
 
     /**
      * Constructor
-     * 
+     *
      * @param files list of files to be compressed
      * @param outputFile output file
      */
@@ -65,7 +65,7 @@ public class CompressInformation {
 
     /**
      * get list of files to be compressed
-     * 
+     *
      * @return list of files as a list of string
      */
     public List<String> getFiles() {
@@ -74,7 +74,7 @@ public class CompressInformation {
 
     /**
      * Set list of files
-     * 
+     *
      * @param files list of files as string
      */
     public void setFiles(List<String> files) {
@@ -83,7 +83,7 @@ public class CompressInformation {
 
     /**
      * Get Output File
-     * 
+     *
      * @return outpuFile
      */
     public String getOutputFile() {
@@ -92,7 +92,7 @@ public class CompressInformation {
 
     /**
      * Set Output file
-     * 
+     *
      * @param outputFile
      */
     public void setOutputFile(String outputFile) {

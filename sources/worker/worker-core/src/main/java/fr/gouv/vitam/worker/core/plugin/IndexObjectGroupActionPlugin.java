@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -142,7 +142,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
                     List<ItemStatus> aggregateItemStatusBis = new ArrayList<>();
                     for (ItemStatus ignored : aggregateItemStatus) {
-                        aggregateItemStatusBis.add(new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION, new ItemStatus(OG_INDEXATION).increment(StatusCode.FATAL)));
+                        aggregateItemStatusBis.add(new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION,
+                            new ItemStatus(OG_INDEXATION).increment(StatusCode.FATAL)));
                     }
                     aggregateItemStatus = aggregateItemStatusBis;
 

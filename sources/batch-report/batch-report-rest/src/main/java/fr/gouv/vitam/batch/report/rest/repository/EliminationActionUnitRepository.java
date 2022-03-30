@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,24 +73,24 @@ public class EliminationActionUnitRepository extends ReportCommonRepository {
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
         return unitReportCollection.aggregate(
-            Arrays.asList(
-                Aggregates.match(and(
-                    eq(EliminationActionUnitModel.PROCESS_ID, processId),
-                    eq(EliminationActionUnitModel.TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id"),
-                    new Document("distribGroup", null),
-                    new Document("params.id", "$_metadata.id"),
-                    new Document("params.type", new Document("$literal", "Unit")),
-                    new Document("params.status", "$_metadata.status"),
-                    new Document("params.opi", "$_metadata.opi"),
-                    new Document("params.originatingAgency", "$_metadata.originatingAgency"),
-                    new Document("params.objectGroupId", "$_metadata.objectGroupId")
-                    )
-                ))
-        )
+                Arrays.asList(
+                    Aggregates.match(and(
+                        eq(EliminationActionUnitModel.PROCESS_ID, processId),
+                        eq(EliminationActionUnitModel.TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("distribGroup", null),
+                            new Document("params.id", "$_metadata.id"),
+                            new Document("params.type", new Document("$literal", "Unit")),
+                            new Document("params.status", "$_metadata.status"),
+                            new Document("params.opi", "$_metadata.opi"),
+                            new Document("params.originatingAgency", "$_metadata.originatingAgency"),
+                            new Document("params.objectGroupId", "$_metadata.objectGroupId")
+                        )
+                    ))
+            )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();

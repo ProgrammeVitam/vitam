@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.parser.query.action;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -36,14 +35,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Query from Parser Helper
- *
  */
 public class UpdateActionParserHelper extends UpdateActionHelper {
 
-    protected UpdateActionParserHelper() {}
+    protected UpdateActionParserHelper() {
+    }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return an AddAction
@@ -55,7 +53,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return an IncAction
@@ -67,7 +64,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return an MinAction
@@ -79,7 +75,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return an MaxAction
@@ -91,7 +86,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return a PopAction
@@ -103,7 +97,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return a PullAction
@@ -115,7 +108,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return a PushAction
@@ -127,7 +119,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return a RenameAction
@@ -139,7 +130,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data JsonNode
      * @param adapter VarNameAdapter
      * @return a SetAction
@@ -151,7 +141,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param array JsonNode
      * @param adapter VarNameAdapter
      * @return a UnsetAction
@@ -167,7 +156,6 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     }
 
     /**
-     *
      * @param data
      * @param adapter
      * @return

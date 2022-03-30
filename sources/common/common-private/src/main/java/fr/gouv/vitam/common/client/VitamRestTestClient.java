@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,7 +77,6 @@ public class VitamRestTestClient extends DefaultClient {
     }
 
     /**
-     *
      * @return a VitamRestTest using this client
      */
     public VitamRestTest given() {
@@ -123,7 +122,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @return this
          */
         public VitamRestTest then() {
@@ -131,7 +129,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @return this
          */
         public VitamRestTest when() {
@@ -139,7 +136,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param status the expected status
          * @return this
          */
@@ -149,7 +145,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param statusCode the expected status
          * @return this
          */
@@ -159,7 +154,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param accept the accept MediaType
          * @return this
          */
@@ -169,7 +163,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param body
          * @param mediaType
          * @return this
@@ -181,7 +174,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param key
          * @param value
          * @return this
@@ -237,7 +229,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -247,7 +238,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -257,7 +247,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -267,7 +256,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -277,7 +265,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -287,7 +274,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @return the status code
          * @throws VitamClientInternalException
@@ -315,7 +301,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -326,7 +311,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -337,7 +321,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -348,7 +331,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>
@@ -359,7 +341,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         *
          * @param path
          * @param entityTpe
          * @return the entity of type <T>

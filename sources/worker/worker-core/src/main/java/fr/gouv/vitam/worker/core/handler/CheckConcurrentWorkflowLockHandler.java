@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -92,8 +92,8 @@ public class CheckConcurrentWorkflowLockHandler extends ActionHandler {
 
                 LOGGER.error("Concurrent process(es) found " +
                     concurrentWorkflows.stream().map(
-                        i -> i.getProcessType() + " " + i.getOperationId() + "(" + i.getGlobalState() + "/" +
-                            i.getStepStatus() + ")")
+                            i -> i.getProcessType() + " " + i.getOperationId() + "(" + i.getGlobalState() + "/" +
+                                i.getStepStatus() + ")")
                         .collect(Collectors.joining(", ", "[", "]")));
 
                 ObjectNode eventDetails = JsonHandler.createObjectNode();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,8 +43,7 @@ public class DriverManagerConfiguration {
     /**
      * Constructor
      *
-     * @param driverLocation
-     *            the directory path to host drivers jar
+     * @param driverLocation the directory path to host drivers jar
      */
     public DriverManagerConfiguration(String driverLocation) {
         this.driverLocation = driverLocation;
@@ -62,8 +61,7 @@ public class DriverManagerConfiguration {
     /**
      * Set the driver location
      *
-     * @param driverLocation
-     *            the directory to host drivers jar
+     * @param driverLocation the directory to host drivers jar
      */
     public void setDriverLocation(String driverLocation) {
         this.driverLocation = driverLocation;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKUNITLIFECYCL
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationPath("webresources")
-@Tag(name="Access")
+@Tag(name = "Access")
 public class LogbookExternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
@@ -244,7 +244,8 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            RequestResponse<JsonNode> result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
+            RequestResponse<JsonNode> result =
+                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {

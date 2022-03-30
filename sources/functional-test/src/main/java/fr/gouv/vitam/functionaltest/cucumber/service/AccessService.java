@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,9 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.service;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.Set;
-
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.DataTable;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -54,6 +42,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import org.assertj.core.api.Fail;
+
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Access service containing common code for access
@@ -66,7 +63,7 @@ public class AccessService {
 
     /**
      * Search an AU by its tile (unique in sip) and operationId (of the sip operation)
-     * 
+     *
      * @param accessClient access client
      * @param tenantId tenant id
      * @param contractId access contract id
@@ -107,7 +104,7 @@ public class AccessService {
 
     /**
      * Check in the given result the expected datas
-     * 
+     *
      * @param results all results
      * @param resultNumber index of result
      * @param dataTable expected datas
@@ -154,18 +151,22 @@ public class AccessService {
             } else {
                 if (isArray) {
                     Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<String>>() {
+                        });
 
                     Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeReference(resultExpected, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultExpected, new TypeReference<Set<String>>() {
+                        });
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
                     Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<Set<String>>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<Set<String>>>() {
+                        });
 
                     Set<Set<String>> expectedrray =
                         JsonHandler
-                            .getFromStringAsTypeReference(resultExpected, new TypeReference<Set<Set<String>>>() {});
+                            .getFromStringAsTypeReference(resultExpected, new TypeReference<Set<Set<String>>>() {
+                            });
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }
@@ -176,7 +177,7 @@ public class AccessService {
 
     /**
      * Retrieve result value
-     * 
+     *
      * @param lastJsonNode result
      * @param key key of search value
      * @return json if found

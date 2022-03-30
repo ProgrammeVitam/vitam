@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -368,7 +368,8 @@ public class StorageTestMultiNoSslIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
+                    OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
@@ -548,7 +549,8 @@ public class StorageTestMultiNoSslIT {
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 try {
-                    storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, storageId.getId(),
+                    storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
+                        storageId.getId(),
                         description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);
@@ -557,7 +559,8 @@ public class StorageTestMultiNoSslIT {
                 Response response = null;
                 try {
                     response =
-                        storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), storageId.getId(), DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                        storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), storageId.getId(),
+                            DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                     final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                     if (status == Status.OK && response.hasEntity()) {
                         return true;
@@ -594,7 +597,8 @@ public class StorageTestMultiNoSslIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
+                    OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
@@ -622,7 +626,7 @@ public class StorageTestMultiNoSslIT {
     public void listingTestErrorWhenContainerNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(99);
         try (CloseableIterator<ObjectEntry> objectEntryCloseableIterator = storageClient
-            .listContainer(VitamConfiguration.getDefaultStrategy(), null,DataCategory.OBJECT)) {
+            .listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT)) {
             assertFalse(objectEntryCloseableIterator.hasNext());
         }
     }

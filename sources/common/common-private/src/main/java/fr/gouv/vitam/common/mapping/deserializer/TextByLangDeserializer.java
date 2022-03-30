@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,7 @@ public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
 
     /**
      * Convert json, xml, string to TextByLang
-     * 
+     *
      * @param jp (json, xml, string) representation
      * @param ctxt
      * @return the text by lang

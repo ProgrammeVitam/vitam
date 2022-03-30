@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,12 +71,13 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
     /**
      * Default constructor
+     *
      * @param tenantId
      * @param requestId
-     * @param driver         thre diver
+     * @param driver thre diver
      * @param offerReference the offer reference to put object
-     * @param request        the request to put object
-     * @param globalDigest   the globalDigest associated with the stream
+     * @param request the request to put object
+     * @param globalDigest the globalDigest associated with the stream
      */
     public TransferThread(int tenantId, String requestId, Driver driver, OfferReference offerReference,
         StoragePutRequest request, Digest globalDigest, long size) {
@@ -161,7 +162,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
             // Check digest against offer
             if (!globalDigest.digestHex().equals(putObjectResult.getDigestHashBase16())) {
                 LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
-                        ParameterHelper.getTenantParameter(), offer.getId(), request.getGuid());
+                    ParameterHelper.getTenantParameter(), offer.getId(), request.getGuid());
                 throw new StorageInconsistentStateException("[Driver:" + driver.getName() + "] Content "
                     + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid()
                     + " sent digest: " + globalDigest.digestHex()

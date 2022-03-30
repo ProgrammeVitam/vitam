@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,23 +82,23 @@ public class OfferLogCompactionDatabaseService {
 
         int lastSize = results.size();
         try (MongoCursor<OfferLog> offerLogCursor = offerLogCompactionCollection.aggregate(Arrays.asList(
-            Aggregates.match(offset != null
-                ? and(eq(CompactedOfferLog.CONTAINER, containerName), lte(CompactedOfferLog.SEQUENCE_START, offset))
-                : eq(CompactedOfferLog.CONTAINER, containerName)),
-            Aggregates.sort(Sorts.orderBy(Sorts.descending(CompactedOfferLog.SEQUENCE_START))),
-            Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
-            Aggregates.project(Projections.fields(
-                new Document("_id", 0),
-                new Document(CompactedOfferLog.LOGS, new Document("$reverseArray", "$" + CompactedOfferLog.LOGS))
-            )),
-            Aggregates.unwind("$" + CompactedOfferLog.LOGS),
-            Aggregates.match(offset != null
-                ? lte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
-                : new BsonDocument()
-            ),
-            Aggregates.limit(limit),
-            Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
-        )).map(this::transformDocumentToOfferLog)
+                Aggregates.match(offset != null
+                    ? and(eq(CompactedOfferLog.CONTAINER, containerName), lte(CompactedOfferLog.SEQUENCE_START, offset))
+                    : eq(CompactedOfferLog.CONTAINER, containerName)),
+                Aggregates.sort(Sorts.orderBy(Sorts.descending(CompactedOfferLog.SEQUENCE_START))),
+                Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document(CompactedOfferLog.LOGS, new Document("$reverseArray", "$" + CompactedOfferLog.LOGS))
+                )),
+                Aggregates.unwind("$" + CompactedOfferLog.LOGS),
+                Aggregates.match(offset != null
+                    ? lte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
+                    : new BsonDocument()
+                ),
+                Aggregates.limit(limit),
+                Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
+            )).map(this::transformDocumentToOfferLog)
             .cursor()) {
             offerLogCursor.forEachRemaining(results::add);
         }
@@ -129,19 +129,19 @@ public class OfferLogCompactionDatabaseService {
 
         int lastSize = results.size();
         try (MongoCursor<OfferLog> offerLogCursor = offerLogCompactionCollection.aggregate(Arrays.asList(
-            Aggregates.match(offset != null
-                ? and(eq(CompactedOfferLog.CONTAINER, containerName), gte(CompactedOfferLog.SEQUENCE_END, offset))
-                : eq(CompactedOfferLog.CONTAINER, containerName)),
-            Aggregates.sort(Sorts.orderBy(Sorts.ascending(CompactedOfferLog.SEQUENCE_END))),
-            Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
-            Aggregates.unwind("$" + CompactedOfferLog.LOGS),
-            Aggregates.match(offset != null
-                ? gte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
-                : new BsonDocument()
-            ),
-            Aggregates.limit(limit),
-            Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
-        )).map(this::transformDocumentToOfferLog)
+                Aggregates.match(offset != null
+                    ? and(eq(CompactedOfferLog.CONTAINER, containerName), gte(CompactedOfferLog.SEQUENCE_END, offset))
+                    : eq(CompactedOfferLog.CONTAINER, containerName)),
+                Aggregates.sort(Sorts.orderBy(Sorts.ascending(CompactedOfferLog.SEQUENCE_END))),
+                Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
+                Aggregates.unwind("$" + CompactedOfferLog.LOGS),
+                Aggregates.match(offset != null
+                    ? gte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
+                    : new BsonDocument()
+                ),
+                Aggregates.limit(limit),
+                Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
+            )).map(this::transformDocumentToOfferLog)
             .cursor()) {
             offerLogCursor.forEachRemaining(results::add);
         }

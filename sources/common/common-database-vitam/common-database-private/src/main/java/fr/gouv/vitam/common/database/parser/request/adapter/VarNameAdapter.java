@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.database.parser.request.adapter;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Model for VarNameAdapter (Unit/ObjectGroup) internal usage.
@@ -87,7 +86,7 @@ public class VarNameAdapter {
      * Set Vars = Value (Json)
      *
      * @param currentObject ObjectNode
-     * @param request       JsonNode
+     * @param request JsonNode
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVarsValue(ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {
@@ -106,9 +105,9 @@ public class VarNameAdapter {
     /**
      * Set simple Var (no value)
      *
-     * @param req           QUERY
+     * @param req QUERY
      * @param currentObject ObjectNode
-     * @param request       JsonNode
+     * @param request JsonNode
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVar(QUERY req, ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {

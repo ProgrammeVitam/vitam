@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -173,10 +173,15 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String MONGO_NAME = mongoRule.getMongoDatabase().getName();
     private static final String ES_NAME = ElasticsearchRule.getClusterName();
     private static final String GRIFFIN_LIBREOFFICE = "griffin-libreoffice";
-    private static final TypeReference<List<PreservationScenarioModel>> PRESERVATION_SCENARIO_MODELS = new TypeReference<>() {};
-    private static final TypeReference<List<GriffinModel>> GRIFFIN_MODELS_TYPE = new TypeReference<>() {};
-    private static final TypeReference<List<ObjectGroupResponse>> OBJECT_GROUP_RESPONSES_TYPE = new TypeReference<>() {};
-    private static final TypeReference<OperationSummary> OPERATION_SUMMARY_TYPE = new TypeReference<>() {};
+    private static final TypeReference<List<PreservationScenarioModel>> PRESERVATION_SCENARIO_MODELS =
+        new TypeReference<>() {
+        };
+    private static final TypeReference<List<GriffinModel>> GRIFFIN_MODELS_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<ObjectGroupResponse>> OBJECT_GROUP_RESPONSES_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<OperationSummary> OPERATION_SUMMARY_TYPE = new TypeReference<>() {
+    };
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -198,7 +203,8 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String DESCRIPTION_VALUE = "This is an awesome description ! Thx Captain.";
     private static final String FOO_KEY = "Foo";
     private static final List<String> FOO_VALUE = Arrays.asList("bar1", "bar2");
-    private static final TypeReference<List<String>> TYPE_LIST_STRING = new TypeReference<>() {};
+    private static final TypeReference<List<String>> TYPE_LIST_STRING = new TypeReference<>() {
+    };
 
     @Rule
     public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
@@ -206,7 +212,8 @@ public class PreservationIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        String configurationPath = PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        String configurationPath =
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         new DataLoader("integration-ingest-internal").prepareData();
     }
@@ -236,10 +243,11 @@ public class PreservationIT extends VitamRuleRunner {
         }
 
         prepareVitamSession();
-        doIngest(TENANT_ID,"elimination/TEST_ELIMINATION_V2.zip");
+        doIngest(TENANT_ID, "elimination/TEST_ELIMINATION_V2.zip");
         doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
 
     @AfterClass
@@ -275,7 +283,7 @@ public class PreservationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_import_griffin_with_OK() throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             // Given
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -284,7 +292,8 @@ public class PreservationIT extends VitamRuleRunner {
             client.importGriffins(getGriffinModels("preservation/griffins.json"));
 
             // Then
-            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(StatusCode.OK);
+            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(
+                StatusCode.OK);
         }
     }
 
@@ -305,7 +314,8 @@ public class PreservationIT extends VitamRuleRunner {
             client.importPreservationScenarios(getPreservationScenarioModels("preservation/scenarios.json"));
 
             // Then
-            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(StatusCode.OK);
+            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(
+                StatusCode.OK);
         }
     }
 
@@ -313,7 +323,7 @@ public class PreservationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_remove_griffin_with_KO_when_scenario_used() throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             // Given
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -328,10 +338,11 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             assertThatThrownBy(() -> removeGriffins(client))
-            .isInstanceOf(AdminManagementClientServerException.class);
+                .isInstanceOf(AdminManagementClientServerException.class);
 
             // Then
-            assertThat(getLogbookOperation(logbookClient).getEvents().get(0).getOutcome()).isEqualTo(StatusCode.KO.name());
+            assertThat(getLogbookOperation(logbookClient).getEvents().get(0).getOutcome()).isEqualTo(
+                StatusCode.KO.name());
         }
     }
 
@@ -339,7 +350,7 @@ public class PreservationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_update_griffin_with_WARNING_when_scenario_used() throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             // Given
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -356,7 +367,8 @@ public class PreservationIT extends VitamRuleRunner {
             client.importGriffins(getGriffinModels("preservation/griffins.json"));
 
             // Then
-            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(StatusCode.WARNING);
+            assertThat(getGriffinReport(storageClient, getVitamSession().getRequestId()).getStatusCode()).isEqualTo(
+                StatusCode.WARNING);
         }
     }
 
@@ -365,7 +377,7 @@ public class PreservationIT extends VitamRuleRunner {
     public void should_execute_preservation_workflow_without_error() throws Exception {
         // Given
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
 
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -392,13 +404,15 @@ public class PreservationIT extends VitamRuleRunner {
 
             // Assert AccessionRegisterSummary
             assertJsonEquals("preservation/expected/accession_register_ratp_before.json",
-                JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "RATP")))),
+                JsonHandler.toJsonNode(
+                    Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                        .find(new Document("OriginatingAgency", "RATP")))),
                 excludeFields);
 
             assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_before.json",
-                JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
+                JsonHandler.toJsonNode(
+                    Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                        .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
                 excludeFields);
 
 
@@ -422,7 +436,8 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
-            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText()).allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             validateAccessionRegisterDetails(excludeFields, operationGuid.toString());
         }
@@ -457,12 +472,13 @@ public class PreservationIT extends VitamRuleRunner {
             select.setQuery(QueryHelper.exists("#id"));
 
             ObjectNode finalSelect = select.getFinalSelect();
-            PreservationRequest preservationRequest = new PreservationRequest(finalSelect, "PSC-000042", "BinaryMaster", LAST, "BinaryMaster");
+            PreservationRequest preservationRequest =
+                new PreservationRequest(finalSelect, "PSC-000042", "BinaryMaster", LAST, "BinaryMaster");
 
-        // When
+            // When
             accessClient.startPreservation(preservationRequest);
 
-        // Then
+            // Then
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
             SelectMultiQuery selectChangeByOperation = new SelectMultiQuery();
@@ -513,8 +529,8 @@ public class PreservationIT extends VitamRuleRunner {
     public void should_execute_preservation_workflow_with_various_usage() throws Exception {
         // Given
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             getVitamSession().setTenantId(TENANT_ADMIN);
             getVitamSession().setRequestId(newGUID());
@@ -550,30 +566,45 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
-            try (InputStream inputStream = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), String.format("%s.jsonl", operationGuid.getId()), DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class)) {
-                    assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText()).allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+            try (InputStream inputStream = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
+                String.format("%s.jsonl", operationGuid.getId()), DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class)) {
+                assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                    .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
-                    try (InputStream inputStreamExpected = getClass().getResourceAsStream("/preservation/preservationReport.jsonl")) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-                        BufferedReader bufferedReaderExpected = new BufferedReader(new InputStreamReader(inputStreamExpected, StandardCharsets.UTF_8));
-                        Optional<String> iteratorExpected = bufferedReaderExpected.lines().findFirst();
-                        Optional<String> iterator1 = bufferedReader.lines().findFirst();
-                        OperationSummary operationSummaryExpected = JsonHandler.getFromStringAsTypeReference(iteratorExpected.get(), OPERATION_SUMMARY_TYPE);
-                        OperationSummary operationSummary = JsonHandler.getFromStringAsTypeReference(iterator1.get(), OPERATION_SUMMARY_TYPE);
+                try (InputStream inputStreamExpected = getClass().getResourceAsStream(
+                    "/preservation/preservationReport.jsonl")) {
+                    BufferedReader bufferedReader =
+                        new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                    BufferedReader bufferedReaderExpected =
+                        new BufferedReader(new InputStreamReader(inputStreamExpected, StandardCharsets.UTF_8));
+                    Optional<String> iteratorExpected = bufferedReaderExpected.lines().findFirst();
+                    Optional<String> iterator1 = bufferedReader.lines().findFirst();
+                    OperationSummary operationSummaryExpected =
+                        JsonHandler.getFromStringAsTypeReference(iteratorExpected.get(), OPERATION_SUMMARY_TYPE);
+                    OperationSummary operationSummary =
+                        JsonHandler.getFromStringAsTypeReference(iterator1.get(), OPERATION_SUMMARY_TYPE);
 
-                        assertThat(operationSummary.getEvType()).isEqualTo(operationSummaryExpected.getEvType());
-                        assertThat(operationSummary.getOutcome()).isEqualTo(operationSummaryExpected.getOutcome());
-                        assertThat(operationSummary.getOutMsg()).isEqualTo(operationSummaryExpected.getOutMsg());
-                        assertThat(operationSummary.getTenant()).isEqualTo(operationSummaryExpected.getTenant());
-                        assertThat(operationSummary.getRightsStatementIdentifier()).isEqualTo(operationSummaryExpected.getRightsStatementIdentifier());
-                    }
+                    assertThat(operationSummary.getEvType()).isEqualTo(operationSummaryExpected.getEvType());
+                    assertThat(operationSummary.getOutcome()).isEqualTo(operationSummaryExpected.getOutcome());
+                    assertThat(operationSummary.getOutMsg()).isEqualTo(operationSummaryExpected.getOutMsg());
+                    assertThat(operationSummary.getTenant()).isEqualTo(operationSummaryExpected.getTenant());
+                    assertThat(operationSummary.getRightsStatementIdentifier()).isEqualTo(
+                        operationSummaryExpected.getRightsStatementIdentifier());
                 }
-            JsonNode objectGroup = JsonHandler.toJsonNode(Lists.newArrayList(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(Sorts.ascending(ObjectGroup.NBCHILD))));
-            assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
-            assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("versions").get(0).get("_storage").get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+            }
+            JsonNode objectGroup = JsonHandler.toJsonNode(Lists.newArrayList(
+                MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId()))
+                    .sort(Sorts.ascending(ObjectGroup.NBCHILD))));
+            assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo(
+                "Dissemination");
+            assertThat(
+                objectGroup.get(0).get("_qualifiers").get(1).get("versions").get(0).get("_storage").get("strategyId")
+                    .asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
 
             // Ensures that check availability is in logbook
-            assertThat(jsonNode.get(6).get("outDetail").asText()).isEqualTo("PRESERVATION_CHECK_RESOURCE_AVAILABILITY.OK");
+            assertThat(jsonNode.get(6).get("outDetail").asText()).isEqualTo(
+                "PRESERVATION_CHECK_RESOURCE_AVAILABILITY.OK");
 
             // Ensure evDetData in not set in logbook operation for distributed step STP_PRESERVATION_ACTION / action PRESERVATION_BINARY_HASH
             assertThat(jsonNode.get(9).get("outDetail").asText()).isEqualTo("PRESERVATION_BINARY_HASH.OK");
@@ -664,7 +695,8 @@ public class PreservationIT extends VitamRuleRunner {
             .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
-    private void buildAndSavePreservationResultFileForExtractionAU() throws IOException, InvalidParseOperationException {
+    private void buildAndSavePreservationResultFileForExtractionAU()
+        throws IOException, InvalidParseOperationException {
 
         Map<String, String> objectIdsToFormat = getAllBinariesIds();
 
@@ -775,7 +807,8 @@ public class PreservationIT extends VitamRuleRunner {
         return getFromFileAsTypeReference(resourceFile, PRESERVATION_SCENARIO_MODELS);
     }
 
-    private List<GriffinModel> getGriffinModels(String resourcesFile) throws FileNotFoundException, InvalidParseOperationException {
+    private List<GriffinModel> getGriffinModels(String resourcesFile)
+        throws FileNotFoundException, InvalidParseOperationException {
         File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
         return getFromFileAsTypeReference(resourceFile, GRIFFIN_MODELS_TYPE);
     }
@@ -783,13 +816,19 @@ public class PreservationIT extends VitamRuleRunner {
     private GriffinReport getGriffinReport(StorageClient storageClient, String requestId)
         throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
         StorageUnavailableDataFromAsyncOfferClientException {
-        Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), requestId + ".json", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+        Response response =
+            storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), requestId + ".json",
+                DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
         return getFromInputStream((InputStream) response.getEntity(), GriffinReport.class);
     }
 
-    private LogbookOperation getLogbookOperation(LogbookOperationsClient logbookClient) throws LogbookClientException, InvalidParseOperationException {
-        JsonNode logbookOperationVersionModelResult = logbookClient.selectOperationById(getVitamSession().getRequestId());
-        RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(logbookOperationVersionModelResult);
-        return JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+    private LogbookOperation getLogbookOperation(LogbookOperationsClient logbookClient)
+        throws LogbookClientException, InvalidParseOperationException {
+        JsonNode logbookOperationVersionModelResult =
+            logbookClient.selectOperationById(getVitamSession().getRequestId());
+        RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK =
+            RequestResponseOK.getFromJsonNode(logbookOperationVersionModelResult);
+        return JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(),
+            LogbookOperation.class);
     }
 }

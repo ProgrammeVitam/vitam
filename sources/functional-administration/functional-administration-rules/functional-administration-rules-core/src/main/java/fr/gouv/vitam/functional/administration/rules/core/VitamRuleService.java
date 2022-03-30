@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rules.core;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -38,7 +37,7 @@ public class VitamRuleService {
 
     /**
      * Constructor
-     * 
+     *
      * @param listMinimumRuleDuration the list of minimum rules duration
      */
     public VitamRuleService(Map<Integer, Map<String, String>> listMinimumRuleDuration) {
@@ -47,7 +46,7 @@ public class VitamRuleService {
 
     /**
      * Get minimum rule duration for a rule, "0 day" if not found
-     * 
+     *
      * @param tenant the tenant id
      * @param ruleType the rule type
      * @return the minimum duration

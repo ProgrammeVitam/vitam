@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,6 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -179,12 +178,14 @@ public class WriteTaskTest {
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD), null, archiveReferentialRepository,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD), null,
+            archiveReferentialRepository,
             archiveCacheStorage, FAKE_FILE_PATH, false))
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new WriteTask(mock(WriteOrder.class), null,
-            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService, null,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD), tapeCatalogService,
+            null,
             archiveCacheStorage, FAKE_FILE_PATH, false))
             .withFailMessage("should fail tapeCatalogService is required")
             .isInstanceOf(IllegalArgumentException.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,8 +35,8 @@ public enum CertificateStatus {
     EXPIRED,
     REVOKED;
 
-    public  CertificateStatus valueFrom(boolean isRevoked) {
-        return isRevoked ? REVOKED : VALID ;
+    public CertificateStatus valueFrom(boolean isRevoked) {
+        return isRevoked ? REVOKED : VALID;
     }
 
 }

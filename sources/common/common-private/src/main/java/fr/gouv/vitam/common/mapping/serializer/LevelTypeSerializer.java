@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,6 +47,7 @@ public class LevelTypeSerializer extends StdSerializer<LevelType> {
 
     /**
      * constructor
+     *
      * @param type
      */
     public LevelTypeSerializer(Class<LevelType> type) {
@@ -55,6 +56,7 @@ public class LevelTypeSerializer extends StdSerializer<LevelType> {
 
     /**
      * serialize
+     *
      * @param levelType
      * @param jgen
      * @param provider

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,7 @@ public abstract class ReportCommonRepository {
      * @param reports report
      */
     protected void bulkAppendReport(List<Document> reports, MongoCollection<Document> collection) {
-        if(reports.isEmpty()) {
+        if (reports.isEmpty()) {
             return;
         }
         final List<WriteModel<Document>> updates = new ArrayList<>();

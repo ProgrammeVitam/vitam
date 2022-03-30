@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -212,8 +212,9 @@ public class LogbookDetailsCheckServiceImplTest {
                 .contains(logbookCheckErrors.get(2).getExpectedLogbookMsg()));
 
         Assert.assertEquals("CHECK_HEADER", logbookCheckErrors.get(3).getCheckedProperty());
-        Assert.assertTrue("The saved logbook operation event evType value CHECK_HEADER, is not present in the lifecycles"
-            .contains(logbookCheckErrors.get(3).getSavedLogbookMsg()));
+        Assert.assertTrue(
+            "The saved logbook operation event evType value CHECK_HEADER, is not present in the lifecycles"
+                .contains(logbookCheckErrors.get(3).getSavedLogbookMsg()));
         Assert.assertTrue(
             "The logbook operation event evType, must be present in the lifecycles"
                 .contains(logbookCheckErrors.get(3).getExpectedLogbookMsg()));

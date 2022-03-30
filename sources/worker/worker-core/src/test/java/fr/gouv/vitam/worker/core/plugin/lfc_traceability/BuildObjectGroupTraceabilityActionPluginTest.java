@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -366,7 +366,8 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenLfcAndMetadata_With_AllBadStorageObjectDigests_When_ExecuteThenReturnResponseKO() throws Exception {
+    public void givenLfcAndMetadata_With_AllBadStorageObjectDigests_When_ExecuteThenReturnResponseKO()
+        throws Exception {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

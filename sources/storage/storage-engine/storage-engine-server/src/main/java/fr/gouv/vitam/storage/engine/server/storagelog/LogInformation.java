@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,6 +48,7 @@ public class LogInformation {
 
     /**
      * get log  Path
+     *
      * @return path
      */
     public Path getPath() {
@@ -56,6 +57,7 @@ public class LogInformation {
 
     /**
      * get begin log time
+     *
      * @return LocalDateTime beginTime
      */
     public LocalDateTime getBeginTime() {
@@ -64,6 +66,7 @@ public class LogInformation {
 
     /**
      * get end log file time
+     *
      * @return LocalDateTime endTime
      */
     public LocalDateTime getEndTime() {

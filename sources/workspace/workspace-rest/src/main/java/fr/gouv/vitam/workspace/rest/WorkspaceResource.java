@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -87,7 +87,7 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 @Path("/v1")
-@Tag(name="Worker")
+@Tag(name = "Worker")
 public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceResource.class);
@@ -146,7 +146,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceContainerSanity(containerName);
             workspace.createContainer(containerName);
             return Response.status(Status.CREATED).build();
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -177,7 +177,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName);
             workspace.checkWorkspaceContainerSanity(containerName);
             workspace.deleteContainer(containerName, recursive);
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -208,7 +208,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.purgeOldFilesInContainer(containerName, timeToLive);
             return Response.status(Status.NO_CONTENT).build();
 
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -242,7 +242,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -269,7 +269,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceContainerSanity(containerName);
             final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -301,7 +301,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             workspace.createFolder(containerName, folderName);
             return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -313,7 +313,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }    }
+        }
+    }
 
     /**
      * deletes a folder in a container
@@ -335,7 +336,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName, folderName);
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -373,7 +374,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (IllegalPathException | IllegalArgumentException e ) {
+        } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -463,9 +464,10 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, compressInformation);
             workspace.checkWorkspaceContainerSanity(containerName);
-            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile(), compressInformation.getOutputContainer());
+            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile(),
+                compressInformation.getOutputContainer());
             return Response.status(Status.CREATED).build();
-        } catch (IOException | IllegalPathException | IllegalArgumentException e ) {
+        } catch (IOException | IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (ArchiveException e) {
@@ -518,7 +520,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get Map of files with params from folder", description = "Permet de récupérer une Map des objets du dossier du container avec ses propres paramétres")
-    public Response getFilesWithParamsFromFolder(@PathParam(CONTAINER_NAME) String containerName, @PathParam(FOLDER_NAME) String folderName) {
+    public Response getFilesWithParamsFromFolder(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName) {
 
         Map<String, FileParams> filesWithParamsMap;
         try {
@@ -602,7 +605,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
             workspace.checkWorkspaceFileSanity(containerName, objectName);
-            if(size < 0L) {
+            if (size < 0L) {
                 throw new IllegalArgumentException("Invalid stream size " + size);
             }
             workspace.putAtomicObject(containerName, objectName, stream, size);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -3262,12 +3262,12 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
 
         //Agent
-        List<Document> agents = unitToAssert.getList("Agent",Document.class);
+        List<Document> agents = unitToAssert.getList("Agent", Document.class);
         assertThat(agents).isNotNull().isNotEmpty();
         Document agent = agents.get(0);
 
-        final List<String> functionsAgent = agent.getList("Function",String.class);
-        final List<String> roles = agent.getList("Role",String.class);
+        final List<String> functionsAgent = agent.getList("Function", String.class);
+        final List<String> roles = agent.getList("Role", String.class);
         assertThat(functionsAgent).isNotNull().isNotEmpty();
         assertThat(functionsAgent.get(0)).isEqualTo("Ajout SEDA 2.2");
 

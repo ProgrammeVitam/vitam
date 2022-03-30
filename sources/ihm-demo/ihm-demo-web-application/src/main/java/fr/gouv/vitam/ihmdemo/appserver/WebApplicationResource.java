@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -85,9 +85,9 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
-import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -139,7 +139,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -2522,8 +2521,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
             RequestResponse response =
-                    adminClient.createManagementContracts(
-                            userInterfaceTransactionManager.getVitamContext(request), input);
+                adminClient.createManagementContracts(
+                    userInterfaceTransactionManager.getVitamContext(request), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -2558,9 +2557,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
                 RequestResponse<ManagementContractModel> response =
-                        adminClient.findManagementContracts(
-                                userInterfaceTransactionManager.getVitamContext(request),
-                                query);
+                    adminClient.findManagementContracts(
+                        userInterfaceTransactionManager.getVitamContext(request),
+                        query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2593,9 +2592,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
             RequestResponse<ManagementContractModel> response =
-                    adminClient.findManagementContractById(
-                            userInterfaceTransactionManager.getVitamContext(request),
-                            id);
+                adminClient.findManagementContractById(
+                    userInterfaceTransactionManager.getVitamContext(request),
+                    id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2623,7 +2622,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("managementcontracts:update")
     public Response updateManagementContracts(@Context HttpServletRequest request, @PathParam("id") String contractId,
-                                          JsonNode updateOptions) {
+        JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
@@ -2641,9 +2640,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
-                    adminClient.updateManagementContract(
-                            userInterfaceTransactionManager.getVitamContext(request),
-                            contractId, updateRequest.getFinalUpdateById());
+                adminClient.updateManagementContract(
+                    userInterfaceTransactionManager.getVitamContext(request),
+                    contractId, updateRequest.getFinalUpdateById());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);

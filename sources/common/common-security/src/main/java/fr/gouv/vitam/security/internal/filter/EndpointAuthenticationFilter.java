@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -81,14 +80,15 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      *
      * @param containerRequestContext
      */
-    @Override public void filter(ContainerRequestContext containerRequestContext) {
+    @Override
+    public void filter(ContainerRequestContext containerRequestContext) {
         Response errorResponse = Response.status(Response.Status.UNAUTHORIZED)
             .entity("VitamAuthentication failed: VitamAuthentication informations are missing.").build();
         try {
             ParametersChecker
                 .checkParameter("VitamAuthentication failed! The service needs user authentication.",
                     containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION));
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             containerRequestContext.abortWith(errorResponse);
             return;
@@ -120,7 +120,9 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
                 !basicAuthConfig.get(0).getPassword()
                     .equals(decodedAuthentgInfos.get(1))))) {
             //throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
-            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("VitamAuthentication failed: Wrong credentials.").build());
+            containerRequestContext.abortWith(
+                Response.status(Response.Status.UNAUTHORIZED).entity("VitamAuthentication failed: Wrong credentials.")
+                    .build());
         }
     }
 

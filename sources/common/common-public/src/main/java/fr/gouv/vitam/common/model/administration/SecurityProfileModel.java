@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,10 +28,9 @@ package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.ModelConstants;
 
 import java.util.Set;
-
-import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * Data Transfer Object Model of security profile (DTO).
@@ -86,13 +85,15 @@ public class SecurityProfileModel {
 
     /**
      * Constructor
+     *
      * @param id unique identifier
      * @param identifier the identifier of the security profile. This value must be unique.
      * @param name security profile name
      * @param fullAccess defines whether security profile has full access to all permissions.
      * @param permissions set of permissions of the security profile (should not be defined when fullAccess is true)
      */
-    public SecurityProfileModel(String id, String identifier, String name, boolean fullAccess, Set<String> permissions) {
+    public SecurityProfileModel(String id, String identifier, String name, boolean fullAccess,
+        Set<String> permissions) {
         this.id = id;
         this.identifier = identifier;
         this.name = name;
@@ -140,7 +141,7 @@ public class SecurityProfileModel {
 
     /**
      * Set the identifier of the security profile. This value must be unique.
-
+     *
      * @param identifier
      */
     public void setIdentifier(String identifier) {
@@ -171,12 +172,13 @@ public class SecurityProfileModel {
      * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
      */
     public Boolean getFullAccess() {
-        return fullAccess == null ? Boolean.FALSE :  fullAccess;
+        return fullAccess == null ? Boolean.FALSE : fullAccess;
     }
 
     /**
      * Sets / unsets full access to all permissions for security profile.
      * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
+     *
      * @param fullAccess
      */
     public void setFullAccess(Boolean fullAccess) {
@@ -185,14 +187,20 @@ public class SecurityProfileModel {
 
     /**
      * Gets the set of permissions of the security profile.
+     *
      * @return the
      */
-    public Set<String> getPermissions() { return permissions; }
+    public Set<String> getPermissions() {
+        return permissions;
+    }
 
     /**
      * Sets the permission set of the security profile.
      * Should not be defined when fullAccess is true
+     *
      * @param permissions
      */
-    public void setPermissions(Set<String> permissions) { this.permissions = permissions; }
+    public void setPermissions(Set<String> permissions) {
+        this.permissions = permissions;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,6 +58,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor
+     *
      * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
@@ -72,6 +73,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor
+     *
      * @param variableName key name
      * @param value key value as a list of values
      * @throws InvalidCreateOperationException when query is invalid
@@ -86,6 +88,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor from Map
+     *
      * @param variableNameValue map of key and Value
      * @throws InvalidCreateOperationException when query is invalid
      */
@@ -114,6 +117,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor from ObjectNode
+     *
      * @param updateData ObjectNode natively
      * @throws InvalidCreateOperationException when query is invalid
      */
@@ -141,6 +145,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor
+     *
      * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
@@ -155,6 +160,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor
+     *
      * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
@@ -169,6 +175,7 @@ public class SetregexAction extends Action {
 
     /**
      * Setregex Action constructor
+     *
      * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
@@ -183,6 +190,7 @@ public class SetregexAction extends Action {
 
     /**
      * Add other Set sub actions to Query
+     *
      * @param variableName key name
      * @param value key value
      * @return the SetregexAction
@@ -210,6 +218,7 @@ public class SetregexAction extends Action {
 
     /**
      * Add other Set sub actions to Query
+     *
      * @param variableName key name
      * @param values values as list
      * @return the SetregexAction

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,8 @@ public enum EliminationAnalysisStatusForOriginatingAgency {
     KEEP, /* Not destroyable, no conflict */
     FINAL_ACTION_INCONSISTENCY; /* Not destroyable with conflict */
 
-    public static EliminationAnalysisStatusForOriginatingAgency getValue(boolean isDestroyable, boolean isFinalActionInconsistency) {
+    public static EliminationAnalysisStatusForOriginatingAgency getValue(boolean isDestroyable,
+        boolean isFinalActionInconsistency) {
         if (isDestroyable) {
             return DESTROY;
         }

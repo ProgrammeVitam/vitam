@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.guid;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-
-import org.junit.Test;
 
 public class GUIDFactoryTest {
 
@@ -102,7 +102,7 @@ public class GUIDFactoryTest {
         assertEquals(GUIDObjectType.UNASSIGNED_TYPE,
             GUIDObjectType.getChildrenType(GUIDObjectType.UNASSIGNED_TYPE));
         assertEquals(GUIDObjectType.CONTRACT_TYPE,
-                GUIDObjectType.getChildrenType(GUIDObjectType.CONTRACT_TYPE));
+            GUIDObjectType.getChildrenType(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(false,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.UNIT_TYPE));
@@ -125,7 +125,7 @@ public class GUIDFactoryTest {
         assertEquals(false,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.UNASSIGNED_TYPE));
         assertEquals(false,
-                GUIDObjectType.getDefaultWorm(GUIDObjectType.CONTRACT_TYPE));
+            GUIDObjectType.getDefaultWorm(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNIT,
             GUIDObjectType.getEnumType(GUIDObjectType.UNIT_TYPE));
@@ -148,7 +148,7 @@ public class GUIDFactoryTest {
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNASSIGNED,
             GUIDObjectType.getEnumType(GUIDObjectType.UNASSIGNED_TYPE));
         assertEquals(GUIDObjectType.GUIDObjectEnumType.CONTRACT,
-                GUIDObjectType.getEnumType(GUIDObjectType.CONTRACT_TYPE));
+            GUIDObjectType.getEnumType(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNIT.getId(),
             GUIDObjectType.UNIT_TYPE);
@@ -171,6 +171,6 @@ public class GUIDFactoryTest {
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNASSIGNED.getId(),
             GUIDObjectType.UNASSIGNED_TYPE);
         assertEquals(GUIDObjectType.GUIDObjectEnumType.CONTRACT.getId(),
-                GUIDObjectType.CONTRACT_TYPE);
+            GUIDObjectType.CONTRACT_TYPE);
     }
 }

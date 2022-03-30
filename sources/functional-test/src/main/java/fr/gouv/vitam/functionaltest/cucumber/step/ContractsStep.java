@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContractsStep extends CommonStep{
+public class ContractsStep extends CommonStep {
 
     public static final String CONTEXT_IDENTIFIER = "CT-000001";
     public static final String INGEST_CONTRACT_NOT_IN_CONTEXT = "IngestContractNotInContext";
@@ -186,8 +186,8 @@ public class ContractsStep extends CommonStep{
     }
 
     private void uploadIngestContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createIngestContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -234,8 +234,8 @@ public class ContractsStep extends CommonStep{
     }
 
     private void uploadAccessContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createAccessContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -278,8 +278,8 @@ public class ContractsStep extends CommonStep{
     }
 
     private void uploadManagementContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createManagementContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -467,7 +467,7 @@ public class ContractsStep extends CommonStep{
     /**
      * check if contract are imported or import them
      *
-     * @param contractNames  list of contract's name to verify
+     * @param contractNames list of contract's name to verify
      * @param type contract type
      * @param fileName contract json file
      * @throws Exception
@@ -478,13 +478,13 @@ public class ContractsStep extends CommonStep{
         boolean shouldImport = false;
         for (String contractName : contractNames) {
             JsonNode jsonNode = retriveContract(type, contractName);
-            if(jsonNode == null) {
+            if (jsonNode == null) {
                 shouldImport = true;
                 break;
             }
         }
 
-        if(shouldImport) {
+        if (shouldImport) {
             a_contract_json_named(fileName);
             upload_contract(type);
         }

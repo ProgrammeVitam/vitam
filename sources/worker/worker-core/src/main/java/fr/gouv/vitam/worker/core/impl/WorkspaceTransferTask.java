@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.impl;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 
 import java.util.function.Supplier;
 
@@ -46,7 +45,8 @@ public class WorkspaceTransferTask implements Supplier<Boolean> {
         this.task = task;
     }
 
-    @Override public Boolean get() {
+    @Override
+    public Boolean get() {
         try {
             switch (task.getAction()) {
                 case TRANSFER:

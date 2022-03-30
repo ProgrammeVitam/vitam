@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,12 +46,14 @@ public class ProcessingRetryAsyncException extends ProcessingException {
         this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
-    public ProcessingRetryAsyncException(String message, Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+    public ProcessingRetryAsyncException(String message,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
         super(message);
         this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
-    public ProcessingRetryAsyncException(Throwable cause, Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+    public ProcessingRetryAsyncException(Throwable cause,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
         super(cause);
         this.accessRequestIdByContext = accessRequestIdByContext;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
     private static final String SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER = "PDO_DATAOBJECTIONVERSION_BINARYMASTER";
     private static final String SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER =
-            "BDO_DATAOBJECTIONVERSION_PHYSICALMASTER";
+        "BDO_DATAOBJECTIONVERSION_PHYSICALMASTER";
     private static final String SUBTASK_INVALID_DATAOBJECTVERSION = "INVALID_DATAOBJECTVERSION";
     private static final String SUBTASK_EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
     private static final String SUBTASK_INVALIDE_ALGO = "INVALIDE_ALGO";
@@ -102,27 +102,27 @@ public class CheckVersionActionHandler extends ActionHandler {
                 invalidVersionMap.forEach((key, value) -> {
                     if (key.endsWith(BDO_CONTAINS_OTHER_TYPE)) {
                         updateDetailItemStatus(itemStatus,
-                                getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                                SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
+                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                            SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
                     } else if (key.endsWith(PDO_CONTAINS_OTHER_TYPE)) {
                         updateDetailItemStatus(itemStatus,
-                                getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                                SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
+                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                            SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
                     } else if (key.endsWith(INCORRECT_VERSION_FORMAT)) {
                         updateDetailItemStatus(itemStatus,
-                                getMessageItemStatusUsageError(
-                                        key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
-                                                ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
-                                        key, value),
-                                SUBTASK_INVALID_DATAOBJECTVERSION);
+                            getMessageItemStatusUsageError(
+                                key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
+                                    ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
+                                key, value),
+                            SUBTASK_INVALID_DATAOBJECTVERSION);
                     } else if (key.endsWith(INCORRECT_URI)) {
                         updateDetailItemStatus(itemStatus,
-                                getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                                SUBTASK_EMPTY_REQUIRED_FIELD);
+                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                            SUBTASK_EMPTY_REQUIRED_FIELD);
                     } else if (key.endsWith(INCORRECT_PHYSICAL_ID)) {
                         updateDetailItemStatus(itemStatus,
-                                getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                                SUBTASK_EMPTY_REQUIRED_FIELD);
+                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                            SUBTASK_EMPTY_REQUIRED_FIELD);
                     }
                 });
 
@@ -135,8 +135,8 @@ public class CheckVersionActionHandler extends ActionHandler {
             errorDetail.put("Error", e.getMessage());
 
             updateDetailItemStatus(itemStatus,
-                    JsonHandler.unprettyPrint(errorDetail),
-                    SUBTASK_INVALIDE_ALGO);
+                JsonHandler.unprettyPrint(errorDetail),
+                SUBTASK_INVALIDE_ALGO);
 
             itemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
@@ -147,10 +147,10 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     private String getMessageItemStatusUsageError(final String typeDataObject, final String key,
-                                                  final String errorVersion) {
+        final String errorVersion) {
         ObjectNode errorDetail = JsonHandler.createObjectNode();
         errorDetail.put(typeDataObject, errorVersion +
-                (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
+            (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
         return JsonHandler.unprettyPrint(errorDetail);
     }
 

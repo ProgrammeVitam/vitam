@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,16 +41,16 @@ public class AccessLogStructure {
     private final Date responseDate;
 
     public AccessLogStructure(String applicativeContextId, String accessContractId, String xRequestId,
-      String objectId, Long objectSize, Date responseDate, String objectType, String ingestId, String archiveUnitId) {
-      this.applicativeContextId = applicativeContextId;
-      this.accessContractId = accessContractId;
-      this.xRequestId = xRequestId;
-      this.ingestId = ingestId;
-      this.objectId = objectId;
-      this.objectType = objectType;
-      this.objectSize = objectSize;
-      this.responseDate = responseDate;
-      this.archiveUnitId = archiveUnitId;
+        String objectId, Long objectSize, Date responseDate, String objectType, String ingestId, String archiveUnitId) {
+        this.applicativeContextId = applicativeContextId;
+        this.accessContractId = accessContractId;
+        this.xRequestId = xRequestId;
+        this.ingestId = ingestId;
+        this.objectId = objectId;
+        this.objectType = objectType;
+        this.objectSize = objectSize;
+        this.responseDate = responseDate;
+        this.archiveUnitId = archiveUnitId;
     }
 
     public String getApplicativeContextId() {

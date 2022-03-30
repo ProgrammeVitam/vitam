@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -95,37 +95,37 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
         final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
         if (dataObjectNode != null) {
 
-                final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
-                if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
-                    accessionRegisterInfo.setSubmissionAgency(nodeSubmission.asText());
-                }
-
-                final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-                if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
-                    accessionRegisterInfo.setOriginatingAgency(nodeOrigin.asText());
-                } else {
-                    throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
-                }
-
-                final JsonNode nodeAcquisitionInformation =
-                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
-                if (nodeAcquisitionInformation != null &&
-                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
-                    accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
-                }
-
-                final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
-                if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
-                    accessionRegisterInfo.setLegalStatus(nodeLegalStatus.asText());
-                }
-
-                final JsonNode nodeArchivalProfile = dataObjectNode.get(SedaConstants.TAG_ARCHIVE_PROFILE);
-                if (nodeArchivalProfile != null && !Strings.isNullOrEmpty(nodeArchivalProfile.asText())) {
-                    accessionRegisterInfo.setArchivalProfile(nodeArchivalProfile.asText());
-                }
-            } else {
-                throw new ProcessingException("No DataObjectPackage found");
+            final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+            if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
+                accessionRegisterInfo.setSubmissionAgency(nodeSubmission.asText());
             }
+
+            final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+            if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
+                accessionRegisterInfo.setOriginatingAgency(nodeOrigin.asText());
+            } else {
+                throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
+            }
+
+            final JsonNode nodeAcquisitionInformation =
+                dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+            if (nodeAcquisitionInformation != null &&
+                !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
+                accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
+            }
+
+            final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
+            if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
+                accessionRegisterInfo.setLegalStatus(nodeLegalStatus.asText());
+            }
+
+            final JsonNode nodeArchivalProfile = dataObjectNode.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+            if (nodeArchivalProfile != null && !Strings.isNullOrEmpty(nodeArchivalProfile.asText())) {
+                accessionRegisterInfo.setArchivalProfile(nodeArchivalProfile.asText());
+            }
+        } else {
+            throw new ProcessingException("No DataObjectPackage found");
+        }
 
         final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
         if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -574,7 +574,7 @@ public class ObjectReferentialRepositoryTest {
         result.close();
 
         // Then : Cannot consume data
-        assertThatThrownBy(()-> IteratorUtils.toList(result)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> IteratorUtils.toList(result)).isInstanceOf(IllegalStateException.class);
     }
 
     private TapeObjectReferentialEntity createObjectReferentialEntity() {

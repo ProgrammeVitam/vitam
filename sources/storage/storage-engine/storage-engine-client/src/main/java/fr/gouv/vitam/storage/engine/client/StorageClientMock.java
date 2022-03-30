@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -281,7 +281,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset,
+        int limit,
         Order order)
         throws StorageServerClientException {
         RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();

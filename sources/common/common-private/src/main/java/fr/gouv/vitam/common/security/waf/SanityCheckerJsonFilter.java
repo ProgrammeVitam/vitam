@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,7 +47,6 @@ import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Filter checker for body json
@@ -73,7 +72,7 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
                 .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
                 // no entity
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
-            }else {
+            } else {
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
             }
@@ -84,7 +83,7 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
                 .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
                 // no entity
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
-            }else {
+            } else {
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,15 @@
  */
 package fr.gouv.vitam.common.guid;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 
+import java.util.Arrays;
+
 /**
  * GUID Reader (Global Unique Identifier Reader) <br>
- *
  */
 class GUIDImpl extends GUIDAbstract {
     private static final String ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID = "Attempted to parse malformed ARK GUID: ";

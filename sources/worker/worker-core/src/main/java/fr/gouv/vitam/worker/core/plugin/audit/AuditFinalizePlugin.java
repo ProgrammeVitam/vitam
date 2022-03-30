@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -155,7 +155,8 @@ public class AuditFinalizePlugin extends ActionHandler {
             String outDetail = lastEvent.get(LogbookEvent.OUT_DETAIL).asText();
             String outMsg = lastEvent.get(LogbookEvent.OUT_MESSG).asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get(LogbookEvent.EV_DET_DATA).asText());
-            JsonNode rSI = JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
+            JsonNode rSI =
+                JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
             OperationSummary operationSummary =
                 new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
                     evDetData);
@@ -177,7 +178,8 @@ public class AuditFinalizePlugin extends ActionHandler {
     private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
-            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) && logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
+                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
                 ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
                 if (results.size() > 0) {
                     return results.get(0);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,8 @@ public class OplogReaderTest {
         "{\"ts\": {\"$timestamp\": {\"t\": 1601480262, \"i\": 1}}, \"t\": {\"$numberLong\": \"16\"}, \"h\": {\"$numberLong\": \"0\"}, \"v\": 2, \"op\": \"s\", \"ns\": \"metadata.Unit\", \"ui\": {\"$binary\": \"yURgEL/TmodlCIIXLe3dog==\", \"$type\": \"03\"}, \"o2\": {\"_id\": \"aeaqaaaaaah2skkzabq7waluf4i34jiaaaaq\"}, \"wall\": {\"$date\": 1601480262149}, \"o\": {\"_id\": \"aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq\", \"DescriptionLevel\": \"Item\", \"Title\": \"Image de lac - 1\", \"Description\": \"L'objet rattaché à cette unité archivistique a un usage de master (BinaryMaster) test 20\", \"TransactedDate\": \"2016-06-03T15:28:00\", \"_og\": \"aebaaaaaaah2skkzabq7waluf4i3z7aaaaaq\", \"_mgt\": {}, \"_sedaVersion\": \"2.1\", \"_unitType\": \"INGEST\", \"_opi\": \"aeeaaaaaach2skkzabsacaluf4i2pmiaaaaq\", \"_ops\": [\"aeeaaaaaach2skkzabsacaluf4i2pmiaaaaq\"], \"_storage\": {\"strategyId\": \"default\"}, \"_sps\": [\"Identifier4\"], \"_sp\": \"Identifier4\", \"_up\": [\"aeaqaaaaaah2skkzabq7waluf4i32fyaaaaq\"], \"_us\": [\"aeaqaaaaaah2skkzabq7waluf4i32fyaaaaq\"], \"_graph\": [\"aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq/aeaqaaaaaah2skkzabq7waluf4i32fyaaaaq\"], \"_uds\": {\"1\": [\"aeaqaaaaaah2skkzabq7waluf4i32fyaaaaq\"]}, \"_min\": 1, \"_max\": 2, \"_glpd\": \"2020-08-27T08:38:51.614\", \"_v\": 0, \"_av\": 0, \"_tenant\": 0}}";
     Document docWithSelectOperation = Document.parse(docFromOplogSelectOperation);
 
-    final String description3 = "L'objet rattaché à cette unité archivistique a un usage de master (BinaryMaster) test 20";
+    final String description3 =
+        "L'objet rattaché à cette unité archivistique a un usage de master (BinaryMaster) test 20";
 
     @Before
     public void setUp() throws Exception {
@@ -105,7 +106,7 @@ public class OplogReaderTest {
     }
 
     @Test
-    public void givenOplogThenGenerateData(){
+    public void givenOplogThenGenerateData() {
 
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());
@@ -123,26 +124,28 @@ public class OplogReaderTest {
     }
 
     @Test
-    public void givenOplogThenGenerateRecentData(){
+    public void givenOplogThenGenerateRecentData() {
 
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());
         doReturn(mockIterable).when(mockIterable).limit(100);
         doReturn(mockCursor).when(mockIterable).iterator();
         doReturn(true).doReturn(true).doReturn(true).doReturn(false)
-                .when(mockCursor).hasNext();
+            .when(mockCursor).hasNext();
         doReturn(docWithSameId1).doReturn(docWithSameId2).doReturn(docWithSameId3).doReturn(null)
-                .when(mockCursor).next();
+            .when(mockCursor).next();
 
-        Map<String, Document> stringDocumentMap = oplogReader.readDocumentsFromOplogByShardAndCollections(Collections.emptyList(), new BsonTimestamp());
+        Map<String, Document> stringDocumentMap =
+            oplogReader.readDocumentsFromOplogByShardAndCollections(Collections.emptyList(), new BsonTimestamp());
         assertEquals(1, stringDocumentMap.size());
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq"));
         // get recent value of description
-        assertEquals(description3, ((Document) stringDocumentMap.get("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq").get("o")).get("Description"));
+        assertEquals(description3,
+            ((Document) stringDocumentMap.get("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq").get("o")).get("Description"));
     }
 
     @Test
-    public void givenOplogThenGenerateOnlyFilteredData(){
+    public void givenOplogThenGenerateOnlyFilteredData() {
 
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());

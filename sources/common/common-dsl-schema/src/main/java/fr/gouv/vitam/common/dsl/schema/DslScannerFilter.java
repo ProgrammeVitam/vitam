@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.annotation.Priority;
@@ -117,7 +116,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
                 default:
                     requestContext.abortWith(
                         VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
-                            "Dsl schema is not valid.")
+                                "Dsl schema is not valid.")
                             .toResponse());
 
             }

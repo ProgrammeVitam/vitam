@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,26 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.parser.request.multiple;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -54,29 +74,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
-import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 @SuppressWarnings("javadoc")
 public class InsertParserMultipleTest {
@@ -128,39 +125,39 @@ public class InsertParserMultipleTest {
             " }");
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": [\n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ],\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n," +
-                        " \"$data\" : " + data + " }"
+            "{\n" +
+                "  \"$query\": [\n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {}\n," +
+                " \"$data\" : " + data + " }"
         );
 
     }
@@ -175,7 +172,8 @@ public class InsertParserMultipleTest {
             request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+        }
         try {
             final InsertParserMultiple request1 = new InsertParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
@@ -321,7 +319,8 @@ public class InsertParserMultipleTest {
         try {
             parser.dataParse(node);
             fail("Should Failed");
-        } catch (final InvalidParseOperationException e) {}
+        } catch (final InvalidParseOperationException e) {
+        }
 
     }
 
@@ -344,7 +343,8 @@ public class InsertParserMultipleTest {
     @Test
     public void testInternalParseInsert() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
+        final String s =
+            "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
     }
@@ -352,7 +352,8 @@ public class InsertParserMultipleTest {
     @Test
     public void testInternalParseRequest() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
+        final String s =
+            "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
     }
@@ -431,7 +432,8 @@ public class InsertParserMultipleTest {
     @Test
     public void testModel() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
+        final String s =
+            "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertEquals(FILTERARGS.UNITS, request.model());
     }
@@ -439,14 +441,16 @@ public class InsertParserMultipleTest {
     @Test(expected = InvalidParseOperationException.class)
     public void shouldRaiseException_whenPathNotFirstInQuery() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "{ $roots: [ 'id0' ], $query: [{$exists : 'mavar1'}, { $path : [ 'id1', 'id2'] }], $filter: {$mult : false }, $data: {} }";
+        final String s =
+            "{ $roots: [ 'id0' ], $query: [{$exists : 'mavar1'}, { $path : [ 'id1', 'id2'] }], $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
     }
 
     @Test
     public void testHint() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
+        final String s =
+            "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertEquals(true, request.hintCache());
     }

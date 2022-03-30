@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,14 @@
  */
 /**
  * Worker Core Package : Implementations
+ *
+ * Provides
+ * <p>
+ * <ul>
+ * <li>A HandlerIO implementation dealing with the different input / output for handlers
+ * <li>A Worker implementation (and its factory) dealing with the execution of different actions
+ * </ul>
+ * </p>
  */
 /**
  * Provides 

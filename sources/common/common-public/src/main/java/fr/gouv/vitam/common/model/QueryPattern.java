@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,6 +50,7 @@ public class QueryPattern {
 
     /**
      * getTarget
+     *
      * @return
      */
     public String getTarget() {
@@ -58,6 +59,7 @@ public class QueryPattern {
 
     /**
      * setTarget
+     *
      * @param target
      */
     public void setTarget(String target) {
@@ -66,6 +68,7 @@ public class QueryPattern {
 
     /**
      * getControlPattern
+     *
      * @return
      */
     public String getControlPattern() {
@@ -74,6 +77,7 @@ public class QueryPattern {
 
     /**
      * setControlPattern
+     *
      * @param controlPattern
      */
     public void setControlPattern(String controlPattern) {
@@ -82,6 +86,7 @@ public class QueryPattern {
 
     /**
      * getUpdatePattern
+     *
      * @return
      */
     public String getUpdatePattern() {
@@ -90,6 +95,7 @@ public class QueryPattern {
 
     /**
      * setUpdatePattern
+     *
      * @param updatePattern
      */
     public void setUpdatePattern(String updatePattern) {

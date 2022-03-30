@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -79,7 +79,7 @@ public class ProcessPopulator {
      * reloadWorkflow, find and load new (added) workflow objects
      *
      * @param poolWorkflows poolWorkflows map of workflows to update
-     * @param fromDate      datetime on milliseconds to filter from, if null no filter is applied
+     * @param fromDate datetime on milliseconds to filter from, if null no filter is applied
      */
     public static void reloadWorkflow(final Map<String, WorkFlow> poolWorkflows, Long fromDate) {
         loadExternalWorkflow(poolWorkflows, fromDate);
@@ -97,10 +97,10 @@ public class ProcessPopulator {
         List<String> workflowFiles;
         try {
             workflowFiles = PropertiesUtils.getResourceListing(ProcessPopulator.class, WORKFLOWS_FOLDER)
-                    .filter(f -> f.endsWith(".json"))
-                    .map(f -> WORKFLOWS_FOLDER + f)
-                    .distinct()
-                    .collect(Collectors.toList());
+                .filter(f -> f.endsWith(".json"))
+                .map(f -> WORKFLOWS_FOLDER + f)
+                .distinct()
+                .collect(Collectors.toList());
         } catch (IOException | URISyntaxException e) {
             LOGGER.error("Error while load internal workflow", e);
             throw new RuntimeException(e);
@@ -124,7 +124,7 @@ public class ProcessPopulator {
      * loadExternalWorkflow, find and load workflows from config folder
      *
      * @param poolWorkflows map to populate with workflows
-     * @param fromDate      datetime on milliseconds to filter from, if null no filter is applied
+     * @param fromDate datetime on milliseconds to filter from, if null no filter is applied
      */
     private static void loadExternalWorkflow(Map<String, WorkFlow> poolWorkflows, Long fromDate) {
         LOGGER.debug("Loading external workflow resources...");
@@ -161,11 +161,11 @@ public class ProcessPopulator {
             LOGGER.debug("load external :" + workflowFolder.toPath().toString());
             try (Stream<Path> stream = Files.list(workflowFolder.toPath())) {
                 return stream
-                        .filter(f -> f.toFile().isFile())
-                        .filter(f -> f.toFile().getName().endsWith(".json"))
-                        .filter(f -> f.toFile().lastModified() > fromDate)
-                        .distinct()
-                        .collect(Collectors.toList());
+                    .filter(f -> f.toFile().isFile())
+                    .filter(f -> f.toFile().getName().endsWith(".json"))
+                    .filter(f -> f.toFile().lastModified() > fromDate)
+                    .distinct()
+                    .collect(Collectors.toList());
             } catch (IOException e) {
                 LOGGER.error("Error while list external workflow folder", e);
                 return new ArrayList<>();
@@ -177,8 +177,8 @@ public class ProcessPopulator {
      * populate, create and add workflow object (parse JSON file) to workflows map
      *
      * @param poolWorkflows to populate with workflows
-     * @param workflowFile  to parse
-     * @param update        if true override existing workflow
+     * @param workflowFile to parse
+     * @param update if true override existing workflow
      */
     private static void populate(final Map<String, WorkFlow> poolWorkflows, InputStream workflowFile, boolean update) {
         LOGGER.debug("Populating workflow using file " + workflowFile);

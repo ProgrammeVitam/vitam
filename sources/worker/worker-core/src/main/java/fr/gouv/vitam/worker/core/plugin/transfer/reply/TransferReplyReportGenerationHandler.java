@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -97,6 +97,7 @@ public class TransferReplyReportGenerationHandler extends GenericReportGeneratio
     protected String getPluginId() {
         return TRANSFER_REPLY_REPORT_GENERATION;
     }
+
     @Override
     public ReportType getReportType() {
         return ReportType.TRANSFER_REPLY;

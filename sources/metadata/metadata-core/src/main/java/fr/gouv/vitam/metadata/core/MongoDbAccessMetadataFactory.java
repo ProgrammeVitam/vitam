@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,11 +83,12 @@ public class MongoDbAccessMetadataFactory {
         MetadataCollections unitCollection = MetadataCollections.UNIT;
         MetadataCollections objectCollection = MetadataCollections.OBJECTGROUP;
 
-        if(Boolean.TRUE.equals(configuration.getCollectModule())) {
+        if (Boolean.TRUE.equals(configuration.getCollectModule())) {
             unitCollection.setPrefix(COLLECT_PREFIX);
             objectCollection.setPrefix(COLLECT_PREFIX);
         }
 
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, unitCollection, objectCollection);
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, unitCollection,
+            objectCollection);
     }
 }

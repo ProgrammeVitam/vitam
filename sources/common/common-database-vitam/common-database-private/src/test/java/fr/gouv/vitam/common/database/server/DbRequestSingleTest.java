@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -107,7 +107,8 @@ public class DbRequestSingleTest {
             PREFIX + CollectionSample.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
+        new ElasticsearchRule(
+            ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
     private static VitamCollection vitamCollection;
     private static VitamCollection vitamCollectionCrossTenant;
     private static ElasticsearchAccess esClient;
@@ -122,7 +123,8 @@ public class DbRequestSingleTest {
         List<VitamDescriptionType> descriptions = Collections.singletonList(
             new VitamDescriptionType("Title", null, text, one, true));
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(descriptions);
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX, vitamDescriptionResolver);
+        vitamCollection =
+            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX, vitamDescriptionResolver);
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
@@ -340,7 +342,7 @@ public class DbRequestSingleTest {
         assertEquals(0, vitamCollectionCrossTenant.getCollection().countDocuments());
 
         // When / Then
-        assertThatThrownBy( () -> dbRequestSingle.replaceDocuments(
+        assertThatThrownBy(() -> dbRequestSingle.replaceDocuments(
             Map.of("No such doc", JsonHandler.createObjectNode()),
             "Title",
             vitamCollectionCrossTenant
@@ -520,7 +522,9 @@ public class DbRequestSingleTest {
             update.setQuery(eq("Numero", 3));
             update.addActions(UpdateActionHelper.set("Title", "thread_" + nbr));
 
-            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection, Collections::emptyList, ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(update, mock(DocumentValidator.class));
+            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection, Collections::emptyList,
+                ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(update,
+                mock(DocumentValidator.class));
             System.err.println("Thread_" + nbr + " >> " + updateResult.getDiffs());
             assertEquals(1, updateResult.getCount());
             updateResult.close();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,12 +29,10 @@
  */
 package fr.gouv.vitam.common.auth.core.realm;
 
-import org.apache.shiro.authc.AuthenticationInfo;
-import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.realm.AuthenticatingRealm;
-
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.realm.AuthorizingRealm;
 
 /**
@@ -66,7 +64,6 @@ public abstract class AbstractX509Realm
 
     /**
      * @param grantedKeyStoreName the grantedKeyStoreName to set
-     *
      */
     public void setGrantedKeyStoreName(String grantedKeyStoreName) {
         this.grantedKeyStoreName = grantedKeyStoreName;
@@ -81,7 +78,6 @@ public abstract class AbstractX509Realm
 
     /**
      * @param grantedKeyStorePassphrase the grantedKeyStorePassphrase to set
-     *
      */
     public void setGrantedKeyStorePassphrase(String grantedKeyStorePassphrase) {
         this.grantedKeyStorePassphrase = grantedKeyStorePassphrase;
@@ -96,7 +92,6 @@ public abstract class AbstractX509Realm
 
     /**
      * @param trustedKeyStoreName the trustedKeyStoreName to set
-     *
      */
     public void setTrustedKeyStoreName(String trustedKeyStoreName) {
         this.trustedKeyStoreName = trustedKeyStoreName;
@@ -111,7 +106,6 @@ public abstract class AbstractX509Realm
 
     /**
      * @param trustedKeyStorePassphrase the trustedKeyStorePassphrase to set
-     *
      */
     public void setTrustedKeyStorePassphrase(String trustedKeyStorePassphrase) {
         this.trustedKeyStorePassphrase = trustedKeyStorePassphrase;

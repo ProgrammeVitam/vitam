@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,7 @@ import java.util.Set;
  * Vitam Collection Helper
  */
 public class VitamCollectionHelper {
-    
+
     /**
      * Metadata collections
      */
@@ -44,7 +44,7 @@ public class VitamCollectionHelper {
      * Logbook collections
      */
     private static final Set<String> LOGBOOK_COLLECTIONS = new HashSet<>(Collections.singletonList("Operation"));
-    
+
     /**
      * getCollection with collection class
      *
@@ -53,22 +53,24 @@ public class VitamCollectionHelper {
      * @param usingScore
      * @return VitamCollection
      */
-    public static <T> VitamCollection<T> getCollection(final Class<T> clasz, boolean multitenant, boolean usingScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
+    public static <T> VitamCollection<T> getCollection(final Class<T> clasz, boolean multitenant, boolean usingScore,
+        String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
         return new VitamCollection<>(clasz, multitenant, usingScore, prefix, vitamDescriptionResolver);
     }
-    
+
     /**
      * check if the collection is a metadata one
+     *
      * @param collectionName
      * @return true if yes
      */
     public static boolean isMetadataCollection(String collectionName) {
         return METADATA_COLLECTIONS.contains(collectionName);
     }
-    
+
     /**
      * check if the collection is a logbook one
-     * 
+     *
      * @param collectionName
      * @return true if yes
      */

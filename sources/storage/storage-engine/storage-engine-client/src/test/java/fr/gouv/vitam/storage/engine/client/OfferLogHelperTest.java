@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -88,7 +88,8 @@ public class OfferLogHelperTest {
                         .collect(Collectors.toList()));
             }
         ).when(storageClient)
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT), anyLong(), anyInt(),
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT),
+                anyLong(), anyInt(),
                 eq(Order.ASC));
     }
 
@@ -109,7 +110,8 @@ public class OfferLogHelperTest {
             .containsExactly("file20", "file30", "file40", "file50", "file60", "file70", "file80");
 
         verify(storageClient, times(2))
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT), anyLong(), anyInt(),
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT),
+                anyLong(), anyInt(),
                 eq(Order.ASC));
     }
 }

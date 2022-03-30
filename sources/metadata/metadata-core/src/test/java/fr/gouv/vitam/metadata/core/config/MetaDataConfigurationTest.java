@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,7 +75,7 @@ public class MetaDataConfigurationTest {
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
-        assertEquals(config2.getElasticsearchExternalMetadataMappings().size(),2);
+        assertEquals(config2.getElasticsearchExternalMetadataMappings().size(), 2);
     }
 
     @Test

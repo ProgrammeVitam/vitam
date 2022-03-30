@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,11 +52,12 @@ public class DbObjectGroupModelBuilder {
         return this;
     }
 
-    public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, DataObjectVersionType usage, Integer version) {
+    public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, DataObjectVersionType usage,
+        Integer version) {
         this.qualifiers = Collections.singletonList(new DbQualifiersModelBuilder()
             .withUsage(usage)
             .withVersion(versionId, fileName, usage, version)
-                .withNbc(1)
+            .withNbc(1)
             .build()
         );
         return this;

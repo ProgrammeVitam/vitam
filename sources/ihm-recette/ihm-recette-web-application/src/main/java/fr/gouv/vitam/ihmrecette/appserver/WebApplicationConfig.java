@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,9 +84,9 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     /**
      * Default constructor (keep it ?)
      *
-     * @param mongoDbNodes       nodes mongoDb
-     * @param dbName             mongoDb name
-     * @param clusterName        elastic search cluster name
+     * @param mongoDbNodes nodes mongoDb
+     * @param dbName mongoDb name
+     * @param clusterName elastic search cluster name
      * @param elasticsearchNodes nodes elastic search
      */
     public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,

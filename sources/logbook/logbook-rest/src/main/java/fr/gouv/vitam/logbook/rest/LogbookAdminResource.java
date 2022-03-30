@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.logbook.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -49,8 +42,15 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 @Path("/logbook/v1")
-@Tag(name="Logbook")
+@Tag(name = "Logbook")
 public class LogbookAdminResource {
 
     /**
@@ -72,7 +72,7 @@ public class LogbookAdminResource {
 
     /**
      * API to access and lanch the Check logbook coherence service.<br/>
-     * 
+     *
      * @return OK or error
      */
     @Path(CHECK_LOGBOOK_COHERENCE_URI)
@@ -83,7 +83,8 @@ public class LogbookAdminResource {
     public Response checkLogbookCoherence() {
         LOGGER.debug("Starting Check logbook coherence service :");
         try {
-            LogbookCheckResult response = checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
+            LogbookCheckResult response =
+                checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
             return Response.ok().entity(response).build();
 
         } catch (VitamException exc) {

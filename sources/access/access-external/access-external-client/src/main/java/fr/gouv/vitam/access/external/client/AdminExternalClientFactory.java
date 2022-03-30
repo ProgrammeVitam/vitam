@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.access.external.client;
 
-import java.io.IOException;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Admin External Client Factory<br>
@@ -105,7 +105,6 @@ public class AdminExternalClientFactory extends VitamClientFactory<AdminExternal
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     static final void changeMode(ClientConfiguration configuration) {

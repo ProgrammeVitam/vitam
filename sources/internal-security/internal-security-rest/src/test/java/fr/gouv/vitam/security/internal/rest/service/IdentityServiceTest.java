@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,9 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doReturn;
-
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.util.Optional;
-
+import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,9 +37,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
+import java.io.InputStream;
+import java.util.Optional;
+
+import static com.google.common.io.ByteStreams.toByteArray;
+import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doReturn;
 
 public class IdentityServiceTest {
 

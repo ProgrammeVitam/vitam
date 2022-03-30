@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,7 @@ import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class SecurityProfileResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityProfileResource.class);
@@ -85,7 +85,7 @@ public class SecurityProfileResource {
      * @param functionalBackupService
      */
     public SecurityProfileResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-                                   FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
+        FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
@@ -242,7 +242,7 @@ public class SecurityProfileResource {
     Response deleteSecurityProfile(String securityProfileId) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-                vitamCounterService, functionalBackupService, adminManagementClient)) {
+            vitamCounterService, functionalBackupService, adminManagementClient)) {
 
             RequestResponse requestResponse = securityProfileService.deleteSecurityProfile(securityProfileId);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
@@ -260,11 +260,11 @@ public class SecurityProfileResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 

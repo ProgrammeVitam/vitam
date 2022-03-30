@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -163,7 +163,7 @@ public class ReferentialAuditServiceTest {
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = Collections.emptyIterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),null, DataCategory.BACKUP))
+        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
             .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
@@ -182,7 +182,7 @@ public class ReferentialAuditServiceTest {
 
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),null, DataCategory.BACKUP))
+        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
             .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
         when(storageClient
@@ -223,7 +223,7 @@ public class ReferentialAuditServiceTest {
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(JsonHandler.createArrayNode());
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),null, DataCategory.BACKUP))
+        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
             .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
         when(storageClient
@@ -266,7 +266,7 @@ public class ReferentialAuditServiceTest {
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),null, DataCategory.BACKUP))
+        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
             .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
 

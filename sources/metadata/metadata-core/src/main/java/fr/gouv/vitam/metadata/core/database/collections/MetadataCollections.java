@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * Metadata Collection
  */
-public enum  MetadataCollections {
+public enum MetadataCollections {
     /**
      * vitamCollection
      * Unit Collection
@@ -53,13 +53,14 @@ public enum  MetadataCollections {
     OBJECTGROUP(ObjectGroup.class);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
-    private final VitamCollection<? extends  MetadataDocument<?>> vitamCollection;
+    private final VitamCollection<? extends MetadataDocument<?>> vitamCollection;
     private String prefix = "";
 
     MetadataCollections(final Class<? extends MetadataDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
+        vitamCollection =
+            VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
     }
 
     public static List<Class<?>> getClasses() {

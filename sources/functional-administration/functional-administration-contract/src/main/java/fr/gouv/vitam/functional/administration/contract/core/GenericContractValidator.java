@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
     /**
      * Validate a contract object
      *
-     * @param contract     to validate
+     * @param contract to validate
      * @param contractName
      * @return empty optional if OK, Else return the rejection cause
      */
@@ -78,22 +78,31 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
 
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
-        private static final String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT = "One or multiple archive profiles or the contract %s not found in db";
-        private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validating contract (%s), %s : %s";
-        private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), RootUnits (%s) not found in database";
-        private static final String ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), ExcludedRootUnits (%s) not found in database";
-        private static final String ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), ExcludedRootUnits and RootUnits (%s) not found in database";
+        private static final String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
+            "One or multiple archive profiles or the contract %s not found in db";
+        private static final String ERR_CONTRACT_EXCEPTION_OCCURRED =
+            "Exception while validating contract (%s), %s : %s";
+        private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
+            "Error while validating contract (%s), RootUnits (%s) not found in database";
+        private static final String ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND =
+            "Error while validating contract (%s), ExcludedRootUnits (%s) not found in database";
+        private static final String ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND =
+            "Error while validating contract (%s), ExcludedRootUnits and RootUnits (%s) not found in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_IDS_NOT_FOUND = "At least one AU id %s not found";
         private static final String ERR_MC_IDS_NOT_FOUND = "At least one Management Contract with Id %s not found";
-        private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT = "One or multiple file format %s not found in db";
+        private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT =
+            "One or multiple file format %s not found in db";
         private static final String ERR_INCONSISTENT_CONTRACT_DEFINITION = "Error while validating contract (%s) : %s";
 
         private static final String ERR_STORAGE_STRATEGY_NOT_FOUND = "Storage Strategy (%s) not found for the field %s";
-        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER = "Storage Strategy (%s) does not contains one and only one 'referent' offer for the field %s";
+        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER =
+            "Storage Strategy (%s) does not contains one and only one 'referent' offer for the field %s";
 
-        private static final String ERR_VERSION_RETENTION_POLICY_INVALID = "The version retention policy's %s parameter in %s usage is invalid in the contract %s.";
-        private static final String ERR_VERSION_RETENTION_POLICY_INVALID_USAGE = "The usage type %s is invalid in the contract %s.";
+        private static final String ERR_VERSION_RETENTION_POLICY_INVALID =
+            "The version retention policy's %s parameter in %s usage is invalid in the contract %s.";
+        private static final String ERR_VERSION_RETENTION_POLICY_INVALID_USAGE =
+            "The usage type %s is invalid in the contract %s.";
 
         private String reason;
 
@@ -163,51 +172,51 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * Generate RejectionCause from any throwable
          *
          * @param contractName the contract name or identifier
-         * @param msg          custom message
-         * @param e            throwable
+         * @param msg custom message
+         * @param e throwable
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectExceptionOccurred(String contractName, String msg, Throwable e) {
             return new GenericRejectionCause(
-                    String.format(ERR_CONTRACT_EXCEPTION_OCCURRED, contractName, msg, e.getMessage()));
+                String.format(ERR_CONTRACT_EXCEPTION_OCCURRED, contractName, msg, e.getMessage()));
         }
 
         /**
          * Generate RejectionCause for not found unit for given GUID
          *
-         * @param contractName      the contract name or identifier
+         * @param contractName the contract name or identifier
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
             return new GenericRejectionCause(
-                    String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
         }
 
         /**
          * Generate RejectionCause for not found unit for given GUID
          *
-         * @param contractName      the contract name or identifier
+         * @param contractName the contract name or identifier
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectExcludedRootUnitsNotFound(String contractName,
-                                                                            String guidArrayAsString) {
+            String guidArrayAsString) {
             return new GenericRejectionCause(
-                    String.format(ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
         }
 
         /**
          * Generate RejectionCause for not found unit for given GUID
          *
-         * @param contractName      the contract name or identifier
+         * @param contractName the contract name or identifier
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectExcludedAndRootUnitsNotFound(String contractName,
-                                                                               String guidArrayAsString) {
+            String guidArrayAsString) {
             return new GenericRejectionCause(
-                    String.format(ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
         }
 
         /**
@@ -232,7 +241,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
 
         public static GenericRejectionCause rejectInconsistentContract(String contractName, String reason) {
             return new GenericRejectionCause(
-                    (String.format(ERR_INCONSISTENT_CONTRACT_DEFINITION, contractName, reason)));
+                (String.format(ERR_INCONSISTENT_CONTRACT_DEFINITION, contractName, reason)));
         }
 
         /**
@@ -253,14 +262,14 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param fieldName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(String storageStrategy, String fieldName) {
+        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(String storageStrategy,
+            String fieldName) {
             return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER,
-                    storageStrategy, fieldName));
+                storageStrategy, fieldName));
         }
 
         /**
          * Reject if versionRentionPolicy parameter is invalid
-         *
          *
          * @param initialVersion
          * @param fieldName

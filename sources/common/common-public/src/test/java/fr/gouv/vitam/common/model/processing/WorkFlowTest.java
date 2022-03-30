@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,12 @@
  */
 package fr.gouv.vitam.common.model.processing;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertEquals;
 
 public class WorkFlowTest {
     private static final String TEST = "test";
@@ -55,7 +49,8 @@ public class WorkFlowTest {
         assertEquals(TEST, new WorkFlow().setId(TEST).getId());
         assertEquals(false, new WorkFlow().setSteps(steps).getSteps().isEmpty());
         assertEquals("ID=test\nname=test\nidentifier=test\ntypeProc=test\ncomments=test\nlifecycleLog=FINAL\n",
-            new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).setTypeProc(TEST).setComment(TEST).setLifecycleLog(LifecycleState.FINAL).toString());
+            new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).setTypeProc(TEST).setComment(TEST)
+                .setLifecycleLog(LifecycleState.FINAL).toString());
 
         WorkFlow workflow =
             new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).setTypeProc(TEST).setComment(TEST);

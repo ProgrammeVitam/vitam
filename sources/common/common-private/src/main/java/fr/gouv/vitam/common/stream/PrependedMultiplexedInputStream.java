@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import java.util.Vector;
  *
  * Initial stream format is "SIZE1(long)DATA1(raw)SIZE2(long)DATA2(raw)..."
  * Target stream format is "SIZE0(long)DATA0(raw)SIZE1(long)DATA1(raw)SIZE2(long)DATA2(raw)..."
- *
  */
 public class PrependedMultiplexedInputStream extends ProxyInputStream {
 

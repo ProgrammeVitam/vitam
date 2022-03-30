@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -91,7 +91,7 @@ public enum RuleMeasurementEnum {
      * @throws IllegalStateException when type not found
      */
     public static RuleMeasurementEnum getEnumFromType(String type) throws IllegalStateException {
-        if(type == null) {
+        if (type == null) {
             return null;
         }
 

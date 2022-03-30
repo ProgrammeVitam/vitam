@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,21 +100,17 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -573,7 +569,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowUnitLfcTraceability_when_corrupted_data_then_all_subsequent_traceabilities_are_ko() throws Exception {
+    public void testWorkflowUnitLfcTraceability_when_corrupted_data_then_all_subsequent_traceabilities_are_ko()
+        throws Exception {
 
         // Given / When
 
@@ -1094,7 +1091,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowObjectGroupLfcTraceability_when_corrupted_data_then_subsequent_TraceabilityOperations_are_ko() throws Exception {
+    public void testWorkflowObjectGroupLfcTraceability_when_corrupted_data_then_subsequent_TraceabilityOperations_are_ko()
+        throws Exception {
 
         // Given / When
 

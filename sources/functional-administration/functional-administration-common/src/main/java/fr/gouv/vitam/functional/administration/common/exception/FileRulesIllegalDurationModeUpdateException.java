@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,8 @@ public class FileRulesIllegalDurationModeUpdateException extends ReferentialExce
      * @param message message to associate with the exception
      * @param usedRulesWithDurationModeUpdate
      */
-    public FileRulesIllegalDurationModeUpdateException(String message, List<FileRulesModel> usedRulesWithDurationModeUpdate) {
+    public FileRulesIllegalDurationModeUpdateException(String message,
+        List<FileRulesModel> usedRulesWithDurationModeUpdate) {
         super(message);
         this.usedRulesWithDurationModeUpdate = usedRulesWithDurationModeUpdate;
     }

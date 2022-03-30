@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -42,10 +41,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -122,7 +119,7 @@ public class AgenciesStep extends CommonStep {
                     .createAgencies(new VitamContext(world.getTenantId()), inputStream,
                         fileName);
             if (expectedStatus != null) {
-                if(expectedStatus) {
+                if (expectedStatus) {
                     assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
                 } else {
                     assertThat(response.getHttpCode()).isNotEqualTo(Response.Status.CREATED.getStatusCode());
@@ -152,7 +149,7 @@ public class AgenciesStep extends CommonStep {
         assertThat(ingestResponse.isOk()).isTrue();
 
         List<JsonNode> results = ((RequestResponseOK<AgenciesModel>) ingestResponse).getResultsAsJsonNodes();
-        if(!results.isEmpty()) {
+        if (!results.isEmpty()) {
             this.setModel(results.get(0));
         } else {
             this.setModel(null);

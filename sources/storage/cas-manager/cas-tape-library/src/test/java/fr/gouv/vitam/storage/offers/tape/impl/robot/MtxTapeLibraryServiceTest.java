@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -210,7 +210,7 @@ public class MtxTapeLibraryServiceTest {
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
         MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
-        assertThatCode( () -> mtxTapeLibraryService.unloadTape(0, 1))
+        assertThatCode(() -> mtxTapeLibraryService.unloadTape(0, 1))
             .doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);

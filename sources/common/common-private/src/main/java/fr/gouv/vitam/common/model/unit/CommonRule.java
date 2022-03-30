@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.List;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+
+import java.util.List;
 
 /**
  * Common rule Interface
@@ -37,7 +37,7 @@ public interface CommonRule extends CommonRuleBase {
 
     /**
      * Gets the value of the refNonRuleId property.
-     * 
+     *
      * @return refNonRuleId
      */
     List<RuleIdType> getRefNonRuleId();

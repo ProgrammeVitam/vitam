@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 
 import javax.ws.rs.core.Response;
@@ -88,18 +88,16 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
-     *
      * updateUnitbyId UPDATE /units/{id}
-     *
-     * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
-     * <p> Use {@link AccessExternalClient#massUpdateUnits(VitamContext, JsonNode)} or
-     * {@link AccessExternalClient#massUpdateUnitsRules(VitamContext, JsonNode)} instead.
      *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @param unitId the unit id to update
      * @return Json representation
      * @throws VitamClientException
+     * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
+     * <p> Use {@link AccessExternalClient#massUpdateUnits(VitamContext, JsonNode)} or
+     * {@link AccessExternalClient#massUpdateUnitsRules(VitamContext, JsonNode)} instead.
      */
     @Deprecated
     RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
@@ -319,7 +317,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateRequest)
-            throws VitamClientException;
+        throws VitamClientException;
 
     /**
      * selectObjects /objects
@@ -402,5 +400,6 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext, PreservationRequest preservationRequest)
         throws VitamClientException;
 
-    RequestResponse<JsonNode> transferReply(VitamContext vitamContext, InputStream transferReply) throws VitamClientException;
+    RequestResponse<JsonNode> transferReply(VitamContext vitamContext, InputStream transferReply)
+        throws VitamClientException;
 }

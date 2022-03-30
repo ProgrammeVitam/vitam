@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,12 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
-import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -45,19 +39,22 @@ import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * MongoDbAccess interface
  */
 public abstract class MongoDbAccess implements DatabaseConnection {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
-    
+
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
     private MongoDatabase mongoAdmin;
     private String dbname;
 
     /**
-     *
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index

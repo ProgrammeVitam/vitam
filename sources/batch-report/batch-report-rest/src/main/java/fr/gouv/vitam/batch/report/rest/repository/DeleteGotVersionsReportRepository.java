@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,6 @@ import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPC;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
 import static fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry.OBJECT_GROUP_GLOBAL;
@@ -108,33 +107,33 @@ public class DeleteGotVersionsReportRepository {
 
     public MongoCursor<Document> computeDeleteGotVersionsEntriesByProcessIdTenant(String processId, int tenantId) {
         return collection.aggregate(
-            Arrays.asList(
-                match(and(
-                    eq(PROCESS_ID, processId),
-                    eq(TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document(ID, 0),
-                    new Document(OBJECT_GROUP_GLOBAL, 1))),
-                Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
-                match(and(
-                    eq(OBJECT_GROUP_GLOBAL + "." + STATUS, OK.name())
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document(ID, 0),
-                    new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions"))),
-                Aggregates.unwind("$" + DELETED_VERSIONS),
-                Aggregates.project(Projections.fields(
-                    new Document(ID, 0),
-                    new Document(OPC, "$deletedVersions.opc"),
-                    new Document("Size", "$deletedVersions.Size")
+                Arrays.asList(
+                    match(and(
+                        eq(PROCESS_ID, processId),
+                        eq(TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                        new Document(ID, 0),
+                        new Document(OBJECT_GROUP_GLOBAL, 1))),
+                    Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
+                    match(and(
+                        eq(OBJECT_GROUP_GLOBAL + "." + STATUS, OK.name())
+                    )),
+                    Aggregates.project(Projections.fields(
+                        new Document(ID, 0),
+                        new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions"))),
+                    Aggregates.unwind("$" + DELETED_VERSIONS),
+                    Aggregates.project(Projections.fields(
+                            new Document(ID, 0),
+                            new Document(OPC, "$deletedVersions.opc"),
+                            new Document("Size", "$deletedVersions.Size")
+                        )
+                    ),
+                    Aggregates.group("$" + OPC,
+                        Accumulators.sum(TOTAL_SIZE, "$Size"),
+                        Accumulators.sum(TOTAL_OBJECTS, 1)
                     )
-                ),
-                Aggregates.group("$" + OPC,
-                    Accumulators.sum(TOTAL_SIZE, "$Size"),
-                    Accumulators.sum(TOTAL_OBJECTS, 1)
-                )
-            ))
+                ))
             .allowDiskUse(true).iterator();
     }
 
@@ -147,20 +146,20 @@ public class DeleteGotVersionsReportRepository {
         ReportResults reportResult = new ReportResults();
 
         Iterator<Document> iterator = collection.aggregate(
-            Arrays.asList(
-                match(and(
-                    eq(PROCESS_ID, processId),
-                    eq(TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document(ID, 0),
-                    new Document(OBJECT_GROUP_GLOBAL, 1))),
-                Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
-                Aggregates.project(Projections.fields(
-                    new Document(ID, 0),
-                    new Document(STATUS, "$objectGroupGlobal.status"),
-                    new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions")))
-            ))
+                Arrays.asList(
+                    match(and(
+                        eq(PROCESS_ID, processId),
+                        eq(TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                        new Document(ID, 0),
+                        new Document(OBJECT_GROUP_GLOBAL, 1))),
+                    Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
+                    Aggregates.project(Projections.fields(
+                        new Document(ID, 0),
+                        new Document(STATUS, "$objectGroupGlobal.status"),
+                        new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions")))
+                ))
             .allowDiskUse(true).iterator();
 
         iterator.forEachRemaining(

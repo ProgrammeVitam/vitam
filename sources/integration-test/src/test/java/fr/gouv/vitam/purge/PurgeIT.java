@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,6 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECTGROUP
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 
 
 /**
@@ -124,7 +123,7 @@ public class PurgeIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-       handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
     }
 
     @AfterClass
@@ -300,9 +299,11 @@ public class PurgeIT extends VitamRuleRunner {
         checkDeletedFilesInOfferLogs(OBJECTGROUP, id_1 + ".json", id_2 + ".json", id_3 + ".json");
     }
 
-    private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames) throws StorageServerClientException {
+    private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames)
+        throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogRequestResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), null,dataCategory, null, 100000, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), null, dataCategory, null, 100000,
+                Order.ASC);
         assertThat(offerLogRequestResponse.isOk()).isTrue();
         List<OfferLog> offerLogs = ((RequestResponseOK<OfferLog>) offerLogRequestResponse).getResults();
 
@@ -407,7 +408,9 @@ public class PurgeIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
-            JsonNode information = storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
+            JsonNode information =
+                storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers,
+                    false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo(shouldExist);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,8 @@ public class BulkAtomicUpdateQueryProcessBulk {
     }
 
     public List<BulkUpdateUnitMetadataReportEntry> getReportEntries() {
-        return items.stream().filter(item -> item.getReportEntry() != null).map(BulkAtomicUpdateQueryProcessItem::getReportEntry)
+        return items.stream().filter(item -> item.getReportEntry() != null)
+            .map(BulkAtomicUpdateQueryProcessItem::getReportEntry)
             .collect(Collectors.toList());
     }
 

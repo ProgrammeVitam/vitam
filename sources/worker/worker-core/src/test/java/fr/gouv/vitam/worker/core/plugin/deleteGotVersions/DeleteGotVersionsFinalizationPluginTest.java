@@ -120,7 +120,8 @@ public class DeleteGotVersionsFinalizationPluginTest {
     @RunWithCustomExecutor
     public void givenReportsThenDeleteGotVersionsFinalizationOk() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
-        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(
+            getFromFile(deleteGotVersionsFile));
         JsonNode logbookOperation =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
                 new TypeReference<>() {
@@ -128,7 +129,7 @@ public class DeleteGotVersionsFinalizationPluginTest {
         when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
 
         DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of( 2));
+            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(2));
         when(handlerIO.getInputStreamFromWorkspace("deleteGotVersionsRequest"))
             .thenReturn(IOUtils.toInputStream(toJsonNode(deleteGotVersionsRequest).toString(), "UTF-8"));
 

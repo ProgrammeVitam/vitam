@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.Date;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
+import java.util.Date;
+import java.util.Map;
+
 /**
  * Query helper (common to all types: SELECT, UPDATE, INSET, DELETE)
- *
  */
 public class QueryHelper {
     protected QueryHelper() {
@@ -43,7 +42,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param pathes primary list of path in the future PathQuery
      * @return a PathQuery
      * @throws InvalidCreateOperationException when creating query errors
@@ -54,7 +52,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @return a BooleanQuery for AND operator
      * @throws InvalidCreateOperationException when creating query errors
      */
@@ -63,7 +60,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @return a BooleanQuery for OR operator
      * @throws InvalidCreateOperationException when creating query errors
      */
@@ -72,7 +68,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @return a BooleanQuery for NOT operator (using AND internally)
      * @throws InvalidCreateOperationException when creating query errors
      */
@@ -81,7 +76,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using EQ comparator
@@ -93,7 +87,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using EQ comparator
@@ -105,7 +98,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using EQ comparator
@@ -117,7 +109,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using EQ comparator
@@ -129,7 +120,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using EQ comparator
@@ -141,7 +131,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
@@ -153,7 +142,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
@@ -165,7 +153,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
@@ -177,7 +164,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
@@ -189,7 +175,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
@@ -201,7 +186,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LT (less than) comparator
@@ -213,7 +197,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LT (less than) comparator
@@ -225,7 +208,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LT (less than) comparator
@@ -237,7 +219,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LT (less than) comparator
@@ -249,7 +230,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LT (less than) comparator
@@ -261,7 +241,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -273,7 +252,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -285,7 +263,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -297,7 +274,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -309,7 +285,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
@@ -321,7 +296,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
@@ -333,7 +307,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
@@ -345,7 +318,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
@@ -357,7 +329,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
@@ -369,7 +340,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
@@ -381,7 +351,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -393,7 +362,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -405,7 +373,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -417,7 +384,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -429,7 +395,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
@@ -441,7 +406,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a CompareQuery using SIZE comparator
@@ -453,7 +417,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return an ExistsQuery
      * @throws InvalidCreateOperationException using Exists operator
@@ -464,7 +427,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return an ExistsQuery using Missing operator
      * @throws InvalidCreateOperationException when creating query errors
@@ -477,7 +439,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @return an ExistsQuery using isNull operator
      * @throws InvalidCreateOperationException when creating query errors
@@ -488,7 +449,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using IN operator
@@ -500,7 +460,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using IN operator
@@ -512,7 +471,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using IN operator
@@ -524,7 +482,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using IN operator
@@ -536,7 +493,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using IN operator
@@ -548,7 +504,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using NIN (not in) operator
@@ -560,7 +515,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using NIN (not in) operator
@@ -572,7 +526,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using NIN (not in) operator
@@ -584,7 +537,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using NIN (not in) operator
@@ -596,7 +548,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return an InQuery using NIN (not in) operator
@@ -608,7 +559,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a MatchQuery using MATCH operator
@@ -620,7 +570,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a MatchQuery using MATCH operator
@@ -632,7 +581,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a MatchQuery using MATCH_PHRASE operator
@@ -645,7 +593,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a MatchQuery using MATCH_PHRASE_PREFIX operator
@@ -658,7 +605,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a SearchQuery using REGEX operator
@@ -670,7 +616,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a SearchQuery using SEARCH operator
@@ -682,19 +627,17 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a NestedQuery using Nested Search operator
      * @throws InvalidCreateOperationException when creating query errors
      */
     public static final NestedQuery nestedSearch(final String variableName, final JsonNode value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new NestedQuery(QUERY.SUBOBJECT, variableName, value);
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a TermQuery
@@ -706,7 +649,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a TermQuery
@@ -718,7 +660,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a TermQuery
@@ -730,7 +671,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a TermQuery
@@ -742,7 +682,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a TermQuery
@@ -754,7 +693,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableNameValue key nameValue Map of VariableName of Value
      * @return a TermQuery
      * @throws InvalidCreateOperationException when creating query errors
@@ -765,7 +703,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param value of key
      * @return a WildcardQuery
@@ -778,7 +715,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param value of key
      * @param variableName key name
      * @return a MltQuery using a FLT (fuzzy like this) operator
@@ -790,7 +726,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param value of key
      * @param variableName key name
      * @return a MltQuery using a MLT (more like this) operator
@@ -802,7 +737,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param min value
      * @param includeMin include min value
@@ -820,7 +754,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param min value
      * @param includeMin include min value
@@ -839,7 +772,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param min value
      * @param includeMin include min value
@@ -858,7 +790,6 @@ public class QueryHelper {
     }
 
     /**
-     *
      * @param variableName key name
      * @param min value
      * @param includeMin include min value

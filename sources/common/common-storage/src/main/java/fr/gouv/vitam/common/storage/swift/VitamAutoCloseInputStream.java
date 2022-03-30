@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -103,6 +103,7 @@ public class VitamAutoCloseInputStream extends ProxyInputStream {
      * Ensures that the stream is closed before it gets garbage-collected.
      * As mentioned in {@link #close()}, this is a no-op if the stream has
      * already been closed.
+     *
      * @throws Throwable if an error occurs
      */
     @Override

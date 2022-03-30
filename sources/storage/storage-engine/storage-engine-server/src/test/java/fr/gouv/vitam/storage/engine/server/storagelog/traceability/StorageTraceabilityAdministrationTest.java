@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,7 +101,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
@@ -227,9 +226,11 @@ public class StorageTraceabilityAdministrationTest {
             .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
 
         doAnswer(o -> fakeResponse("test"))
-            .when(traceabilityLogbookService).getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
+            .when(traceabilityLogbookService)
+            .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
 
-        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGETRACEABILITY),
+        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.STORAGETRACEABILITY),
             anyString(), any(ObjectDescription.class)))
             .willReturn(new StoredInfoResult());
 
@@ -252,14 +253,16 @@ public class StorageTraceabilityAdministrationTest {
         given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).
             willReturn(TRACEABILITY_FILE);
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE, DataCategory.STORAGETRACEABILITY))
+        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE,
+            DataCategory.STORAGETRACEABILITY))
             .willReturn(fakeResponse(Files.newInputStream(archive)));
 
         given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
             .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE_2)));
 
         doAnswer(o -> fakeResponse("test-2"))
-            .when(traceabilityLogbookService).getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2, DataCategory.STORAGELOG);
+            .when(traceabilityLogbookService)
+            .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2, DataCategory.STORAGELOG);
 
         // When
         List<StorageLogTraceabilityResult> traceabilityResult2 = storageAdministration
@@ -324,7 +327,8 @@ public class StorageTraceabilityAdministrationTest {
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
 
         given(traceabilityLogbookService
-            .getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE_MISSING, DataCategory.STORAGETRACEABILITY))
+            .getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE_MISSING,
+                DataCategory.STORAGETRACEABILITY))
             .willThrow(new StorageNotFoundException(""));
 
         given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
@@ -334,10 +338,12 @@ public class StorageTraceabilityAdministrationTest {
         given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
             .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG))
+        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
+            DataCategory.STORAGELOG))
             .willReturn(fakeResponse("test"));
 
-        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGETRACEABILITY),
+        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.STORAGETRACEABILITY),
             anyString(), any(ObjectDescription.class)))
             .willReturn(new StoredInfoResult());
 
@@ -347,7 +353,7 @@ public class StorageTraceabilityAdministrationTest {
 
         // When / Then
         assertThatThrownBy(() -> storageAdministration.generateStorageLogTraceabilityOperations(
-                VitamConfiguration.getDefaultStrategy(), Collections.singletonList(tenantId)))
+            VitamConfiguration.getDefaultStrategy(), Collections.singletonList(tenantId)))
             .isInstanceOf(TraceabilityException.class);
     }
 
@@ -374,13 +380,16 @@ public class StorageTraceabilityAdministrationTest {
         given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
             .willReturn(IteratorUtils.arrayIterator(offerLogFor(BACKUP_FILE), offerLogFor(BACKUP_FILE_2)));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG))
+        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
+            DataCategory.STORAGELOG))
             .willReturn(fakeResponse("test"));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2, DataCategory.STORAGELOG))
+        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2,
+            DataCategory.STORAGELOG))
             .willReturn(fakeResponse("test-2"));
 
-        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGETRACEABILITY),
+        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.STORAGETRACEABILITY),
             anyString(), any(ObjectDescription.class)))
             .willReturn(new StoredInfoResult());
 
@@ -426,7 +435,8 @@ public class StorageTraceabilityAdministrationTest {
         // No storage log files found
         given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
             .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG))
+        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
+            DataCategory.STORAGELOG))
             .willThrow(new StorageNotFoundException(""));
 
         StorageTraceabilityAdministration storageAdministration =
@@ -485,13 +495,16 @@ public class StorageTraceabilityAdministrationTest {
         doAnswer(o -> {
             assertThat(VitamThreadUtils.getVitamSession().getTenantId()).isEqualTo(0);
             return fakeResponse("test");
-        }).when(traceabilityLogbookService).getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
+        }).when(traceabilityLogbookService)
+            .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
         doAnswer(o -> {
             assertThat(VitamThreadUtils.getVitamSession().getTenantId()).isEqualTo(1);
             return fakeResponse("test");
-        }).when(traceabilityLogbookService).getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_TENANT_1, DataCategory.STORAGELOG);
+        }).when(traceabilityLogbookService)
+            .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_TENANT_1, DataCategory.STORAGELOG);
 
-        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGETRACEABILITY),
+        given(storageClient.storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.STORAGETRACEABILITY),
             anyString(), any(ObjectDescription.class)))
             .willReturn(new StoredInfoResult());
 
@@ -520,7 +533,8 @@ public class StorageTraceabilityAdministrationTest {
             .collect(Collectors
                 .toMap(log -> log.getParameterValue(LogbookParameterName.eventIdentifierProcess), log -> log));
         assertThat(logs).hasSize(2);
-        assertThat(logs).containsOnlyKeys(traceabilityResults.get(0).getOperationId(), traceabilityResults.get(1).getOperationId());
+        assertThat(logs).containsOnlyKeys(traceabilityResults.get(0).getOperationId(),
+            traceabilityResults.get(1).getOperationId());
 
         LogbookOperationParameters traceability_tenant0 = logs.get(traceabilityResults.get(0).getOperationId());
         LogbookOperationParameters traceability_tenant1 = logs.get(traceabilityResults.get(1).getOperationId());

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 /**
  * Utility class for Junit
@@ -58,7 +58,6 @@ public class ResourcesPrivateUtilTest {
     }
 
     /**
-     *
      * @return the serverIdentityPropertiesFile
      */
     public final File getServerIdentityPropertiesFile() {
@@ -66,7 +65,6 @@ public class ResourcesPrivateUtilTest {
     }
 
     /**
-     *
      * @return the serverIdentityYamlFile
      */
     public final File getServerIdentityYamlFile() {
@@ -74,7 +72,6 @@ public class ResourcesPrivateUtilTest {
     }
 
     /**
-     *
      * @return the ResourcesPrivateUtilTest instance
      */
     public static ResourcesPrivateUtilTest getInstance() {

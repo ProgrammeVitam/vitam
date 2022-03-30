@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for REST endpoints to be based on Basic authentication fitering. <br/>
- *
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -45,6 +44,7 @@ public @interface VitamAuthentication {
 
     /**
      * description of the VitamAuthentication annotation, initialized by default to Basic authentication. <br/>
+     *
      * @return the description
      */
     AuthenticationLevel authentLevel() default AuthenticationLevel.BASIC_AUTHENT;

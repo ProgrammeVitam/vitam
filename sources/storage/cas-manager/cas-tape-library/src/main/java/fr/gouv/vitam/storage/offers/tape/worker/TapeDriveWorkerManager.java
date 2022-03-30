@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -87,7 +87,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
             archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService);
 
-        if(fullCartridgeDetectionThresholdInMB == null ||
+        if (fullCartridgeDetectionThresholdInMB == null ||
             fullCartridgeDetectionThresholdInMB <= 0 || fullCartridgeDetectionThresholdInMB > 1_000_000_000) {
             throw new IllegalArgumentException("Invalid fullCartridgeDetectionThresholdInMB param");
         }

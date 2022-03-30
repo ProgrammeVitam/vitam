@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,6 +28,5 @@
  * Provides logbook interface, factory and implementation for the Storage Engine
  * Server module in order to log every object written on different storage
  * offers
- * 
  */
 package fr.gouv.vitam.storage.log.traceability;

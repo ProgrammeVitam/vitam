@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,16 +50,16 @@ public class LogbookParametersSerializerTest {
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             if (!value.name().equals(LogbookParameterName.events.name())) {
-                if(value.name().equals(LogbookParameterName.parentEventIdentifier.name())){
+                if (value.name().equals(LogbookParameterName.parentEventIdentifier.name())) {
                     params.putParameterValue(value, null);
-                }
-                else {
+                } else {
                     params.putParameterValue(value, value.name());
                 }
             }
         }
 
-        final LogbookOperationParametersSerializer logbookParametersSerializer = new LogbookOperationParametersSerializer();
+        final LogbookOperationParametersSerializer logbookParametersSerializer =
+            new LogbookOperationParametersSerializer();
         final StringWriter stringJson = new StringWriter();
         final JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
         final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
@@ -78,7 +78,7 @@ public class LogbookParametersSerializerTest {
                 "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
     }
 
-    
+
     @Test
     public void shouldSerializeUnitParameters() throws IOException {
         final LogbookLifeCycleUnitParameters params =
@@ -87,10 +87,9 @@ public class LogbookParametersSerializerTest {
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             if (!value.name().equals(LogbookParameterName.events.name())) {
-                if(value.name().equals(LogbookParameterName.parentEventIdentifier.name())){
+                if (value.name().equals(LogbookParameterName.parentEventIdentifier.name())) {
                     params.putParameterValue(value, null);
-                }
-                else {
+                } else {
                     params.putParameterValue(value, value.name());
                 }
             }

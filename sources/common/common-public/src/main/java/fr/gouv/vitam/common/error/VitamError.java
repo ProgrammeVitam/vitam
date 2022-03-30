@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,15 +27,6 @@
 
 package fr.gouv.vitam.common.error;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -43,11 +34,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -87,7 +85,7 @@ public class VitamError<T> extends RequestResponse<T> {
     public static <T> VitamError<T> newVitamError(Class<T> clasz) {
         return new VitamError<>();
     }
-    
+
     /**
      * @param code of error as integer
      * @return the VitamError object with the code is setted
@@ -237,7 +235,8 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse JsonNode node exception occurred
      */
-    public static <T> VitamError<T> getFromJsonNode(JsonNode node, Class<T> clasz) throws InvalidParseOperationException {
+    public static <T> VitamError<T> getFromJsonNode(JsonNode node, Class<T> clasz)
+        throws InvalidParseOperationException {
         return JsonHandler.getFromJsonNode(node, new TypeReference<>() {
         });
     }

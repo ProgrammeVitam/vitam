@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,13 +44,14 @@ public class JavaExecuteScript {
     /**
      * Return status when execute the shell script scan-clamav.sh for scanning the file
      *
-     * @param cmd              the command line that will be executed
-     * @param arg              the file to scan
+     * @param cmd the command line that will be executed
+     * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
      * @throws JavaExecuteScriptException if script could not be executed
      */
-    public static ExecutionOutput executeCommand(String cmd, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
+    public static ExecutionOutput executeCommand(String cmd, String arg, long timeoutScanDelay)
+        throws JavaExecuteScriptException {
         String scriptPath;
         try {
             scriptPath = PropertiesUtils.findFile(cmd).getPath();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -192,8 +192,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
         AccessExternalConfiguration configuration) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
-        this.configuration= configuration;
-        this.objectGroupBlackListedFieldsForVisualizationByTenant = configuration.getObjectGroupBlackListedFieldsForVisualizationByTenant();
+        this.configuration = configuration;
+        this.objectGroupBlackListedFieldsForVisualizationByTenant =
+            configuration.getObjectGroupBlackListedFieldsForVisualizationByTenant();
     }
 
     /**
@@ -245,7 +246,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(queryJson, configuration.isAuthorizeTrackTotalHits());
+            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(queryJson,
+                configuration.isAuthorizeTrackTotalHits());
 
             RequestResponse<JsonNode> result = client.selectUnits(queryJson);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -347,7 +349,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             LOGGER.error(UNITS_COUNT_EXCEED_THRESHOLD, e);
             status = Status.EXPECTATION_FAILED;
             return Response.status(status).build();
-        }catch (AccessUnauthorizedException e) {
+        } catch (AccessUnauthorizedException e) {
             LOGGER.error(STREAM_UNITS_LIMIT_REACHED, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).build();
@@ -631,7 +633,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                    ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -658,13 +660,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Update archive units by Id with Json query
      *
+     * @param queryJson the update query (null not allowed)
+     * @param idUnit units identifier
+     * @return a archive unit result list
      * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
      * <p> Use {@link AccessExternalResource#massUpdateUnits(JsonNode)} or
      * {@link AccessExternalResource#massUpdateUnitsRules(MassUpdateUnitRuleRequest)} instead.
-     *
-     * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
-     * @return a archive unit result list
      */
     @Deprecated
     @PUT
@@ -727,8 +728,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -749,11 +750,13 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
             RequestResponse<JsonNode> selectedObjectGroupsByUnit = client.selectObjectbyId(queryJson, idObjectGroup);
 
-            if (!((RequestResponseOK) selectedObjectGroupsByUnit).getResults().isEmpty() ) {
+            if (!((RequestResponseOK) selectedObjectGroupsByUnit).getResults().isEmpty()) {
                 excludeBlackListedFieldsForGot(((RequestResponseOK) selectedObjectGroupsByUnit).getResults());
             }
 
-            int st = selectedObjectGroupsByUnit.isOk() ? Status.OK.getStatusCode() : selectedObjectGroupsByUnit.getHttpCode();
+            int st = selectedObjectGroupsByUnit.isOk() ?
+                Status.OK.getStatusCode() :
+                selectedObjectGroupsByUnit.getHttpCode();
 
             if (!selectedObjectGroupsByUnit.isOk()) {
                 VitamError<JsonNode> error = (VitamError<JsonNode>) selectedObjectGroupsByUnit;
@@ -766,7 +769,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
             return Response.status(st).entity(selectedObjectGroupsByUnit).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-                BadRequestException | InvalidCreateOperationException e) {
+            BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -801,7 +804,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request. Headers X-Qualifier and X-Version must be defined with target object qualifier and version in the object group container associated with the unit.
-     * @param unitId  the id of archive unit
+     * @param unitId the id of archive unit
      * @return object content as response body stream with HTTP 200 when OK, HTTP 404 when object not found, HTTP 460 when object is not available for immediate access and requires Access Request. HTTP 40X / 50X on error.
      */
     @GET
@@ -961,7 +964,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
             for (AccessRequestReference accessRequestReference : accessRequestReferences) {
                 ParametersChecker.checkParameter("Access requests required", accessRequestReference);
-                ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+                ParametersChecker.checkParameter("Required accessRequestId",
+                    accessRequestReference.getAccessRequestId());
                 ParametersChecker.checkParameter("Required storageStrategyId",
                     accessRequestReference.getStorageStrategyId());
             }
@@ -1401,9 +1405,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     private String idObjectGroup(String idu)
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException, AccessUnauthorizedException,
-            BadRequestException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        BadRequestException, InvalidCreateOperationException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -1526,7 +1530,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
+            .setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
@@ -1623,7 +1628,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 gotResults.forEach(got -> {
                     fieldsToExcludeForCurrentTenant.forEach(fieldToExclude -> {
                         Iterator<Map.Entry<String, JsonNode>> gotFields = got.deepCopy().fields();
-                        while(gotFields.hasNext()){
+                        while (gotFields.hasNext()) {
                             Map.Entry<String, JsonNode> nextGotField = gotFields.next();
                             JsonHandler.removeFieldFromNode(got, fieldToExclude, nextGotField.getValue());
                         }

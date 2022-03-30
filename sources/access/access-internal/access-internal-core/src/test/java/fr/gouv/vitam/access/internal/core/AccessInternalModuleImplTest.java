@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,8 +55,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -486,9 +486,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -500,7 +501,8 @@ public class AccessInternalModuleImplTest {
             any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        JsonNode sampleDataUnitRawResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        JsonNode sampleDataUnitRawResult =
+            JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
         RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(sampleDataUnitRawResult);
 
 
@@ -531,7 +533,8 @@ public class AccessInternalModuleImplTest {
         assertEquals(
             "-    \"Title\" : \"MyTitle\",\n+    \"Title\" : \"Modified title\",\n-    \"MyBoolean\" : false,\n+    \"MyBoolean\" : true,",
             lfcParams.get("diff").textValue());
-        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT), eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
+        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT),
+            eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
     }
 
     @Test
@@ -541,9 +544,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_DESC_ONLY));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -599,9 +603,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -657,9 +662,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -693,9 +699,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
@@ -741,9 +748,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
@@ -755,7 +763,8 @@ public class AccessInternalModuleImplTest {
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
 
-        JsonNode jsonResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        JsonNode jsonResult =
+            JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
         RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(jsonResult);
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
@@ -780,7 +789,8 @@ public class AccessInternalModuleImplTest {
         assertNotNull(capture.getParameterValue(LogbookParameterName.eventDetailData));
         JsonNode lfcParams = JsonHandler.getFromString(capture.getParameterValue(LogbookParameterName.eventDetailData));
         assertTrue(lfcParams.get("diff").isNull());
-        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT), eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
+        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT),
+            eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
 
     }
 
@@ -834,9 +844,10 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(any());
@@ -859,9 +870,10 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(any());
@@ -887,9 +899,10 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -900,7 +913,8 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        JsonNode sampleDataUnitRawResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        JsonNode sampleDataUnitRawResult =
+            JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
         RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(sampleDataUnitRawResult);
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
@@ -962,8 +976,10 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
 
         final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
+        when(responseMock.readEntity(InputStream.class)).thenReturn(
+            new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(
+            responseMock);
 
         // When
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit);
@@ -1015,8 +1031,10 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
 
         final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
+        when(responseMock.readEntity(InputStream.class)).thenReturn(
+            new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(
+            responseMock);
 
         // When
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "Dissemination", 1, idUnit);
@@ -1046,11 +1064,11 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
 
         when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any()))
-                .thenThrow(new StorageNotFoundException("strategy invalid"));
+            .thenThrow(new StorageNotFoundException("strategy invalid"));
 
         // When + then
         assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit))
-                .isInstanceOf(StorageNotFoundException.class);
+            .isInstanceOf(StorageNotFoundException.class);
     }
 
     @Test
@@ -1156,7 +1174,9 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(null);
-        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
+        assertThatThrownBy(
+            () -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(
+            AccessInternalExecutionException.class);
     }
 
     @Test
@@ -1168,7 +1188,9 @@ public class AccessInternalModuleImplTest {
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
-        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
+        assertThatThrownBy(
+            () -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(
+            AccessInternalExecutionException.class);
     }
 
     @Test
@@ -1375,10 +1397,10 @@ public class AccessInternalModuleImplTest {
     private CloseableIterator<ObjectEntry> getMockedResponseForListContainer() {
 
         return CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new ObjectEntry("0_s_a_l_20180810040000000_20180810080000000_id.log", 0L),
-            new ObjectEntry("0_s_a_l_20180810090000000_20180810150000000_id.log", 0L),
+                new ObjectEntry("0_s_a_l_20180810040000000_20180810080000000_id.log", 0L),
+                new ObjectEntry("0_s_a_l_20180810090000000_20180810150000000_id.log", 0L),
                 new ObjectEntry("0_s_a_l_20180810160000000_20180810190000000_id.log", 0L))
-        .iterator());
+            .iterator());
     }
 
     private void initMocksForAccessLog() throws Exception {
@@ -1451,7 +1473,7 @@ public class AccessInternalModuleImplTest {
         // When
         // Then
         Assertions.assertThatCode(
-            () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
+                () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
             .hasMessageContaining("Classification Level is not in the list of allowed values");
     }
 
@@ -1471,7 +1493,7 @@ public class AccessInternalModuleImplTest {
         // When
         // Then
         Assertions.assertThatCode(
-            () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
+                () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
             .doesNotThrowAnyException();
     }
 
@@ -1483,9 +1505,10 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
-            new TypeReference<>() {
-            });
+        AccessContractModel accessContractModel =
+            JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
+                new TypeReference<>() {
+                });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 

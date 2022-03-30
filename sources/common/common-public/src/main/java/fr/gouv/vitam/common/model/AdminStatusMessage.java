@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,8 +59,8 @@ public class AdminStatusMessage {
      * Constructor from ServerIdentity
      *
      * @param serverIdentity containing ServerName, ServerRole, Global PlatformId
-     * @param status         True if the status is OK, else False
-     * @param detail         the detailed status if any
+     * @param status True if the status is OK, else False
+     * @param detail the detailed status if any
      * @param componentsVersions
      */
     public AdminStatusMessage(JsonNode serverIdentity, boolean status, ObjectNode detail, JsonNode componentsVersions) {
@@ -80,7 +79,6 @@ public class AdminStatusMessage {
 
     /**
      * @param serverIdentity the serverIdentity to set
-     *
      * @return this
      */
     public AdminStatusMessage setServerIdentity(JsonNode serverIdentity) {
@@ -97,7 +95,6 @@ public class AdminStatusMessage {
 
     /**
      * @param status the status to set
-     *
      * @return this
      */
     public AdminStatusMessage setStatus(boolean status) {
@@ -114,7 +111,6 @@ public class AdminStatusMessage {
 
     /**
      * @param detail the detail to set
-     *
      * @return this
      */
     public AdminStatusMessage setDetail(ObjectNode detail) {
@@ -123,7 +119,6 @@ public class AdminStatusMessage {
     }
 
     /**
-     *
      * @return componentsVersions as JsonNode
      */
     public JsonNode getComponentsVersions() {
@@ -131,7 +126,6 @@ public class AdminStatusMessage {
     }
 
     /**
-     *
      * @param componentsVersions
      */
     public void setComponentsVersions(JsonNode componentsVersions) {

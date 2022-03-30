@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.access.external.rest;
 
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,15 +57,15 @@ public class AccessExternalApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-       try {
-           if (application != null && application.getVitamServer() != null &&
-               application.getVitamServer() != null) {
+        try {
+            if (application != null && application.getVitamServer() != null &&
+                application.getVitamServer() != null) {
 
-               application.stop();
-           }
-       } catch (Exception e) {
-           SysErrLogger.FAKE_LOGGER.syserr("", e);
-       }
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        }
 
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();
@@ -100,7 +99,8 @@ public class AccessExternalApplicationTest {
 
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        application = new AccessExternalMain("src/test/resources/access-external-test.conf", BusinessApplicationTest.class,null);
+        application =
+            new AccessExternalMain("src/test/resources/access-external-test.conf", BusinessApplicationTest.class, null);
         application.start();
 
         given()
@@ -150,6 +150,6 @@ public class AccessExternalApplicationTest {
     public void shouldActivateShiroFilter() throws VitamException {
         application = new AccessExternalMain("src/test/resources/access-external-test-ssl.conf");
         assertThatCode(() -> application.start()).doesNotThrowAnyException();
-        
+
     }
 }

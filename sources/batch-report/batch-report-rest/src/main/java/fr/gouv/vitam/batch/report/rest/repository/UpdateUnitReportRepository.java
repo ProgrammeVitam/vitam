@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -109,7 +109,8 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
+        return collection.aggregate(
+                Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
             .allowDiskUse(true)
             .iterator();
     }

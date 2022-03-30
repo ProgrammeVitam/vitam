@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -142,7 +142,7 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
      */
     @Override
     public List<LogbookCheckError> checkLFCandOperation(Map<String, EventModel> mapOpEvents,
-                                                        Map<String, EventModel> mapLfcEvents) {
+        Map<String, EventModel> mapLfcEvents) {
         List<LogbookCheckError> logbookCheckErrors = new ArrayList<>();
         LOGGER.debug("Check coherence between logbook operation and Lifecycles");
 
@@ -184,7 +184,8 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
                 event.getLfcId(), event.getEvType(),
                 String.format(SAVED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG, LogbookEventName.EVTYPE.getValue(),
                     event.getEvType()),
-                String.format(EXPECTED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG, LogbookEventName.EVTYPE.getValue(),
+                String.format(EXPECTED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG,
+                    LogbookEventName.EVTYPE.getValue(),
                     event.getEvType())))
             );
         }

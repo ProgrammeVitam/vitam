@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -648,7 +648,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset,
+        int limit,
         Order order)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -862,9 +863,10 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
         try (Response response = make(request)) {
             check(response);
-            RequestResponse<String> referentOfferForStrategyResponse = RequestResponse.parseFromResponse(response, String.class);
+            RequestResponse<String> referentOfferForStrategyResponse =
+                RequestResponse.parseFromResponse(response, String.class);
             if (!referentOfferForStrategyResponse.isOk()) {
-                throw new StorageException("Exception while retrieving referent Offer for strategy "+ strategyId);
+                throw new StorageException("Exception while retrieving referent Offer for strategy " + strategyId);
             }
             return ((RequestResponseOK<String>) referentOfferForStrategyResponse).getFirstResult();
 

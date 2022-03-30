@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -74,7 +74,8 @@ public class OfferSequenceDatabaseServiceTest {
     @Before
     public void before() {
         cleanDatabase();
-        service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase().getCollection(OFFER_SEQUENCE.getName()));
+        service =
+            new OfferSequenceDatabaseService(mongoRule.getMongoDatabase().getCollection(OFFER_SEQUENCE.getName()));
     }
 
     @Test
@@ -99,7 +100,8 @@ public class OfferSequenceDatabaseServiceTest {
     public void should_throw_error_when_no_sequence() throws Exception {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
-        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class), any(FindOneAndUpdateOptions.class))).thenReturn(null);
+        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class),
+            any(FindOneAndUpdateOptions.class))).thenReturn(null);
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(collection);
 
         // When
@@ -113,7 +115,8 @@ public class OfferSequenceDatabaseServiceTest {
     public void should_throw_error_when_mongo_exception() throws Exception {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
-        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class), any(FindOneAndUpdateOptions.class))).thenThrow(MongoWriteException.class);
+        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class),
+            any(FindOneAndUpdateOptions.class))).thenThrow(MongoWriteException.class);
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(collection);
 
         // When
@@ -164,7 +167,8 @@ public class OfferSequenceDatabaseServiceTest {
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_SEQUENCE.getName()).deleteMany(new Document());
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_SEQUENCE.getName())
+            .deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.OFFER_SEQUENCE;
         collectionPrefixed.setPrefix(PREFIX);
         mongoRule.getMongoDatabase().getCollection(collectionPrefixed.getName()).deleteMany(new Document());

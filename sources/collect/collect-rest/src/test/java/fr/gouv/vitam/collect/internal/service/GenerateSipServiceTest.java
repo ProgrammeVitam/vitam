@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,11 +42,12 @@ public class GenerateSipServiceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
     @RunWithCustomExecutor
-    public void should_create_a_manifest_file() throws FileNotFoundException, XMLStreamException, JAXBException, InvalidParseOperationException {
+    public void should_create_a_manifest_file()
+        throws FileNotFoundException, XMLStreamException, JAXBException, InvalidParseOperationException {
         //Given
         VitamThreadUtils.getVitamSession().setTenantId(1);
 

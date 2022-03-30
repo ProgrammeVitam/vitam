@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,6 +36,7 @@ public class ProcessingTooManyUnitsFoundException extends ProcessingException {
 
     // When unitId is a not valid guid
     private boolean validGuid = true;
+
     /**
      * @param message associated message
      * @param cause associated cause
@@ -71,7 +72,6 @@ public class ProcessingTooManyUnitsFoundException extends ProcessingException {
     }
 
     /**
-     * 
      * @return the unit guid (system id)
      */
     public String getUnitGuid() {
@@ -79,7 +79,6 @@ public class ProcessingTooManyUnitsFoundException extends ProcessingException {
     }
 
     /**
-     * 
      * @return the unit id
      */
     public String getUnitId() {

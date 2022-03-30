@@ -63,7 +63,7 @@ public class ExtractSecureTraceabilityDataFilePluginTest {
     private static final String CONTAINER_NAME = "CONTAINER_NAME";
     private static final String OBJECT_NAME = "OBJECT_NAME";
     private static final String RANDOM_STRING = "tmp";
-    
+
     private static final String zipFolder = TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_NAME;
 
 

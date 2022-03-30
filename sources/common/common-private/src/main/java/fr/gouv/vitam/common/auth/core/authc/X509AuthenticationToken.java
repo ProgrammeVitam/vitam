@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,6 +29,13 @@
  */
 package fr.gouv.vitam.common.auth.core.authc;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.HostAuthenticationToken;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import javax.security.auth.x500.X500Principal;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -38,15 +45,6 @@ import java.security.cert.CollectionCertStoreParameters;
 import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.HostAuthenticationToken;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -64,7 +62,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     private final String host;
 
     /**
-     *
      * @param clientCertChain
      * @param host
      */
@@ -81,7 +78,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @param clientSubjectDN
      * @param clientIssuerDN
      * @param clientHexSerialNumber
@@ -98,7 +94,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return the X509 certificate
      */
     public X509Certificate getX509Certificate() {
@@ -106,7 +101,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return the JVM X509 certificate selector
      */
     public CertSelector getX509CertSelector() {
@@ -116,7 +110,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return get a Store with the Cert
      */
     public CertStore getX509CertChainStore() {
@@ -134,7 +127,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return the subjectDN
      */
     public X500Principal getSubjectDN() {
@@ -142,7 +134,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return the Issuer DN
      */
     public X500Principal getIssuerDN() {
@@ -150,7 +141,6 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     *
      * @return the Serial Number (in hexadecimal)
      */
     public String getHexSerialNumber() {

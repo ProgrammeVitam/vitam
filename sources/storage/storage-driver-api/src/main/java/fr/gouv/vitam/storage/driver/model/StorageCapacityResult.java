@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,10 +44,8 @@ public class StorageCapacityResult extends StorageResult {
     /**
      * Initialize the needed parameters for get capacity results
      *
-     * @param tenantId
-     *            The request tenantId
-     * @param usableSpace
-     *            The usable space in offer
+     * @param tenantId The request tenantId
+     * @param usableSpace The usable space in offer
      */
     public StorageCapacityResult(Integer tenantId, long usableSpace) {
         // TODO : replace null with type (since a container is type_tenant)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -166,7 +166,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
         when(accessInternalClient.selectOperationById(any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
-        when(accessInternalClient.selectOperationById(any(),any(),anyBoolean(),anyBoolean()))
+        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
         when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
@@ -371,7 +371,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testSelectOperations_InternalServerError() throws Exception {
-        when(accessInternalClient.selectOperation(eq(JsonHandler.getFromString(bad_request)), anyBoolean(), anyBoolean()))
+        when(accessInternalClient.selectOperation(eq(JsonHandler.getFromString(bad_request)), anyBoolean(),
+            anyBoolean()))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)

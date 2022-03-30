@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -108,7 +108,7 @@ public enum VitamRestEasyConfiguration {
      * Cache enable
      */
     CACHE_ENABLED;
-    
+
     /**
      * Chunk mode
      */
@@ -117,9 +117,8 @@ public enum VitamRestEasyConfiguration {
      * Buffer mode
      */
     public static final String BUFFERED = "BUFFERED";
-    
+
     /**
-     * 
      * @param config
      * @return True of the associated Map contains True for this key
      */
@@ -132,7 +131,6 @@ public enum VitamRestEasyConfiguration {
     }
 
     /**
-     * 
      * @param config
      * @return The Object of the associated Map for this key
      */
@@ -141,9 +139,8 @@ public enum VitamRestEasyConfiguration {
     }
 
     /**
-     * 
      * @param config
-     * @param defaultValue 
+     * @param defaultValue
      * @return The String of the associated Map for this key or default value if not found
      */
     public final String getString(Map<VitamRestEasyConfiguration, Object> config, String defaultValue) {
@@ -155,9 +152,8 @@ public enum VitamRestEasyConfiguration {
     }
 
     /**
-     * 
      * @param config
-     * @param defaultValue 
+     * @param defaultValue
      * @return The int of the associated Map for this key or default value if not found
      */
     public final int getInt(Map<VitamRestEasyConfiguration, Object> config, int defaultValue) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,26 +36,23 @@ public class StorageObjectRequest extends StorageRequest {
 
     /**
      * Initialize the needed parameters for request on an object.
-     * 
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
-     * @param guid
-     *            the object guid
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
      */
     public StorageObjectRequest(Integer tenantId, String type, String guid) {
         super(tenantId, type);
         this.guid = guid;
     }
 
-    public StorageObjectRequest(Integer tenantId,String guid) {
+    public StorageObjectRequest(Integer tenantId, String guid) {
         this(tenantId, null, guid);
     }
 
     /**
      * Gets the guid
-     * 
+     *
      * @return the guid
      */
     public String getGuid() {

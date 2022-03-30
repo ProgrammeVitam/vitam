@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,7 @@ public class SelectMultipleSchemaValidator implements DslValidator {
 
     /**
      * Constructor
-     * 
+     *
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public SelectMultipleSchemaValidator() throws IOException {
@@ -80,26 +80,27 @@ public class SelectMultipleSchemaValidator implements DslValidator {
 
     /**
      * Check if query is a valid stream query or not
+     *
      * @param queryJson
      * @throws ValidationException
      */
     public static void validateStreamQuery(JsonNode queryJson) throws ValidationException {
         JsonNode offset = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FILTER.exactToken() +
             "." + BuilderToken.SELECTFILTER.OFFSET.exactToken(), false);
-        if(offset != null) {
+        if (offset != null) {
             throw new ValidationException(
                 VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
                     BuilderToken.SELECTFILTER.OFFSET.exactToken() + " in this query"));
         }
         JsonNode limit = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FILTER.exactToken() +
             "." + BuilderToken.SELECTFILTER.LIMIT.exactToken(), false);
-        if(limit != null) {
+        if (limit != null) {
             throw new ValidationException(
                 VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
                     BuilderToken.SELECTFILTER.LIMIT.exactToken() + " in this query"));
         }
         JsonNode facets = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FACETS.exactToken(), false);
-        if(facets != null && facets.elements().hasNext()) {
+        if (facets != null && facets.elements().hasNext()) {
             throw new ValidationException(
                 VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
                     BuilderToken.GLOBAL.FACETS.exactToken() + " in this query"));
@@ -108,6 +109,7 @@ public class SelectMultipleSchemaValidator implements DslValidator {
 
     /**
      * Check if property track_total_hits is already authorized in order to use it in DSL filter
+     *
      * @param queryJson
      * @param configAuthorizeTrackTotalHits
      * @throws ValidationException
@@ -128,7 +130,7 @@ public class SelectMultipleSchemaValidator implements DslValidator {
     /**
      * Validate graph on dsl query : all queries should contains $depth or $exactdepth except the first query when $root
      * is not set.
-     * 
+     *
      * @param dsl dsl query
      * @throws ValidationException thrwon is graph is invalid
      */

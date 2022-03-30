@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -62,19 +62,19 @@ public class MetadataStorageHelper {
      * @return the JsonNode of the unit inside the documuent
      */
     public static JsonNode getUnitFromUnitWithLFC(JsonNode document) {
-        if(document == null || !document.hasNonNull(UNIT_KEY)) {
-            throw new IllegalArgumentException("Document should contain a "+UNIT_KEY+" object");
+        if (document == null || !document.hasNonNull(UNIT_KEY)) {
+            throw new IllegalArgumentException("Document should contain a " + UNIT_KEY + " object");
         }
         return document.get(UNIT_KEY);
     }
 
-    
-    
+
+
     /**
      * Create a jsonNode with the got document and its lfc
      *
      * @param document the unit node
-     * @param lfc      the lfc node
+     * @param lfc the lfc node
      * @return a new JsonNode with document and lfc inside
      */
     public static JsonNode getGotWithLFC(JsonNode document, JsonNode lfc) {

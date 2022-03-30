@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,7 @@ public class AdminManagementMain {
 
     /**
      * Constructor
-     * 
+     *
      * @param configurationFile the configuration of the web application
      */
     public AdminManagementMain(String configurationFile) {
@@ -64,7 +64,7 @@ public class AdminManagementMain {
 
     /**
      * Main method to run the application (doing start and join)
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -91,7 +91,7 @@ public class AdminManagementMain {
 
     /**
      * Start application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -100,7 +100,7 @@ public class AdminManagementMain {
 
     /**
      * Start and join application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -109,7 +109,7 @@ public class AdminManagementMain {
 
     /**
      * Stop application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {

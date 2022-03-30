@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,8 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
     public static final String ITEM_ID = "PRESERVATION_BINARY_HASH";
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         logger.debug("Starting {}.", ITEM_ID);
 
         handler.setCurrentObjectId(WorkflowBatchResults.NAME);
@@ -121,13 +122,15 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, WARNING, EventDetails.of(error, String.join(", ", digests.keySet())));
+        return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, WARNING,
+            EventDetails.of(error, String.join(", ", digests.keySet())));
     }
 
     private OutputExtra getOutputExtra(WorkflowBatchResults results, OutputExtra extra) {
         Digest digest = new Digest(digestPreservationGeneration);
         try {
-            Path outputPath = results.getBatchDirectory().resolve(OUTPUT_FILES).resolve(extra.getOutput().getOutputName());
+            Path outputPath =
+                results.getBatchDirectory().resolve(OUTPUT_FILES).resolve(extra.getOutput().getOutputName());
             InputStream binaryFile = Files.newInputStream(outputPath);
             digest.update(binaryFile);
             String binaryHash = digest.digestHex();

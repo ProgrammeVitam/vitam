@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,8 @@ public class ProfileServiceImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList, indexManager);
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
@@ -143,7 +144,8 @@ public class ProfileServiceImplTest {
 
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 vitamCounterService, functionalBackupService);
 
     }
@@ -183,7 +185,8 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
-        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse =
+            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
     }
@@ -211,7 +214,8 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().get(1);
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
-        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse =
+            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
         verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
@@ -239,7 +243,8 @@ public class ProfileServiceImplTest {
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
 
-        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse =
+            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isFalse();
 
     }
@@ -262,7 +267,8 @@ public class ProfileServiceImplTest {
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
 
-        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse =
+            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
         javax.ws.rs.core.Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
@@ -330,8 +336,8 @@ public class ProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_filled_path.json");
         final List<ProfileModel> profileModelList =
-                JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
+            });
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();

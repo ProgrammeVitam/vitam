@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,8 +34,9 @@ import java.util.Set;
 public class VersionRetentionPolicyModel {
 
     public static final String TAG_VERSION_RETENTION_POLICY_INITIAL_VERSION = "VersionRetentionPolicy.InitialVersion";
-    public static final String TAG_VERSION_RETENTION_POLICY_INTERMEDIARY_VERSION = "VersionRetentionPolicy.IntermediaryVersion";
-    public static final String TAG_VERSION_RETENTION_POLICY_USAGES= "VersionRetentionPolicy.Usages";
+    public static final String TAG_VERSION_RETENTION_POLICY_INTERMEDIARY_VERSION =
+        "VersionRetentionPolicy.IntermediaryVersion";
+    public static final String TAG_VERSION_RETENTION_POLICY_USAGES = "VersionRetentionPolicy.Usages";
 
     @JsonProperty("InitialVersion")
     private boolean initialVersion;

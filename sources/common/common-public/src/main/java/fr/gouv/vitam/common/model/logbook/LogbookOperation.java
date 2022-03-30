@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,6 @@ public class LogbookOperation extends LogbookEventOperation {
 
     /**
      * @param id the id to set
-     *
      */
     public void setId(String id) {
         this.id = id;
@@ -112,7 +111,6 @@ public class LogbookOperation extends LogbookEventOperation {
 
     /**
      * @param tenant the tenant to set
-     *
      */
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
@@ -127,7 +125,6 @@ public class LogbookOperation extends LogbookEventOperation {
 
     /**
      * @param events the events to set
-     *
      */
     public void setEvents(List<LogbookEventOperation> events) {
         this.events = events;
@@ -142,7 +139,6 @@ public class LogbookOperation extends LogbookEventOperation {
 
     /**
      * @param agIdApp the agIdApp to set
-     *
      */
     public void setAgIdApp(String agIdApp) {
         this.agIdApp = agIdApp;
@@ -157,7 +153,6 @@ public class LogbookOperation extends LogbookEventOperation {
 
     /**
      * @param evIdAppSession the evIdAppSession to set
-     *
      */
     public void setEvIdAppSession(String evIdAppSession) {
         this.evIdAppSession = evIdAppSession;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,8 @@ import org.bson.Document;
  */
 public class Griffin extends VitamDocument<Griffin> {
 
-    public Griffin() {}
+    public Griffin() {
+    }
 
     public Griffin(JsonNode content) {
         super(content);
@@ -100,7 +101,7 @@ public class Griffin extends VitamDocument<Griffin> {
         return getString(EXECUTABLE_VERSION);
     }
 
-    public Griffin setExecutableVersion(String executableVersion){
+    public Griffin setExecutableVersion(String executableVersion) {
         append(EXECUTABLE_VERSION, executableVersion);
         return this;
     }
@@ -109,7 +110,7 @@ public class Griffin extends VitamDocument<Griffin> {
         return getString(EXECUTABLE_NAME);
     }
 
-    public Griffin setExecutableName(String executableName){
+    public Griffin setExecutableName(String executableName) {
         append(EXECUTABLE_NAME, executableName);
         return this;
     }

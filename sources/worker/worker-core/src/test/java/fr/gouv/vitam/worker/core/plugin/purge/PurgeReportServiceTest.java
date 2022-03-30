@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -120,7 +120,8 @@ public class PurgeReportServiceTest {
         instance.appendUnitEntries(PROC_ID, entries);
 
         // Then
-        ArgumentCaptor<ReportBody<PurgeUnitReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<PurgeUnitReportEntry>> reportBodyArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
         ReportBody<PurgeUnitReportEntry> reportBody = reportBodyArgumentCaptor.getValue();
@@ -146,7 +147,8 @@ public class PurgeReportServiceTest {
                     new PurgeObjectGroupObjectVersion("opi_o_1", 10L),
                     new PurgeObjectGroupObjectVersion("opi_o_2", 100L))),
             new PurgeObjectGroupReportEntry("got2", "sp2", "opi2",
-                new HashSet<>(Collections.singletonList("unit3")), null, PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
+                new HashSet<>(Collections.singletonList("unit3")), null,
+                PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
                 null)
         );
 
@@ -154,7 +156,8 @@ public class PurgeReportServiceTest {
         instance.appendObjectGroupEntries(PROC_ID, entries);
 
         // Then
-        ArgumentCaptor<ReportBody<PurgeObjectGroupReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<PurgeObjectGroupReportEntry>> reportBodyArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
         ReportBody<PurgeObjectGroupReportEntry> reportBody = reportBodyArgumentCaptor.getValue();

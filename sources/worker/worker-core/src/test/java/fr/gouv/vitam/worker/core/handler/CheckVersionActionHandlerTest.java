@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -122,7 +121,8 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWrongAlgorithmThenReturnResponseError()
         throws ProcessingException {
-        Mockito.doThrow(new SedaUtilsException(new ProcessingException(""))).when(sedaUtils).checkSupportedDataObjectVersion(any());
+        Mockito.doThrow(new SedaUtilsException(new ProcessingException(""))).when(sedaUtils)
+            .checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

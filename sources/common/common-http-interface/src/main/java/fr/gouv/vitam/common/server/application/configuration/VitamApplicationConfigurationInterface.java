@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,33 +48,48 @@ public interface VitamApplicationConfigurationInterface {
 
     /**
      * getter authentication
-     * 
+     *
      * @return true if authentication is on for the application, false if not
      */
     boolean isAuthentication();
 
     /**
      * @param authentication the authentication to set
-     *
      * @return this
      */
     VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
 
     /**
      * getter tenantFilter
-     * 
+     *
      * @return true if tenant Filtering is on for the application, false if not
      */
     boolean isTenantFilter();
 
     VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
-    
-    default String getBaseUrl() { return null; }
-    default String getStaticContent() { return null; }
-    default String getBaseUri() { return null; }
 
-    default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) { return this; }
-    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) { return this; }
-    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) { return this; }
+    default String getBaseUrl() {
+        return null;
+    }
+
+    default String getStaticContent() {
+        return null;
+    }
+
+    default String getBaseUri() {
+        return null;
+    }
+
+    default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) {
+        return this;
+    }
+
+    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) {
+        return this;
+    }
+
+    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) {
+        return this;
+    }
 
 }

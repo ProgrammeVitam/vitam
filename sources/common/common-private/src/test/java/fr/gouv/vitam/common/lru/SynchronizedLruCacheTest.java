@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.lru;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.ResourcesPrivateUtilTest;
+import fr.gouv.vitam.common.exception.VitamException;
+import org.junit.Test;
 
 import java.util.concurrent.Callable;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.ResourcesPrivateUtilTest;
-import fr.gouv.vitam.common.exception.VitamException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SynchronizedLruCacheTest {
     private static final Integer ONE = new Integer(1);
@@ -65,7 +64,7 @@ public class SynchronizedLruCacheTest {
         synchronizedLruCache.put("key", 1);
         assertEquals(ONE, synchronizedLruCache.get("key"));
         assertEquals(1, synchronizedLruCache.size());
-        synchronizedLruCache.clear();;
+        synchronizedLruCache.clear();
         assertEquals(0, synchronizedLruCache.size());
         synchronizedLruCache.put("key", 1);
         assertEquals(ONE, synchronizedLruCache.get("key"));

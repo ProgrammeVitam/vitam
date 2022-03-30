@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -384,28 +384,28 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         diffObject.put("version", VitamConfiguration.getDiffVersion());
         return JsonHandler.writeAsString(diffObject);
     }
-    
+
 
     /**
      * Store Unit with LFC by storing UNIT+LFC in workspace then storing in offers.
-     * 
-     * @param mdClient      metadataClient
-     * @param lfcClient     logbook lifecycle client
+     *
+     * @param mdClient metadataClient
+     * @param lfcClient logbook lifecycle client
      * @param storageClient storage client
-     * @param handler       handler IO
-     * @param params        handler parameters
-     * @param guid          unit guid
-     * @param fileName      stored unit file name
+     * @param handler handler IO
+     * @param params handler parameters
+     * @param guid unit guid
+     * @param fileName stored unit file name
      * @throws VitamException when an error occurs
      */
     protected void saveUnitWithLfc(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-            StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
-            throws VitamException {
+        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
+        throws VitamException {
 
         //// get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
-        
+
         MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         //// get lfc
@@ -418,7 +418,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         try {
             InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
             handler.transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
-                    null, false);
+                null, false);
         } catch (ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
             throw new WorkspaceClientServerException(e);
@@ -427,10 +427,10 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         // call storage (save in offers)
         // object Description
         final ObjectDescription description = new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
-                fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
+            fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
 
         // store metadata object from workspace and set itemStatus
         storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
-                description);
+            description);
     }
 }

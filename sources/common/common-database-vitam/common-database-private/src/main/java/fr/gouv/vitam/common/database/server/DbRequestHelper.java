@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -208,7 +208,8 @@ public class DbRequestHelper {
         // log synchronization errors between elasticSearch and MongoDB.
         listDesynchronizedResults.forEach(
             x -> {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                 LOGGER.error(String.format(
                     CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S, x,
                     ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
@@ -216,7 +217,8 @@ public class DbRequestHelper {
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!listDesynchronizedResults.isEmpty()) {
-            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()),
+                "DbRequest").inc();
             throw new VitamDBException("[Consistency ERROR] : An internal data consistency error has been detected !");
         }
 

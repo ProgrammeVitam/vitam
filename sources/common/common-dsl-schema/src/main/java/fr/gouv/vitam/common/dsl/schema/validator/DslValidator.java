@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.dsl.schema.validator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 
 /**
@@ -37,7 +36,7 @@ public interface DslValidator {
 
     /**
      * Validate a dsl query
-     * 
+     *
      * @param dsl dsl query
      * @throws IllegalArgumentException dsl empty or null
      * @throws ValidationException thrown if dsl query is not valid

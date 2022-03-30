@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,9 @@ import java.util.Map;
  * SchemaBuilder
  */
 public class SchemaBuilder {
-    private static final TypeReference<Map<String, Format>> MAP_TYPE_REFERENCE = new TypeReference<Map<String, Format>>() {};
+    private static final TypeReference<Map<String, Format>> MAP_TYPE_REFERENCE =
+        new TypeReference<Map<String, Format>>() {
+        };
     private Map<String, Format> types = new HashMap<>();
 
     protected SchemaBuilder() {
@@ -68,7 +70,7 @@ public class SchemaBuilder {
 
     /**
      * Build a schema
-     * 
+     *
      * @return the schema built
      */
     public Schema build() {

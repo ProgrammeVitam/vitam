@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,8 @@ import java.io.InputStream;
  */
 public class ReclassificationQuerySchemaValidator implements DslValidator {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReclassificationQuerySchemaValidator.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ReclassificationQuerySchemaValidator.class);
 
     private final Schema schema;
 

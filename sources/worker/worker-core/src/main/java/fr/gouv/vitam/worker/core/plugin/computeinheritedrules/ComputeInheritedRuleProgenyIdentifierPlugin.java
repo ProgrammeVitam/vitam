@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,8 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         VitamLoggerFactory.getInstance(ComputeInheritedRuleProgenyIdentifierPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER";
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
+    };
     private static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;

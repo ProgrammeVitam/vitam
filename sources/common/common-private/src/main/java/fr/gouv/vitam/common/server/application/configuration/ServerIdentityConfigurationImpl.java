@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,7 +56,8 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
      * @param identityRole identity role
      * @throws IllegalArgumentException if identityName or identityRole
      */
-    public ServerIdentityConfigurationImpl(String identityName, int identityServerId, int identitySiteId,String identityRole) {
+    public ServerIdentityConfigurationImpl(String identityName, int identityServerId, int identitySiteId,
+        String identityRole) {
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
             identityName, identityRole);
         if (identitySiteId < 0) {
@@ -85,7 +86,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     public int getIdentitySiteId() {
         return identitySiteId;
     }
-    
+
     @Override
     public String getIdentityRole() {
         return identityRole;
@@ -128,8 +129,8 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
         this.identitySiteId = identitySiteId;
         return this;
     }
-    
-    
+
+
     /**
      * @param identityRole the identityRole to set
      * @return this

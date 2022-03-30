@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -184,7 +184,7 @@ public class AccessExternalIT extends VitamRuleRunner {
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -240,7 +240,8 @@ public class AccessExternalIT extends VitamRuleRunner {
 
         // THEN
         assertThatCode(() ->
-            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(VitamClientException.class);
+            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(
+            VitamClientException.class);
     }
 
     @RunWithCustomExecutor
@@ -284,7 +285,8 @@ public class AccessExternalIT extends VitamRuleRunner {
 
         // THEN
         assertThatCode(() ->
-            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(VitamClientException.class);
+            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(
+            VitamClientException.class);
     }
 
     private static void insertUnitAndLFC(final String unitFile, final String lfcFile)
@@ -292,7 +294,7 @@ public class AccessExternalIT extends VitamRuleRunner {
         insertUnits(unitFile);
 
         List<LogbookLifeCycleUnit> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            lfcFile),
+                lfcFile),
             new TypeReference<>() {
             });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException;
+    RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+        throws InvalidParseOperationException;
 
     /**
      * ADD Object Group
@@ -69,7 +70,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException;
+    RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode)
+        throws InvalidParseOperationException;
 
     /**
      * ADD Binary
@@ -79,7 +81,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<CollectUnitDto> Archive Unit saved
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException;
+    Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+        throws InvalidParseOperationException;
 
     /**
      * Close Transaction

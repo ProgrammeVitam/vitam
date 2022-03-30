@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -150,7 +150,8 @@ public class DeferredFileBufferingInputStreamTest {
         InputStream sourceInputStream = new NullInputStream(100);
 
         // When
-        assertThatThrownBy(() -> new DeferredFileBufferingInputStream(sourceInputStream, 123, 1000, tempFolder.getRoot()))
+        assertThatThrownBy(
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 123, 1000, tempFolder.getRoot()))
             .isInstanceOf(IOException.class);
 
         // Ensure any tmp file deleted
@@ -167,7 +168,8 @@ public class DeferredFileBufferingInputStreamTest {
         );
 
         // When
-        assertThatThrownBy(() -> new DeferredFileBufferingInputStream(sourceInputStream, 100, 1000, tempFolder.getRoot()))
+        assertThatThrownBy(
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 100, 1000, tempFolder.getRoot()))
             .isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
@@ -180,7 +182,8 @@ public class DeferredFileBufferingInputStreamTest {
         InputStream sourceInputStream = new NullInputStream(10000);
 
         // When
-        assertThatThrownBy(() -> new DeferredFileBufferingInputStream(sourceInputStream, 12345, 1000, tempFolder.getRoot()))
+        assertThatThrownBy(
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 12345, 1000, tempFolder.getRoot()))
             .isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
@@ -202,7 +205,8 @@ public class DeferredFileBufferingInputStreamTest {
         );
 
         // When
-        assertThatThrownBy(() -> new DeferredFileBufferingInputStream(sourceInputStream, 10000, 1000, tempFolder.getRoot()))
+        assertThatThrownBy(
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 10000, 1000, tempFolder.getRoot()))
             .isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();

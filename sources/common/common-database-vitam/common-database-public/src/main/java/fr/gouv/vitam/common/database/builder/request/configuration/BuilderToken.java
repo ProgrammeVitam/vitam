@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -103,6 +103,7 @@ public abstract class BuilderToken {
         THRESOLD("threshold"),
         /**
          * Action part (in case of update)
+         *
          * @deprecated : To be removed in future releases.
          */
         RULES("rules"),
@@ -538,8 +539,7 @@ public abstract class BuilderToken {
          * Used in terms facet
          */
         ORDER("order"),
-        SUBOBJECT("subobject"),;
-
+        SUBOBJECT("subobject");
         private final String exactToken;
 
         /**
@@ -858,6 +858,7 @@ public abstract class BuilderToken {
      * }
      * </pre>
      */
+
 
     /**
      * Update model

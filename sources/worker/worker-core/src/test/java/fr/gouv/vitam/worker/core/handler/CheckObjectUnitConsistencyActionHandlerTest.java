@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -76,7 +76,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
+            .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083")
         .setObjectNameList(Lists.newArrayList(OBJ))
         .setObjectName(OBJ)

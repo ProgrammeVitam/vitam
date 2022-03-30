@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,11 +34,11 @@ import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -134,7 +134,8 @@ public class OntologyServiceImplTest {
 
         ontologyService =
             new OntologyServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 functionalBackupService);
     }
 
@@ -179,8 +180,9 @@ public class OntologyServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -194,8 +196,9 @@ public class OntologyServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -211,7 +214,7 @@ public class OntologyServiceImplTest {
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         final RequestResponseOK<OntologyModel> responseCast1 = (RequestResponseOK<OntologyModel>) response;
         List<OntologyModel> results1 = responseCast1.getResults();
-        List<Ontology> actualExternals =  getExternalOntologies();
+        List<Ontology> actualExternals = getExternalOntologies();
 
         // Then
         assertThat(response.isOk()).isTrue();
@@ -229,14 +232,15 @@ public class OntologyServiceImplTest {
         final RequestResponse<OntologyModel> response2 = ontologyService.importInternalOntologies(ontologyModelList2);
         final RequestResponseOK<OntologyModel> responseCast2 = (RequestResponseOK<OntologyModel>) response2;
         List<OntologyModel> results2 = responseCast2.getResults();
-        List<Ontology> afterUpgrade =  getExternalOntologies();
+        List<Ontology> afterUpgrade = getExternalOntologies();
 
         // Then
         assertThat(response2.isOk()).isTrue();
         assertThat(results2).hasSize(4);
         assertThat(afterUpgrade).hasSize(3);
-        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
 
         JsonNode actual = JsonHandler.toJsonNode(afterUpgrade);
 
@@ -267,8 +271,9 @@ public class OntologyServiceImplTest {
         assertThat(response2.isOk()).isFalse();
         assertThat(((VitamError) response2).getDescription()).contains(
             "Import/upgrade ontologies error : There is conflict between Ontologies being imported and those already exists in database");
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -765,8 +770,9 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response3 = ontologyService.importOntologies(false, ontologyModelList3);
         assertThat(response3.isOk()).isTrue();
-        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -785,8 +791,9 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response2 = ontologyService.importOntologies(false, ontologyModelList2);
         assertThat(response2.isOk()).isTrue();
-        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -795,15 +802,17 @@ public class OntologyServiceImplTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         File fileOntology = PropertiesUtils.getResourceFile("ok_ontology.json");
-        List<OntologyModel> ontologyModelListOk = JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+        List<OntologyModel> ontologyModelListOk =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
 
         // When
         RequestResponse response = ontologyService.importOntologies(true, ontologyModelListOk);
 
         // Then
         assertThat(response).isInstanceOf(RequestResponseOK.class);
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -813,7 +822,8 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
 
         File fileOntologyKo = PropertiesUtils.getResourceFile("KO_ontology_unknown_collection.json");
-        List<OntologyModel> ontologyModelListKo = JsonHandler.getFromFileAsTypeReference(fileOntologyKo, listOfOntologyType);
+        List<OntologyModel> ontologyModelListKo =
+            JsonHandler.getFromFileAsTypeReference(fileOntologyKo, listOfOntologyType);
 
         // When
         RequestResponse response = ontologyService.importOntologies(true, ontologyModelListKo);
@@ -823,8 +833,9 @@ public class OntologyServiceImplTest {
         assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
 
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);
-        verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(),
+            eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -932,7 +943,8 @@ public class OntologyServiceImplTest {
         throws InvalidParseOperationException {
         final List<Ontology> models = new ArrayList<>();
 
-        FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
+        FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection()
+            .find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
         for (Document document : documents) {
             models.add(BsonHelper.fromDocumentToObject(document, Ontology.class));
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,9 +28,6 @@ package fr.gouv.vitam.processing.management.api;
 
 
 
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -45,13 +42,15 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
+import java.util.List;
+import java.util.Map;
+
 
 
 /**
  * ProcessManagement interface
  *
  * This service will be invoked by Ingest Module
- *
  */
 public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable {
 
@@ -59,7 +58,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Init a new process workflow
-     * 
+     *
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param workflowId the workflow identifier
      * @return ProcessWorkflow
@@ -69,7 +68,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Handle a next action for the corresponding process workflow
-     * 
+     *
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param tenantId the tenant identifier
      * @return the status
@@ -81,7 +80,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Handle a replay action for the corresponding process workflow
-     * 
+     *
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param tenantId the tenant identifier
      * @return the status
@@ -93,7 +92,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Handle a resume action for the corresponding process workflow
-     * 
+     *
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param tenantId the tenant identifier
      * @param useForcedPause if the forced pause must be applied
@@ -106,7 +105,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Handle a pause action for the corresponding process workflow
-     * 
+     *
      * @param operationId the operation identifier
      * @param tenantId the tenant identifier
      * @return the status
@@ -117,7 +116,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Handle a cancel action for the corresponding process workflow
-     * 
+     *
      * @param operationId the operation identifier
      * @param tenantId the tenant identifier
      * @return the status
@@ -129,7 +128,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
     /**
      * Retrieve All the workflow process for monitoring purpose The final business scope of this feature is likely to be
      * redefined, to match the future need
-     * 
+     *
      * @param tenantId the tenant identifier
      * @return All the workflow process details
      */
@@ -137,7 +136,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * find the workflow process according to the operation_id and the tenant_id
-     * 
+     *
      * @param operationId the operation identifier
      * @param tenantId the tenant identifier
      * @return the workFlow process
@@ -147,14 +146,13 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
 
     /**
      * Retrieve the loaded workflow definitions
-     * 
+     *
      * @return the workflow definitions by ID
      */
     Map<String, WorkFlow> getWorkflowDefinitions();
 
     /**
      * Reload workflow definitions
-     *
      */
     void reloadWorkflowDefinitions();
 
@@ -168,21 +166,20 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
     List<ProcessDetail> getFilteredProcess(ProcessQuery query, Integer tenantId);
 
     /**
-     *
      * @return WorkFlow List
      */
     Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList();
 
     /**
      * sProcessMonitorList
-     * 
+     *
      * @return
      */
     Map<String, IEventsState> getProcessMonitorList();
 
     /**
      * server configuration
-     * 
+     *
      * @return
      */
     ServerConfiguration getConfiguration();
@@ -199,7 +196,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
     /**
      * Add a forced pause on the tenant and/or the type of process
      *
-     * @param  pause
+     * @param pause
      */
     void forcePause(ProcessPause pause) throws ProcessingException;
 

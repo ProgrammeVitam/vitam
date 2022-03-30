@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,7 +56,8 @@ public class HelloWorldPlugin extends ActionHandler {
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), unpretty);
 
 
-        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(HELLO_WORLD_PLUGIN, itemStatus.increment(StatusCode.OK));
+        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(HELLO_WORLD_PLUGIN,
+            itemStatus.increment(StatusCode.OK));
     }
 
 }

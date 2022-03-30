@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -77,7 +76,8 @@ public class EvidenceAuditPrepareReportTest {
     @Before
     public void setUp() throws Exception {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
-        evidenceAuditPrepareReport = new EvidenceAuditPrepareReport(evidenceAuditReportService,logbookOperationsClientFactory);
+        evidenceAuditPrepareReport =
+            new EvidenceAuditPrepareReport(evidenceAuditReportService, logbookOperationsClientFactory);
     }
 
 

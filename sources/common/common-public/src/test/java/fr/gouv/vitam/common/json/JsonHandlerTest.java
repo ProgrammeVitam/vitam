@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -87,24 +87,24 @@ public class JsonHandlerTest {
     @Test
 
     public final void testIsvalidJsonString() throws InvalidParseOperationException, FileNotFoundException {
-        JsonHandler.validate( "{}" );
-        JsonHandler.validate( "{\"tzs\":\"ee\"}" );
+        JsonHandler.validate("{}");
+        JsonHandler.validate("{\"tzs\":\"ee\"}");
 
     }
 
-    @Test(expected = InvalidParseOperationException.class )
+    @Test(expected = InvalidParseOperationException.class)
     public final void testInvalidJsonArray() throws InvalidParseOperationException, FileNotFoundException {
-        JsonHandler.validate( "[]" );
+        JsonHandler.validate("[]");
     }
 
-    @Test(expected = InvalidParseOperationException.class )
+    @Test(expected = InvalidParseOperationException.class)
     public final void testInvalidJsonString() throws InvalidParseOperationException, FileNotFoundException {
-        JsonHandler.validate( "true" );
+        JsonHandler.validate("true");
     }
 
-    @Test(expected = InvalidParseOperationException.class )
+    @Test(expected = InvalidParseOperationException.class)
     public final void testInvalidNull() throws InvalidParseOperationException, FileNotFoundException {
-        JsonHandler.validate( null );
+        JsonHandler.validate(null);
     }
 
     @Test

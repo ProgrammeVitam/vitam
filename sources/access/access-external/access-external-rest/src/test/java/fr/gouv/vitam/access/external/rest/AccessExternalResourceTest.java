@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,8 +58,8 @@ import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -850,7 +850,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testAccessUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(
+                new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
             .contentType(ContentType.JSON)
@@ -881,7 +882,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testHttpOverrideAccessUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(
+                new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -1132,7 +1134,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testOkSelectUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(
+                new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
         given()
@@ -1161,7 +1164,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testOkSelectUnitsWithActivatedTrackTotalHits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(
+                new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE_WITH_TRACK_TOTAL_HITS);
         given()
@@ -1280,42 +1284,42 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1370,7 +1374,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
@@ -1385,7 +1389,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
@@ -1569,20 +1573,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST_SINGLE)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "PUT")
+                "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1631,20 +1635,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(JsonHandler.getFromString(objectnode))
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1669,13 +1673,13 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1763,7 +1767,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public void testAccessUnitsWithInheritedRules() throws Exception {
         reset(accessInternalClient);
         when(accessInternalClient.selectUnitsWithInheritedRules(any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(
+                new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
             .contentType(ContentType.JSON)

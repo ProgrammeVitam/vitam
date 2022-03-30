@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,8 @@ public class ElasticsearchAccessFunctionalAdminTest {
     public static void setUp() throws Exception {
         List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        ElasticsearchFunctionalAdminIndexManager indexManager = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+        ElasticsearchFunctionalAdminIndexManager indexManager =
+            FunctionalAdminCollectionsTestUtils.createTestIndexManager();
         elasticsearchAccessFunctionalAdmin =
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes, indexManager);
 

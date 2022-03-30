@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,11 +41,11 @@ public class StoragePutRequest extends StorageObjectRequest {
     /**
      * Initialize the needed parameters for put requests of an object.
      *
-     * @param tenantId        request tenantId
-     * @param type            the type
-     * @param guid            the object guid
+     * @param tenantId request tenantId
+     * @param type the type
+     * @param guid the object guid
      * @param digestAlgorithm the object digestAlgorithm
-     * @param dataStream      data stream of the object to put in offer
+     * @param dataStream data stream of the object to put in offer
      */
     public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm,
         InputStream dataStream) {

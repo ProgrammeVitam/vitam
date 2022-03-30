@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,6 +46,7 @@ public class PluginConfiguration {
 
     /**
      * constructor
+     *
      * @param propertiesFile the plugin properties file
      * @param actionHandlerClazz the class of worker ActionHandler
      */
@@ -56,6 +57,7 @@ public class PluginConfiguration {
 
     /**
      * property file link to the plugin
+     *
      * @return path of the property file
      */
     public String getPropertiesFile() {
@@ -64,6 +66,7 @@ public class PluginConfiguration {
 
     /**
      * create a new instance for the plugin
+     *
      * @return new instance
      * @throws InvocationPluginException if could not instance the plugin
      */
@@ -72,7 +75,7 @@ public class PluginConfiguration {
             return actionHandlerClazz.newInstance();
             // Exception is used here because Class.newInstance propagate the exception launched by the constructor.
         } catch (Exception e) {
-            throw new InvocationPluginException("could not instance plugin" , e);
+            throw new InvocationPluginException("could not instance plugin", e);
         }
     }
 

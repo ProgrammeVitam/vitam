@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,11 +38,11 @@ public class FileRulesCSVTest {
     @SuppressWarnings({"SimplifiableJUnitAssertion", "ConstantConditions"})
     public void testNotEqualsWithNull() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
         assertFalse(rule.equals(null)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
@@ -50,168 +50,175 @@ public class FileRulesCSVTest {
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void testEquals() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
 
         FileRulesCSV sameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertTrue(rule.equals(sameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertTrue(
+            rule.equals(sameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleIdIsDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleTypeDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AccessRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AccessRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleValueIsDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier collectif d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier collectif d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleDescriptionIsDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "description de la règle",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "description de la règle",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleDurationIsDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "1200",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "1200",
+            "YEAR");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     @SuppressWarnings("SimplifiableJUnitAssertion")
     public void shouldReturnNotEqualsWhenRuleMeasuremnetIsDifferent() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "MONTH");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "MONTH");
 
         FileRulesCSV notSameRule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
-        assertFalse(rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
+        assertFalse(
+            rule.equals(notSameRule)); // FileRulesModel::equals is overrided so do not use AssertNotEquals(null, rule)
     }
 
     @Test
     public void shouldReturnTrueIfRulesHaveSameId() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "MONTH");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "MONTH");
 
         FileRulesCSV sameRuleId = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "YEAR");
         assertTrue(rule.hasSameRuleId(sameRuleId));
     }
 
     @Test
     public void shouldReturnFalseIfRulesHaveSameId() {
         FileRulesCSV rule = new FileRulesCSV("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "MONTH");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "MONTH");
 
         FileRulesCSV notSameRuleId = new FileRulesCSV("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "MONTH");
+            "AppraisalRule",
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            "MONTH");
         assertFalse(rule.hasSameRuleId(notSameRuleId));
     }
 }

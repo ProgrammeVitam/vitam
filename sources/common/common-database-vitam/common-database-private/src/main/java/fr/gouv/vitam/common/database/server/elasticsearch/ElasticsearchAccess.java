@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,12 +31,12 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -194,7 +194,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
             final CountDownLatch latch = new CountDownLatch(1);
             LOGGER.debug("async request to create index [" + indexName + "]");
 
-            getClient().indices().createAsync(request, RequestOptions.DEFAULT, new LatchedActionListener<>(listener, latch));
+            getClient().indices()
+                .createAsync(request, RequestOptions.DEFAULT, new LatchedActionListener<>(listener, latch));
 
             try {
                 LOGGER.debug("request sent -> waiting for a response now");
@@ -209,8 +210,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             }
 
             if (!listener.isAcknowledged() || !listener.isShardsAcknowledged()) {
-                throw new DatabaseException("Could not create index " + indexName + ". acknowledged: " + listener.isAcknowledged() +
-                    ", shardsAcknowledged: " + listener.isShardsAcknowledged());
+                throw new DatabaseException(
+                    "Could not create index " + indexName + ". acknowledged: " + listener.isAcknowledged() +
+                        ", shardsAcknowledged: " + listener.isShardsAcknowledged());
             }
         } catch (IOException e) {
             throw new DatabaseException("Could not create index " + indexName, e);
@@ -449,12 +451,12 @@ public class ElasticsearchAccess implements DatabaseConnection {
         int offset, Integer limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
         boolean trackTotalHits)
-            throws DatabaseException, BadRequestException {
+        throws DatabaseException, BadRequestException {
         SearchResponse response;
         SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
-                .explain(false)
-                .query(query)
-                .size(VitamConfiguration.getElasticSearchScrollLimit());
+            .explain(false)
+            .query(query)
+            .size(VitamConfiguration.getElasticSearchScrollLimit());
 
 
         if (trackTotalHits) {
@@ -476,14 +478,14 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
 
         SearchRequest searchRequest = new SearchRequest()
-                .indices(indexAliases.stream().map(ElasticsearchIndexAlias::getName).toArray(String[]::new))
-                .source(searchSourceBuilder)
-                .searchType(SearchType.DFS_QUERY_THEN_FETCH);
+            .indices(indexAliases.stream().map(ElasticsearchIndexAlias::getName).toArray(String[]::new))
+            .source(searchSourceBuilder)
+            .searchType(SearchType.DFS_QUERY_THEN_FETCH);
 
         if (scrollId != null && !scrollId.isEmpty()) {
             int limitES = (limit != null && limit > 0) ? limit : DEFAULT_LIMIT_SCROLL;
             int scrollTimeoutES =
-                    (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : DEFAULT_SCROLL_TIMEOUT;
+                (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : DEFAULT_SCROLL_TIMEOUT;
             searchRequest.scroll(TimeValue.timeValueMillis(scrollTimeoutES));
             searchSourceBuilder.size(limitES);
 
@@ -492,8 +494,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     response = getClient().search(searchRequest, RequestOptions.DEFAULT);
                 } else {
                     response = getClient()
-                            .scroll(new SearchScrollRequest(scrollId).scroll(new TimeValue(scrollTimeoutES)),
-                                    RequestOptions.DEFAULT);
+                        .scroll(new SearchScrollRequest(scrollId).scroll(new TimeValue(scrollTimeoutES)),
+                            RequestOptions.DEFAULT);
                 }
             } catch (IOException e) {
                 throw new DatabaseException(e);
@@ -537,10 +539,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
         int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, boolean trackTotalHits)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        boolean trackTotalHits)
         throws DatabaseException, BadRequestException {
-        return searchCrossIndices(Set.of(indexAlias), query, filter,  esProjection,  sorts,
-        offset, limit, facets, scrollId, scrollTimeout, trackTotalHits);
+        return searchCrossIndices(Set.of(indexAlias), query, filter, esProjection, sorts,
+            offset, limit, facets, scrollId, scrollTimeout, trackTotalHits);
     }
 
     public void clearScroll(String scrollId) throws DatabaseException {
@@ -784,7 +787,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     private Settings createIndexSettings(int shards, int replicas) throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), false)
+                ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), false)
             .put(NUMBER_OF_SHARDS, shards)
             .put(NUMBER_OF_REPLICAS, replicas)
             .build();

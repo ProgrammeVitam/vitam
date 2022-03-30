@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -416,7 +416,6 @@ public interface VitamLogger {
      * Is the logger instance enabled for the specified {@code level}?
      *
      * @param level
-     *
      * @return True if this Logger is enabled for the specified {@code level}, false otherwise.
      */
     boolean isEnabled(VitamLogLevel level);
@@ -425,7 +424,6 @@ public interface VitamLogger {
      * Log a message at the specified {@code level}.
      *
      * @param level
-     *
      * @param msg the message string to be logged
      */
     void log(VitamLogLevel level, String msg);

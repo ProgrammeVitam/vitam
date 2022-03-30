@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -189,6 +189,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy/offerId
+     *
      * @param strategyId
      * @param offerId
      * @param objectName
@@ -320,7 +321,8 @@ public interface StorageClient extends BasicClient {
      * @return list of offer log
      * @throws StorageServerClientException
      */
-    RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit, Order order)
+    RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
+        Order order)
         throws StorageServerClientException;
 
     /**
@@ -391,6 +393,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Get referent offer of strategy
+     *
      * @param strategy
      * @return
      */

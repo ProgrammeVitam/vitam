@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,7 @@ public class TextTypeDeSerializer extends JsonDeserializer<TextType> {
     /**
      * Convert json, xml, string to TextType
      *
-     * @param jp   (json, xml, string) representation
+     * @param jp (json, xml, string) representation
      * @param ctxt
      * @return the TextType
      * @throws java.io.IOException

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.common.exception;
 
-public class InvalidFileException  extends ReferentialException {
+public class InvalidFileException extends ReferentialException {
 
     /**
      * @param message message to associate with the exception

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -163,7 +162,7 @@ public class ApplicativeTestService {
      * @return the list of reports.
      */
     List<Path> reports() throws IOException {
-        try(Stream<Path> pathStream = Files.list(tnrReportDirectory)) {
+        try (Stream<Path> pathStream = Files.list(tnrReportDirectory)) {
             return pathStream.collect(Collectors.toList());
         }
     }
@@ -213,14 +212,15 @@ public class ApplicativeTestService {
     List<String> getBranches(Path featurePath) throws IOException, InterruptedException {
         LOGGER.debug("git get branches");
 
-        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/remotes/", "--format='%(refname:short)'");
+        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/remotes/",
+            "--format='%(refname:short)'");
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
         String stdout = stdToString(p.getInputStream());
         LOGGER.debug("process output " + stdout);
 
-        return Arrays.asList(stdout.replaceAll("'","").replaceAll("[[a-zA-Z0-9]_]+/","").split(" \\| "));
+        return Arrays.asList(stdout.replaceAll("'", "").replaceAll("[[a-zA-Z0-9]_]+/", "").split(" \\| "));
     }
 
     private static String stdToString(InputStream std) {

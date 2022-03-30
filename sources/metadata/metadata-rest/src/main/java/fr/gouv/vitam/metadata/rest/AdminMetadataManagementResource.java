@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.Path;
 
 @Path("/metadata/v1")
-@Tag(name="Metadata")
+@Tag(name = "Metadata")
 public class AdminMetadataManagementResource extends MetadataManagementResource {
 
     // TODO : Hack to fix related to ticket (9734) : https://assistance.programmevitam.fr/plugins/tracker/?tracker=53&aid=9734

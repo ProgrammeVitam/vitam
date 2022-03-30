@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -325,7 +325,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .streamUnits(applyAccessContractRestrictionForUnitForSelect(queryDsl, getVitamSession().getContract()));
         } catch (final MetadataScrollThresholdExceededException e) {
             return Response.status(Status.EXPECTATION_FAILED).build();
-        }catch (final MetadataScrollLimitExceededException e) {
+        } catch (final MetadataScrollLimitExceededException e) {
             return Response.status(Status.UNAUTHORIZED).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
@@ -1182,12 +1182,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
 
             ParametersChecker.checkParameter("Tenant required", headers.getHeaderString(GlobalDataRest.X_TENANT_ID));
-            if(accessRequestReferences.isEmpty()) {
+            if (accessRequestReferences.isEmpty()) {
                 throw new IllegalArgumentException("Empty query");
             }
             for (AccessRequestReference accessRequestReference : accessRequestReferences) {
                 ParametersChecker.checkParameter("Access requests required", accessRequestReference);
-                ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
+                ParametersChecker.checkParameter("Required accessRequestId",
+                    accessRequestReference.getAccessRequestId());
                 ParametersChecker.checkParameter("Required storageStrategyId",
                     accessRequestReference.getStorageStrategyId());
             }
@@ -1228,7 +1229,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             ParametersChecker.checkParameter("Tenant required", headers.getHeaderString(GlobalDataRest.X_TENANT_ID));
             ParametersChecker.checkParameter("Access request required", accessRequestReference);
             ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
-            ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
+            ParametersChecker.checkParameter("Required storageStrategyId",
+                accessRequestReference.getStorageStrategyId());
 
             accessModule.removeAccessRequest(accessRequestReference.getStorageStrategyId(),
                 accessRequestReference.getAccessRequestId());
@@ -1346,7 +1348,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
                     applyAccessContractRestrictionForUnitForUpdate(queryDsl,
-                            getVitamSession().getContract())));
+                        getVitamSession().getContract())));
 
             // compress file to backup
             OperationContextMonitor
@@ -1509,7 +1511,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, ACCESS_CONTRACT_FILE, writeToInpustream(
-                        JsonHandler.toJsonNode(getVitamSession().getContract())));
+                    JsonHandler.toJsonNode(getVitamSession().getContract())));
 
             // compress file to backup
             OperationContextMonitor
@@ -1517,11 +1519,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
                     OperationContextMonitor.OperationContextFileName);
 
-            processingClient.initVitamProcess(new ProcessingEntry(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name()));
+            processingClient.initVitamProcess(
+                new ProcessingEntry(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name()));
 
             RequestResponse<ItemStatus> requestResponse =
                 processingClient
-                    .executeOperationProcess(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name(), RESUME.getValue());
+                    .executeOperationProcess(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name(),
+                        RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | InvalidGuidOperationException |
@@ -1567,7 +1571,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 GUIDReader.getGUID(operationId),
                 LogbookTypeProcess.MASS_UPDATE,
                 STARTED,
-                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED), GUIDReader.getGUID(operationId));
+                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED),
+                GUIDReader.getGUID(operationId));
 
 
             // Add access contract rights
@@ -1979,8 +1984,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
-                String message = VitamLogbookMessages.getLabelOp(DELETE_GOT_VERSIONS.getEventType() + ".STARTED") + " : " +
-                    GUIDReader.getGUID(operationId);
+                String message =
+                    VitamLogbookMessages.getLabelOp(DELETE_GOT_VERSIONS.getEventType() + ".STARTED") + " : " +
+                        GUIDReader.getGUID(operationId);
 
                 LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
@@ -1995,7 +2001,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
-                workspaceClient.putObject(operationId, "deleteGotVersionsRequest", writeToInpustream(restrictedRequest));
+                workspaceClient.putObject(operationId, "deleteGotVersionsRequest",
+                    writeToInpustream(restrictedRequest));
 
                 //for CheckThresholdHandler
                 workspaceClient
@@ -2009,7 +2016,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 // compress file to backup
                 OperationContextMonitor
-                    .compressInWorkspace(workspaceClientFactory, operationId, DELETE_GOT_VERSIONS.getLogbookTypeProcess(),
+                    .compressInWorkspace(workspaceClientFactory, operationId,
+                        DELETE_GOT_VERSIONS.getLogbookTypeProcess(),
                         OperationContextMonitor.OperationContextFileName);
 
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, DELETE_GOT_VERSIONS.name()));

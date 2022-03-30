@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 @Path("/v1/admin")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminOntologyResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOntologyResource.class);
@@ -72,7 +72,8 @@ public class AdminOntologyResource {
     /**
      * @param ontologyResource
      */
-    public AdminOntologyResource(OntologyResource ontologyResource, MongoDbAccessAdminImpl mongoDbAccess, FunctionalBackupService functionalBackupService) {
+    public AdminOntologyResource(OntologyResource ontologyResource, MongoDbAccessAdminImpl mongoDbAccess,
+        FunctionalBackupService functionalBackupService) {
         LOGGER.debug("init Ontology Resource server");
         this.ontologyResource = ontologyResource;
         this.mongoAccess = mongoDbAccess;

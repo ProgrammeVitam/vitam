@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.security.merkletree;
 
-import static fr.gouv.vitam.common.security.merkletree.MerkleTree.EMPTY_LEAF;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
-
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
+import static fr.gouv.vitam.common.security.merkletree.MerkleTree.EMPTY_LEAF;
 
 /**
  * MerkleTreeAlgo

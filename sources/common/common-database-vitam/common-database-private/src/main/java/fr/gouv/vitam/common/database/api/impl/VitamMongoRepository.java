@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
-
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -58,7 +57,6 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
-
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 public class VitamMongoRepository implements VitamRepository {
@@ -90,7 +88,8 @@ public class VitamMongoRepository implements VitamRepository {
             ReplaceOneModel<Document> replaceOneModel =
                 new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
                     new ReplaceOptions().upsert(true));
-            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(), replaceOneModel.getReplaceOptions());
+            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(),
+                replaceOneModel.getReplaceOptions());
             if (result.getModifiedCount() > 0) {
                 return VitamRepositoryStatus.UPDATED;
             } else {
@@ -119,7 +118,8 @@ public class VitamMongoRepository implements VitamRepository {
     public void saveOrUpdate(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
         List<ReplaceOneModel<Document>> replaceOneModels = documents.stream()
-            .map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document, new ReplaceOptions().upsert(true)))
+            .map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
+                new ReplaceOptions().upsert(true)))
             .collect(Collectors.toList());
         try {
             collection.bulkWrite(replaceOneModels);
@@ -168,7 +168,8 @@ public class VitamMongoRepository implements VitamRepository {
         long count = delete.getDeletedCount();
         if (count == 0) {
             LOGGER.error(String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
-            throw new DatabaseException(String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
+            throw new DatabaseException(
+                String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
         }
     }
 
@@ -216,8 +217,12 @@ public class VitamMongoRepository implements VitamRepository {
             Document result = collection.find(query).first();
             return Optional.ofNullable(result);
         } catch (MongoException e) {
-            LOGGER.error(String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier, tenant), e);
-            throw new DatabaseException(String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier, tenant), e);
+            LOGGER.error(
+                String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier,
+                    tenant), e);
+            throw new DatabaseException(
+                String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier,
+                    tenant), e);
         }
     }
 
@@ -229,12 +234,14 @@ public class VitamMongoRepository implements VitamRepository {
             return Optional.ofNullable(result);
         } catch (MongoException e) {
             LOGGER.error(String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
-            throw new DatabaseException(String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
+            throw new DatabaseException(
+                String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
         }
     }
 
     @Override
-    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize, Integer tenant) {
+    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
+        Integer tenant) {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         if (fields == null || fields.isEmpty()) {
             return findDocuments(mongoBatchSize, tenant);

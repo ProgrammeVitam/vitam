@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,7 +41,7 @@ public interface InternalSecurityClient extends BasicClient {
 
     /**
      * Find Identity
-     * 
+     *
      * @param certificate
      * @return an Optional describing the IdentityModel, otherwise return an empty Optional.
      * @throws VitamClientInternalException in case of client exception
@@ -52,7 +52,7 @@ public interface InternalSecurityClient extends BasicClient {
 
     /**
      * Check if a personal certificate is required for this permission
-     * 
+     *
      * @param permission the permission to be checkd
      * @return IsPersonalCertificateRequiredModel
      * @throws VitamClientInternalException
@@ -63,7 +63,7 @@ public interface InternalSecurityClient extends BasicClient {
 
     /**
      * Check certificate with a permission
-     * 
+     *
      * @param certificate the certificate to be checked
      * @param permission the permission to be checked
      * @throws VitamClientInternalException

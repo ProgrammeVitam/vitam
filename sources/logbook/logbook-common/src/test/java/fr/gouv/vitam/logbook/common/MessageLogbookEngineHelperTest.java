@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.logbook.common;
 
-import static org.junit.Assert.assertEquals;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import org.junit.Test;
 
 import java.util.StringJoiner;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import static org.junit.Assert.assertEquals;
 
 public class MessageLogbookEngineHelperTest {
 
@@ -44,8 +43,10 @@ public class MessageLogbookEngineHelperTest {
 
     @Test
     public void testGetKey() {
-        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
-        String key = messageLogbookEngineHelper.getOutcomeDetail(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
+        MessageLogbookEngineHelper messageLogbookEngineHelper =
+            new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
+        String key =
+            messageLogbookEngineHelper.getOutcomeDetail(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
         assertEquals(uglyConcat(HOLDINGSCHEME, StatusCode.STARTED.name()), key);
         key = messageLogbookEngineHelper.getOutcomeDetail(STP_STEP, StatusCode.STARTED);
         assertEquals(uglyConcat(HOLDINGSCHEME, STP_STEP, StatusCode.STARTED.name()), key);
@@ -62,8 +63,10 @@ public class MessageLogbookEngineHelperTest {
 
     @Test
     public void testMessages() {
-        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
-        String label = messageLogbookEngineHelper.getLabelOp(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
+        MessageLogbookEngineHelper messageLogbookEngineHelper =
+            new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
+        String label =
+            messageLogbookEngineHelper.getLabelOp(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
         assertEquals("HOLDING SCHEME started", label);
         label = messageLogbookEngineHelper.getLabelOp(STP_STEP, StatusCode.STARTED);
         assertEquals("HOLDING SCHEME step started", label);

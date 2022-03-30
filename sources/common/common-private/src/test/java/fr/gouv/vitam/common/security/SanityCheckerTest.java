@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -162,7 +162,8 @@ public class SanityCheckerTest {
             try {
                 SanityChecker.checkJsonAll(json);
                 fail("Should failed with an exception");
-            } catch (final InvalidParseOperationException e) {}
+            } catch (final InvalidParseOperationException e) {
+            }
             SanityChecker.setLimitJsonSize(10000);
             SanityChecker.checkJsonAll(json);
             SanityChecker.checkJsonAll(json.toString());
@@ -291,7 +292,7 @@ public class SanityCheckerTest {
         final String textContent = new String(Files.readAllBytes(
             PropertiesUtils.getResourceFile("text-content.txt").toPath()));
         assertThatCode(() ->
-        SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(20)))
+            SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(20)))
         ).isInstanceOf(InvalidParseOperationException.class);
     }
 

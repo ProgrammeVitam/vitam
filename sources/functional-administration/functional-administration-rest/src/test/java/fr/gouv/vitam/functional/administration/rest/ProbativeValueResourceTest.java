@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -101,10 +101,10 @@ public class ProbativeValueResourceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(managementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(adminManagementClient.findAccessContracts(any()))
-                .thenReturn(new RequestResponseOK<AccessContractModel>()
-                                .addAllResults(Arrays.asList(new AccessContractModel()
-                                        .setEveryOriginatingAgency(true)
-                                        .setEveryDataObjectVersion(true))));
+            .thenReturn(new RequestResponseOK<AccessContractModel>()
+                .addAllResults(Arrays.asList(new AccessContractModel()
+                    .setEveryOriginatingAgency(true)
+                    .setEveryDataObjectVersion(true))));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
@@ -130,7 +130,8 @@ public class ProbativeValueResourceTest {
 
         Select select = new Select();
         select.setQuery(QueryHelper.eq("name", "dd"));
-        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
+        ProbativeValueRequest probativeValueRequest =
+            new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
 
         Response probativeValue = probativeValueResource
             .exportProbativeValue(new ProbativeValueRequest(new Select().getFinalSelect(), "BinaryMaster", "1"));
@@ -149,8 +150,10 @@ public class ProbativeValueResourceTest {
 
         Select select = new Select();
         select.setQuery(QueryHelper.eq("name", "dd"));
-        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
-        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(anyString(), any(), any());
+        ProbativeValueRequest probativeValueRequest =
+            new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
+        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient)
+            .putObject(anyString(), any(), any());
         Response probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 

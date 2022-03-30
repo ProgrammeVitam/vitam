@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,7 @@ import java.util.List;
 
 /**
  * ContractService Interface declaring common methods for Contracts
- * 
+ *
  * @param <T> AccessContractModel or IngestContractModel
  */
 public interface ContractService<T extends AbstractContractModel> extends VitamAutoCloseable {
@@ -56,7 +56,6 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>A field has an invalid format</li>
      * <li>One or many contracts already exist in the database</li>
      *
-     *
      * @param contractModelList the list of contracts to be created
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
@@ -71,10 +70,9 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>- DesactivationDate</li>
      * <li>- LastUpdate</li>
      * <li>- Status</li>
-     * 
+     *
      * @param id the id of the contract to be updated
      * @param queryDsl the given queryDsl for update
-     *
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
@@ -97,7 +95,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      *
      * @param queryDsl the query to be executed
      * @return list of T
-     * @throws ReferentialException thrown if the query could not be executed 
+     * @throws ReferentialException thrown if the query could not be executed
      * @throws InvalidParseOperationException thrown is the query is incorrect
      */
     RequestResponseOK<T> findContracts(JsonNode queryDsl)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,8 @@ public class CollectServiceTest {
     @Test
     public void createCollectTest() throws CollectException {
         // Given
-        TransactionDto transactionDto = new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
+        TransactionDto transactionDto =
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
 
         // When
         collectService.createCollect(transactionDto);
@@ -77,7 +78,8 @@ public class CollectServiceTest {
     public void testFindCollect() throws CollectException {
         final String idCollect = "XXXX000002222222";
         // Given
-        TransactionDto transactionDto = new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
+        TransactionDto transactionDto =
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
         doReturn(Optional.of(transactionDto)).when(collectRepository).findCollect(any());
 
         // When
@@ -85,17 +87,19 @@ public class CollectServiceTest {
 
         // Then
         then(collectRepository).should()
-                .findCollect(idCollect);
+            .findCollect(idCollect);
     }
 
     @Test
     public void testCheckStatus_OK() throws CollectException {
         // Given
         final String idCollect = "XXXX000002222222";
-        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+        CollectModel collectModel =
+            new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
 
         // When
-        boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
+        boolean checkStatus =
+            collectService.checkStatus(collectModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
 
         // Then
         Assertions.assertThat(checkStatus).isTrue();
@@ -105,10 +109,12 @@ public class CollectServiceTest {
     public void testCheckStatus_KO() throws InvalidParseOperationException {
         // Given
         final String idCollect = "XXXX000002222222";
-        CollectModel collectModel = new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+        CollectModel collectModel =
+            new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
 
         // When
-        boolean checkStatus =  collectService.checkStatus(collectModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
+        boolean checkStatus =
+            collectService.checkStatus(collectModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
 
         // Then
         Assertions.assertThat(checkStatus).isFalse();

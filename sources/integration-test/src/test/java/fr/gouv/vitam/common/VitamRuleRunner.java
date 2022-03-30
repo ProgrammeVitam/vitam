@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -182,7 +182,8 @@ public class VitamRuleRunner {
     public static void runAfterEs(ElasticsearchIndexAlias... indexAliases) {
         // clean offers
         VitamServerRunner.cleanOffers();
-        elasticsearchRule.handleAfter(Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet()));
+        elasticsearchRule.handleAfter(
+            Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet()));
     }
 
     public static void runAfter() {

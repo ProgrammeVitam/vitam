@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -354,7 +354,7 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     private void initGotsForAccessionRegisterTest(String... files)
-            throws DatabaseException {
+        throws DatabaseException {
         List<Document> objectGroups = Arrays.asList(files).stream()
             .map(file -> {
                 try {

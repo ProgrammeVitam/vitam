@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,6 @@ public class UnitGraphModel {
     private final Set<String> graph = new HashSet<>();
 
     /**
-     *
      * @param id unit id of unit
      * @param originatingAgency originating agency of unit
      */
@@ -73,7 +72,6 @@ public class UnitGraphModel {
     }
 
     /**
-     *
      * @param unit
      */
     public UnitGraphModel(Unit unit) {

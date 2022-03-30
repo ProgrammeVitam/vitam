@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,11 +41,12 @@ public class ProcessingNotFoundException extends ProcessingException {
     private boolean validGuid;
 
     /**
-     * @param message    associated message
+     * @param message associated message
      * @param manifestId
      * @param guid
      */
-    public ProcessingNotFoundException(String message, String manifestId, String guid, boolean validGuid, ExceptionType type, String taskKey) {
+    public ProcessingNotFoundException(String message, String manifestId, String guid, boolean validGuid,
+        ExceptionType type, String taskKey) {
         super(message);
         this.type = type;
         this.manifestId = manifestId;

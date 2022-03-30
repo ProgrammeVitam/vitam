@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,8 +41,8 @@ public class HeaderIdClientFilter implements ClientRequestFilter {
     /**
      * Extracts the ids from the headers to save it in the VitamSession
      *
-     * @see ContainerRequestFilter#filter(ContainerRequestContext)
      * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
+     * @see ContainerRequestFilter#filter(ContainerRequestContext)
      */
     @Override
     public void filter(ClientRequestContext requestContext) {

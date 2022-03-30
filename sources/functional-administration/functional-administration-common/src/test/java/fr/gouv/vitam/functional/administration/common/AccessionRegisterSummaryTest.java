@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.InputStream;
-import java.util.Map;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -42,6 +37,11 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class AccessionRegisterSummaryTest {
 

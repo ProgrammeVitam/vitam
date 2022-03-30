@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.json.JsonHandler;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplacePatternUtilsTest {
     private static final String UNDERSCORE_JSON = "underscore.json";
@@ -45,7 +45,7 @@ public class ReplacePatternUtilsTest {
     public void should_replace_underscore_character() throws Exception {
         // Given
         JsonNode fromInputStream = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNDERSCORE_JSON));
-        List<String> whiteList = new ArrayList<>(Arrays.asList("tenant","sp","v", "storage"));
+        List<String> whiteList = new ArrayList<>(Arrays.asList("tenant", "sp", "v", "storage"));
         ReplacePatternUtils replacePatternUtils =
             new ReplacePatternUtils(whiteList);
         // When
@@ -60,7 +60,7 @@ public class ReplacePatternUtilsTest {
     public void should_replace_sharp_character() throws Exception {
         // Given
         JsonNode fromInputStream = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SHARP_JSON));
-        List<String> whiteList = new ArrayList<>(Arrays.asList("tenant","sp","v", "storage"));
+        List<String> whiteList = new ArrayList<>(Arrays.asList("tenant", "sp", "v", "storage"));
         ReplacePatternUtils replacePatternUtils =
             new ReplacePatternUtils(whiteList);
         // When

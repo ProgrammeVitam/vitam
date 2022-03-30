@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,6 @@
  */
 /**
  * Web application firewall package which uses owasp esapi
- * Filter for header, body (json and inputstream) and parameter 
+ * Filter for header, body (json and inputstream) and parameter
  */
 package fr.gouv.vitam.common.security.waf;

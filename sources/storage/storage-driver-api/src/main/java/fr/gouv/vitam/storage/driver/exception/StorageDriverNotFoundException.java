@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.driver.exception;
 
 /**
  * Exceptions to be thrown by the storage drivers in case resource was not found on the storage offer
- *
  */
 public class StorageDriverNotFoundException extends StorageDriverException {
 
@@ -62,7 +61,7 @@ public class StorageDriverNotFoundException extends StorageDriverException {
      * @param cause the original exception
      */
     public StorageDriverNotFoundException(String driverInfos, Throwable cause) {
-        super(driverInfos,false, cause);
+        super(driverInfos, false, cause);
     }
 
 }

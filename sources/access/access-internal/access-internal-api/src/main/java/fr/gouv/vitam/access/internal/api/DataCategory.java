@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,9 +35,9 @@ package fr.gouv.vitam.access.internal.api;
 
 public enum DataCategory {
     /**
-     * the unit data type 
+     * the unit data type
      */
-    UNIT, 
+    UNIT,
     /**
      * the object group data type
      */
