@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -317,7 +317,8 @@ public class ItemStatus {
         return setItemsStatus(itemId, statusDetails, StatusAggregationBehavior.DEFAULT);
     }
 
-    public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails, StatusAggregationBehavior statusAggregationBehavior) {
+    public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails,
+        StatusAggregationBehavior statusAggregationBehavior) {
 
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId, statusDetails);
         // update itemStatus

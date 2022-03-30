@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,19 +65,19 @@ public class VitamPoolingClient {
      *
      * @param tenantId
      * @param processId operationId du processWorkflow
-     * @param state     The state wanted
-     * @param nbTry     Number of retry
-     * @param timeWait  time to sleep
-     * @param timeUnit  timeUnit to apply to timeWait
+     * @param state The state wanted
+     * @param nbTry Number of retry
+     * @param timeWait time to sleep
+     * @param timeUnit timeUnit to apply to timeWait
      * @return true if completed false else
      */
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
-            throws VitamException {
+        throws VitamException {
 
         StopWatch stopWatch = StopWatch.createStarted();
         do {
             final RequestResponse<ItemStatus> requestResponse = this.operationStatusClient.getOperationProcessStatus(
-                    new VitamContext(tenantId), processId);
+                new VitamContext(tenantId), processId);
             if (requestResponse.isOk()) {
                 ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
                 final ProcessState processState = itemStatus.getGlobalState();
@@ -140,7 +140,7 @@ public class VitamPoolingClient {
      * @throws VitamException
      */
     public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
-            throws VitamException {
+        throws VitamException {
         return wait(tenantId, processId, ProcessState.COMPLETED, nbTry, timeout, timeUnit);
     }
 

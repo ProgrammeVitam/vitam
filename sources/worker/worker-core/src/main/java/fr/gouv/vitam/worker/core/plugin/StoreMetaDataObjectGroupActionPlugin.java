@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -132,12 +132,14 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
     public void storeDocumentsWithLfc(WorkerParameters params, HandlerIO handlerIO, List<String> objectGroupIds)
         throws VitamException {
-        MultiValuedMap<String, String> objectGroupIdsByStrategie = saveDocumentWithLfcInWorkspace(handlerIO, objectGroupIds);
+        MultiValuedMap<String, String> objectGroupIdsByStrategie =
+            saveDocumentWithLfcInWorkspace(handlerIO, objectGroupIds);
 
         saveDocumentWithLfcInStorage(params.getContainerName(), objectGroupIdsByStrategie);
     }
 
-    private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(HandlerIO handlerIO, List<String> objectGroupIds)
+    private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(HandlerIO handlerIO,
+        List<String> objectGroupIds)
         throws VitamException {
 
         // Get metadata
@@ -209,7 +211,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private void saveDocumentWithLfcInStorage(String containerName, MultiValuedMap<String, String> objectGroupIdsByStrategies)
+    private void saveDocumentWithLfcInStorage(String containerName,
+        MultiValuedMap<String, String> objectGroupIdsByStrategies)
         throws VitamException {
 
         Stopwatch storeStorage = Stopwatch.createStarted();

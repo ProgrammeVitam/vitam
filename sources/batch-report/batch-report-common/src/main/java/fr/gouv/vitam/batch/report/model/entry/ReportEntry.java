@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,8 @@ public class ReportEntry {
     private final String detailId;
 
     @JsonCreator
-    public ReportEntry(@JsonProperty(OUTCOME) String outcome, @JsonProperty(DETAIL_TYPE) String detailType, @JsonProperty(DETAIL_ID) String detailId) {
+    public ReportEntry(@JsonProperty(OUTCOME) String outcome, @JsonProperty(DETAIL_TYPE) String detailType,
+        @JsonProperty(DETAIL_ID) String detailId) {
         this.outcome = outcome;
         this.detailType = detailType;
         this.detailId = detailId;

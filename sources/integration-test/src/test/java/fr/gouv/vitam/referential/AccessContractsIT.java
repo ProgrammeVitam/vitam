@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -168,7 +167,8 @@ public class AccessContractsIT extends VitamRuleRunner {
             assertTrue(contract.isOk());
             List<JsonNode> results = RequestResponseOK.getFromJsonNode(contract.toJsonNode()).getResults();
             assertEquals(1, results.size());
-            assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter()).contains(RuleType.HoldRule);
+            assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class)
+                .getRuleCategoryToFilter()).contains(RuleType.HoldRule);
         } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException e) {
             fail("Error retreiving access contract", e);
         }

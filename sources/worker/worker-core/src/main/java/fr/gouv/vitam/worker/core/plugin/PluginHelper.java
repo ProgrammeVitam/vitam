@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,8 @@ public class PluginHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
-    private PluginHelper() {}
+    private PluginHelper() {
+    }
 
     public static void tryDeleteLocalPreservationFiles(Path batchDirectory) {
         try {

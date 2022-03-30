@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.client.api;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -45,16 +47,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.model.ProcessPause;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 
 @Path("/adminmanagement/v1")
@@ -81,7 +79,8 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     protected void consumeAndCloseStream(InputStream xmlPronom) {
         try {
             if (null != xmlPronom) {
-                while (xmlPronom.read() > 0) {}
+                while (xmlPronom.read() > 0) {
+                }
                 xmlPronom.close();
             }
         } catch (IOException e) {

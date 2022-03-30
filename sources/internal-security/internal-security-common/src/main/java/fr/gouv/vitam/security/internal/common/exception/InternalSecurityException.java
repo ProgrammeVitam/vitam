@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class InternalSecurityException extends VitamException {
 
     /**
-     *
      * @param message
      */
     public InternalSecurityException(String message) {
@@ -42,7 +41,6 @@ public class InternalSecurityException extends VitamException {
     }
 
     /**
-     *
      * @param cause
      */
     public InternalSecurityException(Throwable cause) {
@@ -50,7 +48,6 @@ public class InternalSecurityException extends VitamException {
     }
 
     /**
-     *
      * @param message
      * @param cause
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,6 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
 
     /**
      * @param secure the secure to set
-     *
      * @return this
      */
     public SecureClientConfigurationImpl setSecure(boolean secure) {
@@ -140,7 +139,6 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
 
     /**
      * @param sslConfiguration the sslConfiguration to set
-     *
      * @return this
      */
     public SecureClientConfigurationImpl setSslConfiguration(SSLConfiguration sslConfiguration) {

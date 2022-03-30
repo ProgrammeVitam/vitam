@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,7 +48,7 @@ public class MongoDbMetadataResponseFilter {
     /**
      * Removes a field from document
      *
-     * @param document  the document to update
+     * @param document the document to update
      * @param fieldName the field to remove
      */
     private static void remove(Document document, String fieldName) {
@@ -162,10 +162,12 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, Unit.ELIMINATION, PROJECTIONARGS.ELIMINATION.exactToken());
                     break;
                 case COMPUTEDINHERITEDRULES:
-                    replace(document, Unit.COMPUTED_INHERITED_RULES, PROJECTIONARGS.COMPUTEDINHERITEDRULES.exactToken());
+                    replace(document, Unit.COMPUTED_INHERITED_RULES,
+                        PROJECTIONARGS.COMPUTEDINHERITEDRULES.exactToken());
                     break;
                 case VALIDCOMPUTEDINHERITEDRULES:
-                    replace(document, Unit.VALID_COMPUTED_INHERITED_RULES, PROJECTIONARGS.VALIDCOMPUTEDINHERITEDRULES.exactToken());
+                    replace(document, Unit.VALID_COMPUTED_INHERITED_RULES,
+                        PROJECTIONARGS.VALIDCOMPUTEDINHERITEDRULES.exactToken());
                     break;
                 case OPTS:
                     replace(document, Unit.OPERATION_TRANSFERS, PROJECTIONARGS.OPTS.exactToken());
@@ -174,7 +176,8 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
                     break;
                 case IMPLEMENTATIONVERSION:
-                    replace(document, MetadataDocument.IMPLEMENTATIONVERSION, VitamFieldsHelper.implementationVersion());
+                    replace(document, MetadataDocument.IMPLEMENTATIONVERSION,
+                        VitamFieldsHelper.implementationVersion());
                     break;
                 case APPROXIMATE_CREATION_DATE:
                     replace(document, Unit.APPROXIMATE_CREATION_DATE, VitamFieldsHelper.approximateCreationDate());

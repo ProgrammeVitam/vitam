@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,8 +43,10 @@ public class BatchProcessingQuerySchemaValidator implements DslValidator {
     private final Schema schema;
 
     public BatchProcessingQuerySchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(), DslSchema.BATCH_PROCESSING.getFilename());
-        try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(DslSchema.BATCH_PROCESSING.getFilename())) {
+        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(),
+            DslSchema.BATCH_PROCESSING.getFilename());
+        try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(
+            DslSchema.BATCH_PROCESSING.getFilename())) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }

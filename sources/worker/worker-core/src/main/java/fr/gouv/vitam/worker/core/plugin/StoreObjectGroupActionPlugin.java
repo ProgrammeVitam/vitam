@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,14 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
@@ -92,7 +99,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore()
                     .entrySet()) {
                     itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
-                    String strategyId = mapOfObjects.getObjectStorageInfos().get(objectGuid.getKey()).get("strategyId").asText();
+                    String strategyId =
+                        mapOfObjects.getObjectStorageInfos().get(objectGuid.getKey()).get("strategyId").asText();
                     strategies.add(strategyId);
                     workspaceObjectURIsByStrategies.put(strategyId, SIP + objectGuid.getValue());
                     objectNamesByStrategies.put(strategyId, objectGuid.getKey());
@@ -123,7 +131,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
                 // store objects
                 BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
-                        workspaceObjectURIs, DataCategory.OBJECT, objectNames);
+                    workspaceObjectURIs, DataCategory.OBJECT, objectNames);
                 BulkObjectStoreResponse result = storeObjects(strategy, bulkObjectStoreRequest);
                 resultByStrategy.put(strategy, result);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,10 +94,9 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -339,7 +338,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(OK).entity(new RequestResponseOK<JsonNode>()
-                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(OK.getStatusCode())).tag(etag)
+                        .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(OK.getStatusCode())).tag(etag)
                     .cacheControl(cacheControl).build();
             }
 
@@ -422,17 +421,20 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 OK, headers);
         } catch (FileRulesReadException e) {
             LOGGER.error("Format / syntax error while checking file ", e);
-            return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList(), Collections.emptyList());
+            return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList(),
+                Collections.emptyList());
         } catch (FileRulesDeleteException e) {
             LOGGER.error("Consistency error - Cannot delete used rule ", e);
-            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), e.getUsedDeletedRules(), Collections.emptyList());
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), e.getUsedDeletedRules(),
+                Collections.emptyList());
         } catch (FileRulesIllegalDurationModeUpdateException e) {
             LOGGER.error("Consistency error - Cannot switch used rle duration mode", e);
             return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList(),
                 e.getUsedRulesWithDurationModeUpdate());
         } catch (Exception e) {
             LOGGER.error("Error while checking file ", e);
-            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList(),
+                Collections.emptyList());
         }
     }
 
@@ -540,7 +542,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(OK).entity(new RequestResponseOK<JsonNode>()
-                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(OK.getStatusCode())).tag(etag)
+                        .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(OK.getStatusCode())).tag(etag)
                     .cacheControl(cacheControl).build();
             }
 
@@ -656,7 +658,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, AccessUnauthorizedException, InvalidCreateOperationException,
         ReferentialException {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory, configuration)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
+                configuration)) {
 
             RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
             SanityChecker.checkJsonAll(select);
@@ -907,10 +910,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .entity(new RequestResponseOK<>().setHttpCode(ACCEPTED.getStatusCode())).build();
         } catch (BadRequestException exp) {
             LOGGER.error(exp);
-            return Response.status(PRECONDITION_FAILED).entity(getErrorEntity(PRECONDITION_FAILED, exp.getMessage())).build();
+            return Response.status(PRECONDITION_FAILED).entity(getErrorEntity(PRECONDITION_FAILED, exp.getMessage()))
+                .build();
         } catch (Exception exp) {
             LOGGER.error(exp);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, exp.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, exp.getLocalizedMessage())).build();
         }
     }
 
@@ -993,7 +998,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -1017,7 +1023,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 

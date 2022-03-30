@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,7 @@ import fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin.UnitRulesCompute
  * Invalid Rule Exception when compute rules
  */
 public class InvalidRuleException extends ProcessingException {
-    
+
     private final UnitRulesComputeStatus unitRulesComputeStatus;
     private final String objectId;
 

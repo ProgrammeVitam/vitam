@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,12 +29,11 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoIterable;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -55,7 +54,6 @@ import org.mockito.junit.MockitoRule;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_LOG;
 import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.DELETE;
@@ -151,7 +149,8 @@ public class OfferLogDatabaseServiceTest {
         OfferLogDatabaseService offerLogDatabaseService = new OfferLogDatabaseService(collection);
 
         // When
-        ThrowingCallable save = () -> offerLogDatabaseService.bulkSave("containerName", Collections.singletonList("robin"), DELETE, 15);
+        ThrowingCallable save =
+            () -> offerLogDatabaseService.bulkSave("containerName", Collections.singletonList("robin"), DELETE, 15);
 
         // Then
         assertThatThrownBy(save).isInstanceOf(ContentAddressableStorageDatabaseException.class);
@@ -172,7 +171,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(descendingOfferLogs).hasSize(3);
         assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(6L, 5L, 4L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName3", "fileName2", "fileName1");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName)
+            .containsExactly("fileName3", "fileName2", "fileName1");
         assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
@@ -191,7 +191,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(descendingOfferLogs).hasSize(3);
         assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(7L, 6L, 5L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName4", "fileName3", "fileName2");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName)
+            .containsExactly("fileName4", "fileName3", "fileName2");
         assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
@@ -210,7 +211,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(ascendingOfferLogs).hasSize(3);
         assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(5L, 6L, 7L);
-        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName2", "fileName3", "fileName4");
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName)
+            .containsExactly("fileName2", "fileName3", "fileName4");
         assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
@@ -229,7 +231,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(ascendingOfferLogs).hasSize(3);
         assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(4L, 5L, 6L);
-        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName1", "fileName2", "fileName3");
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName)
+            .containsExactly("fileName1", "fileName2", "fileName3");
         assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
@@ -256,7 +259,8 @@ public class OfferLogDatabaseServiceTest {
 
     @Test
     public void should_get_expired_offer_logs_return_empty_logs_when_saved_in_expiration_range()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException,
+        InterruptedException {
         // Given
         OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, SECONDS, 10);
 
@@ -271,7 +275,8 @@ public class OfferLogDatabaseServiceTest {
     }
 
     @Test
-    public void should_get_offer_logs_by_container() throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+    public void should_get_offer_logs_by_container()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Given
         OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(0, MILLIS, 10);
 
@@ -286,7 +291,8 @@ public class OfferLogDatabaseServiceTest {
             request.getExpirationUnit());
 
         // Then
-        assertThat(logs).extracting(OfferLog::getContainer).containsExactly("Container1", "Container1", "Container1", "Container2", "Container3");
+        assertThat(logs).extracting(OfferLog::getContainer)
+            .containsExactly("Container1", "Container1", "Container1", "Container2", "Container3");
     }
 
     public OfferLog getFirstLogFromDb() {

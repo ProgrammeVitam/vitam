@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,45 +27,16 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
-import java.util.Optional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
-import fr.gouv.vitam.ingest.external.core.ManifestDigestValidator;
-
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -88,12 +59,39 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
+import fr.gouv.vitam.ingest.external.core.ManifestDigestValidator;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Optional;
 
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_ID_ARCHIVETRANSFERTREPLY_READ;
@@ -101,7 +99,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_ID_MANIFEST
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_LOCAL_CREATE;
 
 @Path("/ingest-external/v1")
-@Tag(name="Ingest")
+@Tag(name = "Ingest")
 public class IngestExternalResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
@@ -178,6 +176,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action,
                 manifestDigestValue, manifestDigestAlgo, guid, Optional.empty()));
     }
+
     /**
      * upload a local file
      *
@@ -227,7 +226,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(path.toString()))) {
-                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, manifestDigestValue, manifestDigestAlgo, guid, Optional.of(path));
+                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, manifestDigestValue,
+                        manifestDigestAlgo, guid, Optional.of(path));
 
                 } catch (IOException e) {
                     LOGGER.error(e);
@@ -251,7 +251,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String xAction,
-        String manifestDigestValue, String manifestDigestAlgo, GUID operationId, Optional<java.nio.file.Path> localFilePath) {
+        String manifestDigestValue, String manifestDigestAlgo, GUID operationId,
+        Optional<java.nio.file.Path> localFilePath) {
 
         final IngestExternalImpl ingestExternal =
             new IngestExternalImpl(ingestExternalConfiguration, formatIdentifierFactory, ingestInternalClientFactory,
@@ -263,7 +264,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             PreUploadResume preUploadResume;
             try {
-                preUploadResume = ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, xAction, asyncResponse);
+                preUploadResume =
+                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, xAction,
+                        asyncResponse);
             } catch (WorkflowNotFoundException ex) {
                 LOGGER.error(ex);
                 String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",

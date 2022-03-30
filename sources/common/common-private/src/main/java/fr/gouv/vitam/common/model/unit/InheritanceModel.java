@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Inheritance Model POJO
@@ -49,7 +49,7 @@ public class InheritanceModel {
 
     /**
      * isPreventInheritance
-     * 
+     *
      * @return preventInheritance
      */
     public Boolean isPreventInheritance() {
@@ -58,7 +58,7 @@ public class InheritanceModel {
 
     /**
      * set Prevent inheritance
-     * 
+     *
      * @param preventInheritance
      */
     public void setPreventInheritance(Boolean preventInheritance) {
@@ -67,7 +67,7 @@ public class InheritanceModel {
 
     /**
      * Get preventRulesId
-     * 
+     *
      * @return preventRulesId
      */
     public Set<String> getPreventRulesId() {
@@ -76,7 +76,7 @@ public class InheritanceModel {
 
     /**
      * Merge inheritance
-     * 
+     *
      * @param inheritance
      */
     @JsonIgnore

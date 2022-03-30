@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,7 @@ public class PropertyValue {
     }
 
     public PropertyValue(PropertyValue values, PropertyValue value) {
-        if(values != null) {
+        if (values != null) {
             this.values = new ArrayList<>();
             this.values.addAll(values.getValues());
             this.values.addAll(value.getValues());

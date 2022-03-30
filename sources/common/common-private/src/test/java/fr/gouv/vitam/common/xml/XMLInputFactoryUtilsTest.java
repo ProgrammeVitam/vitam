@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.common.xml;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import org.junit.Assert;
+import org.junit.Test;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.junit.Assert;
-import org.junit.Test;
 
 public class XMLInputFactoryUtilsTest {
 
@@ -42,10 +42,11 @@ public class XMLInputFactoryUtilsTest {
 
     @Test
     public final void shouldNotInjectExternalEntity() throws IOException, XMLStreamException {
-        XMLEventReader eventReader = XMLInputFactoryUtils.newInstance().createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
-        while(eventReader.hasNext()) {
+        XMLEventReader eventReader = XMLInputFactoryUtils.newInstance()
+            .createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
+        while (eventReader.hasNext()) {
             final XMLEvent event = eventReader.nextEvent();
-            if(event.isCharacters()) {
+            if (event.isCharacters()) {
                 Assert.assertFalse(event.asCharacters().getData().contains("root:x:0:0"));
             }
         }
@@ -53,10 +54,11 @@ public class XMLInputFactoryUtilsTest {
 
     @Test
     public final void shoulInjectExternalEntity() throws IOException, XMLStreamException {
-        XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
-        while(eventReader.hasNext()) {
+        XMLEventReader eventReader =
+            XMLInputFactory.newInstance().createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
+        while (eventReader.hasNext()) {
             final XMLEvent event = eventReader.nextEvent();
-            if(event.isCharacters()) {
+            if (event.isCharacters()) {
                 Assert.assertTrue(event.asCharacters().getData().contains("root:x:0:0"));
                 break;
             }

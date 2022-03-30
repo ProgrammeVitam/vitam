@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesInvalidatorPlugin.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ComputeInheritedRulesInvalidatorPlugin.class);
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_INVALIDATOR";
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -73,7 +74,7 @@ public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
         List<String> units = workerParameters.getObjectNameList();
 
         UpdateMultiQuery update = new UpdateMultiQuery();
-        try(MetaDataClient mdClient = metaDataClientFactory.getClient()) {
+        try (MetaDataClient mdClient = metaDataClientFactory.getClient()) {
             update.addRoots(units.toArray(new String[0]));
 
             update.addActions(
@@ -81,7 +82,7 @@ public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
                 unset(VitamFieldsHelper.computedInheritedRules())
             );
             RequestResponse<JsonNode> requestResponse = mdClient.updateUnitBulk(update.getFinalUpdate());
-            if(!requestResponse.isOk()) {
+            if (!requestResponse.isOk()) {
                 throw new ProcessingException("error during bulk update");
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,28 +26,26 @@
  */
 package fr.gouv.vitam.ingest.external.client;
 
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.external.client.IngestCollection;
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.model.LocalFile;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
+
+import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.xml.stream.XMLStreamException;
-
-import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.client.VitamContext;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.model.LocalFile;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class IngestExternalClientMockTest {
 
@@ -58,7 +56,7 @@ public class IngestExternalClientMockTest {
 
     @Test(expected = IngestExternalException.class)
     public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -69,7 +67,7 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenNonEmptyStreamThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -84,7 +82,7 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenNonEmptyLocalFileThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -95,11 +93,11 @@ public class IngestExternalClientMockTest {
 
         assertEquals(requestResponse.getHttpCode(), 202);
     }
-    
+
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess()
         throws VitamClientException {
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -107,7 +105,8 @@ public class IngestExternalClientMockTest {
 
         final InputStream firstStream = StreamUtils.toInputStream("test");
         final InputStream responseStream =
-            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
+                .readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {

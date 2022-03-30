@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -61,7 +60,7 @@ public interface RestoreBackupService {
     /**
      * Read the latest file using the name requested by getLatestSavedFileName.<br/>
      * Be careful, this method use tenant that is requested from the VitamSession
-     * 
+     *
      * @param strategy the storage strategy to be applied
      * @param collection the collection to be restored
      * @return the backup copy.
@@ -74,10 +73,10 @@ public interface RestoreBackupService {
      *
      * @param strategy storage strategy
      * @param category collection
-     * @param offset   offset
-     * @param limit    limit
+     * @param offset offset
+     * @param limit limit
      * @return list of offer log by bulk
-     * @throws VitamRuntimeException    storage error
+     * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
     Iterator<List<OfferLog>> getListing(String strategy, DataCategory category, Long offset, int limit, Order order)
@@ -86,15 +85,15 @@ public interface RestoreBackupService {
     /**
      * Load data from storage
      *
-     * @param strategy   storage strategy
+     * @param strategy storage strategy
      * @param collection collection
-     * @param filename   name of file to load
-     * @param offset     offset
+     * @param filename name of file to load
+     * @param offset offset
      * @return data
-     * @throws VitamRuntimeException    storage error
+     * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
     AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection, String filename,
-                             long offset);
+        long offset);
 
 }

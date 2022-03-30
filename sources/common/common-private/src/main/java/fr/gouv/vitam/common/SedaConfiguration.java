@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common;
 
-import java.io.File;
-import java.io.IOException;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Seda Configuration class
@@ -38,9 +38,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class SedaConfiguration {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaConfiguration.class);
-    
-    private SedaConfiguration() {}
-    
+
+    private SedaConfiguration() {
+    }
+
     /**
      * @return SedaVersion supported version
      * @throws IOException
@@ -54,7 +55,7 @@ public class SedaConfiguration {
             LOGGER.error("Can not get config file ", e);
             throw e;
         }
-        
+
         return sedaVersion;
     }
 }

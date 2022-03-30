@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.processing.common.parameter;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import fr.gouv.vitam.common.parameter.VitamParameter;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Class use to manage parameters for and on worker
@@ -87,7 +86,7 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @return the current instance of WorkerParameters
      */
     WorkerParameters setCurrentStep(String currentStep);
-    
+
     /**
      * Get the previous step parameter
      *
@@ -299,7 +298,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
 
 
     /**
-     *
      * @return workflowIdentifier
      */
     String getWorkflowIdentifier();
@@ -336,7 +334,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
     WorkerParameters setRequestId(String newRequestId);
 
     /**
-     *
      * @return workflowStatusKo
      */
     String getWorkflowStatusKo();

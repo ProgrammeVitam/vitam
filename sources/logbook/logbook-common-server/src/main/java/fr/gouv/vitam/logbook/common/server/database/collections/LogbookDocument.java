@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import org.bson.Document;
-
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import org.bson.Document;
 
 /**
  * Logbook Document MongoDb implementation
@@ -117,13 +116,11 @@ public abstract class LogbookDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the ID
      */
     public abstract String getId();
 
     /**
-     *
      * @return the TenantId
      */
     public final int getTenantId() {
@@ -131,7 +128,6 @@ public abstract class LogbookDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the version
      */
     public final int getVersion() {
@@ -139,7 +135,6 @@ public abstract class LogbookDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the bypass toString
      */
     public String toStringDirect() {

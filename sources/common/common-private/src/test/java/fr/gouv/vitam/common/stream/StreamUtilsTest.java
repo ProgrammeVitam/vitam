@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class StreamUtilsTest {
 

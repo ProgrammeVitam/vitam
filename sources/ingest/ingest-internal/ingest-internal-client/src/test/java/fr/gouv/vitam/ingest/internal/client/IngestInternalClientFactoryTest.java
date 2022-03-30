@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.ingest.internal.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test class for client (and parameters) factory

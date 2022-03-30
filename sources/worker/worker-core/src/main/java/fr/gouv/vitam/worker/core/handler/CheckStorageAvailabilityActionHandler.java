@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,17 +94,17 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(handlerIO);
             ManagementContractModel managementContract = loadManagementContractFromWorkspace(handlerIO);
-            
+
             // TODO P0 extract this information from first parsing
             final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            
+
             String strategyId = VitamConfiguration.getDefaultStrategy();
             if (managementContract != null && managementContract.getStorage() != null
-                    && StringUtils.isNotBlank(managementContract.getStorage().getObjectStrategy())) {
+                && StringUtils.isNotBlank(managementContract.getStorage().getObjectStrategy())) {
                 strategyId = managementContract.getStorage().getObjectStrategy();
             }
-            
+
             final JsonNode storageCapacityNode;
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageCapacityNode = storageClient.getStorageInformation(strategyId);
@@ -127,7 +127,8 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                         info.put(information.getOfferId(), StatusCode.OK.name());
                         is.increment(StatusCode.OK);
                     } else {
-                        LOGGER.error("storage capacity invalid on offer {} of object strategy : usableSpace={}, totalSizeToBeStored={}",
+                        LOGGER.error(
+                            "storage capacity invalid on offer {} of object strategy : usableSpace={}, totalSizeToBeStored={}",
                             information.getOfferId(), information.getUsableSpace(), objectsSizeInSip);
                         info.put(information.getOfferId(), StatusCode.KO.name());
                         info.put(information.getOfferId() + "_usableSpace", information.getUsableSpace());
@@ -153,8 +154,9 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        ContractsDetailsModel contractsDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
-            ContractsDetailsModel.class);
+        ContractsDetailsModel contractsDetailsModel =
+            JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+                ContractsDetailsModel.class);
         return contractsDetailsModel.getManagementContractModel();
     }
 

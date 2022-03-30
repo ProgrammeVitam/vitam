@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,8 @@ public class RestoreBackupService {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
             String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
-            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type, AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type,
+                AccessLogUtils.getNoLogAccessLog());
             inputStream = response.readEntity(InputStream.class);
             LogbookOperation logbookOperationDocument =
                 new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));

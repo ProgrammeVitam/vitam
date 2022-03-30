@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -345,7 +345,7 @@ public class LogbookResourceIT {
                 final Query eventProcType = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
                 final Query logType = QueryHelper
                     .eq(String.format("%s.%s.%s", LogbookDocument.EVENTS,
-                        LogbookMongoDbName.eventDetailData.getDbname(), "LogType"),
+                            LogbookMongoDbName.eventDetailData.getDbname(), "LogType"),
                         "OPERATION");
                 final Query eventType = QueryHelper.eq(
                     String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
@@ -357,7 +357,7 @@ public class LogbookResourceIT {
                 select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
                 JsonNode json = client.selectOperation(select.getFinalSelect());
                 RequestResponseOK<JsonNode> response = JsonHandler.getFromJsonNode(json, new TypeReference<>() {
-                    });
+                });
                 assertEquals(1, response.getHits().getTotal());
 
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -394,32 +394,33 @@ public class LogbookResourceIT {
             VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(adminTenant);
             LogbookOperationParameters importOntologyStart = LogbookParameterHelper.newLogbookOperationParameters(
-                    eip1, IMPORT_ONTOLOGY.getEventType(), eip1, IMPORT_ONTOLOGY.getLogbookTypeProcess(),
-                    StatusCode.STARTED, "Début du processus d'import de l'ontologie", eip1);
+                eip1, IMPORT_ONTOLOGY.getEventType(), eip1, IMPORT_ONTOLOGY.getLogbookTypeProcess(),
+                StatusCode.STARTED, "Début du processus d'import de l'ontologie", eip1);
             client.checkStatus();
             client.create(importOntologyStart);
 
             final GUID eip2 = GUIDFactory.newOperationLogbookGUID(adminTenant);
             LogbookOperationParameters ingestTenantAdmin = LogbookParameterHelper.newLogbookOperationParameters(
-                    eip2, INGEST_CLEANUP.getEventType(), eip2, INGEST_CLEANUP.getLogbookTypeProcess(),
-                    StatusCode.STARTED, "Début de l'ingest", eip2);
+                eip2, INGEST_CLEANUP.getEventType(), eip2, INGEST_CLEANUP.getLogbookTypeProcess(),
+                StatusCode.STARTED, "Début de l'ingest", eip2);
             client.create(ingestTenantAdmin);
 
             VitamThreadUtils.getVitamSession().setTenantId(secondTenant);
             final GUID eip3 = GUIDFactory.newOperationLogbookGUID(secondTenant);
             LogbookOperationParameters ingestStart = LogbookParameterHelper.newLogbookOperationParameters(
-                    eip3, INGEST_CLEANUP.getEventType(), eip3, INGEST_CLEANUP.getLogbookTypeProcess(),
-                    StatusCode.STARTED, "Début de l'ingest", eip3);
+                eip3, INGEST_CLEANUP.getEventType(), eip3, INGEST_CLEANUP.getLogbookTypeProcess(),
+                StatusCode.STARTED, "Début de l'ingest", eip3);
             client.create(ingestStart);
 
             final Select select = new Select();
-            JsonNode json = client.selectOperation(select.getFinalSelect(),false, true);
+            JsonNode json = client.selectOperation(select.getFinalSelect(), false, true);
             RequestResponseOK<LinkedHashMap<String, JsonNode>> response =
                 JsonHandler.getFromJsonNode(json, new TypeReference<>() {
                 });
 
             assertEquals(2, response.getHits().getTotal());
-            assertThat(response.getResults()).extracting(e -> e.get(EV_ID).asText()).containsOnly(eip1.getId(), eip3.getId());
+            assertThat(response.getResults()).extracting(e -> e.get(EV_ID).asText())
+                .containsOnly(eip1.getId(), eip3.getId());
 
 
             json = client.selectOperationById(eip1.getId(), new Select().getFinalSelect(), false, true);
@@ -708,7 +709,7 @@ public class LogbookResourceIT {
             // Update multiple OK
 
             FindIterable<LogbookLifeCycleObjectGroup> objects =
-                 LIFECYCLE_OBJECTGROUP_IN_PROCESS.<LogbookLifeCycleObjectGroup>getVitamCollection()
+                LIFECYCLE_OBJECTGROUP_IN_PROCESS.<LogbookLifeCycleObjectGroup>getVitamCollection()
                     .getCollection().find();
             ArrayList<LogbookLifeCycleObjectGroup> objects1 = Lists.newArrayList(objects);
             assertThat(objects1).hasSize(2).extracting("_id").containsExactly(eip.toString(), eip2.toString());

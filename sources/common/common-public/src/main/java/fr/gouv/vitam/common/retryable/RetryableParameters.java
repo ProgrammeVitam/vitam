@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,8 @@ public class RetryableParameters {
     private final TimeUnit timeUnit;
     private final Consumer<String> log;
 
-    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep, TimeUnit timeUnit, VitamLogLevel level) {
+    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep,
+        TimeUnit timeUnit, VitamLogLevel level) {
         this.nbRetry = nbRetry;
         this.firstAttemptWaitingTime = firstAttemptWaitingTime;
         this.waitingTime = waitingTime;
@@ -54,7 +55,8 @@ public class RetryableParameters {
         this.log = s -> LOGGER.log(level, s);
     }
 
-    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep, TimeUnit timeUnit) {
+    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep,
+        TimeUnit timeUnit) {
         this.nbRetry = nbRetry;
         this.firstAttemptWaitingTime = firstAttemptWaitingTime;
         this.waitingTime = waitingTime;

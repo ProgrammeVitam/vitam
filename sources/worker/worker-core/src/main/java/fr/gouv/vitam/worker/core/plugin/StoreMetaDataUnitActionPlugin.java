@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,27 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
@@ -75,6 +59,19 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Stores MetaData unit plugin.
@@ -235,16 +232,16 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
             }
 
             BulkObjectStoreRequest request = new BulkObjectStoreRequest(containerName, workspaceURIs, DataCategory.UNIT,
-                    objectNames);
+                objectNames);
 
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.bulkStoreFilesFromWorkspace(strategy, request);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
                 throw new ProcessingException("Bulk storage failed", e);
             }
-        
+
         }
-        
+
         PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage",
             storeStorage.elapsed(TimeUnit.MILLISECONDS));
     }

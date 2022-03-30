@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,17 @@
  */
 package fr.gouv.vitam.common.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.CountingOutputStream;
+import org.apache.commons.io.output.NullOutputStream;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,18 +51,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.commons.io.output.NullOutputStream;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Tes for MultiplePipedInputStream
@@ -96,20 +95,20 @@ public class MultiplePipedInputStreamHandlerTest {
             // nothing
         }
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 0)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 0)) {
             fail("Should raized illegal argument");
         } catch (final IllegalArgumentException e) {
             // nothing
         }
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             mish.getInputStream(-1);
             fail("Should raized illegal argument");
         } catch (final IllegalArgumentException e) {
             // nothing
         }
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             mish.getInputStream(1);
             fail("Should raized illegal argument");
         } catch (final IllegalArgumentException e) {
@@ -122,7 +121,7 @@ public class MultiplePipedInputStreamHandlerTest {
         final long start = System.nanoTime();
 
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             assertNotNull(mish.toString());
             final InputStream is = mish.getInputStream(0);
             checkSize(INPUTSTREAM_SIZE, is);
@@ -139,7 +138,7 @@ public class MultiplePipedInputStreamHandlerTest {
     private void testMultiplePipedInputStreamBlock(int size) {
         final long start = System.nanoTime();
         try (FakeInputStream fakeInputStream = new FakeInputStream(size);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             final InputStream is = mish.getInputStream(0);
             checkSize(size, is);
             mish.throwLastException();
@@ -176,7 +175,7 @@ public class MultiplePipedInputStreamHandlerTest {
         final int size = 8192;
         final int nb = 10;
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
             final InputStream[] is = new InputStream[nb];
             final long[] total = new long[nb];
             for (int i = 0; i < nb; i++) {
@@ -206,7 +205,8 @@ public class MultiplePipedInputStreamHandlerTest {
         }
         final long stop = System.nanoTime();
         LOGGER.debug("Read {}: \t{} ns", size, stop - start);
-        addTimer(stop - start, "MULTIPLE_BLOCK_" + size + "_" + nb + " :\t" + (stop - start) + "  \t" + (stop - start) / nb);
+        addTimer(stop - start,
+            "MULTIPLE_BLOCK_" + size + "_" + nb + " :\t" + (stop - start) + "  \t" + (stop - start) / nb);
     }
 
     private static class ThreadReader implements Callable<Integer> {
@@ -227,7 +227,7 @@ public class MultiplePipedInputStreamHandlerTest {
             final byte[] buffer = new byte[size];
             try {
                 while ((read = is.read(buffer)) >= 0) {
-                    LOGGER.debug("{} Read: {}", rank,read);
+                    LOGGER.debug("{} Read: {}", rank, read);
                     total += read;
                 }
                 LOGGER.debug("{} Read: {} Total: {}", rank, read, total);
@@ -243,7 +243,7 @@ public class MultiplePipedInputStreamHandlerTest {
     private void testMultiplePipedInputStreamMultipleMultiThread(int nb, int size, boolean block, boolean timer) {
         final long start = System.nanoTime();
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE, block);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
             InputStream is;
             @SuppressWarnings("unchecked")
             final Future<Integer>[] total = new Future[nb];
@@ -255,7 +255,6 @@ public class MultiplePipedInputStreamHandlerTest {
             }
             executor.shutdown();
             while (!executor.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
-                ;
             }
             for (int i = 0; i < nb; i++) {
                 assertEquals(INPUTSTREAM_SIZE, (int) total[i].get());
@@ -269,7 +268,7 @@ public class MultiplePipedInputStreamHandlerTest {
         LOGGER.debug("Read {}: \t{} ns", size, stop - start);
         if (timer) {
             addTimer((stop - start) / nb, "PARALLEL_VAR_SIZE_" + (block ? "BLOCK_" : "BYTE_") + size + "_" + nb + " :\t"
-                    + (stop - start) + "  \t" + (stop - start) / nb);
+                + (stop - start) + "  \t" + (stop - start) / nb);
         }
     }
 
@@ -304,7 +303,7 @@ public class MultiplePipedInputStreamHandlerTest {
         for (int len = 100; len < 2200; len += 500) {
             testMultiplePipedInputStreamMultipleMultiThread(1, len, true, false);
             testMultiplePipedInputStreamMultipleMultiThread(10, len, true, false);
-    
+
             testMultiplePipedInputStreamMultipleMultiThread(1, len, false, false);
             testMultiplePipedInputStreamMultipleMultiThread(10, len, false, false);
         }
@@ -322,7 +321,7 @@ public class MultiplePipedInputStreamHandlerTest {
         final int size = 8192;
         final int nb = 10;
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
             final InputStream[] is = new InputStream[nb];
             for (int i = 0; i < nb; i++) {
                 is[i] = mish.getInputStream(i);
@@ -350,7 +349,7 @@ public class MultiplePipedInputStreamHandlerTest {
         final int size = 8192;
         final int nb = 10;
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
-                MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
+            MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, nb)) {
             final InputStream[] is = new InputStream[nb];
             for (int i = 0; i < nb; i++) {
                 is[i] = mish.getInputStream(i);
@@ -376,10 +375,12 @@ public class MultiplePipedInputStreamHandlerTest {
     public void testConcurrentMultipleIntputStreamHandler() {
         int old = VitamConfiguration.getDelayMultipleInputstream();
         VitamConfiguration.setDelayMultipleInputstream(2000);
-        
-        List<FakeInputStream> listStream = new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() + 1);
+
+        List<FakeInputStream> listStream =
+            new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() + 1);
         try {
-            List<MultiplePipedInputStream> list = new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler());
+            List<MultiplePipedInputStream> list =
+                new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler());
             for (int i = 0; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() + 1; i++) {
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE));
             }
@@ -395,7 +396,8 @@ public class MultiplePipedInputStreamHandlerTest {
             }
             // Try to allocate once and possible
             try {
-                list.add(new MultiplePipedInputStream(listStream.get(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler()), 1));
+                list.add(new MultiplePipedInputStream(
+                    listStream.get(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler()), 1));
             } catch (IllegalArgumentException e) {
                 fail("Should be interrupted");
             }
@@ -461,11 +463,12 @@ public class MultiplePipedInputStreamHandlerTest {
             VitamConfiguration.setDelayMultipleInputstream(old);
         }
     }
+
     @Test
     public void testConcurrentMultipleThreadIntputStreamHandler() {
         int old = VitamConfiguration.getDelayMultipleInputstream();
-        VitamConfiguration.setDelayMultipleInputstream( 2000);
-        
+        VitamConfiguration.setDelayMultipleInputstream(2000);
+
         int nb = VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler();
         List<FakeInputStream> listStream = new ArrayList<>(nb + 1);
         try {
@@ -493,7 +496,6 @@ public class MultiplePipedInputStreamHandlerTest {
             executor.shutdown();
             try {
                 while (!executor.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
-                    ;
                 }
             } catch (InterruptedException e) {
                 LOGGER.error(e);

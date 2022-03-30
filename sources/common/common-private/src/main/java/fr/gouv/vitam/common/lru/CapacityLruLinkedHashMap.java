@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,6 @@ import java.util.Map;
  *
  *
  * author Damian Momot
- *
  */
 class CapacityLruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     /**

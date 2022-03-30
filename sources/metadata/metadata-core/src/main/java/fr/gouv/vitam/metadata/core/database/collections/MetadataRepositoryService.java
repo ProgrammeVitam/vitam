@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,25 +26,20 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.mongodb.client.FindIterable;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -68,7 +63,7 @@ public class MetadataRepositoryService {
 
     /**
      * Retrieve document by its ID in a given collection filtered by a tenant in mongo
-     * 
+     *
      * @param collection collection
      * @param id id
      * @param tenant tenant
@@ -79,7 +74,8 @@ public class MetadataRepositoryService {
      */
     public JsonNode getDocumentById(MetadataCollections collection, String id, Integer tenant)
         throws DatabaseException, MetaDataNotFoundException, InvalidParseOperationException {
-        Optional<Document> document = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).getByID(id, tenant);
+        Optional<Document> document =
+            vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).getByID(id, tenant);
         if (document.isPresent()) {
             switch (collection) {
                 case UNIT:

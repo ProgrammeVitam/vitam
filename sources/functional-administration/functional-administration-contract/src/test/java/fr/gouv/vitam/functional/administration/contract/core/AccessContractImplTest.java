@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -173,7 +173,8 @@ public class AccessContractImplTest {
 
         dbImpl =
             MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager);
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
         tenants.add(EXTERNAL_TENANT);
@@ -192,7 +193,8 @@ public class AccessContractImplTest {
 
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 vitamCounterService, metaDataClientMock, logbookOperationsClientMock, functionalBackupService);
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
 
@@ -1141,7 +1143,8 @@ public class AccessContractImplTest {
             accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
-        List<VitamError<AccessContractModel>> errors = ((VitamError<AccessContractModel>) updateContractStatus).getErrors();
+        List<VitamError<AccessContractModel>> errors =
+            ((VitamError<AccessContractModel>) updateContractStatus).getErrors();
         assertThat(errors.get(0).getDescription().equals(
             "The Access contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")).isTrue();
 

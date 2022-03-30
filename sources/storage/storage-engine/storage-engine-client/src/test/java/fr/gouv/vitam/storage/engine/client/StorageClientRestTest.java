@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -814,7 +814,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test(expected = IllegalArgumentException.class)
     public void getOfferLogInvalidRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.getOfferLogs("idStrategy", null,null, 2L, 10, Order.ASC);
+        client.getOfferLogs("idStrategy", null, null, 2L, 10, Order.ASC);
     }
 
     @RunWithCustomExecutor

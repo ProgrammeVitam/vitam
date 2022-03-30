@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,8 @@
  */
 package fr.gouv.vitam.security.internal.filter;
 
-import java.io.IOException;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -54,6 +46,12 @@ import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateExcep
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
+
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 /**
  * Handles personal certificate access authorization for REST endpoints.

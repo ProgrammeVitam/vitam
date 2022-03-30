@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,33 +26,32 @@
  */
 package fr.gouv.vitam.metadata.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.apache.commons.collections4.map.HashedMap;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.map.HashedMap;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
  * POJO of simplified of Unit
+ *
  * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitSimplified {
     private String id;
     private ObjectNode management;
     private List<String> directParent;
-    
+
     /**
      * COnstructor with ObjectNode
-     * 
-     * @param unitNode for building UnitSimplified 
+     *
+     * @param unitNode for building UnitSimplified
      */
     public UnitSimplified(ObjectNode unitNode) {
         ParametersChecker.checkParameterDefault("unitNode", unitNode);
@@ -64,9 +63,10 @@ public class UnitSimplified {
             this.directParent.add(parentId.asText());
         }
     }
-    
+
     /**
      * Constructor with id, management, parent direct
+     *
      * @param id the id of UnitSimplified
      * @param mgt the management of UnitSimplified
      * @param up list of direct parent of UnitSimplified
@@ -78,7 +78,7 @@ public class UnitSimplified {
     }
 
     /**
-     * @return id of Unit as String 
+     * @return id of Unit as String
      */
     public String getId() {
         return id;
@@ -94,7 +94,7 @@ public class UnitSimplified {
     }
 
     /**
-     * @return management data of Unit as ObjectNode 
+     * @return management data of Unit as ObjectNode
      */
     public ObjectNode getManagement() {
         if (management == null) {
@@ -121,13 +121,13 @@ public class UnitSimplified {
 
     /**
      * @param directParent as a list of String
-     * @return UnitSimplified where directParent is setted 
+     * @return UnitSimplified where directParent is setted
      */
     public UnitSimplified setDirectParent(List<String> directParent) {
         this.directParent = directParent;
         return this;
     }
-    
+
     /**
      * @param unitList list of units as ArrayNode
      * @return a map of unitId and UnitSimplified

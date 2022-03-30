@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -239,7 +239,7 @@ public class DbRequestTest {
             "\"Description\": \"description est OK\"," +
             "\"DescriptionLevel\": \"Item\"," +
             "\"EndDate\": \"2050-12-30\"," +
-            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] },"+
+            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] }," +
             "\"#validComputedInheritedRules\": \"true\"}";
     private static final String REQUEST_INSERT_TEST_ES_2 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
@@ -560,7 +560,6 @@ public class DbRequestTest {
             assertEquals(2L, result.getNbResult());
             final List<MetadataDocument<?>> docs = result.getFinal();
             LOGGER.debug("result1 title: {}", docs.get(0).get(TITLE));
-            ;
             assertTrue(docs.get(0).getString(TITLE).contains("Fake"));
             LOGGER.debug("result2 title: {}", docs.get(1).get(TITLE));
 
@@ -1437,8 +1436,8 @@ public class DbRequestTest {
     private JsonNode clientRichUpdateBuild(GUID uuid) throws InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
-            unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
-            add(ARRAY2_VAR, "val2"))
+                unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
+                add(ARRAY2_VAR, "val2"))
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
         return update.getFinalUpdate();
@@ -2422,7 +2421,6 @@ public class DbRequestTest {
             // SELECT
             JsonNode selectRequest =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("select_request_with_nested.json"));
-            ;
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
                 RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
@@ -2547,10 +2545,10 @@ public class DbRequestTest {
         var unitDocumentAfterUpdate = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
         unitDocumentAfterUpdate.remove(Unit.APPROXIMATE_UPDATE_DATE);
         String after =
-                JsonHandler.unprettyPrint(unitDocumentAfterUpdate);
+            JsonHandler.unprettyPrint(unitDocumentAfterUpdate);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
-                JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+            JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
         ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.APPROXIMATE_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);

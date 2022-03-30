@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,7 +75,8 @@ public class PreservationTesseractPluginTest {
     @Test
     public void should_split_text_content_when_length_excede_vitam_text_maximum_length()
         throws ProcessingException, IOException {
-        final String tesseractOutput = Files.lines(PropertiesUtils.getResourcePath(TEXT_37619_LENGTH_FILE)).collect(Collectors.joining());
+        final String tesseractOutput =
+            Files.lines(PropertiesUtils.getResourcePath(TEXT_37619_LENGTH_FILE)).collect(Collectors.joining());
         OutputPreservation output = getOutputPreservationExtracted(tesseractOutput);
 
         List<OutputExtra> outputExtras =
@@ -99,13 +100,15 @@ public class PreservationTesseractPluginTest {
         Object TextContent = extractedMetadataForAu.get().get(TEXT_CONTENT);
         assertTrue(TextContent instanceof List);
         assertEquals(2, ((List) TextContent).size());
-        assertThat(StringEscapeUtils.escapeJava((String) ((List) TextContent).get(0)).length()).isLessThan(VitamConfiguration.getTextMaxLength());
+        assertThat(StringEscapeUtils.escapeJava((String) ((List) TextContent).get(0)).length()).isLessThan(
+            VitamConfiguration.getTextMaxLength());
     }
 
     @Test
     public void should_split_text_content_when_length_excede_vitam_textContent_maximum_length()
         throws ProcessingException, IOException {
-        final String tesseractOutput = Files.lines(PropertiesUtils.getResourcePath(TEXT_352312_LENGTH_FILE)).collect(Collectors.joining());
+        final String tesseractOutput =
+            Files.lines(PropertiesUtils.getResourcePath(TEXT_352312_LENGTH_FILE)).collect(Collectors.joining());
         OutputPreservation output = getOutputPreservationExtracted(tesseractOutput);
 
         List<OutputExtra> outputExtras =
@@ -129,7 +132,8 @@ public class PreservationTesseractPluginTest {
         Object TextContent = extractedMetadataForAu.get().get(TEXT_CONTENT);
         assertTrue(TextContent instanceof List);
         assertThat(((List) TextContent).size()).isEqualTo(10);
-        assertThat(StringEscapeUtils.escapeJava((String) ((List) TextContent).get(0)).length()).isLessThan(VitamConfiguration.getTextMaxLength());
+        assertThat(StringEscapeUtils.escapeJava((String) ((List) TextContent).get(0)).length()).isLessThan(
+            VitamConfiguration.getTextMaxLength());
     }
 
     private OutputPreservation getOutputPreservationExtracted(String metadata) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.lru;
 
-import java.util.concurrent.Callable;
-
 import fr.gouv.vitam.common.exception.VitamException;
+
+import java.util.concurrent.Callable;
 
 /**
  * Base class for concrete implementations
@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.exception.VitamException;
  *
  * @param <K> Key
  * @param <V> Value
- *
  */
 abstract class AbstractLruCache<K, V> implements InterfaceLruCache<K, V> {
     private long ttl;

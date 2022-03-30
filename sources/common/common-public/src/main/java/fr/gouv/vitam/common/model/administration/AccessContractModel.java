@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -142,7 +142,7 @@ public class AccessContractModel extends AbstractContractModel {
      * @return dataObjectVersion
      */
     public Set<String> getDataObjectVersion() {
-        if(dataObjectVersion == null) {
+        if (dataObjectVersion == null) {
             dataObjectVersion = new HashSet<>();
         }
         return dataObjectVersion;
@@ -284,7 +284,7 @@ public class AccessContractModel extends AbstractContractModel {
 
 
     public Set<RuleType> getRuleCategoryToFilter() {
-        if(ruleCategoryToFilter == null) {
+        if (ruleCategoryToFilter == null) {
             ruleCategoryToFilter = new HashSet<>();
         }
         return ruleCategoryToFilter;

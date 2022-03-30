@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 public class ReportGenerator implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportGenerator.class);
-    
+
     private static final String STARTED_SUFFIX = ".STARTED";
 
     private BufferedWriter writer;
@@ -90,7 +90,7 @@ public class ReportGenerator implements AutoCloseable {
         String firstEventType = logbookOperation.getEvType();
 
         List<LogbookEventOperation> events = logbookOperation.getEvents();
-        
+
         Map<String, Interval> map = new LinkedHashMap<>();
         map.put(firstEventType, new Interval(referenceDate));
 

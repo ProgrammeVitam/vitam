@@ -21,7 +21,6 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-public</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -53,13 +52,11 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-public-client</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>collect-rest</artifactId>
-            <version>5.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

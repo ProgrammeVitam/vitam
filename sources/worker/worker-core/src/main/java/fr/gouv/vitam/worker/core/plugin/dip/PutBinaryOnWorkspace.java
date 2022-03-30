@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,13 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static java.lang.String.format;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import javax.ws.rs.core.Response;
-
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -57,6 +48,15 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * move a binary file from storage to workspace
@@ -82,12 +82,13 @@ public class PutBinaryOnWorkspace extends ActionHandler {
         this(StorageClientFactory.getInstance());
     }
 
-    @VisibleForTesting PutBinaryOnWorkspace(StorageClientFactory storageClientFactory) {
+    @VisibleForTesting
+    PutBinaryOnWorkspace(StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
     }
 
     /**
-     * @param param   {@link WorkerParameters}
+     * @param param {@link WorkerParameters}
      * @param handler
      * @return
      * @throws ProcessingException
@@ -134,7 +135,8 @@ public class PutBinaryOnWorkspace extends ActionHandler {
             String strategyId = (String) objectInfo.get("strategyId");
 
             Boolean mustLog = Boolean.valueOf(param.getMapParameters().get(WorkerParameterName.mustLogAccessOnObject));
-            AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
+            AccessLogInfoModel logInfo =
+                AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
             response = storageClient
                 .getContainerAsync(strategyId, param.getObjectName(), DataCategory.OBJECT, logInfo);
 

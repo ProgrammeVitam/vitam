@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,7 @@ public class CollectHelper {
 
     public static DataObjectVersionType fetchUsage(String usageString) throws CollectException {
         DataObjectVersionType usage = DataObjectVersionType.fromName(usageString);
-        if(usage == null) {
+        if (usage == null) {
             throw new CollectException("This usage is not permit");
         }
         return usage;
@@ -81,7 +81,8 @@ public class CollectHelper {
             .findFirst().orElse(null);
     }
 
-    public static DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel, DataObjectVersionType usage, int version) {
+    public static DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel,
+        DataObjectVersionType usage, int version) {
 
         if (dbObjectGroupModel.getQualifiers() == null) {
             return null;

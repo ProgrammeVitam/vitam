@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import org.apache.commons.collections4.IterableUtils;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.batch.report.model.ReportItemStatus;
 import fr.gouv.vitam.batch.report.model.ReportStatus;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
@@ -55,12 +41,24 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
+import org.apache.commons.collections4.IterableUtils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class AuditCheckObjectPlugin extends ActionHandler {
 
@@ -77,7 +75,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     @VisibleForTesting
     AuditCheckObjectPlugin(AuditExistenceService auditExistenceService, AuditIntegrityService auditIntegrityService,
-                           AuditReportService auditReportService) {
+        AuditReportService auditReportService) {
         this.auditExistenceService = auditExistenceService;
         this.auditIntegrityService = auditIntegrityService;
         this.auditReportService = auditReportService;
@@ -85,7 +83,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ProcessingException {
+        throws ProcessingException {
         LOGGER.debug("Starting audit");
 
         try {
@@ -98,7 +96,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     }
 
     private ItemStatus executeAudit(WorkerParameters param, HandlerIO handler)
-            throws ProcessingStatusException {
+        throws ProcessingStatusException {
         final ItemStatus itemStatus = new ItemStatus(AUDIT_CHECK_OBJECT);
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         String action = mapParameters.get(WorkerParameterName.auditActions);
@@ -136,35 +134,36 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<>() {
-            });
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK),
+                new TypeReference<>() {
+                });
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
 
     private AuditObjectGroupReportEntry createAuditObjectGroupReportEntry(AuditObjectGroup gotDetail,
-            AuditCheckObjectGroupResult result, String outcome) {
+        AuditCheckObjectGroupResult result, String outcome) {
 
         AuditObjectGroupReportEntry auditObjectGroupReportEntry = new AuditObjectGroupReportEntry(gotDetail.getId(),
-                gotDetail.getUnitUps(), gotDetail.getSp(), gotDetail.getOpi(), new ArrayList<AuditObjectVersion>(),
-                ReportStatus.parseFromStatusCode(result.getStatus()), outcome);
+            gotDetail.getUnitUps(), gotDetail.getSp(), gotDetail.getOpi(), new ArrayList<AuditObjectVersion>(),
+            ReportStatus.parseFromStatusCode(result.getStatus()), outcome);
 
         for (AuditCheckObjectResult objectResult : result.getObjectStatuses()) {
 
             AuditObject auditObject = IterableUtils.find(gotDetail.getObjects(),
-                    object -> object.getId().equals(objectResult.getIdObject()));
+                object -> object.getId().equals(objectResult.getIdObject()));
 
             String strategyId = null;
             if (auditObject.getStorage() != null) {
                 strategyId = auditObject.getStorage().getStrategyId();
             }
             AuditObjectVersion objectVersion = new AuditObjectVersion(auditObject.getId(), auditObject.getOpi(),
-                    auditObject.getQualifier(), auditObject.getVersion(), strategyId,
-                    (List<ReportItemStatus>) objectResult.getOfferStatuses().entrySet().stream()
-                            .map(e -> new ReportItemStatus(e.getKey(), ReportStatus.parseFromStatusCode(e.getValue())))
-                            .collect(Collectors.toList()),
-                    ReportStatus.parseFromStatusCode(objectResult.getGlobalStatus()));
+                auditObject.getQualifier(), auditObject.getVersion(), strategyId,
+                (List<ReportItemStatus>) objectResult.getOfferStatuses().entrySet().stream()
+                    .map(e -> new ReportItemStatus(e.getKey(), ReportStatus.parseFromStatusCode(e.getValue())))
+                    .collect(Collectors.toList()),
+                ReportStatus.parseFromStatusCode(objectResult.getGlobalStatus()));
 
             auditObjectGroupReportEntry.getObjectVersions().add(objectVersion);
 

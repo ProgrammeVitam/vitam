@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,6 @@ public class OffersToCopyIn {
     /**
      * * create  OffersToCopyIn lists
      *
-     *
      * @param storageOffers
      */
     public OffersToCopyIn(final List<StorageOffer> storageOffers) {
@@ -129,7 +128,7 @@ public class OffersToCopyIn {
      * Change the status of an offer id transfer
      *
      * @param offerId the offerId
-     * @param status  the response status to set
+     * @param status the response status to set
      */
     public void changeStatus(String offerId, Response.Status status) {
         globalOfferResult.put(offerId, status);

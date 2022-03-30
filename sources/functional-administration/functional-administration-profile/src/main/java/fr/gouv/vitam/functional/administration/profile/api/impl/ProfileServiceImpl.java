@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -140,7 +140,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
     public static final String PROFILE_BACKUP_EVENT = "BACKUP_PROFILE";
-    public static final String PATH_UNUPDATABLE ="The path field is not updatable";
+    public static final String PATH_UNUPDATABLE = "The path field is not updatable";
     public static final String PATH_SHOULD_NOT_BE_FILLED = "The profile path should not be filled manually";
 
     /**
@@ -227,8 +227,10 @@ public class ProfileServiceImpl implements ProfileService {
                     final Optional<ProfileValidator.RejectionCause> result =
                         manager.checkEmptyIdentifierSlaveModeValidator().validate(pm);
                     result.ifPresent(t -> error
-                        .addToErrors(new VitamError<ProfileModel>(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setDescription(result
-                            .get().getReason()).setMessage(ProfileManager.DUPLICATE_IN_DATABASE)));
+                        .addToErrors(
+                            new VitamError<ProfileModel>(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setDescription(
+                                result
+                                    .get().getReason()).setMessage(ProfileManager.DUPLICATE_IN_DATABASE)));
                 }
 
                 // Check Path
@@ -582,7 +584,8 @@ public class ProfileServiceImpl implements ProfileService {
      * @param field
      * @param value
      */
-    private void validateUpdateAction(ProfileModel profileModel, final VitamError<ProfileModel> error, final String field,
+    private void validateUpdateAction(ProfileModel profileModel, final VitamError<ProfileModel> error,
+        final String field,
         final JsonNode value, ProfileManager manager) {
         if (Profile.STATUS.equals(field)) {
             if (!(ProfileStatus.ACTIVE.name().equals(value.asText()) || ProfileStatus.INACTIVE

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functionaltest.cucumber.step.World;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -43,11 +39,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functionaltest.cucumber.step.World;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 /**
  * resource to manage system test
@@ -211,7 +210,7 @@ public class ApplicativeTestResource {
 
         applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
         List<String> branchList = applicativeTestService.getBranches(Paths.get(testSystemSipDirectory));
-        if(!branchList.contains(branch)) {
+        if (!branchList.contains(branch)) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         int resetStatus = applicativeTestService.reset(Paths.get(testSystemSipDirectory), branch);

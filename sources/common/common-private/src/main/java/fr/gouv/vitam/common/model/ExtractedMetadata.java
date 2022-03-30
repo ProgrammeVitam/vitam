@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,9 @@ public class ExtractedMetadata {
     private final Map<String, Object> metadata;
 
     @JsonCreator
-    public ExtractedMetadata(@JsonProperty(ID) String id, @JsonProperty(PROCESS_ID) String processId, @JsonProperty(TENANT) int tenant, @JsonProperty(UNIT_IDS) List<String> unitIds, @JsonProperty(METADATA) Map<String, Object> metadata) {
+    public ExtractedMetadata(@JsonProperty(ID) String id, @JsonProperty(PROCESS_ID) String processId,
+        @JsonProperty(TENANT) int tenant, @JsonProperty(UNIT_IDS) List<String> unitIds,
+        @JsonProperty(METADATA) Map<String, Object> metadata) {
         this.id = id;
         this.processId = processId;
         this.tenant = tenant;

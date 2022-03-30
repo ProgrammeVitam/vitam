@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -133,7 +133,8 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, EventDetails.of(error, String.join(", ", digests.keySet())));
+        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING,
+            EventDetails.of(error, String.join(", ", digests.keySet())));
     }
 
     private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra, String strategyId) {
@@ -142,9 +143,13 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         try (InputStream stream = Files.newInputStream(outputPath)) {
             StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID(), strategyId);
 
-            if (!extra.getBinaryHash().isPresent() || !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
-                logger.error("Error with stored digest {} and computed binary digest {}", storedInfo.getDigest(), extra.getBinaryHash());
-                return OutputExtra.inError(String.format("Error with stored digest %s and computed binary digest %s", storedInfo.getDigest(), extra.getBinaryHash()));
+            if (!extra.getBinaryHash().isPresent() ||
+                !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
+                logger.error("Error with stored digest {} and computed binary digest {}", storedInfo.getDigest(),
+                    extra.getBinaryHash());
+                return OutputExtra.inError(
+                    String.format("Error with stored digest %s and computed binary digest %s", storedInfo.getDigest(),
+                        extra.getBinaryHash()));
             }
 
             return OutputExtra.withStoredInfo(extra, storedInfo);

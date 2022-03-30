@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,7 @@ public enum StorageProvider {
     SWIFT_AUTH_V3("openstack-swift-v3", false),
     /**
      * S3 storage offer
-     * Amazon SDK S3 v1 
+     * Amazon SDK S3 v1
      */
     AMAZON_S3_V1("amazon-s3-v1", false),
     /**
@@ -73,8 +73,8 @@ public enum StorageProvider {
     }
 
     public static StorageProvider getStorageProvider(String storageProvider) {
-        for(StorageProvider provider : values()) {
-            if(provider.getValue().equalsIgnoreCase(storageProvider)) {
+        for (StorageProvider provider : values()) {
+            if (provider.getValue().equalsIgnoreCase(storageProvider)) {
                 return provider;
             }
         }

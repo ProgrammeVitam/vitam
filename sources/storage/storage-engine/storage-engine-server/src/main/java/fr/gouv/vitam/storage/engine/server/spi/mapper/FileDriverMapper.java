@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,14 @@
  */
 package fr.gouv.vitam.storage.engine.server.spi.mapper;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,14 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
 
 /**
  * The driver mapper implementation
@@ -62,7 +62,7 @@ public class FileDriverMapper implements DriverMapper {
     private FileDriverMapper() {
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DRIVER_MAPPING_CONF_FILE),
-                    FileDriverMapperConfiguration.class);
+                FileDriverMapperConfiguration.class);
         } catch (final IOException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE), exc);
         }
@@ -72,13 +72,13 @@ public class FileDriverMapper implements DriverMapper {
      * Get the driver mapper instance
      *
      * @return the FileDriverMapper instance
-     * @throws StorageDriverMapperException
-     *             if cannot initialize FileDriverMapper (error with the
-     *             configuration file)
+     * @throws StorageDriverMapperException if cannot initialize FileDriverMapper (error with the
+     * configuration file)
      */
     public static FileDriverMapper getInstance() throws StorageDriverMapperException {
         if (configuration == null) {
-            throw new StorageDriverMapperException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE));
+            throw new StorageDriverMapperException(
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE));
         }
         return INSTANCE;
     }
@@ -138,7 +138,7 @@ public class FileDriverMapper implements DriverMapper {
     private List<String> getOfferIdsFrom(File fileDriverMapping) throws IOException {
         final String content = com.google.common.io.Files.readFirstLine(fileDriverMapping, Charset.defaultCharset());
         return content == null ? new ArrayList<>()
-                : Pattern.compile(configuration.getDelimiter()).splitAsStream(content).collect(Collectors.toList());
+            : Pattern.compile(configuration.getDelimiter()).splitAsStream(content).collect(Collectors.toList());
     }
 
     private List<String> addOfferTo(String offerId, List<String> offerMapping) {
@@ -185,10 +185,12 @@ public class FileDriverMapper implements DriverMapper {
 
     private void persistDriverMapping(String driverName, List<String> offerIds) throws StorageDriverMapperException {
         try {
-            Files.write(Paths.get(configuration.getDriverMappingPath() + driverName), getContentFrom(offerIds).getBytes());
+            Files.write(Paths.get(configuration.getDriverMappingPath() + driverName),
+                getContentFrom(offerIds).getBytes());
         } catch (final IOException exc) {
             final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
-            LOGGER.error(log + " File: " + Paths.get(configuration.getDriverMappingPath() + driverName).toAbsolutePath());
+            LOGGER.error(
+                log + " File: " + Paths.get(configuration.getDriverMappingPath() + driverName).toAbsolutePath());
             throw new StorageDriverMapperException(log, exc);
         }
     }

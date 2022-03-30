@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -211,9 +211,9 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         importFiles();
 
-       String operationId = doIngestWithLogbookStatus(TENANT_0, SIP_KO_ARBO_RECURSIVE, UNKNOWN);
-       verifyOperation(operationId, KO);
-       verifyProcessState(operationId, TENANT_0, COMPLETED);
+        String operationId = doIngestWithLogbookStatus(TENANT_0, SIP_KO_ARBO_RECURSIVE, UNKNOWN);
+        verifyOperation(operationId, KO);
+        verifyProcessState(operationId, TENANT_0, COMPLETED);
 
         // logbook configuration
         final File logbookConfig = PropertiesUtils.findFile(VitamServerRunner.LOGBOOK_CONF);
@@ -238,7 +238,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         ObjectMapper mapper = new ObjectMapper();
         Set<LogbookCheckError> expectedResults = mapper.readValue(
             PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON),
-            new TypeReference<>() {});
+            new TypeReference<>() {
+            });
 
         Assertions.assertThat(logbookCheckErrors).containsAll(expectedResults);
     }
@@ -271,7 +272,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<>() {});
+                new TypeReference<>() {
+                });
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat

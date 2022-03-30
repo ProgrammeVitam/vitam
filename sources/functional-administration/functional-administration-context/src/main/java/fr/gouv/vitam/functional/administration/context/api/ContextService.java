@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,7 +44,7 @@ public interface ContextService extends VitamAutoCloseable {
 
     /**
      * Create a list of contexts
-     * 
+     *
      * @param contextModelList the context list to be created
      * @return a response as a RequestResponse<ContextModel> Object
      * @throws VitamException thrown if operation could not be done
@@ -53,7 +53,7 @@ public interface ContextService extends VitamAutoCloseable {
 
     /**
      * Search for contexts
-     * 
+     *
      * @param queryDsl the query to be used for the search
      * @return the list of contexts as a DbRequestResult
      * @throws ReferentialException thrown if the query could not be executed
@@ -63,7 +63,7 @@ public interface ContextService extends VitamAutoCloseable {
 
     /**
      * Update a context
-     * 
+     *
      * @param id the id of the context
      * @param queryDsl the update command as a query
      * @return a response as a RequestResponse<ContextModel> object
@@ -73,7 +73,7 @@ public interface ContextService extends VitamAutoCloseable {
 
     /**
      * Find a context by its id
-     * 
+     *
      * @param id the id of the context
      * @return the context as a ContextModel
      * @throws ReferentialException thrown if the context could not be found

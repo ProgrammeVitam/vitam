@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,7 +25,6 @@
  * accept its terms.
  */
 /**
- * Provides core implementation for the Access Internal module. 
- *
+ * Provides core implementation for the Access Internal module.
  */
 package fr.gouv.vitam.access.internal.core;

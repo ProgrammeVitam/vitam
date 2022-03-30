@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,7 +54,8 @@ public class CollectVarNameAdapter extends VarNameAdapter {
             if (newname != null) {
                 name = newname;
                 currentObject.set(name, entry.getValue());
-            } else if ((name.charAt(0) != ParserTokens.DEFAULT_HASH_PREFIX_CHAR) && (name.charAt(0) != ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR)) {
+            } else if ((name.charAt(0) != ParserTokens.DEFAULT_HASH_PREFIX_CHAR) &&
+                (name.charAt(0) != ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR)) {
                 currentObject.set(name, entry.getValue());
             }
         }
@@ -92,7 +93,7 @@ public class CollectVarNameAdapter extends VarNameAdapter {
                 }
 
             } catch (final IllegalArgumentException e) {
-                 throw new InvalidParseOperationException("Name: " + name, e);
+                throw new InvalidParseOperationException("Name: " + name, e);
             }
         }
         return null;

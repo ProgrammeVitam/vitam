@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -93,7 +93,7 @@ public class CollectRepository {
         try {
             String json = JsonHandler.writeAsString(collectModel);
             final Bson condition = and(eq(ID, collectModel.getId()));
-            collectCollection.replaceOne(condition , Document.parse(json));
+            collectCollection.replaceOne(condition, Document.parse(json));
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when replacing collect: ", e);
             throw new CollectException("Error when replacing collect: " + e);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,8 @@ public class BoundedByteBufferTest {
         throws Exception {
 
         // Given
-        ExecutorService executorService = Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         // When
@@ -122,7 +123,8 @@ public class BoundedByteBufferTest {
 
         // Given
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
-        ExecutorService executorService = Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
 
         // When
         CompletableFuture<Digest> writtenDigestFuture =
@@ -156,7 +158,8 @@ public class BoundedByteBufferTest {
         int failingReaderIndex = 1;
 
         // Given
-        ExecutorService executorService = Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         instance.getReader(failingReaderIndex).close();
@@ -195,7 +198,8 @@ public class BoundedByteBufferTest {
         int readerCount = 3;
 
         // Given
-        ExecutorService executorService = Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         // When

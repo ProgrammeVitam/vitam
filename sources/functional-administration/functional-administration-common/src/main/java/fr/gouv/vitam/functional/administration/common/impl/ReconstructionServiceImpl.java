@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -203,8 +203,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         final Histogram.Timer timer =
             VitamCommonMetrics.RECONSTRUCTION_DURATION.labels(String.valueOf(tenant), collection.name())
                 .startTimer();
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient())
-        {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             // This is a hak, we must set manually the tenant in the VitamSession (used and transmitted in the headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
@@ -232,7 +231,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 restoreSequence(sequenceRepository, collectionBackup.get().getBackupSequence());
 
                 // saving the backup collection in mongoDB and elasticSearch.
-                if(!CollectionUtils.isEmpty(collectionBackup.get().getDocuments())) {
+                if (!CollectionUtils.isEmpty(collectionBackup.get().getDocuments())) {
                     mongoRepository.save(collectionBackup.get().getDocuments());
                     elasticsearchRepository.save(collectionBackup.get().getDocuments());
                 }
@@ -244,7 +243,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             }
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when trying to get Referent offer :", e);
-        }  finally {
+        } finally {
             timer.observeDuration();
         }
     }

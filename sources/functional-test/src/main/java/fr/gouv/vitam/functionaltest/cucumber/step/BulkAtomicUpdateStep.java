@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Java6Assertions.fail;
  * BulkAtomicUpdateStep class
  */
 public class BulkAtomicUpdateStep extends CommonStep {
-    
+
     public BulkAtomicUpdateStep(World world) {
         super(world);
     }

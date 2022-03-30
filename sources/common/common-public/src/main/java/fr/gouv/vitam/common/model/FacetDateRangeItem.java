@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,6 +58,7 @@ public class FacetDateRangeItem {
 
     /**
      * getDateMin
+     *
      * @return
      */
     public String getDateMin() {
@@ -66,6 +67,7 @@ public class FacetDateRangeItem {
 
     /**
      * setDateMin
+     *
      * @param dateMin
      */
     public void setDateMin(String dateMin) {
@@ -74,6 +76,7 @@ public class FacetDateRangeItem {
 
     /**
      * getDateMax
+     *
      * @return
      */
     public String getDateMax() {
@@ -82,6 +85,7 @@ public class FacetDateRangeItem {
 
     /**
      * setDateMax
+     *
      * @param dateMax
      */
     public void setDateMax(String dateMax) {

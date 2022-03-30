@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.database.builder.facet;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
@@ -42,7 +41,7 @@ public class TermsFacet extends Facet {
 
     /**
      * Terms Facet constructor
-     * 
+     *
      * @param name name of the facet
      * @param field field of the facet data
      * @param nestedPath nested path of field of the facet data
@@ -66,17 +65,18 @@ public class TermsFacet extends Facet {
      * @throws InvalidCreateOperationException not valid
      */
     public TermsFacet(String name, String field, Integer size, FacetOrder order)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super(name);
         populateFacet(name, field, null, size, order);
     }
 
-    private void populateFacet(String name, String field, String nestedPath, Integer size, FacetOrder order) throws InvalidCreateOperationException {
+    private void populateFacet(String name, String field, String nestedPath, Integer size, FacetOrder order)
+        throws InvalidCreateOperationException {
         setName(name);
         currentTokenFACET = FACET.TERMS;
         ObjectNode facetNode = JsonHandler.createObjectNode();
         facetNode.put(FACETARGS.FIELD.exactToken(), field);
-        if(nestedPath != null) {
+        if (nestedPath != null) {
             facetNode.put(FACETARGS.SUBOBJECT.exactToken(), nestedPath);
         }
         currentFacet = facetNode;

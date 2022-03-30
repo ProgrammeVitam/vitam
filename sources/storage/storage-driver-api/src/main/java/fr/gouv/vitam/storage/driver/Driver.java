@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.storage.driver;
 
-import java.util.Properties;
-
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import javax.annotation.Nonnull;
+import java.util.Properties;
 
 /**
  * Driver interface that all storage offer drivers MUST implement to be
@@ -48,13 +47,11 @@ public interface Driver extends VitamAutoCloseable {
      * If no connection could be made, the driver
      * MUST throw a StorageException
      *
-     *
      * @param offerId the offerId name
      * @return a connection which MUST contains all necessary parameters and
-     *         initial configurations to allow further requests to the distant
-     *         offer service without needing to pass parameters/configurations.
-     * @throws StorageDriverException
-     *             if any problem occurs during connection
+     * initial configurations to allow further requests to the distant
+     * offer service without needing to pass parameters/configurations.
+     * @throws StorageDriverException if any problem occurs during connection
      */
     @Nonnull
     Connection connect(String offerId) throws StorageDriverException;
@@ -64,11 +61,9 @@ public interface Driver extends VitamAutoCloseable {
      * offer Id name.
      *
      * @param offerId the offerId name
-     *            
      * @return MUST return true if the distant offer service is available to
-     *         accept further requests, false otherwise, including if the offer is not yet added
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * accept further requests, false otherwise, including if the offer is not yet added
+     * @throws StorageDriverException if any problem occurs during request
      */
     boolean isStorageOfferAvailable(String offerId) throws StorageDriverException;
 
@@ -100,6 +95,7 @@ public interface Driver extends VitamAutoCloseable {
 
     /**
      * Return true if offer exists for the driver, false else
+     *
      * @param offerId
      * @return True if the offer is declared in the driver
      */

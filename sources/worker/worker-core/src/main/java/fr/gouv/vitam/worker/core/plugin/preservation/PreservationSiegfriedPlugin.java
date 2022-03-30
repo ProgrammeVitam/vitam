@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,8 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         FormatIdentifier siegfried = getFormatIdentifier();
 
         logger.info("Starting PRESERVATION_SIEGFRIED_IDENTIFICATION.");
@@ -115,7 +116,9 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras = Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())).collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras =
+                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
+                    .collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -159,10 +162,11 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
     private OutputExtra getOutputExtra(Path inputFiles, OutputExtra a, Path batchDirectory,
         FormatIdentifier siegfried) {
         try {
-            Optional<FormatIdentifierResponse> format = siegfried.analysePath(inputFiles.resolve(a.getOutput().getOutputName()))
-                .stream()
-                .filter(f -> PRONOM_NAMESPACE.equals(f.getMatchedNamespace()))
-                .findFirst();
+            Optional<FormatIdentifierResponse> format =
+                siegfried.analysePath(inputFiles.resolve(a.getOutput().getOutputName()))
+                    .stream()
+                    .filter(f -> PRONOM_NAMESPACE.equals(f.getMatchedNamespace()))
+                    .findFirst();
 
             if (format.isPresent()) {
                 return OutputExtra.withBinaryFormat(a, format.get());

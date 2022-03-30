@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-
 import java.io.InputStream;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
@@ -66,12 +65,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
 
         VitamRequestBuilder request = post()
-                .withPath("/transactions")
-                .withHeaders(headers)
-                .withHeader(EXPECT, EXPECT_CONTINUE)
-                .withBody(transactionDto)
-                .withJsonContentType()
-                .withJsonAccept();
+            .withPath("/transactions")
+            .withHeaders(headers)
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withBody(transactionDto)
+            .withJsonContentType()
+            .withJsonAccept();
 
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
@@ -85,11 +84,13 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+        throws InvalidParseOperationException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
-        try (Response response = make(post().withPath("/transactions/" + transactionId + "/units").withHeaders(headers).withBody(unitJsonNode)
+        try (Response response = make(
+            post().withPath("/transactions/" + transactionId + "/units").withHeaders(headers).withBody(unitJsonNode)
                 .withJson())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
@@ -103,11 +104,14 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
+        JsonNode objectJsonNode) throws InvalidParseOperationException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
-        try (Response response = make(post().withPath("/units/" + unitId + "/objects/" + usage + "/" + version).withHeaders(headers).withBody(objectJsonNode)
+        try (Response response = make(
+            post().withPath("/units/" + unitId + "/objects/" + usage + "/" + version).withHeaders(headers)
+                .withBody(objectJsonNode)
                 .withJson())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
@@ -121,15 +125,16 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded) throws InvalidParseOperationException {
+    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+        throws InvalidParseOperationException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-                .withPath("/units/" + unitId + "/objects/" + usage + "/" + version+"/binary")
-                .withHeaders(headers)
-                .withBody(inputStreamUploaded)
-                .withOctetContentType())) {
+            .withPath("/units/" + unitId + "/objects/" + usage + "/" + version + "/binary")
+            .withHeaders(headers)
+            .withBody(inputStreamUploaded)
+            .withOctetContentType())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
                 return response;
@@ -146,9 +151,9 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-                .withPath("/transactions/" + transactionId + "/close")
-                .withHeaders(headers)
-                .withJsonAccept())) {
+            .withPath("/transactions/" + transactionId + "/close")
+            .withHeaders(headers)
+            .withJsonAccept())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
                 return response;
@@ -165,9 +170,9 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-                .withPath("/transactions/" + transactionId + "/send")
-                .withHeaders(headers)
-                .withJson())) {
+            .withPath("/transactions/" + transactionId + "/send")
+            .withHeaders(headers)
+            .withJson())) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily())) {
                 RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);

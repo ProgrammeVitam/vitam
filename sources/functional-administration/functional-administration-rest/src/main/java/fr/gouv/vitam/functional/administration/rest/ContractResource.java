@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,24 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -41,30 +58,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ManagementContractModel;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class ContractResource {
 
     private static final String ADMIN_MODULE = "ADMIN_MODULE";
@@ -85,7 +83,6 @@ public class ContractResource {
     private final VitamCounterService vitamCounterService;
 
     /**
-     *
      * @param mongoAccess
      */
     public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
@@ -120,7 +117,8 @@ public class ContractResource {
 
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse<IngestContractModel> requestResponse = ingestContract.createContracts(ingestContractModelList);
+            RequestResponse<IngestContractModel> requestResponse =
+                ingestContract.createContracts(ingestContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -195,7 +193,8 @@ public class ContractResource {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse<AccessContractModel> requestResponse = accessContract.createContracts(accessContractModelList);
+            RequestResponse<AccessContractModel> requestResponse =
+                accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -278,9 +277,8 @@ public class ContractResource {
 
     /**
      * find access contracts by queryDsl
-     * 
-     * @param queryDsl
      *
+     * @param queryDsl
      * @return Response
      */
     @Path(ACCESS_CONTRACTS_URI)
@@ -325,11 +323,13 @@ public class ContractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList, @Context UriInfo uri) {
+    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList,
+        @Context UriInfo uri) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, managementContractModelList);
         try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-                vitamCounterService)) {
-            RequestResponse<ManagementContractModel> requestResponse = managementContract.createContracts(managementContractModelList);
+            vitamCounterService)) {
+            RequestResponse<ManagementContractModel> requestResponse =
+                managementContract.createContracts(managementContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -343,11 +343,11 @@ public class ContractResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 
@@ -355,7 +355,6 @@ public class ContractResource {
      * find management contracts by queryDsl
      *
      * @param queryDsl
-     *
      * @return Response
      */
     @Path(MANAGEMENT_CONTRACTS_URI)
@@ -364,17 +363,17 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findManagementContracts(JsonNode queryDsl) {
         try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-                vitamCounterService)) {
+            vitamCounterService)) {
 
             final RequestResponseOK<ManagementContractModel> managementContractModelList =
-                    managementContract.findContracts(queryDsl)
-                            .setQuery(queryDsl);
+                managementContract.findContracts(queryDsl)
+                    .setQuery(queryDsl);
             return Response.status(Status.OK)
-                    .entity(managementContractModelList).build();
+                .entity(managementContractModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
 
@@ -385,8 +384,9 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateManagementContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-                vitamCounterService)) {
-            RequestResponse<ManagementContractModel> requestResponse = managementContract.updateContract(contractId, queryDsl);
+            vitamCounterService)) {
+            RequestResponse<ManagementContractModel> requestResponse =
+                managementContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
@@ -399,11 +399,11 @@ public class ContractResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 

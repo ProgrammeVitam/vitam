@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,15 +36,16 @@ import org.bson.json.JsonWriterSettings;
  * MongoDb Helper
  */
 public class MongoDbHelper {
-    private static final JsonWriterSettings jws = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(false).build();
-    private static final JsonWriterSettings jwsIndented = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(true).build();
+    private static final JsonWriterSettings jws =
+        JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(false).build();
+    private static final JsonWriterSettings jwsIndented =
+        JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(true).build();
 
     private MongoDbHelper() {
         // Empty constructor
     }
 
     /**
-     *
      * @param bson Bson
      * @param indent if True, output will be indented.
      * @return the String representation of the Bson

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,7 @@ public class PluginPropertiesLoader {
     /**
      * loadProperties from handler Id and properties file
      *
-     * @param handlerID        the handler id to load
+     * @param handlerID the handler id to load
      * @param propertyFilename the property file name
      */
     public static void loadProperties(String handlerID, String propertyFilename) {
@@ -74,7 +74,8 @@ public class PluginPropertiesLoader {
                 return;
             }
             // Else
-            ResourceBundle resourceBundle = new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
+            ResourceBundle resourceBundle =
+                new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
             for (final String key : resourceBundle.keySet()) {
                 final String value = resourceBundle.getString(key);
                 resourceMap.put(key.replaceAll(PLUGIN, handlerID), value);
@@ -104,7 +105,8 @@ public class PluginPropertiesLoader {
                 return;
             }
             // Else
-            ResourceBundle resourceBundle = new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
+            ResourceBundle resourceBundle =
+                new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
             for (final String key : resourceBundle.keySet()) {
                 final String value = resourceBundle.getString(key);
                 if (LOGGER.isDebugEnabled()) {

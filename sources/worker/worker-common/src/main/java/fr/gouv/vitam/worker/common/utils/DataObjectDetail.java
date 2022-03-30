@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,7 @@ public class DataObjectDetail {
 
     /**
      * Gets the version
-     * 
+     *
      * @return the version
      */
     public String getVersion() {
@@ -44,7 +44,7 @@ public class DataObjectDetail {
 
     /**
      * Gets the physical
-     * 
+     *
      * @return the physical
      */
     public boolean isPhysical() {
@@ -53,7 +53,7 @@ public class DataObjectDetail {
 
     /**
      * Sets the version
-     * 
+     *
      * @param version the version to set
      */
     public void setVersion(String version) {
@@ -62,7 +62,7 @@ public class DataObjectDetail {
 
     /**
      * Sets the physical
-     * 
+     *
      * @param physical the physical to set
      */
     public void setPhysical(boolean physical) {

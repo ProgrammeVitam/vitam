@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,7 +32,6 @@ import org.bson.Document;
 
 /**
  * Defines a Contract Sequence collection. </BR>
- *
  */
 public class VitamSequence extends VitamDocument<VitamSequence> {
 
@@ -72,18 +71,17 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
     /**
      * @param content in format String to create contract sequence
      */
-    public VitamSequence(String content, Integer tenant ) {
+    public VitamSequence(String content, Integer tenant) {
         super(content);
         append(TENANT_ID, tenant);
     }
 
     @Override
     public VitamDocument<VitamSequence> newInstance(JsonNode content) {
-    	return new VitamSequence(content);
+        return new VitamSequence(content);
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public VitamSequence(Integer tenantId) {
@@ -101,6 +99,7 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
 
     /**
      * Name of the contract sequence
+     *
      * @return name of contract sequence
      */
     public String getName() {
@@ -109,7 +108,8 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
 
     /**
      * Set or change the contract sequence name
-     * @param name to set 
+     *
+     * @param name to set
      * @return this
      */
     public VitamSequence setName(String name) {
@@ -119,13 +119,16 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
 
     /**
      * Get the contract sequence counter
+     *
      * @return this
      */
     public Integer getCounter() {
         return getInteger(COUNTER);
     }
+
     /**
      * Set or change the contract sequence counter
+     *
      * @param counter to set
      * @return this
      */

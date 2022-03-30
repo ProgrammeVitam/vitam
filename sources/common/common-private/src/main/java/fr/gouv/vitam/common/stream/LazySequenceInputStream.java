@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,6 +44,7 @@ public class LazySequenceInputStream extends InputStream {
 
     /**
      * Constructor
+     *
      * @param lazyInputStreamIterator an iterator that provides next input streams to chain
      */
     public LazySequenceInputStream(Iterator<InputStream> lazyInputStreamIterator) {

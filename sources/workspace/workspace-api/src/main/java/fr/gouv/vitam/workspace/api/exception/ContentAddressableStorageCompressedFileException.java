@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,7 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
 
     /**
      * Constructor
-     * 
+     *
      * @param message as String message to associate with the exception
      */
     public ContentAddressableStorageCompressedFileException(String message) {
@@ -43,7 +43,7 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
 
     /**
      * Constructor
-     * 
+     *
      * @param cause as String to associate with the exception
      */
     public ContentAddressableStorageCompressedFileException(Throwable cause) {
@@ -52,7 +52,7 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
 
     /**
      * Constructor
-     * 
+     *
      * @param message : message to associate with the exception
      * @param cause : cause to associate with the exception
      */

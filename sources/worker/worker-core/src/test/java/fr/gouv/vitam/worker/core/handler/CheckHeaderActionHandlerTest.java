@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,6 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,10 +98,10 @@ public class CheckHeaderActionHandlerTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    
+
     private AdminManagementClient adminManagementClient;
     private AdminManagementClientFactory adminManagementClientFactory;
-    
+
     private StorageClient storageClient;
     private StorageClientFactory storageClientFactory;
 
@@ -134,12 +133,12 @@ public class CheckHeaderActionHandlerTest {
         storageClient = mock(StorageClient.class);
         storageClientFactory = mock(StorageClientFactory.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        
+
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        
+
         when(adminManagementClient.findIngestContractsByID(any()))
             .thenReturn(new AdminManagementClientMock().findIngestContractsByID("contract"));
         when(adminManagementClient.findContextById(any()))
@@ -213,7 +212,8 @@ public class CheckHeaderActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorkingWithRealManifest() throws Exception {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
+            SedaUtilsFactory.getInstance());
 
         HandlerIOImpl action =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
@@ -234,7 +234,7 @@ public class CheckHeaderActionHandlerTest {
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
         final ItemStatus response = handler.execute(params, action);
-        assertThat(response.getGlobalStatus()).isEqualTo( StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
         String evDetData = response.getEvDetailData();
         assertThat(evDetData.contains("ArchivalAgreement0")).isTrue();
@@ -249,27 +249,30 @@ public class CheckHeaderActionHandlerTest {
     @RunWithCustomExecutor
     public void testHandlerWorkingWithRealManifestAndManagementContract() throws Exception {
 
-        RequestResponseOK<IngestContractModel> ingestResponse = (RequestResponseOK<IngestContractModel>) new AdminManagementClientMock()
+        RequestResponseOK<IngestContractModel> ingestResponse =
+            (RequestResponseOK<IngestContractModel>) new AdminManagementClientMock()
                 .findIngestContractsByID("contract");
         ingestResponse.getFirstResult().setManagementContractId("managementContractId");
         when(adminManagementClient.findIngestContractsByID(any())).thenReturn(ingestResponse);
         when(adminManagementClient.findManagementContractsByID(any())).thenReturn(ClientMockResultHelper
-                .createResponse((ManagementContractModel) new ManagementContractModel().setId("managementContractId").setStatus(ActivationStatus.ACTIVE)));
+            .createResponse((ManagementContractModel) new ManagementContractModel().setId("managementContractId")
+                .setStatus(ActivationStatus.ACTIVE)));
 
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
+            SedaUtilsFactory.getInstance());
 
         HandlerIOImpl action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(),
-                "workerId", com.google.common.collect.Lists.newArrayList());
+            "workerId", com.google.common.collect.Lists.newArrayList());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-                .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+            .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
+            .setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("false");
 
@@ -291,7 +294,8 @@ public class CheckHeaderActionHandlerTest {
     public void testDefinedProfileInIngestContractButNotInManifest()
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
+            SedaUtilsFactory.getInstance());
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 

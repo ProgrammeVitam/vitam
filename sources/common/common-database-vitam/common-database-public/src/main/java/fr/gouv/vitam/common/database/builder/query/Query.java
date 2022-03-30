@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,6 @@ import java.util.Date;
 
 /**
  * Query component
- *
  */
 public class Query {
     private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
@@ -171,11 +170,11 @@ public class Query {
     }
 
     protected final void createQueryVariableValue(final QUERY query,
-                                                  final String variableName, final JsonNode value)
-            throws InvalidCreateOperationException {
+        final String variableName, final JsonNode value)
+        throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                    QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -207,7 +206,6 @@ public class Query {
     }
 
     /**
-     *
      * @param exactdepth 0 to ignore
      * @return the single request ready to be added to global Query (remove previous exact depth and depth if any)
      */
@@ -221,7 +219,6 @@ public class Query {
     }
 
     /**
-     *
      * @param relativedepth query's depth
      * @return the single request ready to be added to global Query (remove previous exact depth and depth if any)
      */
@@ -250,7 +247,6 @@ public class Query {
     }
 
     /**
-     *
      * @param key of node
      * @return the root node named key
      */
@@ -289,7 +285,6 @@ public class Query {
     }
 
     /**
-     *
      * @param val extra value
      * @return this Query
      */
@@ -299,7 +294,6 @@ public class Query {
     }
 
     /**
-     *
      * @return the extra info
      */
     public int getExtraInfo() {

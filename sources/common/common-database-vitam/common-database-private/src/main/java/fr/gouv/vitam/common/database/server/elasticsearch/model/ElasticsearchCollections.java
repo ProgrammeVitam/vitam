@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch.model;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 /**
@@ -61,7 +60,7 @@ public enum ElasticsearchCollections {
      * Accession Register detail Collection
      */
     ACCESSION_REGISTER_SYMBOLIC("/accessionregistersymbolic-es-mapping.json", "accessionregistersymbolic"),
-    
+
     /**
      * Accession Register detail Collection
      */

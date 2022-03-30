@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -156,10 +156,9 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABIL
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.LOGBOOK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.traceability.VerifyMerkleTreeActionHandler.computeMerkleTree;
+import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin.CALC_CHECK;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.FILE_DIGEST_LFC_DATABASE_COMPARISON;
@@ -189,6 +188,7 @@ import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTrac
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_GENERAL_CHECKS_COMPLETE;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_MERKLE_TREE;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_TOKEN;
+import static fr.gouv.vitam.worker.core.plugin.traceability.VerifyMerkleTreeActionHandler.computeMerkleTree;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
@@ -196,14 +196,22 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeCreateReportEntry.class);
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_PROBATIVE_REPORT_ENTRY";
 
-    public  static final String NO_BINARY_ID = "NO_BINARY_ID";
+    public static final String NO_BINARY_ID = "NO_BINARY_ID";
     private static final int STRATEGIES_IN_RANK = 0;
 
-    private static final TypeReference<List<LogbookOperation>> OPERATIONS_TYPE = new TypeReference<List<LogbookOperation>>(){};
-    private static final TypeReference<LogbookOperation> OPERATION_TYPE = new TypeReference<LogbookOperation>() {};
-    private static final TypeReference<LifeCycleTraceabilitySecureFileObject> LIFECYCLE_TYPE = new TypeReference<LifeCycleTraceabilitySecureFileObject>() {};
-    private static final TypeReference<List<String>> LIST_STRING = new TypeReference<List<String>>() {};
-    private static final TypeReference<List<ProbativeCheck>> LIST_PROBATIVE = new TypeReference<List<ProbativeCheck>>() {};
+    private static final TypeReference<List<LogbookOperation>> OPERATIONS_TYPE =
+        new TypeReference<List<LogbookOperation>>() {
+        };
+    private static final TypeReference<LogbookOperation> OPERATION_TYPE = new TypeReference<LogbookOperation>() {
+    };
+    private static final TypeReference<LifeCycleTraceabilitySecureFileObject> LIFECYCLE_TYPE =
+        new TypeReference<LifeCycleTraceabilitySecureFileObject>() {
+        };
+    private static final TypeReference<List<String>> LIST_STRING = new TypeReference<List<String>>() {
+    };
+    private static final TypeReference<List<ProbativeCheck>> LIST_PROBATIVE =
+        new TypeReference<List<ProbativeCheck>>() {
+        };
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -212,7 +220,9 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     private final TimeStampService timeStampService;
 
     @VisibleForTesting
-    public ProbativeCreateReportEntry(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory, TimeStampService timeStampService) {
+    public ProbativeCreateReportEntry(MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory, TimeStampService timeStampService) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -221,7 +231,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     public ProbativeCreateReportEntry() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(), new TimeStampService());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(), new TimeStampService());
     }
 
     @Override
@@ -231,22 +242,29 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         String usageVersion = param.getObjectMetadata().get("usageVersion").asText();
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-             StorageClient storageClient = storageClientFactory.getClient();
-             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
+            StorageClient storageClient = storageClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
 
             List<String> unitIds = JsonHandler.getFromJsonNode(param.getObjectMetadata().get("unitIds"), LIST_STRING);
 
             RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(objectGroupId);
             if (!requestResponse.isOk()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, NO_BINARY_ID, usageVersion));
-                return buildItemStatus(HANDLER_ID, FATAL, EventDetails.of(String.format("Cannot retrieve metadata for GOT %s.", objectGroupId)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, NO_BINARY_ID,
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, FATAL,
+                    EventDetails.of(String.format("Cannot retrieve metadata for GOT %s.", objectGroupId)));
             }
 
             Optional<DbVersionsModel> versionOptional = getVersion(usageVersion, requestResponse);
             if (!versionOptional.isPresent()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, NO_BINARY_ID, usageVersion));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found version for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, NO_BINARY_ID,
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found version for GOT %s and with VERSION %s.", objectGroupId,
+                        usageVersion)));
             }
 
             List<StorageStrategy> storageStrategies = loadStorageStrategies(handler);
@@ -255,37 +273,61 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             List<String> offerIds = StorageStrategyUtils.loadOfferIds(strategyId, storageStrategies);
             List<String> offerDigests = getOfferDigests(storageClient, dbVersionsModel.getId(), strategyId, offerIds);
             if (offerDigests.isEmpty() || offerIds.size() != offerDigests.size()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found storage offer digest for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found storage offer digest for GOT %s and with VERSION %s.", objectGroupId,
+                        usageVersion)));
             }
 
             JsonNode rawLogbookObjectGroupLFC = logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId);
-            LogbookLifecycle logbookObjectGroupLFC = JsonHandler.getFromJsonNode(rawLogbookObjectGroupLFC, LogbookLifecycle.class);
+            LogbookLifecycle logbookObjectGroupLFC =
+                JsonHandler.getFromJsonNode(rawLogbookObjectGroupLFC, LogbookLifecycle.class);
             Set<String> lifecycleDigests = getLifeCycleDigests(logbookObjectGroupLFC, dbVersionsModel);
             if (lifecycleDigests.isEmpty()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found lifecycle offer digest for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found lifecycle offer digest for GOT %s and with VERSION %s.", objectGroupId,
+                        usageVersion)));
             }
 
-            JsonNode logbookOperationVersionModelResult = logbookOperationsClient.selectOperationById(dbVersionsModel.getOpi());
-            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(logbookOperationVersionModelResult);
-            LogbookOperation logbookOperationVersionModel = JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+            JsonNode logbookOperationVersionModelResult =
+                logbookOperationsClient.selectOperationById(dbVersionsModel.getOpi());
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK =
+                RequestResponseOK.getFromJsonNode(logbookOperationVersionModelResult);
+            LogbookOperation logbookOperationVersionModel =
+                JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(),
+                    LogbookOperation.class);
 
-            String objectGroupLFCLastPersistedDate = getObjectGroupLFCLastPersistedDate(logbookObjectGroupLFC, dbVersionsModel);
-            List<LogbookOperation> traceabilityOperations = getTraceabilityLogbookOperation(logbookOperationsClient, logbookOperationVersionModel.getLastPersistedDate(), objectGroupLFCLastPersistedDate);
+            String objectGroupLFCLastPersistedDate =
+                getObjectGroupLFCLastPersistedDate(logbookObjectGroupLFC, dbVersionsModel);
+            List<LogbookOperation> traceabilityOperations = getTraceabilityLogbookOperation(logbookOperationsClient,
+                logbookOperationVersionModel.getLastPersistedDate(), objectGroupLFCLastPersistedDate);
             if (traceabilityOperations.isEmpty()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found traceability logbook operation id for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found traceability logbook operation id for GOT %s and with VERSION %s.",
+                        objectGroupId, usageVersion)));
             }
 
-            List<OperationWithClosestPreviousOperation> operationsAndClosestPreviousOperations = traceabilityOperations.stream()
-                .map(op -> getTraceabilityOperation(logbookOperationsClient, op))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+            List<OperationWithClosestPreviousOperation> operationsAndClosestPreviousOperations =
+                traceabilityOperations.stream()
+                    .map(op -> getTraceabilityOperation(logbookOperationsClient, op))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
             if (operationsAndClosestPreviousOperations.isEmpty()) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found all traceability logbook operation ids for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found all traceability logbook operation ids for GOT %s and with VERSION %s.",
+                        objectGroupId, usageVersion)));
             }
 
             List<ProbativeOperation> probativeOperations = operationsAndClosestPreviousOperations.stream()
@@ -295,43 +337,72 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             ProbativeOperation probativeOperationIngest = logbookOperationTo(logbookOperationVersionModel);
             probativeOperations.add(probativeOperationIngest);
 
-            Map<String, Optional<OperationTraceabilityFiles>> traceabilityFiles = operationsAndClosestPreviousOperations.stream()
-                .collect(Collectors.toMap(op -> op.getOperation().getEvType(), op -> getTraceabilityFile(op.getOperation(), storageClient, handler, objectGroupId)));
-            if (traceabilityFiles.size() != traceabilityOperations.size() || !traceabilityFiles.values().stream().allMatch(Optional::isPresent)) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion, probativeOperations));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found traceability logbook operation files for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+            Map<String, Optional<OperationTraceabilityFiles>> traceabilityFiles =
+                operationsAndClosestPreviousOperations.stream()
+                    .collect(Collectors.toMap(op -> op.getOperation().getEvType(),
+                        op -> getTraceabilityFile(op.getOperation(), storageClient, handler, objectGroupId)));
+            if (traceabilityFiles.size() != traceabilityOperations.size() ||
+                !traceabilityFiles.values().stream().allMatch(Optional::isPresent)) {
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion, probativeOperations));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found traceability logbook operation files for GOT %s and with VERSION %s.",
+                        objectGroupId, usageVersion)));
             }
 
             List<ProbativeCheck> probativeChecks = operationsAndClosestPreviousOperations.stream()
-                .flatMap(operationWithClosestPreviousOperation -> doChecks(traceabilityFiles.get(operationWithClosestPreviousOperation.getOperation().getEvType()).get(), operationWithClosestPreviousOperation, dbVersionsModel, rawLogbookObjectGroupLFC, logbookOperationVersionModel, handler))
+                .flatMap(operationWithClosestPreviousOperation -> doChecks(
+                    traceabilityFiles.get(operationWithClosestPreviousOperation.getOperation().getEvType()).get(),
+                    operationWithClosestPreviousOperation, dbVersionsModel, rawLogbookObjectGroupLFC,
+                    logbookOperationVersionModel, handler))
                 .collect(Collectors.toList());
 
-            ProbativeCheck databaseOfferFileDigestCheck = fileDigestComparison(FILE_DIGEST_OFFER_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(), new HashSet<>(offerDigests));
-            ProbativeCheck databaseGotLfcFileDigestCheck = fileDigestComparison(FILE_DIGEST_LFC_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(), lifecycleDigests);
+            ProbativeCheck databaseOfferFileDigestCheck =
+                fileDigestComparison(FILE_DIGEST_OFFER_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(),
+                    new HashSet<>(offerDigests));
+            ProbativeCheck databaseGotLfcFileDigestCheck =
+                fileDigestComparison(FILE_DIGEST_LFC_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(),
+                    lifecycleDigests);
             probativeChecks.add(databaseOfferFileDigestCheck);
             probativeChecks.add(databaseGotLfcFileDigestCheck);
             if (probativeChecks.size() != ChecksInformation.values().length) {
-                transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion, probativeOperations, probativeChecks));
-                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found ALL %s checks for GOT %s and with VERSION %s.", ChecksInformation.values().length, objectGroupId, usageVersion)));
+                transferReportEntryToWorkspace(handler, objectGroupId,
+                    ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                        usageVersion, probativeOperations, probativeChecks));
+                return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                    String.format("Cannot found ALL %s checks for GOT %s and with VERSION %s.",
+                        ChecksInformation.values().length, objectGroupId, usageVersion)));
             }
 
-            ProbativeReportEntry probativeReportEntry = new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion, probativeOperations, probativeChecks);
+            ProbativeReportEntry probativeReportEntry =
+                new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(),
+                    usageVersion, probativeOperations, probativeChecks);
             transferReportEntryToWorkspace(handler, objectGroupId, probativeReportEntry);
 
             return buildItemStatus(HANDLER_ID,
-                OK, EventDetails.of(String.format("Entry build for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+                OK, EventDetails.of(
+                    String.format("Entry build for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
         } catch (StorageStrategyNotFoundException | ProcessingStatusException e) {
             LOGGER.error(e);
-            tryTransferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID, usageVersion));
-            return buildItemStatus(HANDLER_ID, FATAL, EventDetails.of(String.format("Error while using storage strategies for GOT %s.", objectGroupId)));
+            tryTransferReportEntryToWorkspace(handler, objectGroupId,
+                ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID,
+                    usageVersion));
+            return buildItemStatus(HANDLER_ID, FATAL,
+                EventDetails.of(String.format("Error while using storage strategies for GOT %s.", objectGroupId)));
         } catch (Exception e) {
             LOGGER.error(e);
-            tryTransferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID, usageVersion));
-            return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Error while building probative value for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+            tryTransferReportEntryToWorkspace(handler, objectGroupId,
+                ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID,
+                    usageVersion));
+            return buildItemStatus(HANDLER_ID, KO, EventDetails.of(
+                String.format("Error while building probative value for GOT %s and with VERSION %s.", objectGroupId,
+                    usageVersion)));
         }
     }
 
-    private String getObjectGroupLFCLastPersistedDate(LogbookLifecycle logbookObjectGroupLFC, DbVersionsModel dbVersionsModel) {
+    private String getObjectGroupLFCLastPersistedDate(LogbookLifecycle logbookObjectGroupLFC,
+        DbVersionsModel dbVersionsModel) {
         return logbookObjectGroupLFC.getEvents()
             .stream()
             .filter(this::isOKEvent)
@@ -343,10 +414,12 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     private ProbativeOperation logbookOperationTo(LogbookOperation op) {
-        return new ProbativeOperation(op.getId(), op.getEvType(), op.getEvIdAppSession(), op.getRightsStatementIdentifier(), op.getAgIdApp(), op.getEvDateTime());
+        return new ProbativeOperation(op.getId(), op.getEvType(), op.getEvIdAppSession(),
+            op.getRightsStatementIdentifier(), op.getAgIdApp(), op.getEvDateTime());
     }
 
-    private void tryTransferReportEntryToWorkspace(HandlerIO handler, String objectGroupId, ProbativeReportEntry probativeReportEntry) throws ProcessingException {
+    private void tryTransferReportEntryToWorkspace(HandlerIO handler, String objectGroupId,
+        ProbativeReportEntry probativeReportEntry) throws ProcessingException {
         try {
             transferReportEntryToWorkspace(handler, objectGroupId, probativeReportEntry);
         } catch (Exception e) {
@@ -354,29 +427,38 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private void transferReportEntryToWorkspace(HandlerIO handler, String objectGroupId, ProbativeReportEntry probativeReportEntry) throws InvalidParseOperationException, ProcessingException {
+    private void transferReportEntryToWorkspace(HandlerIO handler, String objectGroupId,
+        ProbativeReportEntry probativeReportEntry) throws InvalidParseOperationException, ProcessingException {
         File newLocalFile = handler.getNewLocalFile(objectGroupId);
         JsonHandler.writeAsFile(probativeReportEntry, newLocalFile);
         handler.transferFileToWorkspace(objectGroupId, newLocalFile, true, false);
     }
 
-    private Stream<ProbativeCheck> doChecks(OperationTraceabilityFiles traceabilityFiles, OperationWithClosestPreviousOperation traceabilityLogbookOperations, DbVersionsModel objectModel, JsonNode logbookObjectGroupLFC, LogbookOperation logbookOperationVersionModel, HandlerIO handler) {
+    private Stream<ProbativeCheck> doChecks(OperationTraceabilityFiles traceabilityFiles,
+        OperationWithClosestPreviousOperation traceabilityLogbookOperations, DbVersionsModel objectModel,
+        JsonNode logbookObjectGroupLFC, LogbookOperation logbookOperationVersionModel, HandlerIO handler) {
         String evType = traceabilityLogbookOperations.getOperation().getEvType();
         if (OBJECTGROUP_LFC_TRACEABILITY.getEventType().equals(evType)) {
-            return doObjectGroupChecks(traceabilityFiles, traceabilityLogbookOperations, logbookObjectGroupLFC, objectModel, handler);
+            return doObjectGroupChecks(traceabilityFiles, traceabilityLogbookOperations, logbookObjectGroupLFC,
+                objectModel, handler);
         }
         if (LOGBOOK_TRACEABILITY.getEventType().equals(evType)) {
-            return doOperationChecks(traceabilityFiles, traceabilityLogbookOperations, logbookOperationVersionModel, objectModel, handler);
+            return doOperationChecks(traceabilityFiles, traceabilityLogbookOperations, logbookOperationVersionModel,
+                objectModel, handler);
         }
         throw new IllegalArgumentException(String.format("unknown operationKey %s", evType));
     }
 
-    private Stream<ProbativeCheck> doOperationChecks(OperationTraceabilityFiles traceabilityFiles, OperationWithClosestPreviousOperation traceabilityLogbookOperations, LogbookOperation logbookOperationVersionModel, DbVersionsModel objectModel, HandlerIO handler) {
+    private Stream<ProbativeCheck> doOperationChecks(OperationTraceabilityFiles traceabilityFiles,
+        OperationWithClosestPreviousOperation traceabilityLogbookOperations,
+        LogbookOperation logbookOperationVersionModel, DbVersionsModel objectModel, HandlerIO handler) {
         LogbookOperation traceabilityLogbookOperation = traceabilityLogbookOperations.getOperation();
-        LogbookOperation closestTraceabilityLogbookOperation = traceabilityLogbookOperations.getClosestToReferenceOperation();
+        LogbookOperation closestTraceabilityLogbookOperation =
+            traceabilityLogbookOperations.getClosestToReferenceOperation();
 
         try (InputStream secureData = new FileInputStream(traceabilityFiles.getData());
-            JsonLineGenericIterator<LogbookOperation> securedOperations = new JsonLineGenericIterator<>(secureData, OPERATION_TYPE);
+            JsonLineGenericIterator<LogbookOperation> securedOperations = new JsonLineGenericIterator<>(secureData,
+                OPERATION_TYPE);
             InputStream computingInformation = new FileInputStream(traceabilityFiles.getComputingInformation())) {
 
             LogbookOperation logbookOperationSecured = securedOperations.stream()
@@ -422,22 +504,29 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         return eventDateTime.isBefore(traceabilityDateTime) || eventDateTime.isEqual(traceabilityDateTime);
     }
 
-    private Stream<ProbativeCheck> doObjectGroupChecks(OperationTraceabilityFiles traceabilityFiles, OperationWithClosestPreviousOperation traceabilityLogbookOperations, JsonNode logbookObjectGroupLFC, DbVersionsModel objectModel, HandlerIO handler) {
+    private Stream<ProbativeCheck> doObjectGroupChecks(OperationTraceabilityFiles traceabilityFiles,
+        OperationWithClosestPreviousOperation traceabilityLogbookOperations, JsonNode logbookObjectGroupLFC,
+        DbVersionsModel objectModel, HandlerIO handler) {
         LogbookOperation traceabilityLogbookOperation = traceabilityLogbookOperations.getOperation();
-        LogbookOperation closestTraceabilityLogbookOperation = traceabilityLogbookOperations.getClosestToReferenceOperation();
+        LogbookOperation closestTraceabilityLogbookOperation =
+            traceabilityLogbookOperations.getClosestToReferenceOperation();
 
         try (InputStream secureData = new FileInputStream(traceabilityFiles.getData());
-            JsonLineGenericIterator<LifeCycleTraceabilitySecureFileObject> objectGroupsSecured = new JsonLineGenericIterator<>(secureData, LIFECYCLE_TYPE);
+            JsonLineGenericIterator<LifeCycleTraceabilitySecureFileObject> objectGroupsSecured = new JsonLineGenericIterator<>(
+                secureData, LIFECYCLE_TYPE);
             InputStream computingInformation = new FileInputStream(traceabilityFiles.getComputingInformation())) {
 
             List<JsonNode> events = StreamSupport.stream(logbookObjectGroupLFC.get("events").spliterator(), false)
                 .filter(jsonNode -> isEventBeforeInSecured(traceabilityLogbookOperation, jsonNode))
                 .collect(Collectors.toList());
 
-            String digestFromDatabase = BuildTraceabilityActionPlugin.generateDigest(JsonHandler.toJsonNode(events), VitamConfiguration.getDefaultDigestType());
-            List<LifeCycleTraceabilitySecureFileObject> lifeCycleTraceabilitySecureFileObjectStream = objectGroupsSecured.stream()
-                .filter(l -> Objects.nonNull(l) && OBJECTGROUP.equals(l.getMetadataType()) && objectModel.getDataObjectGroupId().equalsIgnoreCase(l.getLfcId()))
-                .collect(Collectors.toList());
+            String digestFromDatabase = BuildTraceabilityActionPlugin.generateDigest(JsonHandler.toJsonNode(events),
+                VitamConfiguration.getDefaultDigestType());
+            List<LifeCycleTraceabilitySecureFileObject> lifeCycleTraceabilitySecureFileObjectStream =
+                objectGroupsSecured.stream()
+                    .filter(l -> Objects.nonNull(l) && OBJECTGROUP.equals(l.getMetadataType()) &&
+                        objectModel.getDataObjectGroupId().equalsIgnoreCase(l.getLfcId()))
+                    .collect(Collectors.toList());
 
             String objectDigestFromSecuredFile = lifeCycleTraceabilitySecureFileObjectStream.stream()
                 .flatMap(line -> line.getObjectGroupDocumentHashList().stream())
@@ -507,32 +596,41 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         String objectGroupId,
         String evType) throws Exception {
 
-        List<ProbativeCheck> generalChecksFromWorkspace = getGeneralChecksFromWorkspace(handlerIO, objectGroupId, evType);
+        List<ProbativeCheck> generalChecksFromWorkspace =
+            getGeneralChecksFromWorkspace(handlerIO, objectGroupId, evType);
         if (!generalChecksFromWorkspace.isEmpty()) {
             return generalChecksFromWorkspace.stream();
         }
 
         String timeStampFromTraceabilityFile = new String(Files.readAllBytes(traceabilityFiles.getToken().toPath()));
         String timeStampFromLogbookOperation = getTimeStampFromLogbookOperation(traceabilityLogbookOperation);
-        ProbativeCheck validateTimeStamp = validateTimeStamp(timeStampValidation, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
-        ProbativeCheck compareTimeStamp = compare(timeStampComparison, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
+        ProbativeCheck validateTimeStamp =
+            validateTimeStamp(timeStampValidation, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
+        ProbativeCheck compareTimeStamp =
+            compare(timeStampComparison, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
 
-        String digestFromDatabase = JsonHandler.getFromString(traceabilityLogbookOperation.getEvDetData(), TraceabilityEvent.class).getHash();
+        String digestFromDatabase =
+            JsonHandler.getFromString(traceabilityLogbookOperation.getEvDetData(), TraceabilityEvent.class).getHash();
         MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(new FileInputStream(traceabilityFiles.getData()),
             VitamConfiguration.getDefaultDigestType());
         String digestRecalculated = BaseXx.getBase64(merkleTreeAlgo.generateMerkle().getRoot());
 
-        String traceabilityMerkleFileMerkleTreeRootDigest = getTraceabilityMerkleFileMerkleTreeRootDigest(traceabilityFiles.getMerkleTree());
+        String traceabilityMerkleFileMerkleTreeRootDigest =
+            getTraceabilityMerkleFileMerkleTreeRootDigest(traceabilityFiles.getMerkleTree());
 
-        ProbativeCheck checkFromMerkleTree = compare(checkMerkleTreeInformation, traceabilityMerkleFileMerkleTreeRootDigest, digestFromDatabase);
-        ProbativeCheck checkFromMerkleTreeComputed = compare(checkMerkleTreeInformationComputed, traceabilityMerkleFileMerkleTreeRootDigest, digestRecalculated);
+        ProbativeCheck checkFromMerkleTree =
+            compare(checkMerkleTreeInformation, traceabilityMerkleFileMerkleTreeRootDigest, digestFromDatabase);
+        ProbativeCheck checkFromMerkleTreeComputed =
+            compare(checkMerkleTreeInformationComputed, traceabilityMerkleFileMerkleTreeRootDigest, digestRecalculated);
 
         Properties computingProperties = new Properties();
         computingProperties.load(computingInformation);
 
 
-        ProbativeCheck merkleDigestInAdditionalInformation = compare(checkMerkleComputingInformation, digestRecalculated, computingProperties.getProperty(currentHash));
-        ProbativeCheck computedTimeStampComparison = computeAndCompareTimeStamp(checkComputedTimestamp, timeStampFromTraceabilityFile, computingProperties);
+        ProbativeCheck merkleDigestInAdditionalInformation =
+            compare(checkMerkleComputingInformation, digestRecalculated, computingProperties.getProperty(currentHash));
+        ProbativeCheck computedTimeStampComparison =
+            computeAndCompareTimeStamp(checkComputedTimestamp, timeStampFromTraceabilityFile, computingProperties);
 
         String previousTimeStampFromTraceabilityFile = computingProperties.getProperty(previousTimestampToken);
         if (previousTimeStampFromTraceabilityFile == null || previousTimeStampFromTraceabilityFile.equals("null")) {
@@ -543,16 +641,23 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 checkFromMerkleTreeComputed,
                 merkleDigestInAdditionalInformation,
                 computedTimeStampComparison,
-                ProbativeCheck.warnFrom(previousTimeStampValidation, "No previous secured file.", "No previous secured file."),
-                ProbativeCheck.warnFrom(previousTimeStampComparison, "No previous secured file.", "No previous secured file.")
+                ProbativeCheck.warnFrom(previousTimeStampValidation, "No previous secured file.",
+                    "No previous secured file."),
+                ProbativeCheck.warnFrom(previousTimeStampComparison, "No previous secured file.",
+                    "No previous secured file.")
             );
             transferGeneralChecksToWorkspace(handlerIO, objectGroupId, evType, probativeChecks);
             return probativeChecks.stream();
         }
 
-        String previousTimeStampFromLogbookOperation = getTimeStampFromLogbookOperation(closestTraceabilityLogbookOperation);
-        ProbativeCheck validatePreviousTimeStamp = validateTimeStamp(previousTimeStampValidation, previousTimeStampFromTraceabilityFile, previousTimeStampFromLogbookOperation);
-        ProbativeCheck comparePreviousTimeStamp = compare(previousTimeStampComparison, previousTimeStampFromTraceabilityFile, previousTimeStampFromLogbookOperation);
+        String previousTimeStampFromLogbookOperation =
+            getTimeStampFromLogbookOperation(closestTraceabilityLogbookOperation);
+        ProbativeCheck validatePreviousTimeStamp =
+            validateTimeStamp(previousTimeStampValidation, previousTimeStampFromTraceabilityFile,
+                previousTimeStampFromLogbookOperation);
+        ProbativeCheck comparePreviousTimeStamp =
+            compare(previousTimeStampComparison, previousTimeStampFromTraceabilityFile,
+                previousTimeStampFromLogbookOperation);
 
         List<ProbativeCheck> probativeChecks = Arrays.asList(
             validateTimeStamp,
@@ -568,17 +673,23 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         return probativeChecks.stream();
     }
 
-    private ProbativeCheck computeAndCompareTimeStamp(ChecksInformation checkComputedTimestamp, String timeStampFromTraceabilityFile, Properties computingProperties) {
+    private ProbativeCheck computeAndCompareTimeStamp(ChecksInformation checkComputedTimestamp,
+        String timeStampFromTraceabilityFile, Properties computingProperties) {
         try {
-            byte[] prevTimeStampToken = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
-            byte[] prevTimestampTokenMinusOneMonth = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
-            byte[] prevTimestampTokenMinusOneYear = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
+            byte[] prevTimeStampToken =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
+            byte[] prevTimestampTokenMinusOneMonth =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
+            byte[] prevTimestampTokenMinusOneYear =
+                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
             byte[] rootMerkleTree = timeStampService.getDigestAsBytes(computingProperties.getProperty(currentHash));
 
             TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(timeStampFromTraceabilityFile);
 
             byte[] timeStampDataFromFile = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
-            byte[] computedTimeStampData = timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth, prevTimestampTokenMinusOneYear);
+            byte[] computedTimeStampData =
+                timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth,
+                    prevTimestampTokenMinusOneYear);
 
             return ProbativeCheck.from(
                 checkComputedTimestamp,
@@ -588,17 +699,20 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             );
         } catch (Exception e) {
             LOGGER.warn(e);
-            return ProbativeCheck.koFrom(checkComputedTimestamp, timeStampFromTraceabilityFile, "NO_COMPUTED_TIMESTAMP_DATA");
+            return ProbativeCheck.koFrom(checkComputedTimestamp, timeStampFromTraceabilityFile,
+                "NO_COMPUTED_TIMESTAMP_DATA");
         }
     }
 
-    private List<ProbativeCheck> getGeneralChecksFromWorkspace(HandlerIO handlerIO, String objectGroupId, String evType) {
+    private List<ProbativeCheck> getGeneralChecksFromWorkspace(HandlerIO handlerIO, String objectGroupId,
+        String evType) {
         if (isTraceabilityFilesAbsent(handlerIO, objectGroupId, evType, TRACEABILITY_GENERAL_CHECKS_COMPLETE)) {
             return Collections.emptyList();
         }
 
         try {
-            File fileFromWorkspace = handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS);
+            File fileFromWorkspace = handlerIO.getFileFromWorkspace(
+                traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS);
             return JsonHandler.getFromFileAsTypeReference(fileFromWorkspace, LIST_PROBATIVE);
         } catch (Exception e) {
             LOGGER.warn(e);
@@ -606,11 +720,16 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private void transferGeneralChecksToWorkspace(HandlerIO handlerIO, String objectGroupId, String evType, List<ProbativeCheck> probativeChecks) throws InvalidParseOperationException, ProcessingException, IOException {
+    private void transferGeneralChecksToWorkspace(HandlerIO handlerIO, String objectGroupId, String evType,
+        List<ProbativeCheck> probativeChecks) throws InvalidParseOperationException, ProcessingException, IOException {
         File sourceFile = File.createTempFile("tmp", null, new File(VitamConfiguration.getVitamTmpFolder()));
         JsonHandler.writeAsFile(probativeChecks, sourceFile);
-        handlerIO.transferFileToWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS, sourceFile, false, false);
-        handlerIO.transferInputStreamToWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS_COMPLETE, new ByteArrayInputStream(new byte[0]), null, false);
+        handlerIO.transferFileToWorkspace(
+            traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS,
+            sourceFile, false, false);
+        handlerIO.transferInputStreamToWorkspace(
+            traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator +
+                TRACEABILITY_GENERAL_CHECKS_COMPLETE, new ByteArrayInputStream(new byte[0]), null, false);
     }
 
     private ProbativeCheck compare(ChecksInformation information, String digest, String otherDigest) {
@@ -622,7 +741,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         );
     }
 
-    private ProbativeCheck validateTimeStamp(ChecksInformation information, String timeStampFromTraceabilityFile, String timeStampFromLogbookOperation) {
+    private ProbativeCheck validateTimeStamp(ChecksInformation information, String timeStampFromTraceabilityFile,
+        String timeStampFromLogbookOperation) {
         return ProbativeCheck.from(
             information,
             timeStampFromLogbookOperation,
@@ -631,25 +751,30 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         );
     }
 
-    private String getTimeStampFromLogbookOperation(LogbookOperation traceabilityLogbookOperation) throws InvalidParseOperationException {
+    private String getTimeStampFromLogbookOperation(LogbookOperation traceabilityLogbookOperation)
+        throws InvalidParseOperationException {
         String evDetData = traceabilityLogbookOperation.getEvDetData();
         JsonNode eventDetail = JsonHandler.getFromString(evDetData);
         TraceabilityEvent traceabilityEvent = JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
         return BaseXx.getBase64(traceabilityEvent.getTimeStampToken());
     }
 
-    private Optional<OperationTraceabilityFiles> getTraceabilityFile(LogbookOperation logbookEventOperation, StorageClient storageClient, HandlerIO handlerIO, String objectGroupId) {
+    private Optional<OperationTraceabilityFiles> getTraceabilityFile(LogbookOperation logbookEventOperation,
+        StorageClient storageClient, HandlerIO handlerIO, String objectGroupId) {
         Response response = null;
         try {
-            TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(logbookEventOperation.getEvDetData(), TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent =
+                JsonHandler.getFromString(logbookEventOperation.getEvDetData(), TraceabilityEvent.class);
             String evType = logbookEventOperation.getEvType();
 
-            Optional<OperationTraceabilityFiles> operationTraceabilityFilesFromWorkspace = tryGetOperationTraceabilityFileFromWorkspace(handlerIO, objectGroupId, evType);
+            Optional<OperationTraceabilityFiles> operationTraceabilityFilesFromWorkspace =
+                tryGetOperationTraceabilityFileFromWorkspace(handlerIO, objectGroupId, evType);
             if (operationTraceabilityFilesFromWorkspace.isPresent()) {
                 return operationTraceabilityFilesFromWorkspace;
             }
 
-            response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
+                traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             return Optional.of(extractZipFiles(response, handlerIO, objectGroupId, evType));
         } catch (Exception e) {
             LOGGER.error(e);
@@ -659,18 +784,24 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private Optional<OperationTraceabilityFiles> tryGetOperationTraceabilityFileFromWorkspace(HandlerIO handlerIO, String objectGroupId, String evType) {
+    private Optional<OperationTraceabilityFiles> tryGetOperationTraceabilityFileFromWorkspace(HandlerIO handlerIO,
+        String objectGroupId, String evType) {
         if (isTraceabilityFilesAbsent(handlerIO, objectGroupId, evType, TRACEABILITY_FILES_COMPLETE)) {
             return Optional.empty();
         }
 
         try {
             return Optional.of(new OperationTraceabilityFiles(
-                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_DATA),
-                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_MERKLE_TREE),
-                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_TOKEN),
-                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_COMPUTING_INFORMATION),
-                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_ADDITIONAL_INFORMATION)
+                handlerIO.getFileFromWorkspace(
+                    traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_DATA),
+                handlerIO.getFileFromWorkspace(
+                    traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_MERKLE_TREE),
+                handlerIO.getFileFromWorkspace(
+                    traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_TOKEN),
+                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator +
+                    TRACEABILITY_COMPUTING_INFORMATION),
+                handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator +
+                    TRACEABILITY_ADDITIONAL_INFORMATION)
             ));
         } catch (Exception e) {
             LOGGER.warn(e);
@@ -678,9 +809,11 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private boolean isTraceabilityFilesAbsent(HandlerIO handlerIO, String objectGroupId, String evType, String complete) {
+    private boolean isTraceabilityFilesAbsent(HandlerIO handlerIO, String objectGroupId, String evType,
+        String complete) {
         try {
-            handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + complete);
+            handlerIO.getFileFromWorkspace(
+                traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + complete);
             return false;
         } catch (Exception e) {
             LOGGER.warn(e);
@@ -688,9 +821,10 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private OperationTraceabilityFiles extractZipFiles(Response response, HandlerIO handlerIO, String objectGroupId, String evType) throws IOException, ProcessingException {
+    private OperationTraceabilityFiles extractZipFiles(Response response, HandlerIO handlerIO, String objectGroupId,
+        String evType) throws IOException, ProcessingException {
         OperationTraceabilityFilesBuilder filesBuilder = anOperationTraceabilityFiles();
-        try(InputStream inputStream = response.readEntity(InputStream.class);
+        try (InputStream inputStream = response.readEntity(InputStream.class);
             ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
 
             ZipEntry entry;
@@ -700,14 +834,19 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                     IOUtils.copy(zipInputStream, fileOutputStream);
                 }
                 filesBuilder.with(entry.getName(), file);
-                handlerIO.transferFileToWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + entry.getName(), file, false, false);
+                handlerIO.transferFileToWorkspace(
+                    traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + entry.getName(), file,
+                    false, false);
             }
-            handlerIO.transferInputStreamToWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_FILES_COMPLETE, new ByteArrayInputStream(new byte[0]), null, false);
+            handlerIO.transferInputStreamToWorkspace(
+                traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_FILES_COMPLETE,
+                new ByteArrayInputStream(new byte[0]), null, false);
         }
         return filesBuilder.build();
     }
 
-    private Optional<OperationWithClosestPreviousOperation> getTraceabilityOperation(LogbookOperationsClient logbookOperationsClient, LogbookOperation operation) {
+    private Optional<OperationWithClosestPreviousOperation> getTraceabilityOperation(
+        LogbookOperationsClient logbookOperationsClient, LogbookOperation operation) {
         try {
             Select select = new Select();
             BooleanQuery query = and().add(
@@ -723,7 +862,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             select.addOrderByDescFilter("evDateTime");
 
             JsonNode jsonNode = logbookOperationsClient.selectOperation(select.getFinalSelect());
-            List<LogbookOperation> closestToReferenceOperations = JsonHandler.getFromJsonNode(jsonNode.get(TAG_RESULTS), OPERATIONS_TYPE);
+            List<LogbookOperation> closestToReferenceOperations =
+                JsonHandler.getFromJsonNode(jsonNode.get(TAG_RESULTS), OPERATIONS_TYPE);
 
             TraceabilityEvent emptyEvent = new TraceabilityEvent();
             emptyEvent.setTimeStampToken("NO_TIMESTAMP".getBytes());
@@ -738,19 +878,25 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private List<LogbookOperation> getTraceabilityLogbookOperation(LogbookOperationsClient logbookOperationsClient, String ingestEvDate, String lastPersistedGOTLFCDate) throws LogbookClientException, InvalidParseOperationException, InvalidCreateOperationException {
+    private List<LogbookOperation> getTraceabilityLogbookOperation(LogbookOperationsClient logbookOperationsClient,
+        String ingestEvDate, String lastPersistedGOTLFCDate)
+        throws LogbookClientException, InvalidParseOperationException, InvalidCreateOperationException {
         if (StringUtils.isBlank(ingestEvDate) || StringUtils.isBlank(lastPersistedGOTLFCDate)) {
             return Collections.emptyList();
         }
-        Optional<LogbookOperation> logbook = getOperationId(logbookOperationsClient, ingestEvDate, LOGBOOK_TRACEABILITY.getEventType());
-        Optional<LogbookOperation> objectGroupLFC = getOperationId(logbookOperationsClient, lastPersistedGOTLFCDate, OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+        Optional<LogbookOperation> logbook =
+            getOperationId(logbookOperationsClient, ingestEvDate, LOGBOOK_TRACEABILITY.getEventType());
+        Optional<LogbookOperation> objectGroupLFC = getOperationId(logbookOperationsClient, lastPersistedGOTLFCDate,
+            OBJECTGROUP_LFC_TRACEABILITY.getEventType());
         if (logbook.isPresent() && objectGroupLFC.isPresent()) {
             return Arrays.asList(logbook.get(), objectGroupLFC.get());
         }
         return Collections.emptyList();
     }
 
-    private Optional<LogbookOperation> getOperationId(LogbookOperationsClient logbookOperationsClient, String lastPersistedIngestOperationDate, String eventType) throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
+    private Optional<LogbookOperation> getOperationId(LogbookOperationsClient logbookOperationsClient,
+        String lastPersistedIngestOperationDate, String eventType)
+        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         Select select = new Select();
         BooleanQuery query = and().add(
             eq(LogbookMongoDbName.eventType.getDbname(), eventType),
@@ -764,7 +910,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter("events.evDateTime");
 
-        RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
+        RequestResponseOK<JsonNode> requestResponseOK =
+            RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
         if (requestResponseOK.getResults().isEmpty()) {
             return Optional.empty();
         }
@@ -788,7 +935,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .collect(Collectors.toSet());
     }
 
-    private List<String> getOfferDigests(StorageClient storageClient, String objectGuid, String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
+    private List<String> getOfferDigests(StorageClient storageClient, String objectGuid, String strategyId,
+        List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
         JsonNode information = storageClient.getInformation(strategyId, OBJECT, objectGuid, offerIds, true);
         return offerIds.stream()
             .map(information::get)
@@ -800,7 +948,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .collect(Collectors.toList());
     }
 
-    private ProbativeCheck fileDigestComparison(ChecksInformation information, String databaseDigest, Set<String> otherDigests) {
+    private ProbativeCheck fileDigestComparison(ChecksInformation information, String databaseDigest,
+        Set<String> otherDigests) {
         if (otherDigests.size() != 1 || !otherDigests.contains(databaseDigest)) {
             return ProbativeCheck.koFrom(information, String.join(", ", otherDigests), databaseDigest);
         }
@@ -808,7 +957,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     private String getDigest(JsonNode evDetData, String id) {
-        boolean isDigestFromPreservationEvent = evDetData.path(MESSAGE_DIGEST).isNull() || evDetData.path(MESSAGE_DIGEST).isMissingNode();
+        boolean isDigestFromPreservationEvent =
+            evDetData.path(MESSAGE_DIGEST).isNull() || evDetData.path(MESSAGE_DIGEST).isMissingNode();
         return isDigestFromPreservationEvent
             ? getDigestFromPreservation(evDetData, id)
             : getDigestFromIngest(evDetData);
@@ -845,14 +995,17 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             || event.getOutDetail().contains(PreservationStorageBinaryPlugin.ITEM_ID);
     }
 
-    private Optional<DbVersionsModel> getVersion(String usageVersion, RequestResponse<JsonNode> requestResponse) throws InvalidParseOperationException {
-        DbObjectGroupModel objectGroup = JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult(), DbObjectGroupModel.class);
+    private Optional<DbVersionsModel> getVersion(String usageVersion, RequestResponse<JsonNode> requestResponse)
+        throws InvalidParseOperationException {
+        DbObjectGroupModel objectGroup =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult(),
+                DbObjectGroupModel.class);
 
         return objectGroup.getQualifiers()
-                    .stream()
-                    .flatMap(qualifier -> qualifier.getVersions().stream())
-                    .filter(version -> usageVersion.equals(version.getDataObjectVersion()))
-                    .findFirst();
+            .stream()
+            .flatMap(qualifier -> qualifier.getVersions().stream())
+            .filter(version -> usageVersion.equals(version.getDataObjectVersion()))
+            .findFirst();
     }
 
     @JsonIgnore
@@ -879,7 +1032,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 return false;
             }
 
-            AlgorithmIdentifier digestAlgorithmIdentifier = new AlgorithmIdentifier(timeStampToken.getTimeStampInfo().getMessageImprintAlgOID());
+            AlgorithmIdentifier digestAlgorithmIdentifier =
+                new AlgorithmIdentifier(timeStampToken.getTimeStampInfo().getMessageImprintAlgOID());
             DigestCalculatorProvider digestCalculatorProvider = new BcDigestCalculatorProvider();
             DigestCalculator digestCalculator = digestCalculatorProvider.get(digestAlgorithmIdentifier);
 
@@ -893,7 +1047,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                     return false;
                 }
 
-                Attribute attribute = timeStampTokenSignedAttributes.get(PKCSObjectIdentifiers.id_aa_signingCertificate);
+                Attribute attribute =
+                    timeStampTokenSignedAttributes.get(PKCSObjectIdentifiers.id_aa_signingCertificate);
                 if (attribute == null) {
                     attribute = timeStampTokenSignedAttributes.get(PKCSObjectIdentifiers.id_aa_signingCertificateV2);
                 }
@@ -925,17 +1080,19 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             return false;
         }
     }
-    
+
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
-            });
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK),
+                new TypeReference<List<StorageStrategy>>() {
+                });
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
 
-    private String getTraceabilityMerkleFileMerkleTreeRootDigest(File merkleFile) throws InvalidParseOperationException {
+    private String getTraceabilityMerkleFileMerkleTreeRootDigest(File merkleFile)
+        throws InvalidParseOperationException {
         return JsonHandler.getFromFile(merkleFile).get("Root").asText();
     }
 

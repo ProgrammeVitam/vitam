@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,18 @@
  */
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.common.digest.DigestType;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-
-import java.io.InputStream;
-import java.util.Locale;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.common.digest.DigestType;
 
 public class VitamConfigurationTest {
 
@@ -54,7 +53,7 @@ public class VitamConfigurationTest {
         assertNull(vitamConfiguration.getData());
         assertNull(vitamConfiguration.getTmp());
 
-        vitamConfiguration.setInternalConfiguration(VitamConfiguration.getConfiguration());;
+        vitamConfiguration.setInternalConfiguration(VitamConfiguration.getConfiguration());
         assertNotNull(vitamConfiguration.getConfig());
         assertNotNull(vitamConfiguration.getLog());
         assertNotNull(vitamConfiguration.getData());

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,11 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -90,20 +94,20 @@ public class CollectIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
-                    ElasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class,
-                            AccessInternalMain.class,
-                            IngestInternalMain.class,
-                            AccessExternalMain.class,
-                            IngestExternalMain.class,
-                            CollectMain.class));
+        new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class,
+                AccessInternalMain.class,
+                IngestInternalMain.class,
+                AccessExternalMain.class,
+                IngestExternalMain.class,
+                CollectMain.class));
 
     private static CollectClient collectClient;
     private static AdminExternalClient adminExternalClient;
@@ -135,16 +139,17 @@ public class CollectIT extends VitamRuleRunner {
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         TransactionDto transactionDto = new TransactionDtoBuilder()
-                .withArchivalAgencyIdentifier("ArchivalAgencyIdentifier")
-                .withTransferingAgencyIdentifier("TransferingAgencyIdentifier")
-                .withOriginatingAgencyIdentifier("FRAN_NP_009913")
-                .withArchivalProfile("ArchiveProfile")
-                .withComment("Comments")
-                .build();
+            .withArchivalAgencyIdentifier("ArchivalAgencyIdentifier")
+            .withTransferingAgencyIdentifier("TransferingAgencyIdentifier")
+            .withOriginatingAgencyIdentifier("FRAN_NP_009913")
+            .withArchivalProfile("ArchiveProfile")
+            .withComment("Comments")
+            .build();
         RequestResponse<JsonNode> response = collectClient.initTransaction(transactionDto);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
-        TransactionDto transactionDtoResult = mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+        TransactionDto transactionDtoResult =
+            mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
         transactionGuuid = transactionDtoResult.getId();
     }
 
@@ -174,7 +179,7 @@ public class CollectIT extends VitamRuleRunner {
     @Test
     public void test4_upload_binary() throws Exception {
         try (InputStream inputStream =
-                     PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
+            PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
             Response response = collectClient.addBinary(unitGuuid, usage, version, inputStream);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
@@ -183,8 +188,8 @@ public class CollectIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void test5_close_transaction() throws Exception {
-            Response response = collectClient.closeTransaction(transactionGuuid);
-            Assertions.assertThat(response.getStatus()).isEqualTo(200);
+        Response response = collectClient.closeTransaction(transactionGuuid);
+        Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
 
     @RunWithCustomExecutor

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@
 package fr.gouv.vitam.worker.core.distribution;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.apache.commons.io.input.NullInputStream;
@@ -36,12 +35,9 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.JSON_NODE_TYPE_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,11 +52,12 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
     }
 
     @Override
-    public int hashCode(){
-        return  Objects.hashCode(this.getServerHost(),this.getServerPort());
+    public int hashCode() {
+        return Objects.hashCode(this.getServerHost(), this.getServerPort());
     }
+
     @Override
-    public boolean equals (Object other) {
+    public boolean equals(Object other) {
         if (other == null) {
             return false;
         }
@@ -66,8 +67,9 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
         if (other.getClass() != getClass()) {
             return false;
         }
-        WorkerClientConfiguration conf =  (WorkerClientConfiguration) other;
-        return  Objects.equal(this.getServerHost(),conf.getServerHost()) &&  Objects.equal(this.getServerPort(),conf.getServerPort())  ;
+        WorkerClientConfiguration conf = (WorkerClientConfiguration) other;
+        return Objects.equal(this.getServerHost(), conf.getServerHost()) &&
+            Objects.equal(this.getServerPort(), conf.getServerPort());
 
     }
 }

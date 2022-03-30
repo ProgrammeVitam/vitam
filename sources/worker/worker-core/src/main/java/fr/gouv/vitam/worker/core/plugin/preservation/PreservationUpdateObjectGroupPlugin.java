@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,7 +83,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.UNKNOWN;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -141,11 +140,11 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         }
 
         Stream<String> subItemIds = Stream.of(
-            identifyOkActions.stream().map(OutputExtra::getBinaryGUID),
-            generateOkActions.stream().map(OutputExtra::getBinaryGUID),
-            extractedOkActions.stream().map(OutputExtra::getBinaryGUID)
-        ).flatMap(Function.identity())
-         .distinct();
+                identifyOkActions.stream().map(OutputExtra::getBinaryGUID),
+                generateOkActions.stream().map(OutputExtra::getBinaryGUID),
+                extractedOkActions.stream().map(OutputExtra::getBinaryGUID)
+            ).flatMap(Function.identity())
+            .distinct();
 
         try {
             RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(batchResult.getGotId());
@@ -313,7 +312,8 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
             if (extractedRawMetadata.length() > VitamConfiguration.getTextMaxLength()) {
                 newOtherMetadata.put(RAW_METADATA,
-                    new ArrayList<>(Splitter.fixedLength(VitamConfiguration.getTextMaxLength()).splitToList(extractedRawMetadata)));
+                    new ArrayList<>(
+                        Splitter.fixedLength(VitamConfiguration.getTextMaxLength()).splitToList(extractedRawMetadata)));
             } else {
                 newOtherMetadata.put(RAW_METADATA, Collections.singletonList(extractedRawMetadata));
             }

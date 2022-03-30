@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,7 @@
  * Provides
  * <p>
  * <ul>
- * <li> DbAccess Implementation for MongoDb 
+ * <li> DbAccess Implementation for MongoDb
  * <li> Metadata collections class
  * <li> Metadata document class stored in database
  * <li> DbRequest class
@@ -36,6 +36,5 @@
  * <li> Some other utility classes and POJO classes representing objects that could be returned or used by a request
  * </ul>
  * </p>
- *
  */
 package fr.gouv.vitam.metadata.core.database.collections;

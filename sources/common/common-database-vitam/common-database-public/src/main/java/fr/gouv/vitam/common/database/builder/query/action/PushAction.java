@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,14 @@
  */
 package fr.gouv.vitam.common.database.builder.query.action;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+
+import java.util.Date;
 
 /**
  * Push Action: $push : { name : [ value, value, ... ] }
@@ -50,7 +50,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final String... value)
@@ -75,7 +75,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final long... value)
@@ -93,7 +93,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final boolean... value)
@@ -111,7 +111,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final double... value)
@@ -129,7 +129,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final Date... value)
@@ -148,7 +148,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value        key value
+     * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final JsonNode value)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,8 +55,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 public class CheckDistributionThresholdTest {
@@ -101,7 +101,8 @@ public class CheckDistributionThresholdTest {
         selectParserMultiple.parse(selectMultiQuery.getFinalSelect());
         assertThat(selectParserMultiple.trackTotalHits()).isTrue();
 
-        JsonNode limit = selectParserMultiple.getRequest().getFilter().get(BuilderToken.SELECTFILTER.LIMIT.exactToken());
+        JsonNode limit =
+            selectParserMultiple.getRequest().getFilter().get(BuilderToken.SELECTFILTER.LIMIT.exactToken());
         assertThat(limit.intValue()).isEqualTo(1);
     }
 

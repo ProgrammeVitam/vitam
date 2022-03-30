@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -56,11 +55,8 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import org.apache.commons.collections4.CollectionUtils;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -97,14 +93,15 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         }
         return res;
     }
-    
+
     @Override
     public List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
         List<RequestResponseOK<JsonNode>> res = null;
         try {
-            RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json")));
+            RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json")));
             res = Collections.singletonList(result);
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
@@ -197,11 +194,12 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam) throws InvalidParseOperationException {
+    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException {
         return new SwitchIndexResult()
-                .setAlias(switchIndexParam.getAlias())
-                .setIndexName(switchIndexParam.getIndexName())
-                .setStatusCode(StatusCode.OK);
+            .setAlias(switchIndexParam.getAlias())
+            .setIndexName(switchIndexParam.getIndexName())
+            .setStatusCode(StatusCode.OK);
     }
 
     @Override
@@ -245,20 +243,21 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
 
     @Override
     public RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         RequestResponse<JsonNode> res = null;
         try {
             JsonNode result = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultUpdate.json"));
             List<JsonNode> nodeList = new ArrayList<JsonNode>();
             nodeList.add(result);
-            res = new RequestResponseOK<JsonNode>().addAllResults(nodeList).setHttpCode(Response.Status.OK.getStatusCode());
+            res = new RequestResponseOK<JsonNode>().addAllResults(nodeList)
+                .setHttpCode(Response.Status.OK.getStatusCode());
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
         }

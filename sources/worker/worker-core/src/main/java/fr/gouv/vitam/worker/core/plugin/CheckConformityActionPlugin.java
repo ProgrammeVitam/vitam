@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -102,7 +102,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                 boolean messagesDigestUpdated =
                                     checkMessageDigest(binaryObjects.get(objectId), version, itemStatus, handlerIO);
-                                if(messagesDigestUpdated) {
+                                if (messagesDigestUpdated) {
                                     oneOrMoreMessagesDigestUpdated = true;
                                 }
                             }

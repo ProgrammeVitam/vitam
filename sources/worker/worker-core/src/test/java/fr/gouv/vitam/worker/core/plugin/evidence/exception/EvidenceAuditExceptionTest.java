@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,20 +38,20 @@ public class EvidenceAuditExceptionTest {
 
     @Test
     public final void testEvidenceAuditException() {
-        assertEquals("", new EvidenceAuditException(EvidenceStatus.KO,"").getMessage());
-        assertEquals("test", new EvidenceAuditException(EvidenceStatus.KO,"test").getMessage());
+        assertEquals("", new EvidenceAuditException(EvidenceStatus.KO, "").getMessage());
+        assertEquals("test", new EvidenceAuditException(EvidenceStatus.KO, "test").getMessage());
     }
 
     @Test
     public final void testAccessClientServerException() {
-        assertEquals("", new EvidenceAuditException(EvidenceStatus.OK,"").getMessage());
-        assertEquals("test", new EvidenceAuditException(EvidenceStatus.OK,"test").getMessage());
+        assertEquals("", new EvidenceAuditException(EvidenceStatus.OK, "").getMessage());
+        assertEquals("test", new EvidenceAuditException(EvidenceStatus.OK, "test").getMessage());
     }
 
     @Test
     public final void testAccessClientNotFoundException() {
-        assertEquals("", new EvidenceAuditException(EvidenceStatus.WARN,"").getMessage());
-        assertEquals("test", new EvidenceAuditException(EvidenceStatus.WARN,"test").getMessage());
+        assertEquals("", new EvidenceAuditException(EvidenceStatus.WARN, "").getMessage());
+        assertEquals("test", new EvidenceAuditException(EvidenceStatus.WARN, "test").getMessage());
     }
 
 

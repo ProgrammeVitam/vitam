@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,7 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import java.io.InputStream;
-import java.util.Collections;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -41,6 +37,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
+import java.io.InputStream;
+import java.util.Collections;
 
 /**
  * StorageCRUDUtils class
@@ -69,29 +68,31 @@ public class StorageCRUDUtils {
         return storageClient.getStorageStrategies();
     }
 
-    
+
     /**
      * deleteFile
      *
      * @param dataCategory category
-     * @param uid          uid of file
-     * @param strategyId   strategy identifier
-     * @param offerId      offer identifier
+     * @param uid uid of file
+     * @param strategyId strategy identifier
+     * @param offerId offer identifier
      */
     public boolean deleteFile(DataCategory dataCategory, String uid, String strategyId, String offerId)
         throws StorageServerClientException {
-        return storageClient.delete(strategyId, dataCategory, uid,  Collections.singletonList(offerId));
+        return storageClient.delete(strategyId, dataCategory, uid, Collections.singletonList(offerId));
     }
 
     /**
      * Create file or erase it if exists
-     *  @param dataCategory dataCategory
-     * @param uid          uid
+     *
+     * @param dataCategory dataCategory
+     * @param uid uid
      * @param strategyId strategyID
      * @param offerId offerID
-     * @param stream       stream
+     * @param stream stream
      */
-    public void storeInOffer(DataCategory dataCategory, String uid, String strategyId, String offerId, Long size, InputStream stream)
+    public void storeInOffer(DataCategory dataCategory, String uid, String strategyId, String offerId, Long size,
+        InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
@@ -101,7 +102,7 @@ public class StorageCRUDUtils {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
 
-        } catch (StorageServerClientException  e) {
+        } catch (StorageServerClientException e) {
             LOGGER.error("error when deleting file ", e);
         }
 

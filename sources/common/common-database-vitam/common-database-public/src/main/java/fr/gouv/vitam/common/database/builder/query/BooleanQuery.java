@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,15 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Boolean Query
- *
  */
 public class BooleanQuery extends Query {
     protected List<Query> queries = new ArrayList<>();
@@ -103,7 +101,7 @@ public class BooleanQuery extends Query {
             }
             // in case sub request has those element set: not allowed
             elt.cleanDepth();
-            if ((currentTokenQUERY == QUERY.AND && elt.currentTokenQUERY == QUERY.AND) || 
+            if ((currentTokenQUERY == QUERY.AND && elt.currentTokenQUERY == QUERY.AND) ||
                 (currentTokenQUERY == QUERY.OR && elt.currentTokenQUERY == QUERY.OR)) {
                 final BooleanQuery subelts = (BooleanQuery) elt;
                 for (final Query sub : subelts.queries) {

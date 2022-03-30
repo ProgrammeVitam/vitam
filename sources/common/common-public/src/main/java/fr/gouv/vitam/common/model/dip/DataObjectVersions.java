@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,14 +32,15 @@ import java.util.Set;
 public class DataObjectVersions {
     private Set<String> dataObjectVersions;
 
-    public DataObjectVersions() {}
+    public DataObjectVersions() {
+    }
 
     public DataObjectVersions(Set<String> dataObjectVersionToExport) {
         this.dataObjectVersions = dataObjectVersionToExport;
     }
 
     public Set<String> getDataObjectVersions() {
-        if(dataObjectVersions == null) {
+        if (dataObjectVersions == null) {
             dataObjectVersions = Collections.emptySet();
         }
         return dataObjectVersions;

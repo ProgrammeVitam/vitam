@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,14 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.ws.rs.core.MultivaluedMap;
-
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
+import javax.ws.rs.core.MultivaluedMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * ThreadManager class to manage all request in and out
@@ -46,7 +43,8 @@ public class ThreadManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ThreadManager.class);
 
     /**
-     * add Request-Id in list 
+     * add Request-Id in list
+     *
      * @param headers
      */
     public void addRequest(MultivaluedMap<String, String> headers) {
@@ -63,11 +61,11 @@ public class ThreadManager {
     }
 
     /**
-     * Before stopping server, we need to wait all request to be finished 
+     * Before stopping server, we need to wait all request to be finished
      */
     public void shutdownAndWait() {
         long timeout = 0;
-        while (!requests.isEmpty()){
+        while (!requests.isEmpty()) {
             try {
                 if (timeout >= VitamConfiguration.getShutdownTimeout()) {
                     return;

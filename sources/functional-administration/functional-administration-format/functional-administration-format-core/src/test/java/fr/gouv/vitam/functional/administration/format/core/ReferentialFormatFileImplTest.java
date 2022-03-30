@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,8 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager), functionalBackupService,
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                indexManager), functionalBackupService,
             logbookOperationsClient);
     }
 

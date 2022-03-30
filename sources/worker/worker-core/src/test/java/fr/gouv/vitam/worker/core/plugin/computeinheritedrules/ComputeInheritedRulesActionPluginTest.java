@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -134,19 +134,24 @@ public class ComputeInheritedRulesActionPluginTest {
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
-        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException,
+        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
+        MetaDataExecutionException,
         MetaDataNotFoundException {
         given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        when(metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(null);
+        when(
+            metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(
+            null);
         return objectNodeArgumentCaptor;
     }
 
     private JsonNode getJsonNodeResponse() throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
+        return JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
     }
 
     private JsonNode getExpectedJsonNode() throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
+        return JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,7 @@ public class AuditIntegrityService {
 
     /**
      * Check the integrity of all binary objects in GOT.
-     * 
+     *
      * @param gotDetail got details
      * @param storageStrategies deployed storage strategies
      * @return result of integrity check
@@ -95,9 +95,10 @@ public class AuditIntegrityService {
                 AuditCheckObjectResult auditCheckObjectResult = new AuditCheckObjectResult();
                 auditCheckObjectResult.setIdObject(object.getId());
                 StorageJson storageInformation = object.getStorage();
-                List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
+                List<String> offerIds =
+                    StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                 JsonNode offerToMetadata = storageClient.getInformation(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), offerIds, true);
+                    DataCategory.OBJECT, object.getId(), offerIds, true);
                 for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
                     if (object.getMessageDigest() == null || metadata == null || !metadata.has(DIGEST)) {

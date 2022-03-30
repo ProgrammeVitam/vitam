@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,15 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
+import com.google.common.collect.Iterables;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import org.bson.Document;
 
 import java.util.Iterator;
 import java.util.List;
 
-import org.bson.Document;
-
-import com.google.common.collect.Iterables;
-import com.mongodb.client.MongoCursor;
-
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
 
 /**
  * traceability iterator : help to compute endDate of events and iterator size
@@ -52,7 +50,6 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
     private final MongoCursor<LogbookOperation> mongoCursor;
 
     /**
-     *
      * @param mongoCursor of logbook operation
      */
     public TraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,6 +41,7 @@ public class X509PKIUtil {
 
     /**
      * generate cerificate using X.509 Certifcate factory
+     *
      * @param certificate array of byte representing the certificate file
      * @return
      * @throws CertificateException thrown if certificate parse fail

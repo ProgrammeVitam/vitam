@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,57 +70,57 @@ public class ClientMockResultHelper {
             "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     public static final String UNIT_RAW =
-        "{   \"_id\": \"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"," + 
-        "    \"DescriptionLevel\": \"Item\"," + 
-        "    \"Title\": \"Title test\"," + 
-        "    \"Titles\": {\"fr\": \"Title test\"}," + 
-        "    \"Description\": \"Pseudo Archive Unit du fichier.pdf\"," + 
-        "    \"Descriptions\": {\"fr\": \"Pseudo ArchiveE.pdf\"}," + 
-        "    \"TransactedDate\": \"2016-09-22T12:33:02\"," + 
-        "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
-        "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"],"+
-        "    \"_opi\":\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\","+
-        "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
-        "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
-        "    \"_sp\": \"vitam\"," + 
-        "    \"_sps\": [\"vitam\"]," + 
-        "    \"_uds\": {\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\": 1}," +
-        "    \"_min\": 1," +
-        "    \"_max\": 2," +
-        "    \"_tenant\": 0," + 
-        "    \"_v\": 1,\n" + 
-        "    \"_storage\": {\"strategyId\": \"default\"}" + 
-        "}";
+        "{   \"_id\": \"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"," +
+            "    \"DescriptionLevel\": \"Item\"," +
+            "    \"Title\": \"Title test\"," +
+            "    \"Titles\": {\"fr\": \"Title test\"}," +
+            "    \"Description\": \"Pseudo Archive Unit du fichier.pdf\"," +
+            "    \"Descriptions\": {\"fr\": \"Pseudo ArchiveE.pdf\"}," +
+            "    \"TransactedDate\": \"2016-09-22T12:33:02\"," +
+            "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," +
+            "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
+            "    \"_opi\":\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"," +
+            "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
+            "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
+            "    \"_sp\": \"vitam\"," +
+            "    \"_sps\": [\"vitam\"]," +
+            "    \"_uds\": {\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\": 1}," +
+            "    \"_min\": 1," +
+            "    \"_max\": 2," +
+            "    \"_tenant\": 0," +
+            "    \"_v\": 1,\n" +
+            "    \"_storage\": {\"strategyId\": \"default\"}" +
+            "}";
 
     public static final String GOT_RAW =
-        "{\"_id\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
-        "    \"_profil\": \"\"," + 
-        "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," + 
-        "    \"_qualifiers\": [{" + 
-        "            \"qualifier\": \"BinaryMaster\"," + 
-        "            \"_nbc\": 1," + 
-        "            \"versions\": [{" + 
-        "                    \"_id\": \"aeaaaaaaaagwky22aboqialbbrqyglqaaaaq\"," + 
-        "                    \"DataObjectGroupId\": \"aebaaaaaaagwky22aboqialbbrqygmaaaaaq\"," + 
-        "                    \"DataObjectVersion\": \"BinaryMaster_1\"," + 
-        "                    \"FormatIdentification\": {\"FormatLitteral\": \"OpenDocument Spreadsheet\",\"MimeType\": \"application/vnd.oasis.opendocument.spreadsheet\",\"FormatId\": \"fmt/295\"}," + 
-        "                    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," + 
-        "                    \"Size\": 16532," + 
-        "                    \"Uri\": \"Content/ID7.ods\"," + 
-        "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," + 
-        "                    \"Algorithm\": \"SHA-512\"," + 
-        "                    \"_storage\": {\"strategyId\": \"default\"}" + 
-        "            }]" + 
-        "    }]," + 
-        "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," + 
-        "    \"_nbc\": 1," + 
-        "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," + 
-        "    \"_sp\": \"Vitam\"," + 
-        "    \"_sps\": [\"Vitam\"]," + 
-        "    \"_storage\": {\"strategyId\": \"default\"}," + 
-        "    \"_tenant\": 0," + 
-        "    \"_v\": 1 }";
-    
+        "{\"_id\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," +
+            "    \"_profil\": \"\"," +
+            "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
+            "    \"_qualifiers\": [{" +
+            "            \"qualifier\": \"BinaryMaster\"," +
+            "            \"_nbc\": 1," +
+            "            \"versions\": [{" +
+            "                    \"_id\": \"aeaaaaaaaagwky22aboqialbbrqyglqaaaaq\"," +
+            "                    \"DataObjectGroupId\": \"aebaaaaaaagwky22aboqialbbrqygmaaaaaq\"," +
+            "                    \"DataObjectVersion\": \"BinaryMaster_1\"," +
+            "                    \"FormatIdentification\": {\"FormatLitteral\": \"OpenDocument Spreadsheet\",\"MimeType\": \"application/vnd.oasis.opendocument.spreadsheet\",\"FormatId\": \"fmt/295\"}," +
+            "                    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
+            "                    \"Size\": 16532," +
+            "                    \"Uri\": \"Content/ID7.ods\"," +
+            "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
+            "                    \"Algorithm\": \"SHA-512\"," +
+            "                    \"_storage\": {\"strategyId\": \"default\"}" +
+            "            }]" +
+            "    }]," +
+            "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," +
+            "    \"_nbc\": 1," +
+            "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
+            "    \"_sp\": \"Vitam\"," +
+            "    \"_sps\": [\"Vitam\"]," +
+            "    \"_storage\": {\"strategyId\": \"default\"}," +
+            "    \"_tenant\": 0," +
+            "    \"_v\": 1 }";
+
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
             "\"evType\": \"Process_SIP_unitary\"," +
@@ -133,7 +133,7 @@ public class ClientMockResultHelper {
             "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
             "\"evIdAppSession\": null," +
-            "\"agIdPers\": null," +            
+            "\"agIdPers\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
             "\"agIdExt\": null," +
             "\"obId\": null," +
@@ -219,16 +219,16 @@ public class ClientMockResultHelper {
         "\"DeactivationDate\":\"2016-11-02\"}";
 
     public static final String MANAGEMENT_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":0, " +
-            "\"Name\":\"Un contrat\", " +
-            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
-            "\"Status\":\"ACTIVE\", " +
-            "\"Storage\": {\"UnitStrategy\" : \"default\", \"ObjectGroupStrategy\": \"default\", \"ObjectStrategy\": \"default\"}, " +
-            "\"EveryDataObjectVersion\": false, " +
-            "\"CreationDate\":\"2016-11-02\", " +
-            "\"LastUpdate\":\"2016-11-02\", " +
-            "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}";
+        "\"_tenant\":0, " +
+        "\"Name\":\"Un contrat\", " +
+        "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+        "\"Status\":\"ACTIVE\", " +
+        "\"Storage\": {\"UnitStrategy\" : \"default\", \"ObjectGroupStrategy\": \"default\", \"ObjectStrategy\": \"default\"}, " +
+        "\"EveryDataObjectVersion\": false, " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"LastUpdate\":\"2016-11-02\", " +
+        "\"ActivationDate\":\"2016-11-02\", " +
+        "\"DeactivationDate\":\"2016-11-02\"}";
 
     public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
@@ -396,7 +396,8 @@ public class ClientMockResultHelper {
 
     private static final String DIP_RESULTS = "{}";
 
-    private ClientMockResultHelper() {}
+    private ClientMockResultHelper() {
+    }
 
     /**
      * @return a default Logbook Result
@@ -460,11 +461,11 @@ public class ClientMockResultHelper {
     public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException {
         return getArchiveUnitResult();
     }
-    
+
     public static RequestResponse<JsonNode> getArchiveUnitRawResult() throws InvalidParseOperationException {
         return createResponse(UNIT_RAW);
     }
-    
+
     public static RequestResponse<JsonNode> getObjectGroupRawResult() throws InvalidParseOperationException {
         return createResponse(GOT_RAW);
     }
@@ -482,7 +483,7 @@ public class ClientMockResultHelper {
      * @param response the original object to be included in response
      * @return a default response
      */
-    public static <T>RequestResponse<T> createResponse(T response) {
+    public static <T> RequestResponse<T> createResponse(T response) {
         return new RequestResponseOK<T>().addResult(response);
     }
 
@@ -514,7 +515,8 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static <T> RequestResponse<T> createResponse(String s, Class<T> clasz) throws InvalidParseOperationException {
+    public static <T> RequestResponse<T> createResponse(String s, Class<T> clasz)
+        throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clasz));
@@ -539,7 +541,8 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createResponse(String s, int statuscode, Class clazz) throws InvalidParseOperationException {
+    public static RequestResponse createResponse(String s, int statuscode, Class clazz)
+        throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clazz));
@@ -547,7 +550,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
      */
@@ -556,7 +558,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
@@ -565,7 +566,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Format
      * @throws InvalidParseOperationException
      */
@@ -574,7 +574,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Rule
      * @throws InvalidParseOperationException
      */
@@ -629,7 +628,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
@@ -646,7 +644,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
@@ -686,7 +683,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
@@ -714,7 +710,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @param id
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
@@ -734,7 +729,6 @@ public class ClientMockResultHelper {
 
     /**
      * @throws InvalidParseOperationException
-     * 
      */
     public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
         return createResponse(TRACEABILITY_OPERATION);
@@ -742,7 +736,6 @@ public class ClientMockResultHelper {
 
     /**
      * @throws InvalidParseOperationException
-     * 
      */
     public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
         return createResponse(TRACEABILITY_LOGBOOK_OPERATION);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,11 +58,12 @@ public class SipHelper {
         return exportRequestParameters;
     }
 
-    public static ExportRequest buildExportRequest(CollectModel collectModel, ExportRequestParameters exportRequestParameters)
+    public static ExportRequest buildExportRequest(CollectModel collectModel,
+        ExportRequestParameters exportRequestParameters)
         throws InvalidCreateOperationException {
         SelectMultiQuery exportSelect = new SelectMultiQuery();
         exportSelect.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), collectModel.getId()));
-        exportSelect.setScrollFilter(SCROLL_ACTIVATE_KEYWORD, DEFAULT_SCROLL_TIMEOUT,  10000);
+        exportSelect.setScrollFilter(SCROLL_ACTIVATE_KEYWORD, DEFAULT_SCROLL_TIMEOUT, 10000);
 
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setDslRequest(exportSelect.getFinalSelect());

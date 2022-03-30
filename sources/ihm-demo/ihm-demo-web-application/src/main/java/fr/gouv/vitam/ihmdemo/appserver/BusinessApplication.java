@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,21 +26,20 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static fr.gouv.vitam.ihmdemo.common.utils.PermissionReader.getMethodsAnnotatedWith;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static fr.gouv.vitam.ihmdemo.common.utils.PermissionReader.getMethodsAnnotatedWith;
 
 /**
  * Business application for ihm demo declaring resources and filters
@@ -53,7 +52,7 @@ public class BusinessApplication extends Application {
 
     /**
      * BusinessApplication Constructor
-     * 
+     *
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -66,7 +65,7 @@ public class BusinessApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
-            Set<String> permissions= getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
+            Set<String> permissions = getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
 
             Set<String> methodsAnnotatedWith =
                 getMethodsAnnotatedWith(WebPreservationResource.class, RequiresPermissions.class);

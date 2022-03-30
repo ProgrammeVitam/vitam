@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,8 +40,8 @@ public interface VitamServerInterface {
     int getPort();
 
     /**
-     *
      * Used get the port number of the admin connector
+     *
      * @return the port number of the named connector @admin if exists else return -1
      */
     int getAdminPort();

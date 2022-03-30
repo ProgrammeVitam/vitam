@@ -126,9 +126,9 @@ public class ChecksSecureTraceabilityDataHashesPluginTest {
             .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.LOGBOOK), any(AccessLogInfoModel.class)))
             .thenReturn(response);
 
-        ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param,handler);
+        ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param, handler);
 
-        assertEquals(OK,itemStatus.getGlobalStatus());
+        assertEquals(OK, itemStatus.getGlobalStatus());
     }
 
     @Test
@@ -148,9 +148,9 @@ public class ChecksSecureTraceabilityDataHashesPluginTest {
             .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.LOGBOOK), any(AccessLogInfoModel.class)))
             .thenReturn(response);
 
-        ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param,handler);
+        ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param, handler);
 
-        assertEquals(KO,itemStatus.getGlobalStatus());
+        assertEquals(KO, itemStatus.getGlobalStatus());
     }
 
 }

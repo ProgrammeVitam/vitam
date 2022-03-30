@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,20 @@
  */
 package fr.gouv.vitam.common.database.builder.query.action;
 
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.Date;
+import java.util.List;
+
 /**
  * Action component
- *
  */
 public class Action {
     private static final String ACTION2 = "Action ";
@@ -158,7 +156,7 @@ public class Action {
             throw new InvalidCreateOperationException(e);
         }
         currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
-        
+
         ArrayNode array = JsonHandler.createArrayNode();
         GlobalDatas.setArrayValueFromList(array, value);
         ((ObjectNode) currentObject).set(variableName.trim(), array);

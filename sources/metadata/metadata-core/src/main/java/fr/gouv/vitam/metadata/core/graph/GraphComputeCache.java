@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,19 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Projections.include;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.cache.AbstractVitamCache;
 import fr.gouv.vitam.common.cache.VitamCache;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Projections.include;
 
 /**
  * This is a default implementation of VitamCache

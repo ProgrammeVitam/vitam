@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.core.trigger;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import io.restassured.path.json.JsonPath;
@@ -42,8 +41,10 @@ public class ChangesHistoryTest {
 
     @Test
     public void testProcessFirstUpdate() throws Exception {
-        JsonNode unitBeforeUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
-        JsonNode unitAfterUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
+        JsonNode unitBeforeUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
+        JsonNode unitAfterUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
 
         ChangesHistory changesHistory = new ChangesHistory("_mgt.ClassificationRule");
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
@@ -55,13 +56,16 @@ public class ChangesHistoryTest {
 
         Assert.assertNotNull(path.get("_history[0].ud"));
         Assert.assertEquals(10, path.getInt("_history[0].data._v"));
-        Assert.assertEquals("Secret Défense",path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertEquals("Secret Défense",
+            path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
     @Test
     public void testProcessSecondUpdate() throws Exception {
-        JsonNode unitBeforeSecondUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_second_update.json"));
-        JsonNode unitAfterSecondUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_second_update.json"));
+        JsonNode unitBeforeSecondUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_second_update.json"));
+        JsonNode unitAfterSecondUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_second_update.json"));
 
         ChangesHistory changesHistory = new ChangesHistory("_mgt.ClassificationRule");
         changesHistory.addHistory(unitBeforeSecondUpdate, unitAfterSecondUpdate);
@@ -75,18 +79,22 @@ public class ChangesHistoryTest {
 
         Assert.assertNotNull(path.get("_history[0].ud"));
         Assert.assertEquals(9, path.getInt("_history[0].data._v"));
-        Assert.assertEquals("Secret Défense", path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertEquals("Secret Défense",
+            path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
 
         Assert.assertNotNull(path.get("_history[1].ud"));
         Assert.assertEquals(10, path.getInt("_history[1].data._v"));
-        Assert.assertEquals("Confidentiel Défense", path.getString("_history[1].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertEquals("Confidentiel Défense",
+            path.getString("_history[1].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
 
     @Test
     public void testProcessAddMetadata() throws Exception {
-        JsonNode unitBeforeUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_add.json"));
-        JsonNode unitAfterUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_add.json"));
+        JsonNode unitBeforeUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_add.json"));
+        JsonNode unitAfterUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_add.json"));
 
         ChangesHistory changesHistory = new ChangesHistory("_mgt.ClassificationRule");
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
@@ -103,8 +111,10 @@ public class ChangesHistoryTest {
 
     @Test
     public void testProcessRemoveMetadata() throws Exception {
-        JsonNode unitBeforeUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
-        JsonNode unitAfterUpdate = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
+        JsonNode unitBeforeUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
+        JsonNode unitAfterUpdate =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
 
         ChangesHistory changesHistory = new ChangesHistory("_mgt.ClassificationRule");
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
@@ -117,7 +127,8 @@ public class ChangesHistoryTest {
 
         Assert.assertNotNull(path.get("_history[0].ud"));
         Assert.assertEquals(10, path.getInt("_history[0].data._v"));
-        Assert.assertEquals("Secret Défense", path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertEquals("Secret Défense",
+            path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
 }

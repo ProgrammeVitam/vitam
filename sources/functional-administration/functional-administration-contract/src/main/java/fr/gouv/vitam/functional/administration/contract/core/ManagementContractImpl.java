@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -332,7 +332,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    if (field.contains(VERSION_RETENTION_POLICY)){
+                    if (field.contains(VERSION_RETENTION_POLICY)) {
                         isVersionRetentionPolicyUpdated = true;
                     }
                     validateUpdateAction(validationService, managementContractModel.getName(), error, field, value,
@@ -544,7 +544,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             VersionRetentionPolicyModel.TAG_VERSION_RETENTION_POLICY_INITIAL_VERSION).contains(field)) {
             managementContractModeltoValidate.getVersionRetentionPolicy().setInitialVersion(value.asBoolean());
             Optional<GenericRejectionCause> rejection =
-                validationService.checkVersionRetentionPolicy().validate(managementContractModeltoValidate, contractName);
+                validationService.checkVersionRetentionPolicy()
+                    .validate(managementContractModeltoValidate, contractName);
             rejection.ifPresent(
                 genericRejectionCause -> error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     genericRejectionCause.getReason())
@@ -557,7 +558,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 managementContractModeltoValidate.getVersionRetentionPolicy()
                     .setIntermediaryVersion(IntermediaryVersionEnum.valueOf(value.textValue()));
                 Optional<GenericRejectionCause> rejection =
-                    validationService.checkVersionRetentionPolicy().validate(managementContractModeltoValidate, contractName);
+                    validationService.checkVersionRetentionPolicy()
+                        .validate(managementContractModeltoValidate, contractName);
                 rejection.ifPresent(genericRejectionCause -> error
                     .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         genericRejectionCause.getReason())
@@ -583,7 +585,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     .setMessage(UPDATE_VERSION_RETENTION_POLICY_VALIDATION_ERROR));
             }
             Optional<GenericRejectionCause> rejection =
-                validationService.checkVersionRetentionPolicy().validate(managementContractModeltoValidate, contractName);
+                validationService.checkVersionRetentionPolicy()
+                    .validate(managementContractModeltoValidate, contractName);
             rejection.ifPresent(
                 genericRejectionCause -> error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     genericRejectionCause.getReason())
@@ -592,7 +595,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
     }
 
     private static VitamError<ManagementContractModel> getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO, ManagementContractModel.class);
+        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO,
+            ManagementContractModel.class);
     }
 
     /**
@@ -620,7 +624,8 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             };
         }
 
-        private boolean validateContract(ManagementContractModel contract, String jsonFormat, VitamError<ManagementContractModel> error) {
+        private boolean validateContract(ManagementContractModel contract, String jsonFormat,
+            VitamError<ManagementContractModel> error) {
 
             for (final ManagementContractValidator validator : validators.keySet()) {
                 final Optional<GenericContractValidator.GenericRejectionCause> result = validator.validate(contract,

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,8 @@ import java.util.function.Consumer;
 
 public class ArrayFormat extends Format {
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         itemType.setReportingType(this);
     }
 
@@ -46,7 +47,8 @@ public class ArrayFormat extends Format {
         this.itemType = itemType;
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         if (!node.isArray()) {
             validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
             return;
@@ -57,12 +59,14 @@ public class ArrayFormat extends Format {
         }
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
         itemType.walk(consumer);
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         return itemType.debugInfo() + "[]";
     }
 }

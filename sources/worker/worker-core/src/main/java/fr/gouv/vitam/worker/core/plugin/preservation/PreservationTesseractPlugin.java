@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -86,7 +86,8 @@ public class PreservationTesseractPlugin extends ActionHandler {
 
             outputExtras
                 .forEach(
-                    o -> o.getExtractedMetadataAU().ifPresent(metadata -> computeTextContent(metadata, itemStatuses, o.getBinaryGUID())));
+                    o -> o.getExtractedMetadataAU()
+                        .ifPresent(metadata -> computeTextContent(metadata, itemStatuses, o.getBinaryGUID())));
 
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, outputExtras));
         }
@@ -104,10 +105,12 @@ public class PreservationTesseractPlugin extends ActionHandler {
             final int maxUtf8Length = VitamConfiguration.getTextMaxLength();
             String encodedString = StringEscapeUtils.escapeJava(textValue);
             if (OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize(textValue, maxUtf8TextContentLength)) {
-                encodedString = encodedString.substring(0,maxUtf8TextContentLength);
-                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), WARNING, PluginHelper.EventDetails.of("TextContent metadata exceeds the limit")));
-            }else {
-                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), OK, PluginHelper.EventDetails.of("All metadata are OK.")));
+                encodedString = encodedString.substring(0, maxUtf8TextContentLength);
+                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), WARNING,
+                    PluginHelper.EventDetails.of("TextContent metadata exceeds the limit")));
+            } else {
+                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), OK,
+                    PluginHelper.EventDetails.of("All metadata are OK.")));
             }
             // split text content if it exceeds the lucene limit
             return splitText(encodedString, maxUtf8Length - 1);

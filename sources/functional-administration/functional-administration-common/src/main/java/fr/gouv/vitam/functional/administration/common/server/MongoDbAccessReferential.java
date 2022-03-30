@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.functional.administration.common.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -60,9 +59,8 @@ public interface MongoDbAccessReferential {
      *
      * @param arrayNode of documents
      * @param collection collection of Mongo for insert
-     * @throws ReferentialException when error occurs
      * @return DbRequestResult
-     * 
+     * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
         throws DocumentAlreadyExistsException, ReferentialException, SchemaValidationException;
@@ -125,8 +123,8 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo Type for update
      * @return DbRequestResult
      * @throws ReferentialException when error occurs;
-     * @throws SchemaValidationException 
-     * @throws BadRequestException 
+     * @throws SchemaValidationException
+     * @throws BadRequestException
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
         throws ReferentialException, SchemaValidationException, BadRequestException;
@@ -139,8 +137,8 @@ public interface MongoDbAccessReferential {
      * @param version
      * @return DbRequestResult
      * @throws ReferentialException when error occurs;
-     * @throws SchemaValidationException 
-     * @throws BadRequestException 
+     * @throws SchemaValidationException
+     * @throws BadRequestException
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException, SchemaValidationException, BadRequestException;
@@ -164,5 +162,5 @@ public interface MongoDbAccessReferential {
      * @throws BadRequestException
      */
     DbRequestResult deleteDocument(JsonNode delete, FunctionalAdminCollections collection)
-            throws ReferentialException, BadRequestException, SchemaValidationException;
+        throws ReferentialException, BadRequestException, SchemaValidationException;
 }

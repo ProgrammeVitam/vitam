@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.model;
 
 /**
  * Enum of process workflow execution mode
- * 
  */
 public enum ProcessAction {
     /**
@@ -41,12 +40,10 @@ public enum ProcessAction {
     NEXT("next"),
     /**
      * resume execution mode (all step will be executed)
-     * 
      */
     RESUME("resume"),
     /**
      * pause execution mode
-     * 
      */
     PAUSE("pause"),
     /**
@@ -63,7 +60,7 @@ public enum ProcessAction {
 
     /**
      * Constructor
-     * 
+     *
      * @param processAction
      */
 
@@ -72,7 +69,6 @@ public enum ProcessAction {
     }
 
     /**
-     * 
      * @return value of process workflow in String format
      */
     public String getValue() {
@@ -81,7 +77,7 @@ public enum ProcessAction {
 
     /**
      * Returns Enum from value
-     * 
+     *
      * @param value of process workflow in String format
      * @return ProcessAction
      */

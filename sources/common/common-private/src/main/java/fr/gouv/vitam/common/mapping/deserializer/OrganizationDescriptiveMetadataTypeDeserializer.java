@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -41,8 +41,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class OrganizationDescriptiveMetadataTypeDeserializer extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
-    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {};
+public class OrganizationDescriptiveMetadataTypeDeserializer
+    extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
+    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {
+    };
 
     private ObjectMapper objectMapper;
 
@@ -51,12 +53,14 @@ public class OrganizationDescriptiveMetadataTypeDeserializer extends JsonDeseria
     }
 
     @Override
-    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Map<String, Object> map = objectMapper.convertValue(node, REFERENCE);
         List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
-        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType = new OrganizationDescriptiveMetadataType();
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
+            new OrganizationDescriptiveMetadataType();
         organizationDescriptiveMetadataType.getAny().addAll(elements);
         return organizationDescriptiveMetadataType;
     }

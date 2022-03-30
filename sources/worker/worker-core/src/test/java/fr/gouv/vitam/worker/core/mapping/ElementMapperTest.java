@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -117,29 +116,30 @@ public class ElementMapperTest {
         String xml =
             "<Content>" +
                 "<Titles>" +
-                    "<EmptyValueA></EmptyValueA>" +
-                    "<EmptyValueB></EmptyValueB>" +
-                    "<ValueC>" +
-                        "<Argument></Argument>" +
-                        "<MyTitles>" +
-                            "<Argument></Argument>" +
-                            "<RealTiTle>Batman</RealTiTle>" +
-                        "</MyTitles>" +
-                    "</ValueC>" +
+                "<EmptyValueA></EmptyValueA>" +
+                "<EmptyValueB></EmptyValueB>" +
+                "<ValueC>" +
+                "<Argument></Argument>" +
+                "<MyTitles>" +
+                "<Argument></Argument>" +
+                "<RealTiTle>Batman</RealTiTle>" +
+                "</MyTitles>" +
+                "</ValueC>" +
                 "</Titles>" +
-            "</Content>";
+                "</Content>";
         Content content = getXMLFromString(xml, Content.class);
 
         // When
         Map<String, Object> elements = elementMapper.toMap(content.elements);
 
         // Then
-        assertThat(elements.toString()).isEqualTo("{Titles=[{EmptyValueB=[], EmptyValueA=[], ValueC=[{Argument=[], MyTitles=[{RealTiTle=[Batman], Argument=[]}]}]}]}");
+        assertThat(elements.toString()).isEqualTo(
+            "{Titles=[{EmptyValueB=[], EmptyValueA=[], ValueC=[{Argument=[], MyTitles=[{RealTiTle=[Batman], Argument=[]}]}]}]}");
     }
 
     private <T> T getXMLFromString(String input, Class<T> clazz) throws Exception {
         XMLStreamReader parser =
-                XMLInputFactoryUtils.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
+            XMLInputFactoryUtils.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
         JAXBElement<T> element = unmarshaller.unmarshal(parser, clazz);
         return element.getValue();
     }

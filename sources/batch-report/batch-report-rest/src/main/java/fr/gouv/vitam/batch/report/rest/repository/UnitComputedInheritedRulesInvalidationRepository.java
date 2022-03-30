@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,17 +71,17 @@ public class UnitComputedInheritedRulesInvalidationRepository extends ReportComm
     public CloseableIterator<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
         MongoCursor<Document> cursor = collection.aggregate(
-            Arrays.asList(
-                Aggregates.match(and(
-                    eq(UnitComputedInheritedRulesInvalidationModel.PROCESS_ID, processId),
-                    eq(UnitComputedInheritedRulesInvalidationModel.TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id")
-                    )
-                ))
-        )
+                Arrays.asList(
+                    Aggregates.match(and(
+                        eq(UnitComputedInheritedRulesInvalidationModel.PROCESS_ID, processId),
+                        eq(UnitComputedInheritedRulesInvalidationModel.TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id")
+                        )
+                    ))
+            )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();

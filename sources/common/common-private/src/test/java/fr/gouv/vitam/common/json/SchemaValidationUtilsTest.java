@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,7 @@ public class SchemaValidationUtilsTest {
         "aup-validator/archive_unit_profile_description_without_pattern_properties.json";
     private static final String ARCHIVE_UNIT_PROFILE_WITH_PROPERTIES_FIELD =
         "aup-validator/archive_unit_profile_with_properties_field.json";
-private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES =
+    private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES =
         "aup-validator/archive_unit_profile_with_type_items_nested_type_pattern_properties.json";
 
     @Test
@@ -87,7 +87,7 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // THEN
-        assertThat(extractFields).doesNotContain("patternProperties","Description_","Title_");
+        assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
         assertThat(extractFields).containsExactlyInAnyOrder("ArchiveUnitProfile",
             "Rule",
             "StartDate",
@@ -124,7 +124,7 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // THEN
-        assertThat(extractFields).doesNotContain("patternProperties","Description_","Title_");
+        assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
         assertThat(extractFields).containsExactlyInAnyOrder("ArchiveUnitProfile", "Title", "Description", "en", "fr");
     }
 
@@ -143,7 +143,7 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // THEN
-        assertThat(extractFields).doesNotContain("patternProperties","Description_","Title_");
+        assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
         assertThat(extractFields)
             .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr");
     }
@@ -163,7 +163,7 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // THEN
-        assertThat(extractFields).doesNotContain("patternProperties","Description_","Title_");
+        assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
         assertThat(extractFields)
             .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr");
     }
@@ -174,7 +174,8 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
         // GIVEN
         JsonNode jsonArcUnit =
             JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES));
+                PropertiesUtils.getResourceAsStream(
+                    ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES));
         ArchiveUnitProfileModel archiveUnitProfile =
             JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
 
@@ -183,7 +184,7 @@ private static final String ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PAT
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // THEN
-        assertThat(extractFields).doesNotContain("patternProperties","Description_","Title_");
+        assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
         assertThat(extractFields)
             .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr",
                 "Toto");

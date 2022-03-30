@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,8 +31,10 @@ package fr.gouv.vitam.common.format.identification.siegfried;
  */
 public enum SiegfriedQueryParams {
     BASE64("Use URL-safe base64 encoding for the file or folder name", "base64", "true"),
-    FORMAT("format (optional) - select the output format (csv, yaml, json, droid). " + "Default is yaml. Alternatively, HTTP content negotiation can be used.", "format", "json"),
-    SCAN_ENTRIES_WITHIN_ZIP("z (optional) - scan archive formats (zip, tar, gzip, warc, arc) with z=true. Default is false.", "z", "false");
+    FORMAT("format (optional) - select the output format (csv, yaml, json, droid). " +
+        "Default is yaml. Alternatively, HTTP content negotiation can be used.", "format", "json"),
+    SCAN_ENTRIES_WITHIN_ZIP(
+        "z (optional) - scan archive formats (zip, tar, gzip, warc, arc) with z=true. Default is false.", "z", "false");
 
     private String description;
     private String parameter;

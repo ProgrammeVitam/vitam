@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
 import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
@@ -188,7 +187,8 @@ public interface AccessInternalModule {
      */
     void checkClassificationLevel(JsonNode query) throws IllegalArgumentException, InvalidParseOperationException;
 
-    Optional<AccessRequestReference> createObjectAccessRequestIfRequired(String idObjectGroup, String qualifier, int version)
+    Optional<AccessRequestReference> createObjectAccessRequestIfRequired(String idObjectGroup, String qualifier,
+        int version)
         throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException;
 
     List<StatusByAccessRequest> checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences)

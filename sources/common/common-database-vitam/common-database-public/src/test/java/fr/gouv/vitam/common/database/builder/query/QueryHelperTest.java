@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,16 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.builder.query;
+
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -54,17 +64,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.wildcard;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
 @SuppressWarnings("javadoc")
 public class QueryHelperTest {
@@ -100,16 +99,19 @@ public class QueryHelperTest {
             final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             path(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {}
+        } catch (final InvalidCreateOperationException e) {
+        }
         try {
             final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             eq("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {}
+        } catch (final InvalidCreateOperationException e) {
+        }
         try {
             eq("_var", "val");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {}
+        } catch (final InvalidCreateOperationException e) {
+        }
     }
 
     @Test

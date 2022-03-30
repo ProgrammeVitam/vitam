@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,44 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
-import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
-import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
@@ -81,10 +48,42 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PreservationPreparationPluginTest {
 
-    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -120,7 +119,8 @@ public class PreservationPreparationPluginTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
         preservationPreparationPlugin =
-            new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory, workspaceClientFactory);
+            new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory,
+                workspaceClientFactory);
 
 
         List<GriffinModel> list = getFromStringAsTypeReference(griffinIds,
@@ -169,7 +169,8 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
-        List<String> lines = IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
+        List<String> lines =
+            IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -201,8 +202,10 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
         assertThat(itemStatus.getEvDetailData())
-            .isEqualTo(JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
-        List<String> lines = IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
+            .isEqualTo(
+                JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
+        List<String> lines =
+            IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -211,7 +214,8 @@ public class PreservationPreparationPluginTest {
     @Test
     public void should_make_explicit_precondition_failed_when_griffin_id_is_not_find() throws Exception {
         // Given
-        when(adminManagementClient.findGriffin(any())).thenThrow(new AdminManagementClientServerException("Internal Server Error"));
+        when(adminManagementClient.findGriffin(any())).thenThrow(
+            new AdminManagementClientServerException("Internal Server Error"));
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
         PreservationRequest preservationRequest =
@@ -232,7 +236,8 @@ public class PreservationPreparationPluginTest {
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster")));
+        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(
+            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster")));
 
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
@@ -245,7 +250,10 @@ public class PreservationPreparationPluginTest {
         preservationPreparationPlugin.execute(workerParameters, handler);
 
         // Then
-        assertThat(getFromJsonNode(getLines(files).get(4).getParams().get("unitsForExtractionAU"), LIST_TYPE_REFERENCE)).isEqualTo(Arrays.asList("aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq"));
+        assertThat(getFromJsonNode(getLines(files).get(4).getParams().get("unitsForExtractionAU"),
+            LIST_TYPE_REFERENCE)).isEqualTo(
+            Arrays.asList("aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq",
+                "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq"));
     }
 
     private List<JsonLineModel> getLines(Map<String, File> files) throws IOException {

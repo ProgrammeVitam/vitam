@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,8 +32,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static fr.gouv.vitam.common.model.administration.RuleMeasurementEnum.YEAR;
+import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

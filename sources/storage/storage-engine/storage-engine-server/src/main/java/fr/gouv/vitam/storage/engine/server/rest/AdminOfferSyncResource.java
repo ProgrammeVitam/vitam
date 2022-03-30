@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,7 @@ import javax.ws.rs.core.Response;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 @Path("/storage/v1")
-@Tag(name="Admin-Offer")
+@Tag(name = "Admin-Offer")
 public class AdminOfferSyncResource {
 
     /**

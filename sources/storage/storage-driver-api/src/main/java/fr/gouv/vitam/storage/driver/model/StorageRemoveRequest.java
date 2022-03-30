@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,13 +36,9 @@ public class StorageRemoveRequest extends StorageObjectRequest {
     /**
      * Initialize the needed parameters for delete requests of an object.
      *
-     * @param tenantId
-     *            request tenantId
-     * @param type
-     *            the type
+     * @param tenantId request tenantId
+     * @param type the type
      * @param guid uid
-
-     * 
      */
     public StorageRemoveRequest(Integer tenantId, String type, String guid) {
         super(tenantId, type, guid);

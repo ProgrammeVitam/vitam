@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,6 +32,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.Path;
 
 @Path("/batchreport/v1")
-@Tag(name="Batch-Report")
+@Tag(name = "Batch-Report")
 public class AdminBatchReportResource extends AdminStatusResource {
 }

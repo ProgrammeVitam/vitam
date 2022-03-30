@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,10 +39,10 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.griffin.GriffinService;
@@ -101,13 +101,15 @@ public class BusinessApplication extends Application {
             CachedOntologyLoader agenciesOntologyLoader = new CachedOntologyLoader(
                 VitamConfiguration.getOntologyCacheMaxEntries(),
                 VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(FunctionalAdminCollections.AGENCIES.getName()))
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(),
+                    Optional.of(FunctionalAdminCollections.AGENCIES.getName()))
             );
 
             CachedOntologyLoader rulesOntologyLoader = new CachedOntologyLoader(
                 VitamConfiguration.getOntologyCacheMaxEntries(),
                 VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(RULES.getName()))
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(),
+                    Optional.of(RULES.getName()))
             );
 
             final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader,
@@ -128,21 +130,25 @@ public class BusinessApplication extends Application {
             singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new OntologyResource(mongoDbAccess, functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService, adminManagementClient));
-            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService, adminManagementClient));
+            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService,
+                adminManagementClient));
+            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
+                adminManagementClient));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource(indexManager));
             singletons.add(new EvidenceResource(mongoDbAccess, vitamCounterService));
             singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader,
                 indexManager));
             singletons.add(new ProbativeValueResource());
-            singletons.add(new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService));
+            singletons.add(
+                new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService));
 
             PreservationScenarioService preservationScenarioService =
                 new PreservationScenarioService(mongoDbAccess, functionalBackupService);
 
             GriffinService griffinService = new GriffinService(mongoDbAccess, functionalBackupService);
-            PreservationResource griffinResource = new PreservationResource(preservationScenarioService, griffinService);
+            PreservationResource griffinResource =
+                new PreservationResource(preservationScenarioService, griffinService);
 
             singletons.add(griffinResource);
         } catch (IOException | VitamException e) {

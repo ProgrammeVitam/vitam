@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,8 +34,6 @@ import javax.ws.rs.core.Response;
  * The different states of the ProcessWorkflow
  *
  * For each state (PAUSE, RUNNING, COMPLETED) we can send an number of events.
- *
- *
  */
 public enum ProcessState {
 
@@ -89,7 +87,7 @@ public enum ProcessState {
 
     /**
      * Evaluate for the current state if the given state is permitted or not
-     * 
+     *
      * @throws StateNotAllowedException
      */
     public void eval(ProcessState targetState) throws StateNotAllowedException {
@@ -99,7 +97,7 @@ public enum ProcessState {
 
     /**
      * get equivalent http status
-     * 
+     *
      * @return the status
      */
     public Response.Status getEquivalentHttpStatus() {

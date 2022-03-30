@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -133,7 +133,8 @@ public class WorkerResource extends ApplicationStatusResource {
         } catch (final ProcessingRetryAsyncException retryExc) {
             LOGGER.warn(retryExc);
             List<WorkerAccessRequest> entity = new ArrayList<>();
-            retryExc.getAccessRequestIdByContext().forEach((key, value) -> value.forEach(accessRequestId -> entity.add(new WorkerAccessRequest(accessRequestId, key.getStrategyId(), key.getOfferId()))));
+            retryExc.getAccessRequestIdByContext().forEach((key, value) -> value.forEach(accessRequestId -> entity.add(
+                new WorkerAccessRequest(accessRequestId, key.getStrategyId(), key.getOfferId()))));
             return Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
                 .entity(entity)
                 .build();

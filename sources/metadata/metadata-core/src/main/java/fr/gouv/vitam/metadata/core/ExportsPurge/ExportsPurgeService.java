@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -54,8 +54,8 @@ public class ExportsPurgeService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportsPurgeService.class);
 
-    public static final String DIP_CONTAINER ="DIP";
-    public static final String TRANSFERS_CONTAINER ="TRANSFER";
+    public static final String DIP_CONTAINER = "DIP";
+    public static final String TRANSFERS_CONTAINER = "TRANSFER";
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
@@ -86,7 +86,7 @@ public class ExportsPurgeService {
     private int getTimeToLiveInMinutes(String container, WorkspaceClient workspaceClient) throws VitamClientException {
         JsonNode percent = workspaceClient.getFreespacePercent();
         int freespace = percent.get(FREESPACE).asInt();
-        if(container.equals(DIP_CONTAINER)) {
+        if (container.equals(DIP_CONTAINER)) {
             if (freespace <= VitamConfiguration.getWorkspaceFreespaceThreshold()) {
                 return timeToLiveConfiguration.getCriticalDipTimeToLiveInMinutes();
             } else {
@@ -104,12 +104,13 @@ public class ExportsPurgeService {
                 storageClientFactory, VitamConfiguration.getDefaultStrategy(), null, DataCategory.DIP, null,
                 Order.ASC, VitamConfiguration.getChunkSize(), null);
 
-            while(offerLogIterator.hasNext()) {
+            while (offerLogIterator.hasNext()) {
                 OfferLog offerLog = offerLogIterator.next();
                 switch (offerLog.getAction()) {
                     case WRITE:
                         LOGGER.info("Deleting DIP file " + offerLog.getFileName());
-                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, offerLog.getFileName());
+                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP,
+                            offerLog.getFileName());
                         break;
                     case DELETE:
                         // NOP

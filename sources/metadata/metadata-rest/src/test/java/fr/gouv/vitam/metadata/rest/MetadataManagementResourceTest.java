@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,24 +26,6 @@
  */
 package fr.gouv.vitam.metadata.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -53,10 +35,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -72,6 +54,23 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * MetadataManagementResource test
@@ -107,7 +106,8 @@ public class MetadataManagementResourceTest {
         configuration.setContextPath("/metadata");
         exportsPurgeService = mock(ExportsPurgeService.class);
         reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService,
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService,
+                reclassificationDistributionService,
                 ProcessingManagementClientFactory.getInstance(),
                 LogbookOperationsClientFactory.getInstance(),
                 WorkspaceClientFactory.getInstance(),
@@ -124,6 +124,7 @@ public class MetadataManagementResourceTest {
     public static void afterClass() {
         VitamConfiguration.setAdminTenant(tenant);
     }
+
     @Test
     @RunWithCustomExecutor
     public void should_return_ok_when_store_graph_handled() throws StoreGraphException {
@@ -168,7 +169,8 @@ public class MetadataManagementResourceTest {
     @RunWithCustomExecutor
     public void should_return_ok_when__graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
-        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode())).thenReturn(new GraphComputeResponse(10, 3));
+        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode())).thenReturn(
+            new GraphComputeResponse(10, 3));
         // When
         Response response = reconstructionResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
@@ -206,7 +208,8 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenReturn(new GraphComputeResponse(10, 3));
         // When
-        Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+        Response response =
+            reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -225,7 +228,8 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenThrow(new RuntimeException(errorMessage));
         // When
-        Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+        Response response =
+            reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -316,7 +320,8 @@ public class MetadataManagementResourceTest {
     public void purgeExpiredDipFilesShouldReturnInternalServerWhenServiceError() throws Exception {
 
         // Given
-        doThrow(new ContentAddressableStorageServerException("")).when(exportsPurgeService).purgeExpiredFiles(DIP_CONTAINER);
+        doThrow(new ContentAddressableStorageServerException("")).when(exportsPurgeService)
+            .purgeExpiredFiles(DIP_CONTAINER);
 
         // When
         Response response = reconstructionResource.purgeExpiredDipFiles();

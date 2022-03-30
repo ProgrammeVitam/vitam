@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,11 @@
  */
 package fr.gouv.vitam.batch.report.model;
 
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import org.apache.commons.lang3.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import java.util.Objects;
 
 /**
  * AuditObjectGroupModel
@@ -61,7 +59,7 @@ public class AuditObjectGroupModel {
     }
 
     public AuditObjectGroupModel(String processId, String creationDateTime,
-            AuditObjectGroupReportEntry metadata, int tenant) {
+        AuditObjectGroupReportEntry metadata, int tenant) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;

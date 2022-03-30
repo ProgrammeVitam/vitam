@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -109,7 +109,7 @@ import static javax.ws.rs.core.Response.status;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminMigrationResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminMigrationResource.class);
@@ -178,7 +178,7 @@ public class AdminMigrationResource {
         xrequestIds.clear();
 
         getTenants().forEach(integer -> xrequestIds.put(integer, GUIDFactory.newGUID().getId()));
-        
+
         for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
             VitamThreadUtils.getVitamSession().setRequestId(entry.getValue());
             VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
@@ -215,7 +215,8 @@ public class AdminMigrationResource {
                 boolean isProcessFinished = operationProcessStatus.getGlobalState().equals(ProcessState.COMPLETED);
 
                 // When FATAL occurs, the process state will be set to PAUSE and status to FATAL => To be treated manually
-                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) && StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
+                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) &&
+                    StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
 
                 if (!isProcessFinished && !isProcessPauseFatal) {
                     // At least one workflow is in progress
@@ -237,6 +238,7 @@ public class AdminMigrationResource {
      * Migrate Collections :
      * To add a new Migration scenary, please add a AUTHORIZED_FIELDS_TO_UPDATE list in the concerned collection to control fields to update.
      * Collection should be controled by its enum family ( FunctionalAdminCollections, OfferCollections, LogbookCollections, ... )
+     *
      * @param dataMigrationBody
      * @return
      */
@@ -256,7 +258,8 @@ public class AdminMigrationResource {
 
         // Check Collection & fields and start data migration
         if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().equals(dataMigrationBody.getCollection()) &&
-            authorizedFieldsForCollection(AccessionRegisterDetail.AUTHORIZED_FIELDS_TO_UPDATE, dataMigrationBody.getFields())) {
+            authorizedFieldsForCollection(AccessionRegisterDetail.AUTHORIZED_FIELDS_TO_UPDATE,
+                dataMigrationBody.getFields())) {
             return migrateAccessionRegisterDetails(dataMigrationBody);
         }
 
@@ -281,7 +284,7 @@ public class AdminMigrationResource {
             }
             ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
 
-            if ( accessionRegister.getTenant() != null) {
+            if (accessionRegister.getTenant() != null) {
                 VitamThreadUtils.getVitamSession().setTenantId(accessionRegister.getTenant());
             } else {
                 throw new ValidationException(
@@ -310,15 +313,15 @@ public class AdminMigrationResource {
     }
 
     private void validateDataMigrationBody(DataMigrationBody dataMigrationBody) throws ValidationException {
-        if (StringUtils.isBlank(dataMigrationBody.getCollection())){
+        if (StringUtils.isBlank(dataMigrationBody.getCollection())) {
             throw new ValidationException("Collection name is empty !");
         }
 
-        if (dataMigrationBody.getFields() == null || dataMigrationBody.getFields().isEmpty()){
+        if (dataMigrationBody.getFields() == null || dataMigrationBody.getFields().isEmpty()) {
             throw new ValidationException("Fields are empty !");
         }
 
-        if (JsonHandler.isNullOrEmpty(dataMigrationBody.getModel())){
+        if (JsonHandler.isNullOrEmpty(dataMigrationBody.getModel())) {
             throw new ValidationException("Model is empty !");
         }
     }
@@ -342,7 +345,8 @@ public class AdminMigrationResource {
             processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
+                processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(),
+                    ProcessAction.RESUME.getValue());
             jsonNodeRequestResponse.toResponse();
 
         } catch (LogbookClientBadRequestException | BadRequestException e) {

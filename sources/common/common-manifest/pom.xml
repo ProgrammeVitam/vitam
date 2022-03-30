@@ -19,20 +19,19 @@
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-public</artifactId>
-            <version>5.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-private</artifactId>
-            <version>5.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>logbook-common-server</artifactId>
-            <version>5.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

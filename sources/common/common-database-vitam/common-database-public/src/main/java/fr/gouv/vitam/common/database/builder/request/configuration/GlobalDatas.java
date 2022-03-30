@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,9 @@
  */
 package fr.gouv.vitam.common.database.builder.request.configuration;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -41,10 +36,12 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
 /**
  * Main configuration for Query support
- *
- *
  */
 public class GlobalDatas {
 
@@ -167,7 +164,6 @@ public class GlobalDatas {
     }
 
     /**
-     *
      * @param value of node
      * @return the JsonNode for Value
      * @throws InvalidCreateOperationException when object is not json
@@ -247,6 +243,7 @@ public class GlobalDatas {
 
     /**
      * Helper to set Value from a List into an ArrayNode
+     *
      * @param array
      * @param list
      */

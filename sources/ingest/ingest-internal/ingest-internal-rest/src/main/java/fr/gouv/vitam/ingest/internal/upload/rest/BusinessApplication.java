@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,18 @@
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Business Application for Ingest Internal
@@ -50,8 +49,8 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * BusinessApplication Constructor 
-     * 
+     * BusinessApplication Constructor
+     *
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {

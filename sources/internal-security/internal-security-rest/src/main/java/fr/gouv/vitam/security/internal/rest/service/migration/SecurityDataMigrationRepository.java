@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,6 +82,6 @@ public class SecurityDataMigrationRepository {
                 set(CertificateBaseModel.STATUS_TAG, certificateStatus.name()));
 
         LOGGER.info("Certificate's record successfully migrated for {} collection",
-             certificateMongoCollection.getNamespace().getFullName());
+            certificateMongoCollection.getNamespace().getFullName());
     }
 }

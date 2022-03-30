@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,7 @@ public class VitamLogbookMessagesTest {
                     if (line.contains("'")) {
                         //this regex just check if one quote found, the next should be a quote
                         boolean submatch = line.matches("^([A-Z_.]*=([^']|(''))*)$");
-                        if (! submatch) {
+                        if (!submatch) {
                             System.err.println("WRONG PROPERTY: " + line);
                         }
                         match &= submatch;

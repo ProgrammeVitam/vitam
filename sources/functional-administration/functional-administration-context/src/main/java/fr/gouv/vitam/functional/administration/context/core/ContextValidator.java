@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -65,7 +65,7 @@ public interface ContextValidator {
 
         /**
          * Default constructor
-         * 
+         *
          * @param error error as a string
          */
         public ContextRejectionCause(String error) {
@@ -84,7 +84,7 @@ public interface ContextValidator {
 
         /**
          * Reject if one of multiple mandatory parameter are null
-         * 
+         *
          * @param fieldName
          * @return ContextRejectionCause
          */
@@ -95,7 +95,7 @@ public interface ContextValidator {
         /**
          * Verify for each context if already exists one in database that have the same name. The database my manage
          * this kind of constraint (by creating an unique index on the field or column)
-         * 
+         *
          * @param contextName the context name
          * @return ContextRejectionCause
          */
@@ -121,8 +121,8 @@ public interface ContextValidator {
         public static ContextRejectionCause rejectNullTenant() {
             return new ContextRejectionCause(ERR_NULL_TENANT);
         }
+
         /**
-         * 
          * @param contextName the context name
          * @return ContextRejectionCause
          */
@@ -131,7 +131,6 @@ public interface ContextValidator {
         }
 
         /**
-         * 
          * @param contextName the context name
          * @return ContextRejectionCause
          */
@@ -140,7 +139,6 @@ public interface ContextValidator {
         }
 
         /**
-         * 
          * @param securityProfileIdentifier
          * @return ContextRejectionCause
          */
@@ -150,7 +148,7 @@ public interface ContextValidator {
 
         /**
          * get reason
-         * 
+         *
          * @return reason
          */
         public String getReason() {
@@ -159,7 +157,7 @@ public interface ContextValidator {
 
         /**
          * Set the reason
-         * 
+         *
          * @param reason the reason
          */
         private void setReason(String reason) {

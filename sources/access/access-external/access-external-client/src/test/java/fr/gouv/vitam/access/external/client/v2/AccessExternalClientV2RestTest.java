@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -141,7 +141,8 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
     public void givenExportDIPNoQueryThen415() {
         when(mock.post()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), (DipRequest) null))
+            .isThrownBy(
+                () -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), (DipRequest) null))
             .withMessage("DipRequest cannot be null.");
     }
 

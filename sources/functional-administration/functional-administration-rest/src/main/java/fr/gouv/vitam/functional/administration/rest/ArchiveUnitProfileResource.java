@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,22 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.ArchiveUnitProfileService;
+import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl.ArchiveUnitProfileServiceImpl;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -39,33 +54,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.ArchiveUnitProfileService;
-import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl.ArchiveUnitProfileServiceImpl;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class ArchiveUnitProfileResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
@@ -105,7 +100,7 @@ public class ArchiveUnitProfileResource {
      * </ul>
      *
      * @param archiveUnitProfileModelList as InputStream
-     * @param uri                         the uri info
+     * @param uri the uri info
      * @return Response
      */
     @Path(ARCHIVE_UNIT_PROFILE_URI)
@@ -121,7 +116,7 @@ public class ArchiveUnitProfileResource {
                 archiveUnitProfileService.createArchiveUnitProfiles(archiveUnitProfileModelList);
 
             if (!requestResponse.isOk()) {
-                 requestResponse.setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                requestResponse.setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             }
 
@@ -142,7 +137,7 @@ public class ArchiveUnitProfileResource {
      * Update metadata of the archive unit profile
      *
      * @param profileMetadataId profile ID to update
-     * @param queryDsl          update query
+     * @param queryDsl update query
      * @return Response
      */
     @Path(ARCHIVE_UNIT_PROFILE_URI + "/{id}")
@@ -211,9 +206,9 @@ public class ArchiveUnitProfileResource {
     /**
      * Construct the error following input
      *
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {

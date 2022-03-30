@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -56,7 +56,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 import static java.util.function.Predicate.not;
 
 public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationObjectGroupMetadataSecurityChecks.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(PreservationObjectGroupMetadataSecurityChecks.class);
     private static final String ITEM_ID = "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS";
 
     private final InternalActionKeysRetriever internalActionKeysRetriever;
@@ -71,7 +72,8 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         LOGGER.debug("Starting {}.", ITEM_ID);
 
         handler.setCurrentObjectId(WorkflowBatchResults.NAME);
@@ -82,10 +84,10 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
             List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
-                    .stream()
-                    .filter(OutputExtra::isOkAndExtractedGot)
-                    .map(this::checkMetadataAndAddExtractedMetadata)
-                    .collect(Collectors.toList());
+                .stream()
+                .filter(OutputExtra::isOkAndExtractedGot)
+                .map(this::checkMetadataAndAddExtractedMetadata)
+                .collect(Collectors.toList());
 
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
@@ -96,7 +98,8 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
 
             itemStatuses.add(getItemStatus(outputExtras));
 
-            workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, getOutputExtrasWithoutErrors(workflowBatchResult, outputExtras)));
+            workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult,
+                getOutputExtrasWithoutErrors(workflowBatchResult, outputExtras)));
         }
 
         handler.addOutputResult(0, new WorkflowBatchResults(results.getBatchDirectory(), workflowBatchResults));
@@ -104,24 +107,25 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
         return itemStatuses;
     }
 
-    private List<OutputExtra> getOutputExtrasWithoutErrors(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
+    private List<OutputExtra> getOutputExtrasWithoutErrors(WorkflowBatchResult workflowBatchResult,
+        List<OutputExtra> outputExtras) {
         Stream<OutputExtra> nonExtractedOrOkOutputExtra = workflowBatchResult.getOutputExtras()
-                .stream()
-                .filter(not(OutputExtra::isOkAndExtractedGot));
+            .stream()
+            .filter(not(OutputExtra::isOkAndExtractedGot));
 
         Stream<OutputExtra> extractedOutputExtraSanitize = outputExtras.stream()
-                .filter(not(OutputExtra::isInError));
+            .filter(not(OutputExtra::isInError));
 
         return Stream.concat(nonExtractedOrOkOutputExtra, extractedOutputExtraSanitize)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subBinaryItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
         String error = outputExtras.stream()
-                .filter(o -> o.getError().isPresent())
-                .map(o -> o.getError().get())
-                .collect(Collectors.joining(","));
+            .filter(o -> o.getError().isPresent())
+            .map(o -> o.getError().get())
+            .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error));
         }
@@ -135,9 +139,11 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
         try {
             ExtractedMetadata extractedMetadata = output.getOutput().getExtractedMetadata();
             SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(extractedMetadata));
-            List<String> internalKeyFields = internalActionKeysRetriever.getInternalKeyFields(JsonHandler.toJsonNode(extractedMetadata));
+            List<String> internalKeyFields =
+                internalActionKeysRetriever.getInternalKeyFields(JsonHandler.toJsonNode(extractedMetadata));
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format("Extracted metadata contains these forbidden internal keys: '%s'.", internalKeyFields);
+                String message = String.format("Extracted metadata contains these forbidden internal keys: '%s'.",
+                    internalKeyFields);
                 LOGGER.warn(message);
                 return OutputExtra.inError(message);
 

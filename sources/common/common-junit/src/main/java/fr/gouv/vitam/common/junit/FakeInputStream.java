@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,16 +43,16 @@ public class FakeInputStream extends InputStream {
 
     /**
      * Constructor of Fake InputStream
-     *<br/>
-     *<br/>
-     *<b>Preferred constructor</b>
+     * <br/>
+     * <br/>
+     * <b>Preferred constructor</b>
      *
      * @param limit the total size of the InputStream
      */
     public FakeInputStream(long limit) {
         this(limit, true, false);
     }
-    
+
     /**
      * Constructor of Fake InputStream
      *
@@ -127,7 +127,7 @@ public class FakeInputStream extends InputStream {
         final int max = Math.min(available(), len);
         limit -= max;
         read += max;
-        if (! useRandom) {
+        if (!useRandom) {
             Arrays.fill(b, off, off + max, getValue());
         } else {
             for (int i = 0; i < max; i++) {
@@ -152,7 +152,6 @@ public class FakeInputStream extends InputStream {
     }
 
     /**
-     *
      * @return the number of truely read bytes
      */
     public long readCount() {

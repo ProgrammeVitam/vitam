@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -86,7 +86,8 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL,
+                VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(true);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -107,7 +108,8 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL,
+                VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(false);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);

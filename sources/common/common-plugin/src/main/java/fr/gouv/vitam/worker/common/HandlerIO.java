@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -138,19 +138,16 @@ public interface HandlerIO extends VitamAutoCloseable {
     HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException;
 
     /**
-     *
      * @return the container Name
      */
     String getContainerName();
 
     /**
-     *
      * @return the worker Id
      */
     String getWorkerId();
 
     /**
-     *
      * @param name
      * @return a File pointing to a local path in Tmp directory under protected Worker instance space
      */
@@ -224,6 +221,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * get Map of File With Params From folder in Workspace
+     *
      * @param containerName
      * @param folderName
      * @return
@@ -264,20 +262,16 @@ public interface HandlerIO extends VitamAutoCloseable {
     JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException;
 
     /**
-     *
      * @return the HandlerIO LifecycleClient
      */
     LogbookLifeCyclesClient getLifecyclesClient();
 
     /**
-     *
      * @return the helper for bulk lifecycle for LifecyclesClient
      */
     LogbookLifeCyclesClientHelper getHelper();
 
     /**
-     *
-     *
      * Helper to convert and write a file to Workspace<br/>
      * <br/>
      *

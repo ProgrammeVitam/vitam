@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,6 @@ public class VitamStreamingOutput implements StreamingOutput, VitamAutoCloseable
     private final boolean toDelete;
 
     /**
-     *
      * @param inputStream the inputstream to forward without Async mode
      */
     public VitamStreamingOutput(InputStream inputStream) {
@@ -56,7 +55,6 @@ public class VitamStreamingOutput implements StreamingOutput, VitamAutoCloseable
     }
 
     /**
-     *
      * @param file the file to output
      * @param toDelete If True, will delete the file once sent
      */

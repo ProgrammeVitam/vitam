@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,27 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.parser.request.single;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -58,29 +79,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.Iterator;
-import java.util.Map.Entry;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class SelectParserSingleTest {
     private static JsonNode EX_BOTH_ES_MD;
@@ -144,39 +142,39 @@ public class SelectParserSingleTest {
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
 
         nestedSearchQuery = JsonHandler.getFromString(
-                "{\n" +
-                        "  \"$query\": \n" +
-                        "    {\n" +
-                        "      \"$and\": [\n" +
-                        "        {\n" +
-                        "          \"$match\": {\n" +
-                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                        "          }\n" +
-                        "        },\n" +
-                        "        {\n" +
-                        "          \"$subobject\": {\n" +
-                        "            \"#qualifiers.versions\": {\n" +
-                        "              \"$and\": [\n" +
-                        "                {\n" +
-                        "                  \"$eq\": {\n" +
-                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                        "                  }\n" +
-                        "                },\n" +
-                        "                {\n" +
-                        "                  \"$lte\": {\n" +
-                        "                    \"version.size\": 20000\n" +
-                        "                  }\n" +
-                        "                }\n" +
-                        "              ]\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  ,\n" +
-                        "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n" +
-                        "}"
+            "{\n" +
+                "  \"$query\": \n" +
+                "    {\n" +
+                "      \"$and\": [\n" +
+                "        {\n" +
+                "          \"$match\": {\n" +
+                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                "          }\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"$subobject\": {\n" +
+                "            \"#qualifiers.versions\": {\n" +
+                "              \"$and\": [\n" +
+                "                {\n" +
+                "                  \"$eq\": {\n" +
+                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                "                  }\n" +
+                "                },\n" +
+                "                {\n" +
+                "                  \"$lte\": {\n" +
+                "                    \"version.size\": 20000\n" +
+                "                  }\n" +
+                "                }\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ,\n" +
+                "  \"$projection\": {},\n" +
+                "  \"$filters\": {}\n" +
+                "}"
         );
 
     }
@@ -217,7 +215,8 @@ public class SelectParserSingleTest {
             request1.parse(EX_MD);
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+        }
         try {
             final SelectParserSingle request1 = new SelectParserSingle();
             request1.parse(EX_BOTH_ES_MD);
@@ -331,9 +330,9 @@ public class SelectParserSingleTest {
             assertEquals(3, request.getRequest().getFilter()
                 .get(SELECTFILTER.ORDERBY.exactToken()).size());
             for (final Iterator<Entry<String, JsonNode>> iterator =
-                request.getRequest().getFilter()
-                    .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
-                        .hasNext();) {
+                 request.getRequest().getFilter()
+                     .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
+                     .hasNext(); ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());
@@ -390,9 +389,9 @@ public class SelectParserSingleTest {
             assertEquals(2, request.getRequest().getProjection()
                 .get(PROJECTION.FIELDS.exactToken()).size());
             for (final Iterator<Entry<String, JsonNode>> iterator =
-                request.getRequest().getProjection()
-                    .get(PROJECTION.FIELDS.exactToken()).fields(); iterator
-                        .hasNext();) {
+                 request.getRequest().getProjection()
+                     .get(PROJECTION.FIELDS.exactToken()).fields(); iterator
+                     .hasNext(); ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());

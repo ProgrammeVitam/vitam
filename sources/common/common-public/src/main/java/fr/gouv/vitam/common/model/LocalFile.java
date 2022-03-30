@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,6 @@ public class LocalFile {
 
     /**
      * @param path the path of the local file to set
-     *
      * @return this
      */
     public LocalFile setPath(String path) {

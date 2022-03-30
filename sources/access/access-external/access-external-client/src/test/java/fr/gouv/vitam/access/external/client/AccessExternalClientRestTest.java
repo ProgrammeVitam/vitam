@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -43,8 +43,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -912,7 +912,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             .thenReturn(Response.status(AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE).build());
 
         // When / Then
-        assertThatThrownBy( () -> client.getObjectStreamByUnitId(
+        assertThatThrownBy(() -> client.getObjectStreamByUnitId(
             new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "MyUnitId1", "MyUsage", 1)
         ).isInstanceOf(VitamClientAccessUnavailableDataFromAsyncOfferException.class);
     }
@@ -1044,44 +1044,44 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         ).isInstanceOf(VitamClientException.class);
     }
 
-        @Test
-        @RunWithCustomExecutor
-        public void removeAccessRequestWhenAsyncOffer() {
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenAsyncOffer() {
 
-            // Given
-            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "async_strategy1");
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "async_strategy1");
 
-            // When / Then
-            assertThatCode(() -> client.removeAccessRequest(
-                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
-            ).doesNotThrowAnyException();
-        }
+        // When / Then
+        assertThatCode(() -> client.removeAccessRequest(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+        ).doesNotThrowAnyException();
+    }
 
-        @Test
-        @RunWithCustomExecutor
-        public void removeAccessRequestWhenSyncOffer() {
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenSyncOffer() {
 
-            // Given
-            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "sync_strategy");
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "sync_strategy");
 
-            // When / Then
-            assertThatThrownBy(() -> client.removeAccessRequest(
-                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
-            ).isInstanceOf(VitamClientIllegalAccessRequestOperationOnSyncOfferException.class);
-        }
+        // When / Then
+        assertThatThrownBy(() -> client.removeAccessRequest(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+        ).isInstanceOf(VitamClientIllegalAccessRequestOperationOnSyncOfferException.class);
+    }
 
-        @Test
-        @RunWithCustomExecutor
-        public void removeAccessRequestWhenInternalServerError() {
+    @Test
+    @RunWithCustomExecutor
+    public void removeAccessRequestWhenInternalServerError() {
 
-            // Given
-            AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "error");
+        // Given
+        AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "error");
 
-            // When / Then
-            assertThatThrownBy(() -> client.removeAccessRequest(
-                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
-            ).isInstanceOf(VitamClientException.class);
-        }
+        // When / Then
+        assertThatThrownBy(() -> client.removeAccessRequest(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), accessRequest)
+        ).isInstanceOf(VitamClientException.class);
+    }
 
 
     @Path("/access-external/v1")

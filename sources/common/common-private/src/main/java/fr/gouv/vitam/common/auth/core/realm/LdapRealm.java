@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,7 @@ import java.util.Set;
 /**
  * Realm query Ldap to get users role
  */
-public class LdapRealm  extends AbstractLdapRealm {
+public class LdapRealm extends AbstractLdapRealm {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LdapRealm.class);
 
@@ -95,7 +95,8 @@ public class LdapRealm  extends AbstractLdapRealm {
     }
 
     @Override
-    protected AuthenticationInfo queryForAuthenticationInfo(AuthenticationToken token, LdapContextFactory ldapContextFactory) throws NamingException {
+    protected AuthenticationInfo queryForAuthenticationInfo(AuthenticationToken token,
+        LdapContextFactory ldapContextFactory) throws NamingException {
 
         UsernamePasswordToken upToken = (UsernamePasswordToken) token;
 
@@ -116,7 +117,8 @@ public class LdapRealm  extends AbstractLdapRealm {
         return new SimpleAuthenticationInfo(userDn, upToken.getPassword(), getName());
     }
 
-    protected AuthorizationInfo queryForAuthorizationInfo(PrincipalCollection principals, LdapContextFactory ldapContextFactory) throws NamingException {
+    protected AuthorizationInfo queryForAuthorizationInfo(PrincipalCollection principals,
+        LdapContextFactory ldapContextFactory) throws NamingException {
 
         String username = (String) getAvailablePrincipal(principals);
 
@@ -137,7 +139,7 @@ public class LdapRealm  extends AbstractLdapRealm {
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
         // Search all group contain userName as member
-        Object[] searchArguments = new Object[]{userName};
+        Object[] searchArguments = new Object[] {userName};
 
         NamingEnumeration answer = ldapContext.search(searchBase, this.groupRequestFilter, searchArguments, searchCtls);
 

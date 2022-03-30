@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
@@ -128,8 +127,8 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                 }
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
 
-                if(!correctiveAudit)
-                addReportEntry(param.getContainerName(), createEvidenceReportEntry(evidenceAuditReportLine));
+                if (!correctiveAudit)
+                    addReportEntry(param.getContainerName(), createEvidenceReportEntry(evidenceAuditReportLine));
 
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, !correctiveAudit, false);
@@ -154,16 +153,20 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             .setItemsStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
-        private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
+    private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
         throws ProcessingStatusException {
-            evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
+        evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
     private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditReportLine evidenceAuditReportLine) {
 
-        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport = createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
+        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport =
+            createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
 
-       String message =  evidenceAuditReportLine.getMessage() != null ? evidenceAuditReportLine.getMessage() : "audit "+ evidenceAuditReportLine.getEvidenceStatus().name() +" for " + evidenceAuditReportLine.getObjectType().getName();
+        String message = evidenceAuditReportLine.getMessage() != null ?
+            evidenceAuditReportLine.getMessage() :
+            "audit " + evidenceAuditReportLine.getEvidenceStatus().name() + " for " +
+                evidenceAuditReportLine.getObjectType().getName();
         return new EvidenceAuditReportEntry(
             evidenceAuditReportLine.getIdentifier(),
             evidenceAuditReportLine.getEvidenceStatus().name(),
@@ -176,10 +179,11 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             evidenceAuditReportLine.getEvidenceStatus().name());
     }
 
-    private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(EvidenceAuditReportLine evidenceAuditReportLine) {
+    private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(
+        EvidenceAuditReportLine evidenceAuditReportLine) {
         ArrayList<EvidenceAuditReportObject> list = new ArrayList<>();
 
-        if(evidenceAuditReportLine.getObjectsReports() != null) {
+        if (evidenceAuditReportLine.getObjectsReports() != null) {
             for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine
                 .getObjectsReports()) {
                 list.add(new EvidenceAuditReportObject(objects.getIdentifier(), objects.getEvidenceStatus().name(),

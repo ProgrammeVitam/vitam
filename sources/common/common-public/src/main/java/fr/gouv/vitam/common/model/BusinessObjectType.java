@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.model;
  * Enum BusinessObjectType
  *
  * different constants business object types
- *
  */
 public enum BusinessObjectType {
 
@@ -51,7 +50,7 @@ public enum BusinessObjectType {
 
     /**
      * Constructor.
-     * 
+     *
      * @param businessObjectName
      */
     BusinessObjectType(String businessObjectName) {
@@ -60,7 +59,7 @@ public enum BusinessObjectType {
 
     /**
      * Gets the businessObjectName
-     * 
+     *
      * @return the businessObjectName
      */
     public String businessObjectName() {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,7 +33,7 @@ import javax.ws.rs.core.Response.Status;
  *
  * different constants status code for workflow , action handler and process
  */
-    public enum StatusCode {
+public enum StatusCode {
 
     /**
      * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!

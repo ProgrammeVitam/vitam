@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -76,8 +76,10 @@ public class ElasticsearchAccessMetadataTest {
     private static final Integer TENANT_ID_0 = 0;
 
     private static final String S1 = "{ \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
-    private static final String unit_with_max_5 = "{ \"_tenant\": 0, \"_id\": \"id2\", \"Title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
-    private static final String unit_with_max_4 = "{ \"_tenant\": 0, \"_id\": \"id1\", \"Title\":\"title1\", \"_max\": \"4\", \"_min\": \"2\"}";
+    private static final String unit_with_max_5 =
+        "{ \"_tenant\": 0, \"_id\": \"id2\", \"Title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
+    private static final String unit_with_max_4 =
+        "{ \"_tenant\": 0, \"_id\": \"id1\", \"Title\":\"title1\", \"_max\": \"4\", \"_min\": \"2\"}";
     private static final String S1_OG =
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
 

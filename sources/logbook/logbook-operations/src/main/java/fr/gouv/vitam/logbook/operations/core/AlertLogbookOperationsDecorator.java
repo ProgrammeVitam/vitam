@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,8 @@ import java.util.Optional;
  */
 public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator {
 
-    private static final String SECURITY_ALERT = "Evénement de securité déclenché pour l''eventType {0} et l''outcome {1} : {2} {3}";
+    private static final String SECURITY_ALERT =
+        "Evénement de securité déclenché pour l''eventType {0} et l''outcome {1} : {2} {3}";
 
     /**
      * the configured alertEvents
@@ -74,7 +75,8 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
 
 
     @VisibleForTesting
-    AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents, AlertService alertService) {
+    AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents,
+        AlertService alertService) {
         super(logbookOperations);
         this.alertEvents = alertEvents;
         this.alertService = alertService;
@@ -82,14 +84,14 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
 
     @Override
     public void create(LogbookOperationParameters parameters)
-            throws LogbookAlreadyExistsException, LogbookDatabaseException {
+        throws LogbookAlreadyExistsException, LogbookDatabaseException {
         logbookOperations.create(parameters);
         createAlertIfNecessary(parameters);
     }
 
     @Override
     public void update(LogbookOperationParameters parameters)
-            throws LogbookNotFoundException, LogbookDatabaseException {
+        throws LogbookNotFoundException, LogbookDatabaseException {
         logbookOperations.update(parameters);
         createAlertIfNecessary(parameters);
     }
@@ -120,14 +122,14 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
 
     @Override
     public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-            throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
         logbookOperations.createBulkLogbookOperation(operationArray);
         createAlertIfNecessary(operationArray);
     }
 
     @Override
     public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-            throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException {
         logbookOperations.updateBulkLogbookOperation(operationArray);
         createAlertIfNecessary(operationArray);
     }
@@ -144,8 +146,10 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
             traceabilityStartDate, traceabilityEndDate);
     }
+
     @Override
-    public Optional<LogbookOperation> findLastOperationByType(String operationType) throws InvalidCreateOperationException,
+    public Optional<LogbookOperation> findLastOperationByType(String operationType)
+        throws InvalidCreateOperationException,
         LogbookDatabaseException, InvalidParseOperationException {
         return logbookOperations.findLastOperationByType(operationType);
     }
@@ -158,7 +162,11 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
      */
     private void createAlertIfNecessary(LogbookOperationParameters parameters) {
         if (isAlertEvent(parameters)) {
-            String message = MessageFormat.format(SECURITY_ALERT, parameters.getParameterValue(LogbookParameterName.eventType), parameters.getParameterValue(LogbookParameterName.outcome), parameters.getParameterValue(LogbookParameterName.outcomeDetail), parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+            String message =
+                MessageFormat.format(SECURITY_ALERT, parameters.getParameterValue(LogbookParameterName.eventType),
+                    parameters.getParameterValue(LogbookParameterName.outcome),
+                    parameters.getParameterValue(LogbookParameterName.outcomeDetail),
+                    parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
             alertService.createAlert(VitamLogLevel.INFO, message);
         }
     }

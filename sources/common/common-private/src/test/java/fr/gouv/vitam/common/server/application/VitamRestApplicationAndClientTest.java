@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -61,11 +61,11 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
@@ -223,35 +223,35 @@ public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
     @Test
     public void variousCommandRestTestClient() throws Exception {
         assertThatCode(() -> {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-            .addHeader("X-Request-Id", "abcd")
-            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-            .status(Status.OK).when().get("resource");
-        when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-            .addHeader("X-Request-Id", "abcd")
-            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-            .status(Status.OK).when().post("resource");
-        when(mock.put()).thenReturn(Response.status(Status.OK).build());
-        testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-            .addHeader("X-Request-Id", "abcd")
-            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-            .status(Status.OK).when().put("resource");
-        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
-        testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-            .addHeader("X-Request-Id", "abcd")
-            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-            .statusCode(Status.OK.getStatusCode()).when().delete("resource");
-        when(mock.options()).thenReturn(Response.status(Status.OK).build());
-        testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-            .addHeader("X-Request-Id", "abcd")
-            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-            .status(Status.OK).when().options("resource");
+            when(mock.get()).thenReturn(Response.status(Status.OK).build());
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().get("resource");
+            when(mock.post()).thenReturn(Response.status(Status.OK).build());
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().post("resource");
+            when(mock.put()).thenReturn(Response.status(Status.OK).build());
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().put("resource");
+            when(mock.delete()).thenReturn(Response.status(Status.OK).build());
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .statusCode(Status.OK.getStatusCode()).when().delete("resource");
+            when(mock.options()).thenReturn(Response.status(Status.OK).build());
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .status(Status.OK).when().options("resource");
         }).doesNotThrowAnyException();
     }
 

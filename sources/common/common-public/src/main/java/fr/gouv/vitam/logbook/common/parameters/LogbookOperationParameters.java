@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -94,7 +94,7 @@ public class LogbookOperationParameters extends AbstractParameters {
 
     /**
      * Set event list
-     * 
+     *
      * @param events the list of events
      */
     @JsonProperty("events")
@@ -105,7 +105,7 @@ public class LogbookOperationParameters extends AbstractParameters {
 
     /**
      * Get event list
-     * 
+     *
      * @return the event list
      */
     @JsonProperty("events")

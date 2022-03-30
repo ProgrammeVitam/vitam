@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -45,7 +45,8 @@ public class OperationTraceabilityFiles {
     private final File computingInformation;
     private final File additionalInformation;
 
-    public OperationTraceabilityFiles(File data, File merkleTree, File token, File computingInformation, File additionalInformation) {
+    public OperationTraceabilityFiles(File data, File merkleTree, File token, File computingInformation,
+        File additionalInformation) {
         this.data = data;
         this.merkleTree = merkleTree;
         this.token = token;
@@ -102,7 +103,7 @@ public class OperationTraceabilityFiles {
                 case TRACEABILITY_COMPUTING_INFORMATION:
                     this.computingInformation = file;
                     return this;
-                 case TRACEABILITY_ADDITIONAL_INFORMATION:
+                case TRACEABILITY_ADDITIONAL_INFORMATION:
                     this.additionalInformation = file;
                     return this;
                 default:

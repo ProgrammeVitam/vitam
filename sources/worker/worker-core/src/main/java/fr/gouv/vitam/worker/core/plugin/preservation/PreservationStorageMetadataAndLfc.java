@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -55,13 +55,14 @@ public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupA
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
 
     public PreservationStorageMetadataAndLfc() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
     PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory) {
-        super(metaDataClientFactory,logbookLifeCyclesClientFactory,storageClientFactory);
+        super(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
     }
 
     @Override

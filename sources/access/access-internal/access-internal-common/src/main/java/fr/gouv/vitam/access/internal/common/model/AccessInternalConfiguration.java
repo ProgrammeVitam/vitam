@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -83,7 +83,6 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
 
     /**
      * @param urlWorkspace the urlWorkspace to set
-     *
      * @return this
      */
     public AccessInternalConfiguration setUrlWorkspace(String urlWorkspace) {
@@ -100,7 +99,6 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
 
     /**
      * @param urlProcessing the urlProcessing to set
-     *
      * @return this
      */
     public AccessInternalConfiguration setUrlProcessing(String urlProcessing) {

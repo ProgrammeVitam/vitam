@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -672,12 +672,12 @@ public class DslQueryHelper {
             }
             if (searchKeys.equalsIgnoreCase(UiConstants.ID.getReceivedCriteria())) {
                 BooleanQuery idQuery = or().add(eq(UiConstants.ID.getResultCriteria(), (String) searchValue));
-                idQuery.add(eq("FilePlanPosition",(String) searchValue));
-                idQuery.add(eq("OriginatingSystemId",(String) searchValue));
-                idQuery.add(eq("OriginatingAgencySystemId",(String) searchValue));
-                idQuery.add(eq("TransferringAgencySystemId",(String) searchValue));
-                idQuery.add(eq("ArchivalAgencySystemId",(String) searchValue));
-                
+                idQuery.add(eq("FilePlanPosition", (String) searchValue));
+                idQuery.add(eq("OriginatingSystemId", (String) searchValue));
+                idQuery.add(eq("OriginatingAgencySystemId", (String) searchValue));
+                idQuery.add(eq("TransferringAgencySystemId", (String) searchValue));
+                idQuery.add(eq("ArchivalAgencySystemId", (String) searchValue));
+
                 andQuery.add(idQuery);
                 continue;
             }
@@ -830,7 +830,8 @@ public class DslQueryHelper {
         }
 
         if (searchCriteriaMap.get("fieldArchiveUnit") != null) {
-            andQuery.add(eq(((String) searchCriteriaMap.get("fieldArchiveUnit")), ((String) searchCriteriaMap.get("valueArchiveUnit"))));
+            andQuery.add(eq(((String) searchCriteriaMap.get("fieldArchiveUnit")),
+                ((String) searchCriteriaMap.get("valueArchiveUnit"))));
         }
 
         // US 509:start AND end date must be filled.

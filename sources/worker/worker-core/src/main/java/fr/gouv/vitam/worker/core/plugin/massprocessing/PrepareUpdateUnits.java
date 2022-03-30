@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -90,21 +90,25 @@ public class PrepareUpdateUnits extends ActionHandler {
 
     /**
      * Constructor.
+     *
      * @param metaDataClientFactory
      */
-    @VisibleForTesting PrepareUpdateUnits(MetaDataClientFactory metaDataClientFactory, int batchSize) {
+    @VisibleForTesting
+    PrepareUpdateUnits(MetaDataClientFactory metaDataClientFactory, int batchSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchSize = batchSize;
     }
 
     /**
      * Execute an action
+     *
      * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
      */
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException {
 
         final ItemStatus itemStatus = new ItemStatus(PREPARE_UPDATE_UNIT_LIST);
@@ -140,6 +144,7 @@ public class PrepareUpdateUnits extends ActionHandler {
 
     /**
      * create distribution file
+     *
      * @param scrollRequest
      * @param distribFile
      * @throws ProcessingException
@@ -169,6 +174,7 @@ public class PrepareUpdateUnits extends ActionHandler {
 
     /**
      * getUpdateQueryFromJson
+     *
      * @param queryNode
      * @return
      * @throws InvalidParseOperationException

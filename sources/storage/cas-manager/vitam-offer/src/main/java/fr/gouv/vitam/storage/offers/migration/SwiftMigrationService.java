@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -353,7 +353,8 @@ public class SwiftMigrationService {
     private String computeDigest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
         String containerName, String segmentName) throws ContentAddressableStorageException, IOException {
 
-        ObjectContent segmentContent = vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
+        ObjectContent segmentContent =
+            vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
         try (InputStream inputStream = segmentContent.getInputStream();
             InputStream exactSizeInputStream = new ExactSizeInputStream(
                 inputStream, segmentContent.getSize())) {

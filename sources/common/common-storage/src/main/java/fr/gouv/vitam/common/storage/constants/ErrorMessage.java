@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -80,7 +80,8 @@ public enum ErrorMessage {
     /**
      * Container name, Object name and size are a mandatory parameter
      */
-    CONTAINER_OBJECT_NAMES_SIZE_ARE_A_MANDATORY_PARAMETER("Container name, Object name and Size are a mandatory parameter"),
+    CONTAINER_OBJECT_NAMES_SIZE_ARE_A_MANDATORY_PARAMETER(
+        "Container name, Object name and Size are a mandatory parameter"),
     /**
      * Internal Server Error
      */
@@ -120,9 +121,9 @@ public enum ErrorMessage {
     public String getMessage() {
         return message;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return message;
     }
 }

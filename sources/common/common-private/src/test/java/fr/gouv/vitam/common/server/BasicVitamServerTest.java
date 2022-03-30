@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.common.server;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class BasicVitamServerTest {
 
@@ -73,19 +72,23 @@ public class BasicVitamServerTest {
         try {
             server.configure(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {}
+        } catch (final VitamApplicationServerException e) {
+        }
         try {
             server.setHandler(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             server.startAndJoin();
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {}
+        } catch (final VitamApplicationServerException e) {
+        }
         try {
             server.stop();
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {}
+        } catch (final VitamApplicationServerException e) {
+        }
         assertNotNull(server.getServer());
         final MyRunner myRunner = new MyRunner(server);
         assertFalse(server.isConfigured());

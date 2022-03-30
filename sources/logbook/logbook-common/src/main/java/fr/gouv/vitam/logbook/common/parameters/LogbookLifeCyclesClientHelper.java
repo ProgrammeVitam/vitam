@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -133,7 +133,6 @@ public class LogbookLifeCyclesClientHelper {
     }
 
     /**
-     *
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for creation
      */
@@ -142,7 +141,6 @@ public class LogbookLifeCyclesClientHelper {
     }
 
     /**
-     *
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */
@@ -151,7 +149,6 @@ public class LogbookLifeCyclesClientHelper {
     }
 
     /**
-     *
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */
@@ -164,7 +161,6 @@ public class LogbookLifeCyclesClientHelper {
     }
 
     /**
-     *
      * @return the Set of LifeCycles entries in creation mode
      */
     public Set<Entry<String, Queue<LogbookLifeCycleParameters>>> getAllCreations() {
@@ -172,7 +168,6 @@ public class LogbookLifeCyclesClientHelper {
     }
 
     /**
-     *
      * @return the Set of LifeCycles entries in update mode
      */
     public Set<Entry<String, Queue<LogbookLifeCycleParameters>>> getAllUpdates() {
@@ -189,7 +184,8 @@ public class LogbookLifeCyclesClientHelper {
 
     public void updateDelegateWithKey(String key, LogbookLifeCycleParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(),
+            parameters.getMandatoriesParameters());
 
         Queue<LogbookLifeCycleParameters> queue = delegatedCreations.get(key);
         if (queue == null) {

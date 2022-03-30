@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,12 +46,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
 
 /**
  * Server Identity containing ServerName, ServerRole, Global PlatformId<br>
@@ -243,7 +242,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     /**
-     *
      * @return the Json representation of the ServerIdentity
      */
     @JsonIgnore
@@ -252,7 +250,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     /**
-     *
      * @return the current instance of ServerIdentity
      */
     public static final ServerIdentity getInstance() {
@@ -422,7 +419,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
     /**
      * @param name the name of the Server to set
-     *
      * @return this
      * @throws IllegalArgumentException name null
      */
@@ -440,7 +436,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
     /**
      * @param role the role of the Server to set
-     *
      * @return this
      * @throws IllegalArgumentException role
      */
@@ -465,7 +460,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
      * The PlatformId is a unique name per site (each of the 3 sites of Vitam should have a different id).
      *
      * @param serverId the platformId of the Vitam Platform to set
-     *
      * @return this
      * @throws IllegalArgumentException platformId &lt; 0
      */
@@ -493,9 +487,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
     /**
      * Set the SideID
-     * 
-     * @param siteId the siteId to set
      *
+     * @param siteId the siteId to set
      * @return this
      */
     public final ServerIdentity setSiteId(int siteId) {
@@ -508,7 +501,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
 
     /**
-     *
      * @return the mac address if possible, else random values
      */
     private static final byte[] macAddress() {
@@ -534,7 +526,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     /**
-     * 
      * @param mac
      * @return the last 31 bits of the macAddress
      */
@@ -567,6 +558,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     // Inspired from Netty MacAddressUtil
+
     /**
      * Obtains the best MAC address found on local network interfaces. Generally speaking, an active network interface
      * used on public networks is better than a local network interface.
@@ -590,7 +582,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             new LinkedHashMap<>();
         try {
             for (final Enumeration<NetworkInterface> i =
-                NetworkInterface.getNetworkInterfaces(); i.hasMoreElements();) {
+                 NetworkInterface.getNetworkInterfaces(); i.hasMoreElements(); ) {
                 final NetworkInterface iface = i.nextElement();
                 // Use the interface with proper INET addresses only.
                 final Enumeration<InetAddress> addrs = iface.getInetAddresses();
@@ -701,7 +693,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     /**
-     *
      * @param addr
      * @return the score of this address
      */

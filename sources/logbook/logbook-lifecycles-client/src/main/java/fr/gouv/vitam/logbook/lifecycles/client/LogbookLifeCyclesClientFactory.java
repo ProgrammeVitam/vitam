@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -35,6 +33,8 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+
+import java.io.IOException;
 
 /**
  * Logbook lifecycles client factory <br />
@@ -157,7 +157,6 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     public static final void changeMode(ClientConfiguration configuration) {

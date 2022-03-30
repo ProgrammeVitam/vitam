@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -223,7 +223,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, FileFormatModel.class);
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                FileFormatModel.class);
         } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -419,7 +420,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(
+        AccessionRegisterDetailModel register)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
 
@@ -796,7 +798,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, ProfileModel.class);
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                ProfileModel.class);
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
         } catch (VitamClientInternalException | AccessUnauthorizedException |
@@ -806,7 +809,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfiles(List<ArchiveUnitProfileModel> profileModelList)
+    public RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfiles(
+        List<ArchiveUnitProfileModel> profileModelList)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input archive unit profile json is mandatory", profileModelList);
 
@@ -860,7 +864,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-            RequestResponseOK<ArchiveUnitProfileModel> resp = (RequestResponseOK<ArchiveUnitProfileModel>) RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
+            RequestResponseOK<ArchiveUnitProfileModel> resp =
+                (RequestResponseOK<ArchiveUnitProfileModel>) RequestResponse.parseFromResponse(response,
+                    ArchiveUnitProfileModel.class);
             if (resp.getResults() == null || resp.getResults().isEmpty()) {
                 throw new ReferentialNotFoundException("ArchiveUnitProfile not found with id: " + documentId);
             }
@@ -923,7 +929,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, ContextModel.class);
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                ContextModel.class);
         } catch (VitamClientInternalException | InvalidParseOperationException |
             BadRequestException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1283,7 +1290,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             checkWithSpecificException(response);
 
-            return JsonHandler.<RequestResponseOK<OntologyModel>>getFromString(response.readEntity(String.class), RequestResponseOK.class,
+            return JsonHandler.<RequestResponseOK<OntologyModel>>getFromString(response.readEntity(String.class),
+                RequestResponseOK.class,
                 OntologyModel.class);
         } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
@@ -1395,7 +1403,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<PreservationScenarioModel> importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
+    public RequestResponse<PreservationScenarioModel> importPreservationScenarios(
+        List<PreservationScenarioModel> preservationScenarioModels)
         throws AdminManagementClientServerException {
 
         ParametersChecker.checkParameter("PreservationScenario file  is mandatory", preservationScenarioModels);
@@ -1431,7 +1440,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             String entity = response.readEntity(String.class);
 
-            return JsonHandler.<RequestResponseOK<GriffinModel>>getFromString(entity, RequestResponseOK.class, GriffinModel.class);
+            return JsonHandler.<RequestResponseOK<GriffinModel>>getFromString(entity, RequestResponseOK.class,
+                GriffinModel.class);
         } catch (VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
@@ -1523,7 +1533,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     }
 
-    private void checkCreation(Response response) throws VitamClientInternalException, AdminManagementClientBadRequestException {
+    private void checkCreation(Response response)
+        throws VitamClientInternalException, AdminManagementClientBadRequestException {
         final Status status = fromStatusCode(response.getStatus());
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
             return;

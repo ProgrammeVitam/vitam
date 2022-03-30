@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,17 +28,15 @@ package fr.gouv.vitam.processing.common.exception;
 
 /**
  * ProcessWorkflowNotFoundException manage workflow not found Exception
- * 
  */
 public class ProcessWorkflowNotFoundException extends ProcessingException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 5096075506619993293L;
 
     /**
-     *
      * @param message to be set
      * @param cause to be set
      */
@@ -47,7 +45,6 @@ public class ProcessWorkflowNotFoundException extends ProcessingException {
     }
 
     /**
-     *
      * @param message to be set
      */
     public ProcessWorkflowNotFoundException(String message) {

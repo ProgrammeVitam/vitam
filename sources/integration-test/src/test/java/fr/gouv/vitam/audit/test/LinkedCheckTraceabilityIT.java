@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -98,7 +98,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -355,7 +354,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("extendedInfo").get("nbStorage").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
         assertThat(report.subList(3, 5)).extracting(
-            t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText())
+                t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText())
             .contains(STORAGE.name(), OPERATION.name());
         assertThat(report.subList(3, 5))
             .extracting(t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText())
