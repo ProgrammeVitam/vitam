@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -251,7 +251,7 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             final LogbookOperation result = logbookOperation.getById(id, queryDsl, sliced, crossTenant);
-            
+
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookOperation>(queryDsl)
                     .addResult(result)
@@ -557,7 +557,8 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             final Optional<LogbookOperation> result = logbookOperation.findLastOperationByType(operationType);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookOperation>().addAllResults(result.stream().collect(Collectors.toList())))
+                .entity(new RequestResponseOK<LogbookOperation>().addAllResults(
+                    result.stream().collect(Collectors.toList())))
                 .build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException | LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -2254,12 +2255,12 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(
-                new VitamError(Status.PRECONDITION_FAILED.name())
-                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
+                    new VitamError(Status.PRECONDITION_FAILED.name())
+                        .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setContext(LOGBOOK)
+                        .setState("code_vitam")
+                        .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                        .setDescription(exc.getMessage()))
                 .build();
         }
         ReindexationResult result = logbookOperation.reindex(indexParameters);
@@ -2297,12 +2298,12 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(
-                new VitamError(Status.PRECONDITION_FAILED.name())
-                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
+                    new VitamError(Status.PRECONDITION_FAILED.name())
+                        .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setContext(LOGBOOK)
+                        .setState("code_vitam")
+                        .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                        .setDescription(exc.getMessage()))
                 .build();
         }
         try {
@@ -2333,8 +2334,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
         } catch (LogbookAuditException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                new VitamError(Status.INTERNAL_SERVER_ERROR.name())
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                    new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                        .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
         }
 
@@ -2364,8 +2365,8 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         } catch (DatabaseException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                new VitamError(Status.INTERNAL_SERVER_ERROR.name())
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                    new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                        .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
         }
         return Response.status(Status.OK)
@@ -2388,8 +2389,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
         } catch (DatabaseException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                new VitamError(Status.INTERNAL_SERVER_ERROR.name())
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                    new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                        .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);

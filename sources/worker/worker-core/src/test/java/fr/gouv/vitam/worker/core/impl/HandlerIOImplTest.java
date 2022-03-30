@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.processing.IOParameter;
@@ -59,6 +44,19 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class HandlerIOImplTest {
 
@@ -142,7 +140,8 @@ public class HandlerIOImplTest {
         when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
-        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId", OBJECT_IDS)) {
+        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
+            "containerName", "workerId", OBJECT_IDS)) {
             io.setCurrentObjectId(CURRENT_OBJECT);
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             final List<IOParameter> in = new ArrayList<>();
@@ -168,7 +167,9 @@ public class HandlerIOImplTest {
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
 
-        final HandlerIOImpl io2 = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId2", OBJECT_IDS);
+        final HandlerIOImpl io2 =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId2",
+                OBJECT_IDS);
         io2.setCurrentObjectId(CURRENT_OBJECT);
         assertTrue(io2.checkHandlerIO(0, new ArrayList<>()));
 
@@ -195,7 +196,8 @@ public class HandlerIOImplTest {
         when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
 
-        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId", OBJECT_IDS)) {
+        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
+            "containerName", "workerId", OBJECT_IDS)) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             final List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(false));

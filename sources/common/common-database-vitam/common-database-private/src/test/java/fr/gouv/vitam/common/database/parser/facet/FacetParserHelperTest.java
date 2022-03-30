@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,22 +26,6 @@
  */
 package fr.gouv.vitam.common.database.parser.facet;
 
-import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.dateRange;
-import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
-import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
-import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.dateRange;
-import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.filters;
-import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.terms;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -56,21 +40,41 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.dateRange;
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
+import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.dateRange;
+import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.filters;
+import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.terms;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
+
 public class FacetParserHelperTest {
 
     VarNameAdapter noAdapter = new VarNameAdapter();
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {}
+    public static void setUpBeforeClass() throws Exception {
+    }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
+    public static void tearDownAfterClass() throws Exception {
+    }
 
     @Before
-    public void setUp() throws Exception {}
+    public void setUp() throws Exception {
+    }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
 
     @Test
@@ -103,7 +107,7 @@ public class FacetParserHelperTest {
             Facet facet1 = terms("facet1", "path.to.var1", "path.to", 2, FacetOrder.ASC);
             Facet facet2 = terms(facet1.getCurrentFacet(), noAdapter);
             assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                    facet2.getCurrentFacet().toString());
+                facet2.getCurrentFacet().toString());
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -162,7 +166,7 @@ public class FacetParserHelperTest {
             Facet facet1 = dateRange("facet1", "path.to.EndDate", "path.to", "yyyy", ranges);
             Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
             assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                    facet2.getCurrentFacet().toString());
+                facet2.getCurrentFacet().toString());
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());

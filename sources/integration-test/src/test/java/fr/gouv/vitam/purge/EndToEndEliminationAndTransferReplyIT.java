@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -340,8 +340,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
     }
 
@@ -480,7 +482,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals(ELIMINATION_ACCESSION_REGISTER_DETAIL, JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find())),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find())),
             excludeFields);
 
         // Check Accession Register Summary
@@ -637,9 +639,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("transfer/reply/accession_register_detail.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -759,9 +761,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("transfer/reply/accession_register_detail_complex_test.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
         // Check Accession Register Summary
         assertJsonEquals("transfer/reply/accession_register_summary_complex_test.json",
@@ -775,7 +777,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestRunningIngestThenKO() throws Exception {
 
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
 
         // When : Run ingest cleanup process
         retrofit2.Response<Void> actionResult =
@@ -803,9 +806,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -857,9 +860,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -878,7 +881,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestKilledIngestAfterAccessionRegistersThenOK() throws Exception {
 
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -927,9 +931,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -956,7 +960,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestUpdatedUnitsThenWarning() throws Exception {
 
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1007,9 +1012,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -1054,7 +1059,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         zipFolder(PropertiesUtils.getResourcePath(add_object_to_existing_object_group), zipName);
 
         String ingestOperationGuid = doIngestStepByStepUntilStepReached(new FileInputStream(zipName),
-                "STP_ACCESSION_REGISTRATION");
+            "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         final RequestResponseOK<JsonNode> ingestedUnits =
@@ -1082,9 +1087,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail_3_no_cleanup.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -1155,9 +1160,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail_2_no_cleanup.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -1183,7 +1188,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @Test
     public void testCleanupIngestObjectGroupUpdatedByAnotherProcessThenWarning() throws Exception {
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Update object group by another operation (simulate preservation operation)
@@ -1265,9 +1271,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -1291,7 +1297,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testDoubleIngestCleanupThenWarning() throws Exception {
 
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1347,9 +1354,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
-                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
-            ))),
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                    new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+                ))),
             excludeFields);
 
         // Check Accession Register Summary
@@ -1368,7 +1375,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestKilledIngestBeforeAccessionRegistersThenOK() throws Exception {
 
         // Given
-        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_UPDATE_OBJECT_GROUP");
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(TEST_ELIMINATION_V2_SIP, "STP_UPDATE_OBJECT_GROUP");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1470,7 +1478,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private String doIngestStepByStepUntilStepReached(InputStream zipInputStreamSipObject, String targetStepName)
-            throws VitamException, InterruptedException {
+        throws VitamException, InterruptedException {
         final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
@@ -1479,9 +1487,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestOperationGuid.toString(), ingestOperationGuid);
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -1503,10 +1511,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private String doIngestStepByStepUntilStepReached(String filePath, String targetStepName)
-            throws VitamException, InterruptedException {
+        throws VitamException, InterruptedException {
         prepareVitamSession();
         IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        String operationId = doIngestNext(tenantId,filePath);
+        String operationId = doIngestNext(tenantId, filePath);
         GUID ingestOperationGuid = GUIDReader.getGUID(operationId);
 
         runStepByStepUntilStepReached(ingestOperationGuid.getId(), targetStepName);
@@ -1551,7 +1559,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         throws VitamClientException, InternalServerException, InterruptedException, ProcessingException {
         try {
             VitamTestHelper.runStepByStepUntilStepReached(operationGuid, targetStepName);
-        } catch( VitamRuntimeException e){
+        } catch (VitamRuntimeException e) {
             LOGGER.error(e.getMessage());
             tryLogLogbookOperation(operationGuid);
             tryLogATR(operationGuid);
@@ -1853,7 +1861,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             String gotLabel =
                 "{og_of:" +
                     JsonHandler.getFromJsonNode(objectGroup.get("#unitups"), new TypeReference<List<String>>() {
-                    }).stream()
+                        }).stream()
                         .map(replacements::get)
                         .sorted()
                         .collect(Collectors.joining(",", "{og_of:", "}"));
@@ -2342,6 +2350,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         UnitReportParams params;
     }
 
+
     private static class UnitReportParams {
         @JsonProperty("id")
         String id;
@@ -2357,12 +2366,14 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String type;
     }
 
+
     private static class ObjectGroupReportEntry {
         @JsonProperty("id")
         String id;
         @JsonProperty("params")
         ObjectGroupReportParams params;
     }
+
 
     private static class ObjectGroupReportParams {
         @JsonProperty("id")
@@ -2380,6 +2391,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         @JsonProperty("type")
         String type;
     }
+
 
     public interface IngestCleanupAdminService {
         @POST("/adminmanagement/v1/invalidIngestCleanup/{opi}")

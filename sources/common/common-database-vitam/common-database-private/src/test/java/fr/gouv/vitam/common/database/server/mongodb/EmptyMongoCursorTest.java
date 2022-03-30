@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-
+import com.mongodb.client.MongoCursor;
 import org.junit.Test;
 
-import com.mongodb.client.MongoCursor;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 public class EmptyMongoCursorTest {
 

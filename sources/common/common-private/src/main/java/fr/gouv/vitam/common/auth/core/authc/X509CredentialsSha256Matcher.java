@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,12 +29,11 @@
  */
 package fr.gouv.vitam.common.auth.core.authc;
 
-import java.security.cert.CertificateEncodingException;
-
-import org.apache.shiro.crypto.hash.Sha256Hash;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+
+import java.security.cert.CertificateEncodingException;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)

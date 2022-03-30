@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,11 @@
  */
 package fr.gouv.vitam.ingest.external.rest;
 
-import java.io.File;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,9 +38,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import java.io.File;
 
 public class IngestExternalApplicationTest {
 

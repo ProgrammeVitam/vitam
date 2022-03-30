@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,9 +28,7 @@ package fr.gouv.vitam.common.database.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -48,6 +46,7 @@ public class MetadataDocumentHelper {
 
     public static final String STORAGE_KEY = "_storage";
     public static final String STRATEGY_KEY = "strategyId";
+
 
     private enum ComputedGraphUnitFields {
         US("_us"),
@@ -72,6 +71,7 @@ public class MetadataDocumentHelper {
             return fieldName;
         }
     }
+
 
     private enum TemporaryUnitFields {
 
@@ -108,6 +108,7 @@ public class MetadataDocumentHelper {
             return fieldName;
         }
     }
+
 
     private enum TemporaryObjectGroupFields {
 
@@ -171,7 +172,6 @@ public class MetadataDocumentHelper {
     }
 
     /**
-     *
      * @return the list of temporary unit fields
      */
     public static Set<String> getTemporaryUnitFields() {
@@ -219,10 +219,10 @@ public class MetadataDocumentHelper {
         ObjectNode objectGroup = (ObjectNode) objectGroupJson;
         objectGroup.remove(computedObjectGroupFields);
     }
-    
+
     /**
      * Retrieve the strategyId from a raw unit or got json
-     * 
+     *
      * @param documentJson unit or got json
      * @return strategyId
      */
@@ -232,15 +232,15 @@ public class MetadataDocumentHelper {
         }
         ObjectNode document = (ObjectNode) documentJson;
         if (!document.has(STORAGE_KEY) || !document.get(STORAGE_KEY).has(STRATEGY_KEY)
-                || !document.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
+            || !document.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
             throw new IllegalArgumentException("Expected storage/strategy information in MD document");
         }
         return document.get(STORAGE_KEY).get(STRATEGY_KEY).asText();
     }
-    
+
     /**
      * Retrieve the strategyId from a unit json
-     * 
+     *
      * @param unitJson unit json
      * @return strategyId
      */
@@ -250,7 +250,7 @@ public class MetadataDocumentHelper {
         }
         ObjectNode unit = (ObjectNode) unitJson;
         if (!unit.has(VitamFieldsHelper.storage()) || !unit.get(VitamFieldsHelper.storage()).has(STRATEGY_KEY)
-                || !unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).isTextual()) {
+            || !unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).isTextual()) {
             throw new IllegalArgumentException("Expected storage/strategy information in unit");
         }
         return unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).asText();

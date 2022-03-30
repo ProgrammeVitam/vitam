@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.external.client.configuration;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-
-import org.junit.Test;
 
 public class ClientConfigurationImplTest {
 
@@ -41,34 +41,41 @@ public class ClientConfigurationImplTest {
         try {
             clientConfigurationImpl0.setServerPort(0);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0.setServerPort(-1);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0.setServerHost(null);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0.setServerHost("");
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0 =
                 new ClientConfigurationImpl(null, 10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0 =
                 new ClientConfigurationImpl("", 10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             clientConfigurationImpl0 =
                 new ClientConfigurationImpl("test", -10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
     }
 
     @Test

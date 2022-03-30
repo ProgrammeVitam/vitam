@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -98,6 +98,7 @@ public class EvidenceServiceTest {
     private static String RESULT_SELECT_LOGBOOK_SECUR_OP = "evidenceAudit/RESULT_SELECT_LOGBOOK_SECUR_OP.json";
     private static String result = "evidenceAudit/result.json";
     private static String offersInfo = "evidenceAudit/offersInfo.json";
+
     static {
         try {
             OFFERS_INFO =
@@ -170,8 +171,10 @@ public class EvidenceServiceTest {
 
 
         EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT, loadStorageStrategiesMock());
-        EvidenceAuditParameters expected = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(result), EvidenceAuditParameters.class);
+            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT,
+                loadStorageStrategiesMock());
+        EvidenceAuditParameters expected =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(result), EvidenceAuditParameters.class);
         assertThat(parameters.getHashLfcFromDatabase()).isEqualTo(expected.getHashLfcFromDatabase());
         assertThat(parameters.getHashMdFromDatabase()).isEqualTo(expected.getHashMdFromDatabase());
         assertThat(parameters.getLfcVersion()).isEqualTo(expected.getLfcVersion());
@@ -214,7 +217,8 @@ public class EvidenceServiceTest {
             .thenReturn(JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>()));
 
         EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT, loadStorageStrategiesMock());
+            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT,
+                loadStorageStrategiesMock());
 
         assertThat(parameters.getEvidenceStatus()).isEqualTo(EvidenceStatus.WARN);
         assertThat(parameters.getAuditMessage()).contains("No traceability operation found matching date");
@@ -281,14 +285,16 @@ public class EvidenceServiceTest {
             .getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip")) {
             Response responseMock = mock(BuiltResponse.class);
             doReturn(in).when(responseMock).readEntity(eq(InputStream.class));
-            when(storageClient.getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DataCategory.LOGBOOK), any()))
+            when(storageClient.getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
+                eq(DataCategory.LOGBOOK), any()))
                 .thenReturn(responseMock);
             assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
                 "data.txt", ".zip", true))
                 .isNotNull();
 
             when(storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "test", DataCategory.LOGBOOK,
+                    AccessLogUtils.getNoLogAccessLog()))
                 .thenThrow(StorageNotFoundException.class);
 
             assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",
@@ -298,7 +304,7 @@ public class EvidenceServiceTest {
         }
     }
 
-    private List<StorageStrategy> loadStorageStrategiesMock(){
+    private List<StorageStrategy> loadStorageStrategiesMock() {
         StorageStrategy defaultStrategy = new StorageStrategy();
         defaultStrategy.setId("default");
         OfferReference offer1 = new OfferReference();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -112,7 +112,8 @@ public class LightweightWorkflowLockTest {
 
 
         // When / Then
-        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
+        assertThatThrownBy(
+            () -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
             .isInstanceOf(VitamClientException.class);
     }
 }

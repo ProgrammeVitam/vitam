@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -848,7 +848,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
-        
+
         // When
         RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(
             new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.createObjectNode());
@@ -866,7 +866,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             .isThrownBy(
                 () -> client
                     .bulkAtomicUpdateUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                            JsonHandler.createObjectNode()))
+                        JsonHandler.createObjectNode()))
             .withMessage(BAD_REQUEST);
     }
 

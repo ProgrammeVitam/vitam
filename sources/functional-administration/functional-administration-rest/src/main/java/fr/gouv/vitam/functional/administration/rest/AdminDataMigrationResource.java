@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -79,7 +79,7 @@ import static javax.ws.rs.core.Response.status;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminDataMigrationResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminDataMigrationResource.class);
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -87,21 +87,22 @@ public class AdminDataMigrationResource {
     private WorkspaceClientFactory workspaceClientFactory;
 
     AdminDataMigrationResource() {
-        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance());
     }
 
     /**
      * Constructor
      *
-     * @param logbookOperationsClientFactory    logbookOperationsClientFactory
+     * @param logbookOperationsClientFactory logbookOperationsClientFactory
      * @param processingManagementClientFactory processingManagementClientFactory
-     * @param workspaceClientFactory            workspaceClientFactory
+     * @param workspaceClientFactory workspaceClientFactory
      */
     @VisibleForTesting
     private AdminDataMigrationResource(
-            LogbookOperationsClientFactory logbookOperationsClientFactory,
-            ProcessingManagementClientFactory processingManagementClientFactory,
-            WorkspaceClientFactory workspaceClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
@@ -137,7 +138,7 @@ public class AdminDataMigrationResource {
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             GUID guid = GUIDReader.getGUID(requestId);
 
@@ -150,7 +151,8 @@ public class AdminDataMigrationResource {
             processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
+                processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(),
+                    ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
         } catch (LogbookClientBadRequestException | BadRequestException e) {
@@ -169,27 +171,27 @@ public class AdminDataMigrationResource {
 
     private VitamError getErrorEntity(Response.Status status, String message) {
         String aMessage =
-                (message != null && !message.trim().isEmpty()) ? message
-                        : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
 
     private void createOperation(GUID guid)
-            throws LogbookClientBadRequestException {
+        throws LogbookClientBadRequestException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
             final LogbookOperationParameters initParameter =
-                    LogbookParameterHelper.newLogbookOperationParameters(
-                            guid,
-                            "DATA_MIGRATION",
-                            guid,
-                            LogbookTypeProcess.DATA_MIGRATION,
-                            StatusCode.STARTED,
-                            VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
-                            guid);
+                LogbookParameterHelper.newLogbookOperationParameters(
+                    guid,
+                    "DATA_MIGRATION",
+                    guid,
+                    LogbookTypeProcess.DATA_MIGRATION,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
+                    guid);
             client.create(initParameter);
         } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new VitamRuntimeException("Internal server error ", e);

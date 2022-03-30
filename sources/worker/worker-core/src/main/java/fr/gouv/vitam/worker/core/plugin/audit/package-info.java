@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Provides classes for the Audit Workflow. 
+ * Provides classes for the Audit Workflow.
  */
 package fr.gouv.vitam.worker.core.plugin.audit;

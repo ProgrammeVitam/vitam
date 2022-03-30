@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,25 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.TimeUnit;
-
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
-import org.apache.commons.lang3.StringUtils;
-
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
@@ -59,8 +40,26 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
 

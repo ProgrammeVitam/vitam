@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,12 +33,12 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import org.bson.Document;
 
@@ -59,7 +59,8 @@ public class ArchiveReferentialRepository {
             collection.insertOne(toBson(tapeArchiveReferentialEntity));
         } catch (MongoException ex) {
             throw new ArchiveReferentialException(
-                "Could not insert or update archive referential for id " + tapeArchiveReferentialEntity.getArchiveId(), ex);
+                "Could not insert or update archive referential for id " + tapeArchiveReferentialEntity.getArchiveId(),
+                ex);
         }
     }
 
@@ -70,7 +71,7 @@ public class ArchiveReferentialRepository {
 
         try {
             document = collection.find(
-                Filters.eq(TapeArchiveReferentialEntity.ID, archiveId))
+                    Filters.eq(TapeArchiveReferentialEntity.ID, archiveId))
                 .first();
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not find storage location by id " + archiveId, ex);
@@ -87,7 +88,8 @@ public class ArchiveReferentialRepository {
         }
     }
 
-    public void updateLocationToReadyOnDisk(String archiveId, long size, String digest) throws ArchiveReferentialException {
+    public void updateLocationToReadyOnDisk(String archiveId, long size, String digest)
+        throws ArchiveReferentialException {
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeArchiveReferentialEntity.ID, archiveId),
@@ -105,7 +107,8 @@ public class ArchiveReferentialRepository {
             );
 
             if (updateResult.getMatchedCount() != 1) {
-                throw new ArchiveReferentialException("Could not update storage location for " + archiveId + ". No such archiveId");
+                throw new ArchiveReferentialException(
+                    "Could not update storage location for " + archiveId + ". No such archiveId");
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);
@@ -129,7 +132,8 @@ public class ArchiveReferentialRepository {
             );
 
             if (updateResult.getMatchedCount() != 1) {
-                throw new ArchiveReferentialException("Could not update storage location for " + archiveId + ". No such archiveId");
+                throw new ArchiveReferentialException(
+                    "Could not update storage location for " + archiveId + ". No such archiveId");
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,31 +27,6 @@
 package fr.gouv.vitam.security.internal.rest.service;
 
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.io.InputStream;
-import java.util.Optional;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -61,6 +36,30 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.InputStream;
+import java.util.Optional;
+
+import static com.google.common.io.ByteStreams.toByteArray;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class PersonalCertificateServiceTest {
 

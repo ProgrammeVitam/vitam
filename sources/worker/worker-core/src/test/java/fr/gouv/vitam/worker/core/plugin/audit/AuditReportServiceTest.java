@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -180,7 +180,8 @@ public class AuditReportServiceTest {
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
+        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT),
             eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);

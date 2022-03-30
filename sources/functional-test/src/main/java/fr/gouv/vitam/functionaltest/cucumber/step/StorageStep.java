@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,8 +27,6 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -55,10 +53,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import javax.ws.rs.core.Response;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +63,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Storage step
@@ -152,7 +149,7 @@ public class StorageStep {
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws.subList(1, raws.size())) {
             String strategy = raw.get(1);
-            try(CloseableIterator<ObjectEntry> result = container_has_files(strategy)) {
+            try (CloseableIterator<ObjectEntry> result = container_has_files(strategy)) {
                 assertThat(result).isNotNull();
                 assertThat(result.hasNext()).isTrue();
             }
@@ -184,7 +181,8 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 response =
-                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT,
+                        AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
 
             } catch (Exception | AssertionError e) {

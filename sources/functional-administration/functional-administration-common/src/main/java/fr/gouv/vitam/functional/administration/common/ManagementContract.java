@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,10 +29,7 @@ package fr.gouv.vitam.functional.administration.common;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import org.bson.Document;
-
-import java.util.Set;
 
 /**
  * Defines an Management contract model
@@ -83,17 +80,17 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
      * the Storage
      */
     public static final String STORAGE = "Storage";
-    
+
     /**
      * the Object Group Strategy
      */
     public static final String OBJECTGROUP_STRATEGY = "Storage.ObjectGroupStrategy";
-    
+
     /**
      * the Unit Strategy
      */
     public static final String UNIT_STRATEGY = "Storage.UnitStrategy";
-    
+
     /**
      * the Object Strategy
      */

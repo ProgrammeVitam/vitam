@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 import cucumber.runtime.ClassFinder;
 import cucumber.runtime.Runtime;
 import cucumber.runtime.RuntimeOptions;
@@ -38,6 +33,11 @@ import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.io.ResourceLoaderClassFinder;
 import fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to manage cucumber
@@ -75,7 +75,7 @@ public class CucumberLauncher {
     /**
      * create a list to manage cucumber arguments
      *
-     * @param glueCode    path on the glue code
+     * @param glueCode path on the glue code
      * @param featurePath path on the feature
      * @param reportName
      * @return list of cucumber arguments on a list

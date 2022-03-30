@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -431,8 +431,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                         dataContext.getObjectId(), digestType.getName(),
                         offerInputStream);
                 futureMap.put(offerIdString,
-                    executor.submit(new TransferThread(tenantId, requestId, driver, offerReference, request, globalDigest,
-                        size)));
+                    executor.submit(
+                        new TransferThread(tenantId, requestId, driver, offerReference, request, globalDigest,
+                            size)));
                 rank++;
             }
         } catch (StorageException e) {
@@ -1490,8 +1491,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         Map<String, CompletableFuture<List<StorageBulkMetadataResultEntry>>> completableFutures = new HashMap<>();
         for (String offerId : offerIds) {
             CompletableFuture<List<StorageBulkMetadataResultEntry>> objectInformationCompletableFuture =
-                CompletableFuture.supplyAsync(() -> getBatchObjectInformation(type, tenantId, objectIds, driverByOfferId.get(offerId),
-                    storageOfferByOfferId.get(offerId)));
+                CompletableFuture.supplyAsync(
+                    () -> getBatchObjectInformation(type, tenantId, objectIds, driverByOfferId.get(offerId),
+                        storageOfferByOfferId.get(offerId)));
             completableFutures.put(offerId, objectInformationCompletableFuture);
         }
 
@@ -1511,7 +1513,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
 
             return offerDigestsByObjectId.keySet().stream()
-                .map(objectId -> new BatchObjectInformationResponse(type, objectId, offerDigestsByObjectId.get(objectId) ))
+                .map(objectId -> new BatchObjectInformationResponse(type, objectId,
+                    offerDigestsByObjectId.get(objectId)))
                 .collect(Collectors.toList());
 
         } catch (InterruptedException | ExecutionException e) {

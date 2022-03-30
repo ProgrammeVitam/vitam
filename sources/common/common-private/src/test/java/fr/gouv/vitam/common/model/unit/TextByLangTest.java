@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import org.junit.Test;
 
 import java.util.ArrayList;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TextByLangTest {
 

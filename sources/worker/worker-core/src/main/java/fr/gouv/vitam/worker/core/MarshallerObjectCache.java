@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.worker.core;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Cache the Marshaller Object as its initialization takes about 40ms
@@ -51,7 +50,7 @@ public class MarshallerObjectCache {
      *
      * @param c : class whom we want the JAXB Marshaller
      * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
+     * @throws JAXBException if exception when creating new instance JAXBContext
      */
 
     public Marshaller getMarshaller(Class<?> c) throws JAXBException {

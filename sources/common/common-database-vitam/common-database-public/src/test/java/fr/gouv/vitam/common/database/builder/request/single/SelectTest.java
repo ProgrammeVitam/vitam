@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -25,6 +25,17 @@
  * accept its terms.
  */
 package fr.gouv.vitam.common.database.builder.request.single;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.junit.Test;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -57,19 +68,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class SelectTest {
     @Test

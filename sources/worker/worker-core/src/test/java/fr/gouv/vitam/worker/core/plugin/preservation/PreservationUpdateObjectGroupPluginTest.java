@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -627,7 +627,8 @@ public class PreservationUpdateObjectGroupPluginTest {
         assertThat(itemStatuses).extracting(ItemStatus::isLifecycleEnable).containsOnly(false);
     }
 
-    private WorkflowBatchResults getWorkflowBatchResults(OutputPreservation... outputPreservation) throws InvalidParseOperationException {
+    private WorkflowBatchResults getWorkflowBatchResults(OutputPreservation... outputPreservation)
+        throws InvalidParseOperationException {
         return getWorkflowBatchResults("BinaryMaster", outputPreservation);
     }
 
@@ -733,12 +734,15 @@ public class PreservationUpdateObjectGroupPluginTest {
 
     private WorkflowBatchResults getWorkflowBatchResults(List<OutputExtra> outputExtras) {
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster", "other_binary_strategy", Collections.emptyList());
+            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster",
+                "other_binary_strategy", Collections.emptyList());
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 
-    private WorkflowBatchResults getWorkflowBatchResults(String targetUse, OutputPreservation... outputPreservation) throws InvalidParseOperationException {
-        FormatIdentifierResponse format = new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
+    private WorkflowBatchResults getWorkflowBatchResults(String targetUse, OutputPreservation... outputPreservation)
+        throws InvalidParseOperationException {
+        FormatIdentifierResponse format =
+            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
         ExtractedMetadata extractedMetadata = new ExtractedMetadata();
         OtherMetadata otherMetadata = new OtherMetadata();
         otherMetadata.put("GPS", Collections.singletonList("40.714, -74.006"));
@@ -762,7 +766,8 @@ public class PreservationUpdateObjectGroupPluginTest {
         ).collect(Collectors.toList());
 
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster", "other_binary_strategy", Collections.emptyList());
+            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster",
+                "other_binary_strategy", Collections.emptyList());
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 

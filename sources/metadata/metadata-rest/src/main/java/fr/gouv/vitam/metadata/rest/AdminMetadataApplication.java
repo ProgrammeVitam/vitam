@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,14 +32,14 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
-import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -78,7 +78,8 @@ public class AdminMetadataApplication extends Application {
             // Validate configuration
             MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
 
-            MappingLoader mappingLoader = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+            MappingLoader mappingLoader =
+                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
 
             // Elasticsearch configuration
             ElasticsearchMetadataIndexManager indexManager =

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,7 +84,6 @@ package fr.gouv.vitam.processing.management.core;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -98,8 +97,8 @@ public class ProcessEngineTest extends ProcessEngineImpl {
     private CompletableFuture<ItemStatus> currentTask;
 
     public ProcessEngineTest(WorkerParameters workerParameters, ProcessDistributor processDistributor,
-                             LogbookOperationsClientFactory logbookOperationsClientFactory,
-                             WorkspaceClientFactory workspaceClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
         super(workerParameters, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
     }
 

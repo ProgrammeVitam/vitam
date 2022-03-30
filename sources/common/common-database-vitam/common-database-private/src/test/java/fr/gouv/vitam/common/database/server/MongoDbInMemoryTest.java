@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -63,7 +63,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class MongoDbInMemoryTest {
     private final static String jsonNodeValue =
@@ -143,7 +142,8 @@ public class MongoDbInMemoryTest {
     private static final String requestRename = "{\"$action\": [{ \"$rename\": {\"oldField\": \"renamedField\" } }]}";
     private static final String requestRenameSubField =
         "{\"$action\": [{ \"$rename\": {\"subItem.subInt\": \"newSubItem.newName\" } }]}";
-    private static final String requestRenameUnknowField = "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
+    private static final String requestRenameUnknowField =
+        "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
 
     private static final String requestSetRegexRemovePrefix = "{\"$action\": [{\"$setregex\": { " +
         "\"$target\": \"oldField\", " +
@@ -181,8 +181,10 @@ public class MongoDbInMemoryTest {
         "\"$updatePattern\": \"newValue\" } } ]}";
 
     //private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
-    private static final String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": { \"subItem\" : \"newValue\"} } }]}";
-    private static final String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
+    private static final String requestSet =
+        "{\"$action\": [{ \"$set\": { \"oldValue\": { \"subItem\" : \"newValue\"} } }]}";
+    private static final String requestSetSubField =
+        "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
 
     private static final String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";
     private static final String requestUnsetSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.subInt\" ] }]}";

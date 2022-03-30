@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.database.parameter;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Index Parameters class
@@ -47,7 +47,6 @@ public class IndexParameters {
     private List<Integer> tenants;
 
     /**
-     * 
      * @return tenants
      */
     public List<Integer> getTenants() {
@@ -55,7 +54,6 @@ public class IndexParameters {
     }
 
     /**
-     * 
      * @param tenants
      */
     public void setTenants(List<Integer> tenants) {
@@ -63,7 +61,6 @@ public class IndexParameters {
     }
 
     /**
-     * 
      * @return collectionName
      */
     public String getCollectionName() {
@@ -71,7 +68,6 @@ public class IndexParameters {
     }
 
     /**
-     * 
      * @param collectionName
      */
     public void setCollectionName(String collectionName) {

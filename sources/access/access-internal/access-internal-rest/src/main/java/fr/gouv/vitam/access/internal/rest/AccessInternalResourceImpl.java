@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1169,7 +1169,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
                     applyAccessContractRestrictionForUnitForUpdate(queryDsl,
-                            getVitamSession().getContract())));
+                        getVitamSession().getContract())));
 
             // compress file to backup
             OperationContextMonitor
@@ -1282,7 +1282,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
-    
+
     @Override
     @POST
     @Path(UNITS_ATOMIC_BULK_URI)
@@ -1301,7 +1301,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
-            
+
             String operationId = getVitamSession().getRequestId();
 
             // Init logbook operation
@@ -1332,19 +1332,21 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, ACCESS_CONTRACT_FILE, writeToInpustream(
-                        JsonHandler.toJsonNode(getVitamSession().getContract())));
-            
+                    JsonHandler.toJsonNode(getVitamSession().getContract())));
+
             // compress file to backup
             OperationContextMonitor
                 .compressInWorkspace(workspaceClientFactory, operationId,
                     Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
                     OperationContextMonitor.OperationContextFileName);
 
-            processingClient.initVitamProcess(new ProcessingEntry(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name()));
+            processingClient.initVitamProcess(
+                new ProcessingEntry(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name()));
 
             RequestResponse<ItemStatus> requestResponse =
                 processingClient
-                    .executeOperationProcess(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name(), RESUME.getValue());
+                    .executeOperationProcess(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name(),
+                        RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | InvalidGuidOperationException |
@@ -1360,8 +1362,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         }
     }
-    
-    
+
+
     @Override
     @POST
     @Path("/revert/units")
@@ -1390,7 +1392,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 GUIDReader.getGUID(operationId),
                 LogbookTypeProcess.MASS_UPDATE,
                 STARTED,
-                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED), GUIDReader.getGUID(operationId));
+                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED),
+                GUIDReader.getGUID(operationId));
 
 
             // Add access contract rights

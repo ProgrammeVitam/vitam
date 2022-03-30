@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -187,8 +187,8 @@ public class ContractsStep {
     }
 
     private void uploadIngestContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createIngestContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -235,8 +235,8 @@ public class ContractsStep {
     }
 
     private void uploadAccessContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createAccessContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -279,8 +279,8 @@ public class ContractsStep {
     }
 
     private void uploadManagementContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-            InputStream inputStream, List<PermissionModel> permissions)
-            throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        InputStream inputStream, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
         RequestResponse response =
             world.getAdminClient().createManagementContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),

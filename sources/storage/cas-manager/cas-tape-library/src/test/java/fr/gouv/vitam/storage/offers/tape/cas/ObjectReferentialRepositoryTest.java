@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -113,7 +113,7 @@ public class ObjectReferentialRepositoryTest {
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
 
         TapeObjectReferentialEntity tapeObjectReferentialEntity1Version2 = JsonHandler.getFromString(
-            JsonHandler.unprettyPrint(tapeObjectReferentialEntity1), TapeObjectReferentialEntity.class)
+                JsonHandler.unprettyPrint(tapeObjectReferentialEntity1), TapeObjectReferentialEntity.class)
             .setSize(20L)
             .setDigest("digest2")
             .setStorageId("storageId2")

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,15 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import org.bson.Document;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Logbook repository : direct access to databases
@@ -59,7 +56,7 @@ public class LogbookRepositoryService {
 
     /**
      * Save datas as bulk
-     * 
+     *
      * @param collection logbook collection
      * @param logbookItems logbooks
      * @throws DatabaseException

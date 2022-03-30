@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,6 +82,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
 
     /**
      * Checks objet digest & update persist its digest in object metadata
+     *
      * @param containerName container to place the object.
      * @param objectName fully qualified object name relative to the container.
      * @param objectDigest object digest value

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,7 +100,8 @@ public class RunningIngestsUpdateActionPluginTest {
 
     private static final String AU_DETAIL = "RunningIngestsUpdateActionPlugin/archiveUnits.json";
     private static final String UPDATED_AU = "RunningIngestsUpdateActionPlugin/updatedAu.json";
-    private static final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin = mock(StoreMetaDataUnitActionPlugin.class);
+    private static final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin =
+        mock(StoreMetaDataUnitActionPlugin.class);
 
     RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin(processingManagementClientFactory,
         metaDataClientFactory, storeMetaDataUnitActionPlugin);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,5 @@
  */
 /**
  * Provides exception classes that could be thrown during Requests construction
- *
  */
 package fr.gouv.vitam.common.database.builder.request.exception;

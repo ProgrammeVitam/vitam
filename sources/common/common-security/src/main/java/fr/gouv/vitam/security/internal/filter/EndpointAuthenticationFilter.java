@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -81,7 +81,8 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      * @param containerRequestContext
      * @throws IOException
      */
-    @Override public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+    @Override
+    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
 
         ParametersChecker
             .checkParameter("VitamAuthentication failed! The service needs user authentication.",

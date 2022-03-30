@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -77,7 +77,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -110,8 +109,8 @@ public class UpdateUnitResourceTest {
 
     private static final String DATA1 =
         "{ \"_id\": \"" + ID_UNIT_1 + "\", \"_tenant\": 0, " + "\"data\": \"data1\"," +
-                "\"Title\": \"Archive1\", \"_mgt\": {\"NeedAuthorization\": true}," +
-                " \"DescriptionLevel\": \"Item\" }";
+            "\"Title\": \"Archive1\", \"_mgt\": {\"NeedAuthorization\": true}," +
+            " \"DescriptionLevel\": \"Item\" }";
 
     private static final String DATA2 =
         "{ \"_id\": \"" + ID_UNIT_2 + "\", \"_tenant\": 0, " + "\"data\": \"data2\", " +
@@ -139,27 +138,30 @@ public class UpdateUnitResourceTest {
     // Bulk
 
     private static final String BODY_BULK_TEST_SIMPLE_GOOD_REQUEST =
-            "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_BAD_BODY_REQUEST =
-            "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$test\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT_1 + "\"], \"$action\": [{\"$test\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_TWO_GOOD_REQUESTS =
-            "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
-                    "{\"$roots\": [\"" + ID_UNIT_2 + "\"], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
+            "{\"$roots\": [\"" + ID_UNIT_2 +
+            "\"], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_TWO_SAME_REQUESTS =
-            "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
-                    "{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
+            "{\"$roots\": [\"" + ID_UNIT_1 +
+            "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_ONE_BAD_REQUEST_ON_TWO =
-            "[{\"$roots\": [\""+ ID_UNIT + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
-                    "{\"$roots\": [\"" + ID_UNIT_2 + "\"], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
+            "{\"$roots\": [\"" + ID_UNIT_2 +
+            "\"], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_TWO_BAD_REQUEST_AND_AN_EMPTY_ONE =
-            "[{\"$roots\": [\""+ ID_UNIT + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
-                    "{\"$roots\": [], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}," +
-                    "{\"$roots\": \"test\", \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
+        "[{\"$roots\": [\"" + ID_UNIT + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
+            "{\"$roots\": [], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}," +
+            "{\"$roots\": \"test\", \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -185,7 +187,8 @@ public class UpdateUnitResourceTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
+                mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
 
@@ -347,40 +350,42 @@ public class UpdateUnitResourceTest {
     @RunWithCustomExecutor
     public void given_correct_units_insert_when_twoUpdateBulkByIDValid_thenReturn_OK() throws Exception {
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA1, ID_UNIT_2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA1, ID_UNIT_2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         InputStream stream = given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .contentType(ContentType.JSON)
-                .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_GOOD_REQUESTS)).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_GOOD_REQUESTS)).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // We get a RequestResponseOK object, either updates fail or succeed
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         List<JsonNode> results = responseOK.getResults();
 
         // We get one result per request
         assertThat(results.size()).isEqualTo(2);
 
         // We get one hit for each request which succeeded
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse =
+            RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // The response contains the id of the updated object
@@ -398,44 +403,47 @@ public class UpdateUnitResourceTest {
         assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_2);
     }
+
     @Test
     @RunWithCustomExecutor
     public void given_correct_units_insert_when_twoUpdateBulkByIDSame_thenReturn_OK() throws Exception {
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA1, ID_UNIT_2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA1, ID_UNIT_2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         InputStream stream = given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .contentType(ContentType.JSON)
-                .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_SAME_REQUESTS)).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_SAME_REQUESTS)).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // We get a RequestResponseOK object, either updates fail or succeed
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         List<JsonNode> results = responseOK.getResults();
 
         // We get one result per request
         assertThat(results.size()).isEqualTo(2);
 
         // We get one hit for each request which succeeded
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse =
+            RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // The response contains the id of the updated object
@@ -459,39 +467,41 @@ public class UpdateUnitResourceTest {
     @RunWithCustomExecutor
     public void given_correct_units_insert_when_twoUpdateBulkByID_with_oneInvalid_thenReturn_OK() throws Exception {
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA, ID_UNIT_2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA, ID_UNIT_2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         InputStream stream = given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .contentType(ContentType.JSON)
-                .body(JsonHandler.getFromString(BODY_BULK_TEST_ONE_BAD_REQUEST_ON_TWO)).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_BULK_TEST_ONE_BAD_REQUEST_ON_TWO)).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // Global response is OK
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         List<JsonNode> results = responseOK.getResults();
 
         assertThat(results.size()).isEqualTo(2);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse =
+            RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // First update is KO (in UpdateUnit) with a schema Error
@@ -513,41 +523,44 @@ public class UpdateUnitResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_correct_units_insert_when_threeUpdateBulkByID_with_twoInvalid_andOneEmpty_thenReturn_OK() throws Exception {
+    public void given_correct_units_insert_when_threeUpdateBulkByID_with_twoInvalid_andOneEmpty_thenReturn_OK()
+        throws Exception {
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .body(bulkInsertRequest(DATA, ID_UNIT_2)).when()
-                .post("/units/bulk").then()
-                .statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .body(bulkInsertRequest(DATA, ID_UNIT_2)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         InputStream stream = given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-                .contentType(ContentType.JSON)
-                .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_BAD_REQUEST_AND_AN_EMPTY_ONE)).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_BAD_REQUEST_AND_AN_EMPTY_ONE)).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // Global response is OK
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         List<JsonNode> results = responseOK.getResults();
 
         assertThat(results.size()).isEqualTo(3);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse =
+            RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // First update is KO (in UpdateUnit), with a schema Error
@@ -573,14 +586,15 @@ public class UpdateUnitResourceTest {
     @RunWithCustomExecutor
     public void given_no_insert_when_badBodyBulkUpdate_thenReturn_Error() throws Exception {
         InputStream stream = given()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .body(BODY_BULK_TEST_BAD_BODY_REQUEST).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(BODY_BULK_TEST_BAD_BODY_REQUEST).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // Global response is OK
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
 
         List<JsonNode> results = responseOK.getResults();
 
@@ -591,20 +605,22 @@ public class UpdateUnitResourceTest {
         assertThat(firstResponse.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         stream = given()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .body(BODY_BULK_TEST_SIMPLE_GOOD_REQUEST).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(BODY_BULK_TEST_SIMPLE_GOOD_REQUEST).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // Global response is OK
-        RequestResponseOK<JsonNode> responseOK2 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK2 =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         List<JsonNode> results2 = responseOK2.getResults();
 
         assertThat(results2.size()).isEqualTo(1);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse2 = RequestResponseOK.getFromJsonNode(results2.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse2 =
+            RequestResponseOK.getFromJsonNode(results2.get(0), UpdateUnit.class);
         assertThat(firstResponse2.getHits().getSize()).isEqualTo(1);
 
         // First update is KO (in UpdateUnit), with root not found
@@ -619,20 +635,22 @@ public class UpdateUnitResourceTest {
     @RunWithCustomExecutor
     public void given_no_insert_when_badHeaderBulkUpdate_thenReturn_Error() throws Exception {
         InputStream stream = given()
-                .contentType(ContentType.JSON)
-                .body(JsonHandler.getFromString(BODY_BULK_TEST_SIMPLE_GOOD_REQUEST)).when()
-                .post("/units/atomicupdatebulk").then()
-                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_BULK_TEST_SIMPLE_GOOD_REQUEST)).when()
+            .post("/units/atomicupdatebulk").then()
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         // Global response is OK
-        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
 
         List<JsonNode> results = responseOK.getResults();
 
         assertThat(results.size()).isEqualTo(1);
 
         // Single update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        RequestResponseOK<UpdateUnit> firstResponse =
+            RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // Single update is FATAL (in UpdateUnit), with no tenant found

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -130,7 +130,8 @@ public class ProfileServiceImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList, indexManager);
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
@@ -143,7 +144,8 @@ public class ProfileServiceImplTest {
 
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 vitamCounterService, functionalBackupService);
 
     }
@@ -330,8 +332,8 @@ public class ProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_filled_path.json");
         final List<ProfileModel> profileModelList =
-                JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
+            });
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();

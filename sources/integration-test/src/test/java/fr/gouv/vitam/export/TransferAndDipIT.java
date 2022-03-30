@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -116,10 +116,10 @@ import java.util.List;
 
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID_PROC;
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -455,7 +455,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         // try Ingest the Transfer SIP
         try (InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId())) {
-            final String ingestTransfertOpId = VitamTestHelper.doIngest(TENANT_ID, transferSipStream, DEFAULT_WORKFLOW, RESUME, STARTED);
+            final String ingestTransfertOpId =
+                VitamTestHelper.doIngest(TENANT_ID, transferSipStream, DEFAULT_WORKFLOW, RESUME, STARTED);
             // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transferByIngestGuid manifest and FormatIdentifierMock return the same mime type => status code OK
             verifyOperation(ingestTransfertOpId, StatusCode.OK);
         }
@@ -493,7 +494,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
         InputStream transferSip = getTransferSIP(transferOpId);
 
 
-        String transferredIngestedSipOpId = VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
+        String transferredIngestedSipOpId =
+            VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
         verifyOperation(transferredIngestedSipOpId, StatusCode.OK);
         String atr = getAtrTransferredSip(transferredIngestedSipOpId);
 

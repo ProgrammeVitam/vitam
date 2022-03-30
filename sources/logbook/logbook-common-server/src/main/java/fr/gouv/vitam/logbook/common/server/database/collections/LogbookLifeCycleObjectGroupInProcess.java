@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import org.bson.Document;
 
 /**
  * Logbook LifeCycle ObjectGroup In Process item
@@ -85,8 +83,8 @@ public class LogbookLifeCycleObjectGroupInProcess extends LogbookLifeCycle<Logbo
 
     @Override
     public VitamDocument<LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters>> newInstance(
-    		JsonNode content) {
-    	return new LogbookLifeCycleObjectGroupInProcess(content);
+        JsonNode content) {
+        return new LogbookLifeCycleObjectGroupInProcess(content);
     }
 
 }

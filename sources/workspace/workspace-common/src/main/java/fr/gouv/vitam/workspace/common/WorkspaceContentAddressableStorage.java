@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,7 @@
  */
 package fr.gouv.vitam.workspace.common;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -45,19 +37,21 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+
 public interface WorkspaceContentAddressableStorage {
 
     /**
      * Creates a container
      *
-     * @param containerName
-     *            name of container to create
-     *
-     * @throws ContentAddressableStorageAlreadyExistException
-     *             Thrown when creating a container while it (containerName)
-     *             already exists
-     * @throws ContentAddressableStorageServerException
-     *             Thrown when internal server error happens
+     * @param containerName name of container to create
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it (containerName)
+     * already exists
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void createContainer(String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
@@ -69,28 +63,27 @@ public interface WorkspaceContentAddressableStorage {
      * </p>
      *
      * @param containerName name of container to purge
-     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    void purgeContainer(String containerName) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+    void purgeContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Deletes everything inside a container recursively.
      *
      * @param containerName name of the container to delete
      * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
-     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    void deleteContainer(String containerName, boolean recursive) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+    void deleteContainer(String containerName, boolean recursive)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a container exists
      *
-     * @param containerName
-     *            name of container
+     * @param containerName name of container
      * @return boolean type
      * @throws ContentAddressableStorageServerException
      */
@@ -106,7 +99,8 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void createFolder(String containerName, String folderName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageServerException;
 
     /**
      * Deletes a folder (or a directory) marker depending on the service
@@ -133,9 +127,7 @@ public interface WorkspaceContentAddressableStorage {
      *
      * @param containerName not null allowed container where this exists.
      * @param folderName not null allowed fully qualified folder name relative to the container.
-     *
      * @return a list of URI
-     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
@@ -161,25 +153,18 @@ public interface WorkspaceContentAddressableStorage {
     /**
      * Adds an object representing the data at location containerName/objectName
      *
-     * @param containerName
-     *            container to place the object.
-     * @param objectName
-     *            fully qualified object name relative to the container.
-     * @param stream
-     *            the data
-     *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when put action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException
-     *             Thrown when object creating exists
+     * @param containerName container to place the object.
+     * @param objectName fully qualified object name relative to the container.
+     * @param stream the data
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     void putObject(String containerName, String objectName, InputStream stream) throws
         ContentAddressableStorageException;
 
     void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
-    throws ContentAddressableStorageException;
+        throws ContentAddressableStorageException;
 
     /**
      * Retrieves an object representing the data at location
@@ -189,18 +174,12 @@ public interface WorkspaceContentAddressableStorage {
      * right away.
      * </p>
      *
-     * @param containerName
-     *            container where this exists.
-     * @param objectName
-     *            fully qualified name relative to the container.
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
      * @return the object you intended to receive
-     *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException
-     *             Thrown when object creating exists
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     Response getObject(String containerName, String objectName, Long chunkOffset, Long maxChunkSize)
         throws ContentAddressableStorageException;
@@ -209,16 +188,11 @@ public interface WorkspaceContentAddressableStorage {
      * Deletes a object representing the data at location
      * containerName/objectName
      *
-     * @param containerName
-     *            container where this exists.
-     * @param objectName
-     *            fully qualified name relative to the container.
-     *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located or the blob
-     *             cannot be located in the container.
-     * @throws ContentAddressableStorageException
-     *             Thrown when get action failed due some other failure
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob
+     * cannot be located in the container.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
 
     void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException;
@@ -226,10 +200,8 @@ public interface WorkspaceContentAddressableStorage {
     /**
      * Determines if an object exists
      *
-     * @param containerName
-     *            container where the object resides
-     * @param objectName
-     *            fully qualified name relative to the container.
+     * @param containerName container where the object resides
+     * @param objectName fully qualified name relative to the container.
      * @return boolean type
      */
 
@@ -238,20 +210,13 @@ public interface WorkspaceContentAddressableStorage {
     /**
      * compute Object Digest using a defined algorithm
      *
-     * @param containerName
-     *            container where this exists.
-     * @param objectName
-     *            fully qualified name relative to the container.
-     * @param algo
-     *            Digest algo
-     *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container or the object cannot be located
-     * @throws ContentAddressableStorageServerException
-     *             Thrown when internal server error happens
-     * @throws ContentAddressableStorageException
-     *             Thrown when put action failed due some other failure
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     * @param algo Digest algo
      * @return the digest object as String
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      */
     String computeObjectDigest(String containerName, String objectName, DigestType algo) throws
         ContentAddressableStorageException;
@@ -259,12 +224,10 @@ public interface WorkspaceContentAddressableStorage {
     /**
      * Get container information like capacity
      *
-     * @param containerName
-     *            the container name
+     * @param containerName the container name
      * @return container information like usableSpace
-     * @throws ContentAddressableStorageNotFoundException
-     *             thrown when storage is not available or container does not
-     *             exist
+     * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
+     * exist
      * @throws ContentAddressableStorageServerException
      */
     ContainerInformation getContainerInformation(String containerName)
@@ -274,16 +237,11 @@ public interface WorkspaceContentAddressableStorage {
      * Retrieves information about an object at location
      * containerName/objectName
      *
-     * @param containerName
-     *            container where the object is.
-     * @param objectName
-     *            fully qualified name relative to the container.
+     * @param containerName container where the object is.
+     * @param objectName fully qualified name relative to the container.
      * @return the object informations as a JsonNode object
-     *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
     JsonNode getObjectInformation(String containerName, String objectName) throws ContentAddressableStorageException;
 

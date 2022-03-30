@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,17 +28,15 @@ package fr.gouv.vitam.processing.common.exception;
 
 /**
  * StepAlreadyExecutedException manage steps already executed Exception
- * 
  */
 public class StepAlreadyExecutedException extends ProcessingException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 7434200692205429490L;
 
     /**
-     *
      * @param message to be set
      * @param cause to be set
      */

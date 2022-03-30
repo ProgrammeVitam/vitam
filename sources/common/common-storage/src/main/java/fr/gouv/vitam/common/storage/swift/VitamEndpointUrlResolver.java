@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.swift;
 
-import java.util.function.Function;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -35,6 +34,8 @@ import org.openstack4j.api.identity.EndpointURLResolver;
 import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.model.identity.URLResolverParams;
 import org.openstack4j.openstack.identity.internal.DefaultEndpointURLResolver;
+
+import java.util.function.Function;
 
 public class VitamEndpointUrlResolver implements EndpointURLResolver {
 
@@ -54,7 +55,7 @@ public class VitamEndpointUrlResolver implements EndpointURLResolver {
     /**
      * Useful for inject mock in test class
      *
-     * @param resolver      can be mock or instance of DefaultEndpointURLResolver
+     * @param resolver can be mock or instance of DefaultEndpointURLResolver
      * @param configuration can be a mock or new instance of StorageConfiguration
      */
     @VisibleForTesting

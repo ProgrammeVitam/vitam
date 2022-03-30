@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
@@ -54,15 +53,13 @@ import java.util.Optional;
 public interface IngestInternalClient extends MockOrRestClient {
 
     /**
-     *
      * Upload compressed SIP as stream
      *
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
      * @param workflow workflow information
-     * @param action  Identifier
+     * @param action Identifier
      * @throws VitamException if stream is null
-     *
      */
     void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflow, String action) throws VitamException;
 
@@ -87,6 +84,7 @@ public interface IngestInternalClient extends MockOrRestClient {
 
     /**
      * Download object stored by ingest operation
+     *
      * @param objectId
      * @param type
      * @return object as stream
@@ -111,10 +109,9 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
 
     ItemStatus getOperationProcessStatus(String id)
-            throws VitamClientException, InternalServerException, BadRequestException;
+        throws VitamClientException, InternalServerException, BadRequestException;
 
     /**
-     *
      * getOperationProcessExecutionDetails : get operation processing execution details
      *
      * @param id : operation identifier
@@ -123,7 +120,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
 
     RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
-            throws VitamClientException;
+        throws VitamClientException;
 
     /**
      * cancelOperationProcessExecution : cancel processing operation
@@ -132,12 +129,11 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @return ItemStatus response containing message and status
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus>  cancelOperationProcessExecution(String id)
-            throws VitamClientException;
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
+        throws VitamClientException;
 
     /**
      * updateOperationActionProcess : update operation processing status
-     *
      *
      * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
      * @param operationId : operation identifier
@@ -145,11 +141,10 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-            throws VitamClientException;
+        throws VitamClientException;
 
     /**
      * initWorkflow : init workFlow Process
-     *
      *
      * @param workFlow information
      * @throws VitamClientException
@@ -162,7 +157,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      * Retrieve all the workflow operations
      *
      * @param query Query model
-     *
      * @return All details of the operations
      * @throws VitamClientException
      */
@@ -179,12 +173,11 @@ public interface IngestInternalClient extends MockOrRestClient {
 
 
     /**
-     *
      * @param WorkflowIdentifier
      * @return
      * @throws VitamClientException
      */
     Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException;
 
-    void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)throws VitamClientException;
+    void saveObjectToWorkspace(String id, String objectName, InputStream inputStream) throws VitamClientException;
 }

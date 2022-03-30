@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,38 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.ID;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -66,6 +43,7 @@ import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -80,14 +58,15 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -102,6 +81,25 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.ID;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
@@ -124,7 +122,8 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     }
 
     @VisibleForTesting
-    public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory lfcClientFactory,
+    public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory lfcClientFactory,
         StorageClientFactory storageClientFactory, BatchReportClientFactory batchReportClientFactory) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
@@ -140,7 +139,8 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
@@ -174,7 +174,8 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             if (requestResponse != null && requestResponse.isOk()) {
                 List<ItemStatus> itemStatuses = ((RequestResponseOK<JsonNode>) requestResponse).getResults()
                     .stream()
-                    .map(result -> postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, failingEntries, result))
+                    .map(result -> postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient,
+                        failingEntries, result))
                     .collect(Collectors.toList());
 
                 ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
@@ -195,7 +196,9 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient, StorageClient storageClient, List<UpdateUnitMetadataReportEntry> failingEntries, JsonNode unitNode) {
+    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient, StorageClient storageClient,
+        List<UpdateUnitMetadataReportEntry> failingEntries, JsonNode unitNode) {
         String unitId = unitNode.get(ID).asText();
         String key = unitNode.get(KEY).asText();
         String statusAsString = unitNode.get(STATUS).asText();
@@ -226,13 +229,17 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
-                    LOGGER.warn(String.format("There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.", unitId));
-                    storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId, unitId + ".json");
+                    LOGGER.warn(String.format(
+                        "There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.",
+                        unitId));
+                    storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
+                        unitId + ".json");
                     return buildItemStatus(MASS_UPDATE_UNITS, OK, EventDetails.of("Mass update OK"));
                 }
             } catch (VitamException e) {
                 LOGGER.error(e);
-                return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+                return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
+                    EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
             }
         }
 
@@ -240,40 +247,45 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             writeLfcToMongo(lfcClient, workerParameters, unitId, diff);
         } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, KO, EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(MASS_UPDATE_UNITS, KO,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
         }
 
         try {
-            storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId, unitId + ".json");
+            storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
+                unitId + ".json");
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+            return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
+                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
         }
         return buildItemStatus(MASS_UPDATE_UNITS, OK, EventDetails.of("Mass update OK"));
     }
 
-    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId, String currentOperationId) throws VitamException {
+    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId,
+        String currentOperationId) throws VitamException {
         JsonNode lfc = lfcClient.getRawUnitLifeCycleById(unitId);
-        LogbookLifecycle unitLFC =  JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
+        LogbookLifecycle unitLFC = JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
         return unitLFC.getEvents().stream().anyMatch(e -> e.getEvIdProc().equals(currentOperationId));
     }
 
     private void writeLfcToMongo(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-            InvalidParseOperationException, InvalidGuidOperationException {
+        InvalidParseOperationException, InvalidGuidOperationException {
 
         LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
-                GUIDReader.getGUID(param.getContainerName()),
-                param.getLogbookTypeProcess(),
-                OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, OK),
-                VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, OK),
-                GUIDReader.getGUID(unitId)
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+            VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
+            GUIDReader.getGUID(param.getContainerName()),
+            param.getLogbookTypeProcess(),
+            OK,
+            VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, OK),
+            VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, OK),
+            GUIDReader.getGUID(unitId)
         );
 
         logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, getEvDetDataForDiff(diff));
@@ -291,11 +303,13 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient, StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName) throws VitamException {
+    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
+        throws VitamException {
         // get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
-        
+
         MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         // get lfc
@@ -318,6 +332,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         ObjectDescription description = new ObjectDescription(UNIT, params.getContainerName(), fileName, uri);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
+            description);
     }
 }

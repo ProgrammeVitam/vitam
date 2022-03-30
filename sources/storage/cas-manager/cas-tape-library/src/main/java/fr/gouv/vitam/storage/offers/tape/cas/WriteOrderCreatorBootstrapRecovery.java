@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,14 +35,14 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 
 import java.io.IOException;

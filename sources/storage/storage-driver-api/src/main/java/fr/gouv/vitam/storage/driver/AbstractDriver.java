@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,7 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractDriver implements Driver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractDriver.class);
 
-    protected final Map<String, VitamClientFactoryInterface<? extends  AbstractConnection>> connectionFactories = new ConcurrentHashMap<>();
+    protected final Map<String, VitamClientFactoryInterface<? extends AbstractConnection>> connectionFactories =
+        new ConcurrentHashMap<>();
 
     @Override
     public boolean isStorageOfferAvailable(String offerId) throws StorageDriverException {
@@ -57,7 +58,8 @@ public abstract class AbstractDriver implements Driver {
 
         if (connectionFactories.containsKey(offerId)) {
             try {
-                final VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.get(offerId);
+                final VitamClientFactoryInterface<? extends AbstractConnection> factory =
+                    connectionFactories.get(offerId);
                 try (final AbstractConnection connection = factory.getClient()) {
                     connection.checkStatus();
                 }
@@ -83,13 +85,14 @@ public abstract class AbstractDriver implements Driver {
 
     /**
      * This method must be implemented in the final Driver Implementation to add the ClientFactory to the driver
-     * 
+     *
      * @param offer
      * @param parameters
      * @return true if added
      */
-    protected abstract VitamClientFactoryInterface<AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters);
-    
+    protected abstract VitamClientFactoryInterface<AbstractConnection> addInternalOfferAsFactory(StorageOffer offer,
+        Properties parameters);
+
     @Override
     public final boolean removeOffer(String offer) {
         if (connectionFactories.containsKey(offer)) {

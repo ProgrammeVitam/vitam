@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -61,11 +61,11 @@ import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.collections4.IteratorUtils;
@@ -626,7 +626,8 @@ public class DefaultOfferResourceTest {
                 .andReturn();
         assertThat(emptyContainerListObjectResponse.getStatusCode()).isEqualTo(200);
 
-        ObjectEntryReader emptyContainerObjectEntryReader = new ObjectEntryReader(emptyContainerListObjectResponse.asInputStream());
+        ObjectEntryReader emptyContainerObjectEntryReader =
+            new ObjectEntryReader(emptyContainerListObjectResponse.asInputStream());
         assertThat(emptyContainerObjectEntryReader).isEmpty();
 
         for (int i = 0; i < 10; i++) {
@@ -978,7 +979,8 @@ public class DefaultOfferResourceTest {
 
         assertThat(result.getObjectMetadata()).hasSize(1);
         assertThat(result.getObjectMetadata().get(0).getObjectName()).isEqualTo("guid1");
-        assertThat(result.getObjectMetadata().get(0).getDigest()).isEqualTo("88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c");
+        assertThat(result.getObjectMetadata().get(0).getDigest()).isEqualTo(
+            "88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c");
         assertThat(result.getObjectMetadata().get(0).getSize()).isEqualTo(8766);
     }
 
@@ -1020,13 +1022,19 @@ public class DefaultOfferResourceTest {
 
         assertThat(result.getObjectMetadata()).hasSize(4);
         assertThat(result.getObjectMetadata()).extracting(
-            StorageBulkMetadataResultEntry::getObjectName, StorageBulkMetadataResultEntry::getDigest,
-            StorageBulkMetadataResultEntry::getSize)
+                StorageBulkMetadataResultEntry::getObjectName, StorageBulkMetadataResultEntry::getDigest,
+                StorageBulkMetadataResultEntry::getSize)
             .containsExactlyInAnyOrder(
-                new Tuple("guid1", "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", 0L),
-                new Tuple("guid2", "8efb4f73c5655351c444eb109230c556d39e2c7624e9c11abc9e3fb4b9b9254218cc5085b454a9698d085cfa92198491f07a723be4574adc70617b73eb0b6461", 1024L),
+                new Tuple("guid1",
+                    "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+                    0L),
+                new Tuple("guid2",
+                    "8efb4f73c5655351c444eb109230c556d39e2c7624e9c11abc9e3fb4b9b9254218cc5085b454a9698d085cfa92198491f07a723be4574adc70617b73eb0b6461",
+                    1024L),
                 new Tuple("unknown_guid", null, null),
-                new Tuple("guid3", "88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c", 8766L)
+                new Tuple("guid3",
+                    "88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c",
+                    8766L)
             );
     }
 

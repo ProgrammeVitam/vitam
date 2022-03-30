@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -395,8 +394,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.getFolder(), "GUID",
             DigestType.MD5.getName(), new FakeInputStream(2201507));
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
-        ;
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build());
         try (Connection connection = driver.connect(offer.getId())) {
             final StoragePutResult result = connection.putObject(request);
             assertNotNull(result);

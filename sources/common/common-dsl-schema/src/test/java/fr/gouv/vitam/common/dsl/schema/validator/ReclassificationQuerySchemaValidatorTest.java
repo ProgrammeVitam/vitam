@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,8 @@ public class ReclassificationQuerySchemaValidatorTest {
     @Test
     public void testUpdateByIdValidator() throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new ReclassificationQuerySchemaValidator();
-        JsonNode updateByIdQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("reclassification_query_complete.json"));
+        JsonNode updateByIdQuery =
+            JsonHandler.getFromFile(PropertiesUtils.findFile("reclassification_query_complete.json"));
         dslValidator.validate(updateByIdQuery);
     }
 }

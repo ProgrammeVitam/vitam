@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,9 +75,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -135,7 +135,7 @@ public class EliminationAnalysisPreparationHandlerTest {
         }).when(handlerIO).transferFileToWorkspace(any(), any(), eq(true), eq(false));
 
         this.parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Collections.emptyList())
             .setCurrentStep("StepName");

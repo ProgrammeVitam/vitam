@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,9 +36,8 @@ public class ContentAddressableStorageServerException extends ContentAddressable
 
     /**
      * Constructor
-     * 
-     * @param message to associate with a new ContentAddressableStorageServerException
      *
+     * @param message to associate with a new ContentAddressableStorageServerException
      */
     public ContentAddressableStorageServerException(String message) {
         super(message);
@@ -46,7 +45,7 @@ public class ContentAddressableStorageServerException extends ContentAddressable
 
     /**
      * Constructor
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public ContentAddressableStorageServerException(Throwable cause) {
@@ -55,7 +54,7 @@ public class ContentAddressableStorageServerException extends ContentAddressable
 
     /**
      * Constructor
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
 
 /**
  * IngestInternal client factory<br>
@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Used to create IngestInternal client : if configuration file does not exist 'ingest-internal-client.conf',
  * <br>
  * mock IngestInternal client will be returned
- *
  */
 
 public class IngestInternalClientFactory extends VitamClientFactory<IngestInternalClient> {
@@ -102,7 +101,6 @@ public class IngestInternalClientFactory extends VitamClientFactory<IngestIntern
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
     static final void changeMode(IngestInternalClientConfiguration configuration) {

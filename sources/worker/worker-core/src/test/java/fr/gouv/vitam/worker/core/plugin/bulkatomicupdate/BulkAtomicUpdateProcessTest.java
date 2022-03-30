@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -194,7 +194,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -256,7 +256,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -316,7 +316,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -361,7 +361,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -403,7 +403,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -445,7 +445,7 @@ public class BulkAtomicUpdateProcessTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
@@ -570,7 +570,7 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
-    
+
 
     @Test
     @RunWithCustomExecutor

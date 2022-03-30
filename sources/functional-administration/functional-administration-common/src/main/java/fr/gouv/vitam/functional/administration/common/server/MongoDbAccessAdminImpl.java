@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,7 +70,7 @@ import static com.mongodb.client.model.Filters.eq;
 public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
-    
+
     private final ElasticsearchFunctionalAdminIndexManager indexManager;
     private final OntologyLoader ontologyLoader;
 

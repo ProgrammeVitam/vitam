@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -71,7 +71,8 @@ public class ReclassificationRequestDslParserTest {
             "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacb");
 
         ParsedReclassificationDslRequestEntry entry2 = parsedReclassificationDslRequest.getEntries().get(1);
-        assertThat(entry2.getSelectMultiQuery().getRoots()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc");
+        assertThat(entry2.getSelectMultiQuery().getRoots()).containsExactlyInAnyOrder(
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc");
         assertThat(entry2.getSelectMultiQuery().getQueries()).hasSize(1);
         assertThat(entry2.getSelectMultiQuery().getQueries().get(0).getQUERY().exactToken()).isEqualTo("$exists");
         assertThat(entry2.getAttachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacd");

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
-
 import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -38,21 +37,20 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MongoDbMetadataRepositoryTest {
 

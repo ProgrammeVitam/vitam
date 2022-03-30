@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,12 +26,9 @@
  */
 package fr.gouv.vitam.common.database.translators;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -42,17 +39,17 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 
+import java.util.List;
+
 
 /**
  * Request To X Abstract class. All translators should be based on this one.
- *
  */
 public class RequestToAbstract {
 
     protected AbstractParser<?> requestParser;
 
     /**
-     *
      * @param requestParser AbstractParser in unknown type
      */
     public RequestToAbstract(AbstractParser<?> requestParser) {
@@ -60,7 +57,6 @@ public class RequestToAbstract {
     }
 
     /**
-     *
      * @return the associated RequestParser
      */
     public AbstractParser<?> getRequestParser() {

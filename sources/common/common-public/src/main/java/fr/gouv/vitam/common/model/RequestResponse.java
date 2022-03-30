@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -162,6 +161,7 @@ public abstract class RequestResponse<T> {
     public static RequestResponse<JsonNode> parseFromResponse(Response response) throws IllegalStateException {
         return parseFromResponse(response, JsonNode.class);
     }
+
     /**
      * Parser the response for a RequestResponse object.<br/>
      * <br/>
@@ -173,7 +173,8 @@ public abstract class RequestResponse<T> {
      * @throws IllegalStateException if the response cannot be parsed to one of the two model
      */
     @JsonIgnore
-    public static <T> RequestResponse<T> parseFromResponse(Response response, Class clazz) throws IllegalStateException {
+    public static <T> RequestResponse<T> parseFromResponse(Response response, Class clazz)
+        throws IllegalStateException {
         final String result = response.readEntity(String.class);
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
@@ -206,7 +207,8 @@ public abstract class RequestResponse<T> {
      */
     @JsonIgnore
     public static RequestResponseOK parseRequestResponseOk(Response response) throws InvalidParseOperationException {
-        final RequestResponseOK ret = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+        final RequestResponseOK ret =
+            JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
         ret.parseHeadersFromResponse(response);
         return ret;
     }
@@ -218,7 +220,7 @@ public abstract class RequestResponse<T> {
      */
     @JsonIgnore
     public static VitamError parseVitamError(Response response) throws InvalidParseOperationException {
-        final VitamError error =JsonHandler.getFromString(response.readEntity(String.class), VitamError.class);
+        final VitamError error = JsonHandler.getFromString(response.readEntity(String.class), VitamError.class);
         error.parseHeadersFromResponse(response);
         return error;
     }
@@ -226,6 +228,7 @@ public abstract class RequestResponse<T> {
 
     /**
      * Check if the JsonNode is a RequestResponse and OK
+     *
      * @param requestResponseAsJsonNode as request response as a JsonNode
      * @return true if JsonNode contains httpCode as 2xx or 3xx, false if httpCode as 4xx or 5xx
      * @throws IllegalStateException if JsonNode is not a valid instance of requestResponse
@@ -236,14 +239,14 @@ public abstract class RequestResponse<T> {
             int httpCode = requestResponseAsJsonNode.get("httpCode").asInt();
             Status.Family family = Status.Family.familyOf(httpCode);
             switch (family) {
-            case SUCCESSFUL:
-            case REDIRECTION:
-                return true;
-            case CLIENT_ERROR:
-            case SERVER_ERROR:
-                return false;
-            default:
-                break;
+                case SUCCESSFUL:
+                case REDIRECTION:
+                    return true;
+                case CLIENT_ERROR:
+                case SERVER_ERROR:
+                    return false;
+                default:
+                    break;
             }
         }
         throw new IllegalStateException("Response is not a valid instance of RequestResponse");
@@ -251,6 +254,7 @@ public abstract class RequestResponse<T> {
 
     /**
      * transform a RequestResponse to a standard response
+     *
      * @return Response
      */
     public abstract Response toResponse();

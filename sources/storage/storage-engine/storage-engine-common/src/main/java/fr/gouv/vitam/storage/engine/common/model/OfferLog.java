@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.storage.engine.common.model;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * OfferLog.
@@ -81,11 +81,12 @@ public class OfferLog implements Comparable<OfferLog> {
     /**
      * Constructor,jackson usage only
      */
-    public OfferLog() {}
+    public OfferLog() {
+    }
 
     /**
      * Constructor
-     * 
+     *
      * @param container container
      * @param fileName fileName
      * @param action action
@@ -117,7 +118,6 @@ public class OfferLog implements Comparable<OfferLog> {
 
     /**
      * @param sequence the sequence to set
-     *
      * @return this
      */
     public OfferLog setSequence(long sequence) {
@@ -134,7 +134,6 @@ public class OfferLog implements Comparable<OfferLog> {
 
     /**
      * @param time the time to set
-     *
      * @return this
      */
     public OfferLog setTime(LocalDateTime time) {
@@ -151,7 +150,6 @@ public class OfferLog implements Comparable<OfferLog> {
 
     /**
      * @param container the container to set
-     *
      * @return this
      */
     public OfferLog setContainer(String container) {
@@ -168,7 +166,6 @@ public class OfferLog implements Comparable<OfferLog> {
 
     /**
      * @param fileName the fileName to set
-     *
      * @return this
      */
     public OfferLog setFileName(String fileName) {
@@ -185,7 +182,6 @@ public class OfferLog implements Comparable<OfferLog> {
 
     /**
      * @param action the action to set
-     *
      * @return this
      */
     public OfferLog setAction(OfferLogAction action) {

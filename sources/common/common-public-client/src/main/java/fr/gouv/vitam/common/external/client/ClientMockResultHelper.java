@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -749,7 +749,7 @@ public class ClientMockResultHelper {
 
     /**
      * @return a simple Operation result
-     * @throws VitamClientException 
+     * @throws VitamClientException
      */
     public static RequestResponse<JsonNode> getOperationSimpleResult(String itemId) throws VitamClientException {
         try {
@@ -757,7 +757,7 @@ public class ClientMockResultHelper {
             itemStatus.setGlobalState(ProcessState.RUNNING);
             itemStatus.increment(StatusCode.STARTED);
             return new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode(itemStatus))
-                    .setHttpCode(Status.OK.getStatusCode());
+                .setHttpCode(Status.OK.getStatusCode());
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(e);
         }

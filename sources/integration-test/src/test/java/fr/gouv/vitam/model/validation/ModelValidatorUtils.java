@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,14 +84,16 @@ public class ModelValidatorUtils {
     }
 
     public static void validateDataModel(Class<?> clazz,
-        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream) throws Exception {
+        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream)
+        throws Exception {
         ParametersChecker.checkParameter("missing params", clazz, mappingFileInputStream, vitamCollection,
             jsonSchemaInputStream);
         internalValidateDataModel(clazz, mappingFileInputStream, vitamCollection, jsonSchemaInputStream);
     }
 
     private static void internalValidateDataModel(Class<?> clazz,
-        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream) throws Exception {
+        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream)
+        throws Exception {
 
         SoftAssertions softly = new SoftAssertions();
         try {
@@ -132,7 +134,7 @@ public class ModelValidatorUtils {
                 validateVitamDescriptionAgainstElasticsearchMapping(descriptionTypeByName, mappingTypes, softly);
             }
 
-            if(jsonSchemaInputStream != null) {
+            if (jsonSchemaInputStream != null) {
                 Map<String, JsonSchemaField> schemaFieldMap =
                     JsonSchemaFieldParser.parseJsonSchemaFields(jsonSchemaInputStream);
 
@@ -330,7 +332,9 @@ public class ModelValidatorUtils {
             softly.fail("Unexpected key '" + unexpectedKey + "' in ES mapping");
         }
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(new ArrayList<>(descriptionTypeByName.values())), Collections.emptyList());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(new VitamDescriptionResolver(new ArrayList<>(descriptionTypeByName.values())),
+                Collections.emptyList());
         for (Map.Entry<String, ElasticsearchMappingType> entry : mappingTypes.entrySet()) {
 
             String fieldName = entry.getKey();

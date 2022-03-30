@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 /**
  * Enum use to represent possible HTTP header for Vitam application. Also define a regular expression to check if values
  * from HTTP headers are right
- *
  */
 public enum VitamHttpHeader {
 
@@ -83,12 +82,12 @@ public enum VitamHttpHeader {
      * The X-Content-Length used to have object size (for storage)
      */
     X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+"),
-    
+
     /**
      * The X_DIGEST used to have digest value (for storage)
      */
     X_DIGEST(GlobalDataRest.X_DIGEST, ".+"),
-    
+
     /**
      * The X_DIGEST_ALGORITHM used to have digest algrithm (for storage)
      */
@@ -113,22 +112,18 @@ public enum VitamHttpHeader {
 
     /**
      * The X_Destination destination (offerId )
-     *
      */
     X_CONTENT_DESTINATION(GlobalDataRest.X_CONTENT_DESTINATION, ".+"),
-    
+
     /**
-     * The X-Cursor 
-     *
+     * The X-Cursor
      */
     X_CURSOR(GlobalDataRest.X_CURSOR, "true|false"),
-    
+
     /**
      * The X-Cursor-Id
-     *
      */
-    X_CURSOR_ID(GlobalDataRest.X_CURSOR_ID, ".+")
-    ;
+    X_CURSOR_ID(GlobalDataRest.X_CURSOR_ID, ".+");
 
 
     private String name;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,6 +28,5 @@
 /**
  * Contains generic VitamServer and associated basic implementation to be used as a base for every module specific
  * application server.
- *
  */
 package fr.gouv.vitam.common.server;

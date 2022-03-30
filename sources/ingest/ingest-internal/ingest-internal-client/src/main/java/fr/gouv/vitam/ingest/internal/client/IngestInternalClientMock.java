@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -32,13 +32,11 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -138,6 +136,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream) throws VitamClientException {
+    public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)
+        throws VitamClientException {
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import static org.junit.Assert.assertEquals;
-
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import static org.junit.Assert.assertEquals;
 
 public class IngestWorkflowConstantsTest {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -315,17 +315,18 @@ public class WebApplicationResourceTest {
 
 
     @Test
-    public void givenManagementContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
+    public void givenManagementContractTestUpdate()
+        throws InvalidParseOperationException, AccessExternalClientException {
 
         initializeAdminExternalClientMock();
         final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
         final ResponseBody response =
-                given().contentType(ContentType.JSON)
-                        .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-                        .body(jsonObject).cookie(COOKIE).expect()
-                        .statusCode(Status.OK.getStatusCode()).when()
-                        .post("/managementcontracts/azercdsqsdf").getBody();
+            given().contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .body(jsonObject).cookie(COOKIE).expect()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .post("/managementcontracts/azercdsqsdf").getBody();
     }
 
     @Test
@@ -712,7 +713,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminManagementClient = mock(AdminExternalClient.class);
         doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
             .when(adminManagementClient).createFormats(any(),
-            any(), any());
+                any(), any());
         when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");

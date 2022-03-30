@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,13 +33,13 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
  */
 public class DataContext {
 
-  private   final String objectId;
-  private   final DataCategory category;
-  private   final String requester;
-  private   final Integer tenantId;
-  private   final String strategyId;
+    private final String objectId;
+    private final DataCategory category;
+    private final String requester;
+    private final Integer tenantId;
+    private final String strategyId;
 
-     public DataContext(String objectId, DataCategory category, String requester, Integer tenantId, String strategyId) {
+    public DataContext(String objectId, DataCategory category, String requester, Integer tenantId, String strategyId) {
         this.objectId = objectId;
         this.category = category;
         this.requester = requester;
@@ -78,10 +78,11 @@ public class DataContext {
     public String getStrategyId() {
         return strategyId;
     }
-    
+
     @Override
     public String toString() {
         return "DataContext{" +
-            "objectId='" + objectId + '\'' +", category=" + category +", requester='" + requester + '\'' + ", tenantId=" + tenantId +'\'' + ", strategyId=" + strategyId +'}';
+            "objectId='" + objectId + '\'' + ", category=" + category + ", requester='" + requester + '\'' +
+            ", tenantId=" + tenantId + '\'' + ", strategyId=" + strategyId + '}';
     }
 }

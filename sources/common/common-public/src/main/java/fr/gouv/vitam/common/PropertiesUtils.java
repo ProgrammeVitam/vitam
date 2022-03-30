@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.common;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,12 +52,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Property Utility class
@@ -312,7 +312,7 @@ public final class PropertiesUtils {
      * Read the Yaml file and return the object read
      *
      * @param yamlFile the yaml file to read
-     * @param clasz    the class representing the target object
+     * @param clasz the class representing the target object
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
@@ -331,7 +331,7 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml file and return the object read
      *
-     * @param yamlFile      the yaml file
+     * @param yamlFile the yaml file
      * @param typeReference the type reference representing the target interface object
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
@@ -352,7 +352,7 @@ public final class PropertiesUtils {
      * Read the Yaml InputStream and return the object read
      *
      * @param yamlInputStream the yaml input stream to read
-     * @param clasz           the class representing the target object
+     * @param clasz the class representing the target object
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
@@ -372,7 +372,7 @@ public final class PropertiesUtils {
      * Read the Yaml file and return the object read
      *
      * @param yamlPath yaml file path
-     * @param clasz    the class representing the target object
+     * @param clasz the class representing the target object
      * @return the object read
      * @throws IOException if file not found exception
      */
@@ -388,7 +388,7 @@ public final class PropertiesUtils {
      * Write the Yaml file
      *
      * @param destination the destination file
-     * @param config      the configuration object to write using Yaml format
+     * @param config the configuration object to write using Yaml format
      * @throws IOException if write object config exception occurred
      */
     public static void writeYaml(File destination, Object config) throws IOException {

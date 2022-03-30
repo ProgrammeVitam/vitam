@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,8 @@
  */
 package fr.gouv.vitam.workspace.client;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -41,7 +39,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -53,7 +50,6 @@ import javax.ws.rs.core.Response.Status;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -128,7 +124,8 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         @DELETE
         @Path("{containerName}/old_files")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response purgeOldFilesInContainer(@PathParam("containerName") String containerName, TimeToLive timeToLive) {
+        public Response purgeOldFilesInContainer(@PathParam("containerName") String containerName,
+            TimeToLive timeToLive) {
             return expectedResponse.delete();
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -87,23 +87,23 @@ public class AuditPreparePluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
 
         when(metaDataClient.selectUnits(any())).thenReturn(
-                getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/unitsResult.json")));
+            getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/unitsResult.json")));
 
         when(metaDataClient.selectObjectGroups(any())).thenReturn(
-                getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroupsResult.json")));
+            getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroupsResult.json")));
 
     }
 
     @Test
     public void shouldCreateValidJsonLFileOutput() throws ContentAddressableStorageServerException, ProcessingException,
-            IOException, InvalidParseOperationException {
+        IOException, InvalidParseOperationException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
         JsonNode auditQuery = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/unitsQuery.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/unitsQuery.json"));
         when(handler.getJsonFromWorkspace("query.json")).thenReturn(toJsonNode(auditQuery));
 
         Map<String, File> files = new HashMap<>();
@@ -121,7 +121,8 @@ public class AuditPreparePluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
 
-        List<String> lines = IOUtils.readLines(new FileInputStream(files.get(AuditPreparePlugin.OBJECT_GROUPS_TO_AUDIT_JSONL)),
+        List<String> lines =
+            IOUtils.readLines(new FileInputStream(files.get(AuditPreparePlugin.OBJECT_GROUPS_TO_AUDIT_JSONL)),
                 "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
@@ -134,7 +135,8 @@ public class AuditPreparePluginTest {
         assertThat(firstDetailLine.getObjects().get(0).getId()).isEqualTo("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq");
         assertThat(firstDetailLine.getObjects().get(0).getOpi()).isEqualTo("aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq");
         assertThat(firstDetailLine.getObjects().get(0).getAlgorithm()).isEqualTo("SHA-512");
-        assertThat(firstDetailLine.getObjects().get(0).getMessageDigest()).isEqualTo("86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1");
+        assertThat(firstDetailLine.getObjects().get(0).getMessageDigest()).isEqualTo(
+            "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1");
 
         JsonLineModel thirdLine = JsonHandler.getFromString(lines.get(2), JsonLineModel.class);
         assertThat(thirdLine.getId()).isEqualTo("aebaaaaaaahgotryaauzialjp6aa32aaaaaq");

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.model.StatusCode;
 
 public class TapeDriveState extends TapeResponse implements TapeDriveSpec {
     private String description;

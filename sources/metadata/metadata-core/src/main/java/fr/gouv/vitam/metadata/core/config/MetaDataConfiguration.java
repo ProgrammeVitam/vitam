@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -97,7 +97,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
      * @param dbPassword db password
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword, MappingLoader mappingLoader) {
+        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword,
+        MappingLoader mappingLoader) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -61,7 +60,7 @@ import static fr.gouv.vitam.common.VitamConfiguration.getTenants;
 @Deprecated
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminMigrationResource {
     private HashMap<Integer, String> xrequestIds;
     private AdminDataMigrationResource adminDataMigrationResource;
@@ -78,7 +77,7 @@ public class AdminMigrationResource {
     /**
      * AdminMigrationResource
      *
-     * @param adminDataMigrationResource        adminDataMigrationResource
+     * @param adminDataMigrationResource adminDataMigrationResource
      * @param processingManagementClientFactory processingManagementClientFactory
      */
     @VisibleForTesting
@@ -108,7 +107,7 @@ public class AdminMigrationResource {
         xrequestIds.clear();
 
         getTenants().forEach(integer -> xrequestIds.put(integer, GUIDFactory.newGUID().getId()));
-        
+
         for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
             VitamThreadUtils.getVitamSession().setRequestId(entry.getValue());
             VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
@@ -145,7 +144,8 @@ public class AdminMigrationResource {
                 boolean isProcessFinished = operationProcessStatus.getGlobalState().equals(ProcessState.COMPLETED);
 
                 // When FATAL occurs, the process state will be set to PAUSE and status to FATAL => To be treated manually
-                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) && StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
+                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) &&
+                    StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
 
                 if (!isProcessFinished && !isProcessPauseFatal) {
                     // At least one workflow is in progress

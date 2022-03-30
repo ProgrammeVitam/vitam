@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,25 @@
  */
 package fr.gouv.vitam.common.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.json.JsonSanitizer;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import org.owasp.esapi.Validator;
+import org.owasp.esapi.errors.IntrusionException;
+import org.owasp.esapi.errors.ValidationException;
+import org.owasp.esapi.reference.DefaultValidator;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,28 +55,6 @@ import java.io.Reader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
-import org.owasp.esapi.Validator;
-import org.owasp.esapi.errors.IntrusionException;
-import org.owasp.esapi.errors.ValidationException;
-import org.owasp.esapi.reference.DefaultValidator;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.json.JsonSanitizer;
-
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -114,7 +111,7 @@ public class SanityChecker {
      *
      * @param xmlFile as File
      * @throws InvalidParseOperationException when parse file error
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     public static final void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -199,15 +196,15 @@ public class SanityChecker {
             checkParam(param);
         }
     }
-    
+
     /**
      * checkHTMLFile : Check if the file contains HTML content
-     * 
+     *
      * @param file
      * @throws InvalidParseOperationException
      * @throws IOException
      */
-    public static final void checkHTMLFile(File file) throws InvalidParseOperationException, IOException { 
+    public static final void checkHTMLFile(File file) throws InvalidParseOperationException, IOException {
         try (final Reader fileReader = new FileReader(file)) {
             try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
                 String line = null;
@@ -288,7 +285,7 @@ public class SanityChecker {
     /**
      * Find out XSS by ESAPI validator
      *
-     * @param value     of string
+     * @param value of string
      * @param validator name declared in ESAPI.properties
      * @return boolean
      */
@@ -315,7 +312,7 @@ public class SanityChecker {
      * check XML Sanity Tag and Value Size
      *
      * @param xmlFile xml file
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityTagValueSize(File xmlFile)
@@ -360,7 +357,7 @@ public class SanityChecker {
      * CheckXMLSanityFileSize : check size of xml file
      *
      * @param xmlFile as File
-     * @throws IOException                    when read file exception
+     * @throws IOException when read file exception
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
@@ -373,7 +370,7 @@ public class SanityChecker {
      * CheckXMLSanityTags : check invalid tag contains of a xml file
      *
      * @param xmlFile : XML file path as String
-     * @throws IOException                    when read file error
+     * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -402,7 +399,7 @@ public class SanityChecker {
     /**
      * Check for all RULES and Esapi
      *
-     * @param line  line to check
+     * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -414,7 +411,7 @@ public class SanityChecker {
     /**
      * Check using ESAPI from OWASP
      *
-     * @param line  line to check
+     * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,7 @@
  */
 package fr.gouv.vitam.access.external.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
-
 import fr.gouv.vitam.access.external.rest.v2.rest.AccessExternalResourceV2;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
@@ -49,6 +37,16 @@ import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Business application for access external declaring resources and filters
@@ -61,7 +59,7 @@ public class BusinessApplication extends Application {
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -76,7 +74,7 @@ public class BusinessApplication extends Application {
             final AccessExternalResource accessExternalResource =
                 new AccessExternalResource(secureEndpointRegistry);
             final AccessExternalResourceV2 accessExternalResourceV2 =
-                    new AccessExternalResourceV2(secureEndpointRegistry);
+                new AccessExternalResourceV2(secureEndpointRegistry);
             final LogbookExternalResource logbookExternalResource = new LogbookExternalResource();
             final AdminManagementExternalResource adminManagementExternalResource =
                 new AdminManagementExternalResource(secureEndpointRegistry);

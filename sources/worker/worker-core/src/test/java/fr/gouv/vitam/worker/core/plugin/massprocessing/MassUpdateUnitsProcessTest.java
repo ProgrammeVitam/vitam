@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -179,7 +179,7 @@ public class MassUpdateUnitsProcessTest {
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setProcessId(operationId)
@@ -191,8 +191,12 @@ public class MassUpdateUnitsProcessTest {
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
-        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(
+            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
+                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(
+            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
+                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
         given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
@@ -202,7 +206,8 @@ public class MassUpdateUnitsProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
@@ -221,7 +226,7 @@ public class MassUpdateUnitsProcessTest {
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
                 .setProcessId(operationId)
@@ -233,11 +238,16 @@ public class MassUpdateUnitsProcessTest {
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
-        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(
+            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
+                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(
+            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
+                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
-        doThrow(new ProcessingException("exception")).when(handlerIO).transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
+        doThrow(new ProcessingException("exception")).when(handlerIO)
+            .transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
         given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
         given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
         given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
@@ -250,7 +260,8 @@ public class MassUpdateUnitsProcessTest {
         // Then
         assertThat(itemStatuses).isNotNull();
         assertThat(itemStatuses).hasSize(2);
-        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.FATAL, StatusCode.FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(StatusCode.FATAL, StatusCode.FATAL);
     }
 
     @Test
@@ -269,7 +280,8 @@ public class MassUpdateUnitsProcessTest {
             .setProcessId(processId)
             .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
 
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        JsonNode query =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
 
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
@@ -287,7 +299,8 @@ public class MassUpdateUnitsProcessTest {
 
         given(handlerIO.getWorkerId()).willReturn(processId);
         given(handlerIO.getContainerName()).willReturn(processId);
-        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(getStoredInfoResult());
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(
+            getStoredInfoResult());
 
         LogbookLifecycle lfc = new LogbookLifecycle();
         LogbookEvent event = new LogbookEvent();

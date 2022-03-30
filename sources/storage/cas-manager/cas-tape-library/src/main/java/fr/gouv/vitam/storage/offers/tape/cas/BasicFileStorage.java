@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

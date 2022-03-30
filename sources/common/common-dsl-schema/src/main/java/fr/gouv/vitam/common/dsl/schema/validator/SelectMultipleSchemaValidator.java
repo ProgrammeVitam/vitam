@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,7 @@ public class SelectMultipleSchemaValidator implements DslValidator {
 
     /**
      * Constructor
-     * 
+     *
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public SelectMultipleSchemaValidator() throws IOException {
@@ -79,7 +79,7 @@ public class SelectMultipleSchemaValidator implements DslValidator {
     /**
      * Validate graph on dsl query : all queries should contains $depth or $exactdepth except the first query when $root
      * is not set.
-     * 
+     *
      * @param dsl dsl query
      * @throws ValidationException thrwon is graph is invalid
      */

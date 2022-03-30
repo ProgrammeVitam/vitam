@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,6 +38,7 @@ public interface CRLService {
 
     /**
      * Check all identity and personal certificates against given CRL
+     *
      * @param crlCert CRL certificate (must be in DER format, see
      * <a href="http://www.ietf.org/rfc/rfc3280.txt">RFC 3280: Internet X.509
      * Public Key Infrastructure Certificate and CRL Profile</a> )

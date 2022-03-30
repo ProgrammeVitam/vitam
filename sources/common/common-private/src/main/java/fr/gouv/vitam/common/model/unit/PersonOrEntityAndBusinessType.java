@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,8 @@ public class PersonOrEntityAndBusinessType {
 
     private static final String FIRST_NAME = "FirstName";
     private static final String BIRTH_NAME = "BirthName";
-    private static final String FULLNAME = "FullName";;
+    private static final String FULLNAME = "FullName";
+    ;
     private static final String GIVEN_NAME = "GivenName";
     private static final String TAG_GENDER = "Gender";
     private static final String BIRTH_DATE = "BirthDate";

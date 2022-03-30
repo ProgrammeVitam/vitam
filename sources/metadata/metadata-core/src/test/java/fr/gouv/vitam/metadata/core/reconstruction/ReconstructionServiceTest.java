@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,7 +82,11 @@ import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -130,7 +134,7 @@ public class ReconstructionServiceTest {
         logbookLifecycleClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         logbookLifecycleClient = mock(LogbookLifeCyclesClient.class);
         when(logbookLifecycleClientFactory.getClient()).thenReturn(logbookLifecycleClient);
-        
+
         storageClientFactory = mock(StorageClientFactory.class);
         storageClient = mock(StorageClient.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
@@ -143,13 +147,13 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_new_offset_when_item_unit_is_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,   DataCategory.UNIT, 100L,
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100L,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
@@ -169,7 +173,7 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -179,21 +183,23 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_new_offsets_when_item_unit_for_two_strategies_are_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(eq(10), contains(STRATEGY_UNIT),  eq(MetadataCollections.UNIT.getName()))).thenReturn(100L);
-        when(restoreBackupService.getListing(contains(STRATEGY_UNIT),   eq(DataCategory.UNIT), eq(100L),
-                eq(requestItem.getLimit()), eq(Order.ASC), eq(VitamConfiguration.getRestoreBulkSize()))).thenReturn(
-                IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
-        when(restoreBackupService.loadData(contains(STRATEGY_UNIT),  eq(MetadataCollections.UNIT), eq("100"), eq(100L)))
-                .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(contains(STRATEGY_UNIT),  eq(MetadataCollections.UNIT), eq("101"), eq(101L)))
-                .thenReturn(getUnitMetadataBackupModel("101", 101L));
-        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategiesWithSameReferentOfferForDifferentStrategies());
+        when(offsetRepository.findOffsetBy(eq(10), contains(STRATEGY_UNIT),
+            eq(MetadataCollections.UNIT.getName()))).thenReturn(100L);
+        when(restoreBackupService.getListing(contains(STRATEGY_UNIT), eq(DataCategory.UNIT), eq(100L),
+            eq(requestItem.getLimit()), eq(Order.ASC), eq(VitamConfiguration.getRestoreBulkSize()))).thenReturn(
+            IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
+        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(MetadataCollections.UNIT), eq("100"), eq(100L)))
+            .thenReturn(getUnitMetadataBackupModel("100", 100L));
+        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(MetadataCollections.UNIT), eq("101"), eq(101L)))
+            .thenReturn(getUnitMetadataBackupModel("101", 101L));
+        when(storageClient.getStorageStrategies()).thenReturn(
+            getStorageStrategiesWithSameReferentOfferForDifferentStrategies());
         ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
         doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
 
         ReconstructionService reconstructionService =
-                new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
-                        storageClientFactory, offsetRepository, indexManager);
+            new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
+                storageClientFactory, offsetRepository, indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -205,7 +211,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(eq(10), startsWith(STRATEGY_UNIT),  eq(MetadataCollections.UNIT.getName()), eq(101L));
+        verify(offsetRepository).createOrUpdateOffset(eq(10), startsWith(STRATEGY_UNIT),
+            eq(MetadataCollections.UNIT.getName()), eq(101L));
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -214,13 +221,13 @@ public class ReconstructionServiceTest {
     @Test
     public void should_ignore_missing_files_and_return_new_offset_when_item_unit_is_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100L,
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100L,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenThrow(new StorageNotFoundException(""));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
@@ -228,7 +235,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
-                    storageClientFactory, offsetRepository, indexManager);
+                storageClientFactory, offsetRepository, indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -240,7 +247,7 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -249,21 +256,22 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_new_offset_when_item_got_is_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP.getName())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.OBJECTGROUP.getName())).thenReturn(
+            100L);
 
         requestItem.setCollection("ObjectGroup");
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.OBJECTGROUP, 100l,
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.OBJECTGROUP, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.OBJECTGROUP, "100", 100L))
             .thenReturn(getGotMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.OBJECTGROUP, "101", 101L))
             .thenReturn(getGotMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkObjectgrouplifecycles(any());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -276,7 +284,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.OBJECTGROUP.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP.getName(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.OBJECTGROUP.getName(),
+            101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -285,21 +294,22 @@ public class ReconstructionServiceTest {
     @Test
     public void should_ignore_missing_files_and_return_new_offset_when_item_got_is_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP.getName())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.OBJECTGROUP.getName())).thenReturn(
+            100L);
 
         requestItem.setCollection("ObjectGroup");
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.OBJECTGROUP, 100l,
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.OBJECTGROUP, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.OBJECTGROUP, "100", 100L))
             .thenReturn(getGotMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.OBJECTGROUP, "101", 101L))
             .thenThrow(new StorageNotFoundException(""));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkObjectgrouplifecycles(any());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -312,7 +322,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.OBJECTGROUP.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT,  MetadataCollections.OBJECTGROUP.getName(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.OBJECTGROUP.getName(),
+            101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -322,25 +333,29 @@ public class ReconstructionServiceTest {
     public void should_return_new_offset_when_item_got_graph_is_ok() throws Exception {
         VitamConfiguration.setAdminTenant(1);
         // given
-        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.OBJECTGROUP_GRAPH.name())).thenReturn(100L);
 
         requestItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 100l,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+            100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+                "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
             .thenReturn(new FakeInputStream(1, false));
 
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+                "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
             .thenReturn(new FakeInputStream(1, true));
-        
+
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -354,7 +369,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
-        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.OBJECTGROUP_GRAPH.name(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -364,25 +380,29 @@ public class ReconstructionServiceTest {
     public void should_ignore_missing_files_and_return_new_offset_when_item_got_graph_is_ok() throws Exception {
         VitamConfiguration.setAdminTenant(1);
         // given
-        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.OBJECTGROUP_GRAPH.name())).thenReturn(100L);
 
         requestItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 100l,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+            100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+                "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
             .thenReturn(new FakeInputStream(1, false));
 
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH,
+                "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
             .thenThrow(new StorageNotFoundException(""));
-        
+
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -396,7 +416,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
-        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name(), 100L);
+        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.OBJECTGROUP_GRAPH.name(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
@@ -406,7 +427,8 @@ public class ReconstructionServiceTest {
     public void should_return_new_offset_when_item_unit_graph_is_ok() throws Exception {
         VitamConfiguration.setAdminTenant(1);
         // given
-        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT_GRAPH.name())).thenReturn(100L);
 
         requestItem.setCollection(DataCategory.UNIT_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 100l,
@@ -414,17 +436,19 @@ public class ReconstructionServiceTest {
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH,
+                "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
             .thenReturn(new FakeInputStream(1, false));
 
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH,
+                "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
             .thenReturn(new FakeInputStream(1, true));
 
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        
+
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -438,7 +462,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
-        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name(), 101L);
+        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT_GRAPH.name(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -448,7 +473,8 @@ public class ReconstructionServiceTest {
     public void should_ignore_missing_files_and_return_new_offset_when_item_unit_graph_is_ok() throws Exception {
         VitamConfiguration.setAdminTenant(1);
         // given
-        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT_GRAPH.name())).thenReturn(100L);
 
         requestItem.setCollection(DataCategory.UNIT_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 100l,
@@ -456,17 +482,19 @@ public class ReconstructionServiceTest {
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH,
+                "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444"))
             .thenThrow(new StorageNotFoundException(""));
 
         when(restoreBackupService
-            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
+            .loadData(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH,
+                "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"))
             .thenReturn(new FakeInputStream(1, true));
 
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        
+
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -480,7 +508,8 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
-        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name(), 100L);
+        verify(offsetRepository).createOrUpdateOffset(1, VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT_GRAPH.name(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
@@ -488,26 +517,27 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_item_limit_zero() throws StorageServerClientException, InvalidParseOperationException {
+    public void should_return_request_offset_when_item_limit_zero()
+        throws StorageServerClientException, InvalidParseOperationException {
         // given
         requestItem.setLimit(0);
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
 
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100l,
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).
             thenReturn(IteratorUtils.emptyIterator());
 
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName(), 100L);
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -518,7 +548,7 @@ public class ReconstructionServiceTest {
         // given
         requestItem.setLimit(-5);
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
@@ -530,7 +560,7 @@ public class ReconstructionServiceTest {
     public void should_throw_IllegalArgumentException_when_item_is_null() {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
@@ -542,7 +572,7 @@ public class ReconstructionServiceTest {
     public void should_throw_IllegalArgumentException_when_item_collection_is_null() {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection(null)))
@@ -554,7 +584,7 @@ public class ReconstructionServiceTest {
     public void should_throw_IllegalArgumentException_when_item_collection_is_invalid() {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection("toto")))
@@ -566,7 +596,7 @@ public class ReconstructionServiceTest {
     public void should_throw_IllegalArgumentException_when_item_tenant_is_null() {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
@@ -578,13 +608,13 @@ public class ReconstructionServiceTest {
     public void should_return_ko_when_mongo_exception()
         throws Exception {
         // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100l,
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
@@ -601,7 +631,7 @@ public class ReconstructionServiceTest {
         }).when(mongoRepository).update(any(List.class));
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable<Document> findIterable = mock(FindIterable.class);
@@ -627,20 +657,20 @@ public class ReconstructionServiceTest {
     public void should_return_ko_when_es_exception()
         throws Exception {
         // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100l, requestItem.getLimit(),
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l, requestItem.getLimit(),
             Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         doThrow(new DatabaseException("Elasticsearch error")).when(esRepository).save(any(List.class));
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -662,13 +692,13 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_ko_when_logbook_exception() throws Exception {
         // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100l,
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doThrow(new LogbookClientServerException("logbook error"))
@@ -676,7 +706,7 @@ public class ReconstructionServiceTest {
             .createRawbulkUnitlifecycles(any());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -701,15 +731,15 @@ public class ReconstructionServiceTest {
     public void should_return_request_offset_when_lifecycle_null()
         throws Exception {
         // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
         MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
         metadataBackupModel100.setLifecycle(null);
-        when(restoreBackupService.getListing(STRATEGY_UNIT,  DataCategory.UNIT, 100l,
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l,
             requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "100", 100L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(metadataBackupModel100);
-        when(restoreBackupService.loadData(STRATEGY_UNIT,  MetadataCollections.UNIT, "101", 101L))
+        when(restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doThrow(new LogbookClientServerException("logbook error"))
@@ -717,7 +747,7 @@ public class ReconstructionServiceTest {
             .createRawbulkUnitlifecycles(any());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // When
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
@@ -733,7 +763,7 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_request_offset_when_metadata_null() throws Exception {
         // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT,  MetadataCollections.UNIT.getName())).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(100L);
         MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
         metadataBackupModel100.setUnit(null);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, 100l,
@@ -746,7 +776,7 @@ public class ReconstructionServiceTest {
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
         // When
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
@@ -778,9 +808,9 @@ public class ReconstructionServiceTest {
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
-                restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
+            restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager);
-        
+
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -829,10 +859,11 @@ public class ReconstructionServiceTest {
         strategy.getOffers().add(offerReference);
 
         return ClientMockResultHelper
-                .createResponse(Arrays.asList(strategy));
+            .createResponse(Arrays.asList(strategy));
     }
 
-    private RequestResponse<StorageStrategy> getStorageStrategiesWithSameReferentOfferForDifferentStrategies() throws InvalidParseOperationException {
+    private RequestResponse<StorageStrategy> getStorageStrategiesWithSameReferentOfferForDifferentStrategies()
+        throws InvalidParseOperationException {
         OfferReference offerReference = new OfferReference();
         offerReference.setId("offer1");
         offerReference.setReferent(true);
@@ -840,11 +871,11 @@ public class ReconstructionServiceTest {
         strategy1.setId(STRATEGY_UNIT);
         strategy1.getOffers().add(offerReference);
         StorageStrategy strategy2 = new StorageStrategy();
-        strategy2.setId(STRATEGY_UNIT+"-bis");
+        strategy2.setId(STRATEGY_UNIT + "-bis");
         strategy2.getOffers().add(offerReference);
 
         return ClientMockResultHelper
-                .createResponse(Arrays.asList(strategy1, strategy2));
+            .createResponse(Arrays.asList(strategy1, strategy2));
     }
 
 }

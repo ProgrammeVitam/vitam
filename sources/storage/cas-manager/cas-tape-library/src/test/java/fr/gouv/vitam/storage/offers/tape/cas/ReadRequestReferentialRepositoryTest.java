@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -104,7 +103,8 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusDays(1)));
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
@@ -116,7 +116,8 @@ public class ReadRequestReferentialRepositoryTest {
 
         String requestId2 = GUIDFactory.newGUID().getId();
         tapeReadRequestReferentialEntity.setRequestId(requestId2);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
@@ -164,7 +165,8 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
 
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);

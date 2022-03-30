@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.common.database.parser.request;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -42,9 +36,13 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Configuration for Parser
- *
  */
 public class GlobalDatasParser extends GlobalDatas {
 
@@ -116,7 +114,6 @@ public class GlobalDatasParser extends GlobalDatas {
     }
 
     /**
-     *
      * @param value JsonNode
      * @return the Object for Value
      * @throws InvalidParseOperationException if value could not parse to JSON
@@ -152,9 +149,8 @@ public class GlobalDatasParser extends GlobalDatas {
             return value.asText();
         }
     }
-    
+
     /**
-     * 
      * @param value
      * @return the ArrayNode for value
      * @throws InvalidParseOperationException if value could not parse to JSON

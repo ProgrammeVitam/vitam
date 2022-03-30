@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
-import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Defines an ontology collection. </BR>

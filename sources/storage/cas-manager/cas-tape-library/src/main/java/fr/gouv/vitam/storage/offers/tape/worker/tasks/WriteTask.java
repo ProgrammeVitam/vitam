@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -482,7 +482,8 @@ public class WriteTask implements Future<ReadWriteResult> {
     }
 
     private RetryableOnException<Void, ReadWriteException> retryable() {
-        RetryableParameters parameters = new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
+        RetryableParameters parameters =
+            new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
         return new RetryableOnException<>(parameters);
     }
 

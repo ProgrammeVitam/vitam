@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -29,53 +29,52 @@ package fr.gouv.vitam.common.storage.s3;
 /**
  * List of error codes as defined by Amazon's S3 API and used by Amazon S3
  * connector in Vitam.
- * 
- * @see https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
  *
+ * @see https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
  */
 public enum AmazonS3APIErrorCodes {
 
-	/**
-	 * Error for case when bucket already exists without acl
-	 */
-	BUCKET_ALREADY_EXISTS("BucketAlreadyExists"),
-	/**
-	 * Error for case when bucket already exists with acl
-	 */
-	BUCKET_ALREADY_OWNED_BY_YOU("BucketAlreadyOwnedByYou"),
-	/**
-	 * Error when bucket does not exists
-	 */
-	NO_SUCH_BUCKET("NoSuchBucket"),
-	/**
-	 * Error when object does not exists
-	 */
-	NO_SUCH_KEY("NoSuchKey"),
-	/**
-	 * Error when bucket or object does not exists
-	 */
-	NOT_FOUND("404 Not Found");
+    /**
+     * Error for case when bucket already exists without acl
+     */
+    BUCKET_ALREADY_EXISTS("BucketAlreadyExists"),
+    /**
+     * Error for case when bucket already exists with acl
+     */
+    BUCKET_ALREADY_OWNED_BY_YOU("BucketAlreadyOwnedByYou"),
+    /**
+     * Error when bucket does not exists
+     */
+    NO_SUCH_BUCKET("NoSuchBucket"),
+    /**
+     * Error when object does not exists
+     */
+    NO_SUCH_KEY("NoSuchKey"),
+    /**
+     * Error when bucket or object does not exists
+     */
+    NOT_FOUND("404 Not Found");
 
-	/**
-	 * Amazon S3 API error response codes
-	 */
-	private final String errorCode;
+    /**
+     * Amazon S3 API error response codes
+     */
+    private final String errorCode;
 
-	/**
-	 * Constructor
-	 * 
-	 * @param errorCode error code
-	 */
-	private AmazonS3APIErrorCodes(String errorCode) {
-		this.errorCode = errorCode;
-	}
+    /**
+     * Constructor
+     *
+     * @param errorCode error code
+     */
+    private AmazonS3APIErrorCodes(String errorCode) {
+        this.errorCode = errorCode;
+    }
 
-	/**
-	 * Gets the errorCode
-	 * 
-	 * @return errorCode
-	 */
-	public String getErrorCode() {
-		return errorCode;
-	}
+    /**
+     * Gets the errorCode
+     *
+     * @return errorCode
+     */
+    public String getErrorCode() {
+        return errorCode;
+    }
 }

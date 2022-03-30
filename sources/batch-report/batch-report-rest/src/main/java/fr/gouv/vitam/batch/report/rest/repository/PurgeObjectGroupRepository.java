@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -84,25 +84,25 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
         return objectGroupReportCollection.aggregate(
-            Arrays.asList(
-                Aggregates.match(and(
-                    eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                    eq(PurgeObjectGroupModel.TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id"),
-                    new Document("distribGroup", null),
-                    new Document("params.id", "$_metadata.id"),
-                    new Document("params.type", new Document("$literal", "ObjectGroup")),
-                    new Document("params.status", "$_metadata.status"),
-                    new Document("params.opi", "$_metadata.opi"),
-                    new Document("params.originatingAgency", "$_metadata.originatingAgency"),
-                    new Document("params.deletedParentUnitIds", "$_metadata.deletedParentUnitIds"),
-                    new Document("params.objectIds", "$_metadata.objectIds")
-                    )
-                ))
-        )
+                Arrays.asList(
+                    Aggregates.match(and(
+                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
+                        eq(PurgeObjectGroupModel.TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("distribGroup", null),
+                            new Document("params.id", "$_metadata.id"),
+                            new Document("params.type", new Document("$literal", "ObjectGroup")),
+                            new Document("params.status", "$_metadata.status"),
+                            new Document("params.opi", "$_metadata.opi"),
+                            new Document("params.originatingAgency", "$_metadata.originatingAgency"),
+                            new Document("params.deletedParentUnitIds", "$_metadata.deletedParentUnitIds"),
+                            new Document("params.objectIds", "$_metadata.objectIds")
+                        )
+                    ))
+            )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();
@@ -117,80 +117,80 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
      */
     public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
         return objectGroupReportCollection.aggregate(
-            Arrays.asList(
-                // Filter
-                Aggregates.match(and(
-                    eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                    eq(PurgeObjectGroupModel.TENANT, tenantId),
-                    eq("_metadata.status", "DELETED")
-                )),
+                Arrays.asList(
+                    // Filter
+                    Aggregates.match(and(
+                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
+                        eq(PurgeObjectGroupModel.TENANT, tenantId),
+                        eq("_metadata.status", "DELETED")
+                    )),
 
-                // Projection
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id"),
-                    new Document(OPI, "$_metadata." + OPI),
-                    new Document(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
-                    new Document("objectVersions", "$_metadata.objectVersions")
+                    // Projection
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document(OPI, "$_metadata." + OPI),
+                            new Document(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
+                            new Document("objectVersions", "$_metadata.objectVersions")
 
-                    )
-                ),
+                        )
+                    ),
 
-                // Create as many documents as there are items in the list objectVersions
-                Aggregates.unwind("$objectVersions"),
+                    // Create as many documents as there are items in the list objectVersions
+                    Aggregates.unwind("$objectVersions"),
 
-                // Group BY
-                Aggregates.group(new Document(OPI, "$objectVersions." + OPI)
-                        .append(OPI_GOT, "$" + OPI),
-                    Accumulators
-                        .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
-                    Accumulators.sum(TOTAL_SIZE, "$objectVersions.size"),
-                    Accumulators.sum(TOTAL_OBJECTS, 1),
-                    Accumulators.addToSet("listGOT", "$id")
-                ),
+                    // Group BY
+                    Aggregates.group(new Document(OPI, "$objectVersions." + OPI)
+                            .append(OPI_GOT, "$" + OPI),
+                        Accumulators
+                            .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
+                        Accumulators.sum(TOTAL_SIZE, "$objectVersions.size"),
+                        Accumulators.sum(TOTAL_OBJECTS, 1),
+                        Accumulators.addToSet("listGOT", "$id")
+                    ),
 
-                // Projection
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document(OPI, "$_id." + OPI),
-                    new Document(OPI_GOT, "$_id." + OPI_GOT),
-                    new Document(ORIGINATING_AGENCY, 1),
-                    new Document(TOTAL_SIZE, 1),
-                    new Document(TOTAL_OBJECTS, 1),
-                    // if opi == opi_got then $size of $listGOT else 0. @see mongodb $cond.
-                    // Do not count ObjectGroup for objects where there opi is different to opi of ObjectGroup himself
-                    // The ObjectGroup is already counted with his principal opi
-                    new Document(TOTAL_OBJECT_GROUPS, new Document("$cond", Lists
-                        .newArrayList(new Document("$eq", Lists.newArrayList("$_id." + OPI, "$_id." + OPI_GOT)),
-                            new Document("$size", "$listGOT"), 0)))
-                    )
-                ),
+                    // Projection
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document(OPI, "$_id." + OPI),
+                            new Document(OPI_GOT, "$_id." + OPI_GOT),
+                            new Document(ORIGINATING_AGENCY, 1),
+                            new Document(TOTAL_SIZE, 1),
+                            new Document(TOTAL_OBJECTS, 1),
+                            // if opi == opi_got then $size of $listGOT else 0. @see mongodb $cond.
+                            // Do not count ObjectGroup for objects where there opi is different to opi of ObjectGroup himself
+                            // The ObjectGroup is already counted with his principal opi
+                            new Document(TOTAL_OBJECT_GROUPS, new Document("$cond", Lists
+                                .newArrayList(new Document("$eq", Lists.newArrayList("$_id." + OPI, "$_id." + OPI_GOT)),
+                                    new Document("$size", "$listGOT"), 0)))
+                        )
+                    ),
 
-                // Group BY
-                // At this point we will have multiple documents having the same opi => must be grouped by opi in the same document.
-                Aggregates.group("$" + OPI,
-                    Accumulators
-                        .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
-                    Accumulators.sum(TOTAL_SIZE, "$" + TOTAL_SIZE),
-                    Accumulators.sum(TOTAL_OBJECTS, "$" + TOTAL_OBJECTS),
-                    Accumulators.sum(TOTAL_OBJECT_GROUPS, "$" + TOTAL_OBJECT_GROUPS)
-                ),
+                    // Group BY
+                    // At this point we will have multiple documents having the same opi => must be grouped by opi in the same document.
+                    Aggregates.group("$" + OPI,
+                        Accumulators
+                            .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
+                        Accumulators.sum(TOTAL_SIZE, "$" + TOTAL_SIZE),
+                        Accumulators.sum(TOTAL_OBJECTS, "$" + TOTAL_OBJECTS),
+                        Accumulators.sum(TOTAL_OBJECT_GROUPS, "$" + TOTAL_OBJECT_GROUPS)
+                    ),
 
-                // Projection
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document(OPI, "$_id"),
-                    new Document(ORIGINATING_AGENCY, 1),
-                    new Document(TOTAL_SIZE, 1),
-                    new Document(TOTAL_OBJECTS, 1),
-                    new Document(TOTAL_OBJECT_GROUPS, 1)
-                    )
-                ),
+                    // Projection
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document(OPI, "$_id"),
+                            new Document(ORIGINATING_AGENCY, 1),
+                            new Document(TOTAL_SIZE, 1),
+                            new Document(TOTAL_OBJECTS, 1),
+                            new Document(TOTAL_OBJECT_GROUPS, 1)
+                        )
+                    ),
 
-                // Sort
-                Aggregates.sort(Sorts.descending(OPI))
+                    // Sort
+                    Aggregates.sort(Sorts.descending(OPI))
+                )
             )
-        )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();

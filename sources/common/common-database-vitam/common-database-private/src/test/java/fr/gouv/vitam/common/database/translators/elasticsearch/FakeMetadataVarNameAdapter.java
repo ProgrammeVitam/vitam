@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,10 +50,10 @@ public class FakeMetadataVarNameAdapter extends VarNameAdapter {
     }
 
     /**
-     * @see ParserTokens.PROJECTIONARGS
      * @param name as String
      * @return the new name or null if the same
      * @throws InvalidParseOperationException when parsing error
+     * @see ParserTokens.PROJECTIONARGS
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {

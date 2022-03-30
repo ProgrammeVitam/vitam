@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,8 +34,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private Integer timeoutMsPerKB;
     private int minWriteTimeoutMs = 60_000;
     private int minBulkWriteTimeoutMsPerObject = 10_000;
-    private String loggingDirectory ;
-    private String  zippingDirecorty;
+    private String loggingDirectory;
+    private String zippingDirecorty;
     private String p12LogbookPassword;
     private String p12LogbookFile;
     private Integer storageTraceabilityOverlapDelay;
@@ -65,9 +65,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     * @param urlWorkspace
-     *            the urlWorkspace to set
-     *
+     * @param urlWorkspace the urlWorkspace to set
      * @return this
      */
     public StorageConfiguration setUrlWorkspace(String urlWorkspace) {
@@ -83,9 +81,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     * @param timeoutMsPerKB
-     *            the timeout for on kB transfered in milliseconds
-     *
+     * @param timeoutMsPerKB the timeout for on kB transfered in milliseconds
      * @return this
      */
     public StorageConfiguration setTimeoutMsPerKB(Integer timeoutMsPerKB) {
@@ -94,7 +90,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     *
      * @return loggingDirectory
      */
     public String getLoggingDirectory() {
@@ -102,7 +97,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     *
      * @param loggingDirectory
      */
     public void setLoggingDirectory(String loggingDirectory) {
@@ -110,7 +104,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     *
      * @return zippingDirecorty
      */
     public String getZippingDirecorty() {
@@ -118,7 +111,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     *
      * @param zippingDirecorty
      */
     public void setZippingDirecorty(String zippingDirecorty) {
@@ -157,6 +149,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     /**
      * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
      * due to clock difference.
+     *
      * @return The overlap delay (in seconds).
      */
     public Integer getStorageTraceabilityOverlapDelay() {

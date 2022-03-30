@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,6 +27,12 @@
 
 package fr.gouv.vitam.common.digest;
 
+import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,12 +44,6 @@ import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Digest implementation
@@ -92,7 +92,6 @@ public class Digest {
     }
 
     /**
-     *
      * @return the associated digest type
      */
     public final DigestType type() {
@@ -100,7 +99,6 @@ public class Digest {
     }
 
     /**
-     *
      * @param bytes the bytes from which to update
      * @return this
      * @throws IllegalArgumentException if bytes null
@@ -111,7 +109,6 @@ public class Digest {
     }
 
     /**
-     *
      * @param bytes the bytes from which to update
      * @param offset the offset position
      * @param length the length
@@ -135,8 +132,7 @@ public class Digest {
     }
 
     /**
-     *
-     * @param buffer for updating Digest 
+     * @param buffer for updating Digest
      * @return this
      * @throws IllegalArgumentException if buffer null
      */
@@ -159,7 +155,6 @@ public class Digest {
     }
 
     /**
-     *
      * @param value the String value from which to update
      * @return this
      * @throws IllegalArgumentException value null
@@ -374,7 +369,6 @@ public class Digest {
     }
 
     /**
-     *
      * @return the digest
      */
     public final byte[] digest() {
@@ -393,7 +387,6 @@ public class Digest {
     }
 
     /**
-     *
      * @return the digest in Base16 format
      */
     public final String digestHex() {
@@ -412,7 +405,6 @@ public class Digest {
     }
 
     /**
-     *
      * @return the digest in Base64 format
      */
     public final String digest64() {
@@ -479,7 +471,6 @@ public class Digest {
     }
 
     /**
-     *
      * @param in the inputstream from which the digest will be computed
      * @param algo the algorithm to use
      * @return the digest for this inputStream

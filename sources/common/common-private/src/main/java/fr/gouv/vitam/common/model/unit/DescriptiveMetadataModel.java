@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.culture.archivesdefrance.seda.v2.CoverageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.GpsType;
@@ -42,8 +36,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * DescriptiveMetadataModel POJO
@@ -208,7 +206,6 @@ public class DescriptiveMetadataModel {
     }
 
     /**
-     * 
      * @return title_
      */
     public TextByLang getTitle_() {
@@ -216,7 +213,6 @@ public class DescriptiveMetadataModel {
     }
 
     /**
-     * 
      * @param title_
      */
     public void setTitle_(TextByLang title_) {
@@ -322,7 +318,6 @@ public class DescriptiveMetadataModel {
     }
 
     /**
-     * 
      * @return description_
      */
     public TextByLang getDescription_() {
@@ -330,7 +325,6 @@ public class DescriptiveMetadataModel {
     }
 
     /**
-     * 
      * @param description_
      */
     public void setDescription_(TextByLang description_) {
@@ -558,7 +552,7 @@ public class DescriptiveMetadataModel {
      * @return transmitter value
      */
     public List<AgentTypeModel> getTransmitter() {
-        if(transmitter == null){
+        if (transmitter == null) {
             transmitter = new ArrayList<>();
         }
         return transmitter;
@@ -577,7 +571,7 @@ public class DescriptiveMetadataModel {
      * @return sender value
      */
     public List<AgentTypeModel> getSender() {
-        if(sender == null){
+        if (sender == null) {
             sender = new ArrayList<>();
         }
         return sender;

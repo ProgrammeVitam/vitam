@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,6 @@ import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -200,7 +199,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     *
      * @param configuration the client configuration
      * @param resourcePath the resource path of the server for the client calls
      * @param client the HTTP client to use
@@ -511,7 +509,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,
         ClientHttpEngine engine) {
-        ResteasyClientBuilder clientBuilder = (ResteasyClientBuilder)ClientBuilder.newBuilder();
+        ResteasyClientBuilder clientBuilder = (ResteasyClientBuilder) ClientBuilder.newBuilder();
         clientBuilder.httpEngine(engine);
         clientBuilder.connectionCheckoutTimeout(
             VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT.getInt(config, 1000),

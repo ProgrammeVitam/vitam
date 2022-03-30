@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -173,7 +173,8 @@ public class AccessContractImplTest {
 
         dbImpl =
             MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager);
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -192,7 +193,8 @@ public class AccessContractImplTest {
 
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager),
                 vitamCounterService, metaDataClientMock, logbookOperationsClientMock, functionalBackupService);
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
 

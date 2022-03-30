@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -118,7 +118,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/metadata/v1")
-@Tag(name="Metadata")
+@Tag(name = "Metadata")
 public class MetadataManagementResource {
 
     /**
@@ -146,8 +146,8 @@ public class MetadataManagementResource {
     private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
     private static final String PURGE_EXPIRED_TRANSFER_SIP_FILES_URI = "/purgeTransfersSIP";
     private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
-    private static final String DIP_CONTAINER ="DIP";
-    private static final String TRANSFERS_CONTAINER ="TRANSFER";
+    private static final String DIP_CONTAINER = "DIP";
+    private static final String TRANSFERS_CONTAINER = "TRANSFER";
 
     /**
      * Error/Exceptions messages.
@@ -531,7 +531,8 @@ public class MetadataManagementResource {
         obsoleteQuery.add(QueryHelper.eq(VitamFieldsHelper.validComputedInheritedRules(), false));
 
         BooleanQuery incoherentValuesQuery = QueryHelper.and();
-        incoherentValuesQuery.add(QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.computedInheritedRules())));
+        incoherentValuesQuery.add(
+            QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.computedInheritedRules())));
         incoherentValuesQuery.add(QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules()));
 
         obsoleteQuery.add(incoherentValuesQuery);
@@ -570,20 +571,22 @@ public class MetadataManagementResource {
             workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
 
             OperationContextMonitor.compressInWorkspace(workspaceClientFactory, operationGuid.getId(),
-                    Contexts.COMPUTE_INHERITED_RULES.getLogbookTypeProcess(),
+                Contexts.COMPUTE_INHERITED_RULES.getLogbookTypeProcess(),
                 OperationContextMonitor.OperationContextFileName);
 
             processingClient
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
-            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            RequestResponse<ItemStatus> response =
+                processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(),
+                    RESUME.getValue());
             LOGGER.debug("End computedInheritedRulesCalculation");
             return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException |
-                ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
-                VitamClientException | OperationContextException e) {
+            ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
+            VitamClientException | OperationContextException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,

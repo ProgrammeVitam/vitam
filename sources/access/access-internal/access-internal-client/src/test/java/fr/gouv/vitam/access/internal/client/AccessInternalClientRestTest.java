@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -789,7 +789,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenSuccessThenOK()
@@ -797,9 +797,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         JsonNode responseNode = JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
+            .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
         RequestResponseOK<ItemStatus> responseOK = RequestResponseOK.getFromJsonNode(responseNode, ItemStatus.class);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
 
@@ -811,7 +811,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(requestResponse.isOk()).isTrue();
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenNoBodyThenException()
@@ -825,7 +825,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
             .isInstanceOf(IllegalArgumentException.class);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenPreconditionFailedThenException()
@@ -833,7 +833,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
 
         JsonNode requestBody = JsonHandler.createObjectNode();
@@ -842,7 +842,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
             .isInstanceOf(AccessInternalClientServerException.class);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenBadRequestFailedThenVitamError()
@@ -850,13 +850,13 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        
+
         VitamError responseError = new VitamError("BAD_REQUEST")
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                .setContext("BULK IT")
-                .setState("KO")
-                .setDescription("Bad response")
-                .setMessage("something bad happened here");
+            .setHttpCode(Status.BAD_REQUEST.getStatusCode())
+            .setContext("BULK IT")
+            .setState("KO")
+            .setDescription("Bad response")
+            .setMessage("something bad happened here");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(responseError).build());
 
         JsonNode requestBody = JsonHandler.createObjectNode();

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,13 +39,15 @@ public interface Retryable<T, E extends Exception> {
 
     void execute(DelegateRetryVoid<E> delegate) throws E;
 
-    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<T> onResult, T type) {
+    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<T> onResult,
+        T type) {
         onResult.accept(type);
         String resultString = type.toString();
         doSleep(attempt, name, param, randomSleep, resultString);
     }
 
-    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<Exception> onException, Exception exception) {
+    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep,
+        Consumer<Exception> onException, Exception exception) {
         onException.accept(exception);
         String stackTrace = ExceptionUtils.getStackTrace(exception);
         doSleep(attempt, name, param, randomSleep, stackTrace);
@@ -62,7 +64,9 @@ public interface Retryable<T, E extends Exception> {
                 : randomRangeSleep + param.getWaitingTime();
 
             TimeUnit timeUnit = param.getTimeUnit();
-            param.getLog().accept(String.format("Retryable='%s' - Will retry, attempt '%d' in '%d' %s. %s", name, attempt, sleepTime, timeUnit.name(), toPrint));
+            param.getLog().accept(
+                String.format("Retryable='%s' - Will retry, attempt '%d' in '%d' %s. %s", name, attempt, sleepTime,
+                    timeUnit.name(), toPrint));
             timeUnit.sleep(sleepTime);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

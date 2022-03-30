@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -100,8 +100,8 @@ import java.util.List;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
@@ -184,10 +184,11 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private List<ItemStatus> executeBulk(WorkerParameters workerParameters, HandlerIO handler, List<String> bulkUnits, int batchOffset)
+    private List<ItemStatus> executeBulk(WorkerParameters workerParameters, HandlerIO handler, List<String> bulkUnits,
+        int batchOffset)
         throws BadRequestException, ProcessingException {
 
-        try(MetaDataClient mdClient = metaDataClientFactory.getClient();
+        try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
@@ -332,7 +333,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         StatusCode reportStatus = status;
         if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
-           reportStatus = StatusCode.WARNING; 
+            reportStatus = StatusCode.WARNING;
         }
         BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
             vitamSession.getTenantId(),
@@ -410,10 +411,10 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                     EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
             }
         }
-        
+
         if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
             return buildItemStatus(getPluginId(), WARNING,
-                    EventDetails.of("Bulk atomic update WARNING"));
+                EventDetails.of("Bulk atomic update WARNING"));
         }
 
         try {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -166,7 +166,7 @@ public class LogbookLFCAdministration {
 
         Contexts workflowContext = getWorkflowContext(lfcTraceabilityType);
 
-        if(isTraceabilityInProgress(workflowContext)) {
+        if (isTraceabilityInProgress(workflowContext)) {
             LOGGER.error("There is another traceability operation in progress...");
             return false;
         }
@@ -188,7 +188,7 @@ public class LogbookLFCAdministration {
         return true;
     }
 
-    private boolean isTraceabilityInProgress(Contexts workflowContext) throws VitamClientException{
+    private boolean isTraceabilityInProgress(Contexts workflowContext) throws VitamClientException {
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
 
             ProcessQuery query = new ProcessQuery();
@@ -202,11 +202,13 @@ public class LogbookLFCAdministration {
             // Workflow id
             query.setWorkflows(List.of(workflowContext.name()));
 
-            RequestResponse<ProcessDetail> processDetailRequestResponse = processManagementClient.listOperationsDetails(query);
+            RequestResponse<ProcessDetail> processDetailRequestResponse =
+                processManagementClient.listOperationsDetails(query);
             if (!processDetailRequestResponse.isOk()) {
 
                 VitamError error = (VitamError) processDetailRequestResponse;
-                throw new VitamClientException("Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
+                throw new VitamClientException(
+                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
             }
 
             return !((RequestResponseOK<ProcessDetail>) processDetailRequestResponse).getResults().isEmpty();

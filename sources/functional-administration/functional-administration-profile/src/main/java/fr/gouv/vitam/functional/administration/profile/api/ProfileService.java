@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,11 +27,6 @@
 package fr.gouv.vitam.functional.administration.profile.api;
 
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -41,6 +36,10 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * This service manages the creation, update, find, ... profiles
@@ -58,7 +57,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>A field has an invalid format</li>
      * <li>One or many profile already exist in the database</li>
      *
-     * @param profileModelList the list of profiles to be created 
+     * @param profileModelList the list of profiles to be created
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
@@ -86,7 +85,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * @param profileIdentifier the profile identifier
      * @return Response
      * @throws ProfileNotFoundException thrown if the profile could not be found
-     * @throws InvalidParseOperationException thrown if the query could not be executed 
+     * @throws InvalidParseOperationException thrown if the query could not be executed
      * @throws ReferentialException thrown if the query could not be executed
      * @throws VitamException thrown if another error is encountered
      */
@@ -101,22 +100,23 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>- DesactivationDate</li>
      * <li>- LastUpdate</li>
      * <li>- Status</li>
-     *@param identifier identifier of the profile to update
+     *
+     * @param identifier identifier of the profile to update
      * @param jsonDsl the given profile dsl for update
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    RequestResponse<ProfileModel> updateProfile(String identifier,  JsonNode jsonDsl) throws VitamException;
+    RequestResponse<ProfileModel> updateProfile(String identifier, JsonNode jsonDsl) throws VitamException;
 
     /**
      * Update profile
-     * 
+     *
      * @param profileModel the updated ProfileModel
      * @param jsonDsl the query as a json
-     * @return a response as a RequestResponse<ProfileModel> object 
+     * @return a response as a RequestResponse<ProfileModel> object
      * @throws VitamException thrown if the update could not be executed
      */
-    RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel,  JsonNode jsonDsl) throws VitamException;
+    RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel, JsonNode jsonDsl) throws VitamException;
 
     /**
      * Find profile by identifier
@@ -135,7 +135,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * @param queryDsl the query as a json to be executed
      * @return list of ProfileModel
      * @throws ReferentialException thrown if the query could not be executed
-     * @throws InvalidParseOperationException thrown if the query could not be executed 
+     * @throws InvalidParseOperationException thrown if the query could not be executed
      */
     RequestResponseOK<ProfileModel> findProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;

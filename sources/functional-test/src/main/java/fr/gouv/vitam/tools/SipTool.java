@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.tools;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,8 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import fr.gouv.vitam.common.guid.GUIDFactory;
-
 public class SipTool {
 
     public static final String REPLACEMENT_STRING = "_REPLACE_ME_";
@@ -50,10 +50,11 @@ public class SipTool {
 
 
 
-    public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2, String replacement2) throws IOException {
+    public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2,
+        String replacement2) throws IOException {
         File tempFile = Files.createTempFile(GUIDFactory.newGUID().toString(), ".zip").toFile();
         try (InputStream zipFile = new FileInputStream(zipPath.toFile())) {
-        	Files.copy(zipFile, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(zipFile, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
             Path source = fs.getPath("manifest.xml");
@@ -68,7 +69,8 @@ public class SipTool {
         return tempFile.getAbsoluteFile().toPath();
     }
 
-    static void streamCopy(Path src, Path dst, String text1, String replacement1, String text2, String replacement2) throws IOException {
+    static void streamCopy(Path src, Path dst, String text1, String replacement1, String text2, String replacement2)
+        throws IOException {
         try (BufferedReader br = new BufferedReader(
             new InputStreamReader(Files.newInputStream(src)));
             BufferedWriter bw = new BufferedWriter(

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Contains counter for each statues.
- *
  */
 public class AuditStatusCount {
 
@@ -67,17 +66,17 @@ public class AuditStatusCount {
 
     public void addOneStatus(String status, int nb) {
         switch (status) {
-        case "OK":
-            this.nbOK = nb;
-            break;
-        case "WARNING":
-            this.nbWARNING = nb;
-            break;
-        case "KO":
-            this.nbKO = nb;
-            break;
-        default:
-            throw new IllegalArgumentException("Status invalid " + status);
+            case "OK":
+                this.nbOK = nb;
+                break;
+            case "WARNING":
+                this.nbWARNING = nb;
+                break;
+            case "KO":
+                this.nbKO = nb;
+                break;
+            default:
+                throw new IllegalArgumentException("Status invalid " + status);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -90,7 +90,8 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public Iterator<OfferLog> getListing(String strategy, DataCategory category, Long offset, Integer limit, Order order,
+    public Iterator<OfferLog> getListing(String strategy, DataCategory category, Long offset, Integer limit,
+        Order order,
         int batchSize) {
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",

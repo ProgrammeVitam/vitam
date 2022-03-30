@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.logging;
 
+import fr.gouv.vitam.common.ServerIdentityInterface;
+
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-
-import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
  * This class implements all methods that have a {@link VitamLogLevel} parameter by default to call specific logger
@@ -286,7 +286,6 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     /**
-     *
      * @return Message prepend using ServerIdentity
      */
     final String getMessagePrepend() {

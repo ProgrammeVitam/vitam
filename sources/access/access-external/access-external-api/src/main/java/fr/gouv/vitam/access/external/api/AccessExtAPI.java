@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,11 +28,11 @@ package fr.gouv.vitam.access.external.api;
 
 /**
  * AccessExtAPI containing different AccessExt uri
- *
  */
 public class AccessExtAPI {
 
-    private AccessExtAPI() {}
+    private AccessExtAPI() {
+    }
 
     /**
      * Accession register base uri
@@ -243,7 +243,8 @@ public class AccessExtAPI {
     /**
      * Unit evidence audit uri
      */
-    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";    /**
+    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";
+    /**
      * Unit evidence audit uri
      */
     public static final String RECTIFICATION_AUDIT = "/rectificationaudit";
@@ -265,12 +266,12 @@ public class AccessExtAPI {
     public static final String GRIFFIN = "griffin";
 
     public static final String PRESERVATION_SCENARIO = "preservationScenario";
-    
+
     /**
      * Objects
      */
     public static final String OBJECTS = "/objects";
-    
+
     /**
      * Logbook external Operations
      */
@@ -281,5 +282,5 @@ public class AccessExtAPI {
      */
     public static final String COMPUTEDINHERITEDRULES = "computedInheritedRules";
 
-    
+
 }

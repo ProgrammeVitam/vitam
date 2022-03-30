@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,36 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -92,6 +65,34 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ManagementContractImplTest {
 
@@ -102,7 +103,7 @@ public class ManagementContractImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-            VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private MongoDbAccessAdminImpl mongoAccess;
@@ -128,37 +129,37 @@ public class ManagementContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         managementContractService = new ManagementContractImpl(mongoAccess, vitamCounterService, storageClient,
-                logbookOperationsClient, functionalBackupService);
+            logbookOperationsClient, functionalBackupService);
 
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_insert_contracts_given_valid_not_slave_mode()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
         when(vitamCounterService.getNextSequenceAsString(eq(TENANT_ID), eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE)))
-                .thenReturn("MC-000001", "MC-000002", "MC-000003", "MC-000004", "MC-000005");
+            .thenReturn("MC-000001", "MC-000002", "MC-000003", "MC-000004", "MC-000005");
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isTrue();
 
         verify(mongoAccess, times(1)).insertDocuments(contractsToPersistCaptor.capture(),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         ArrayNode contratsToPersistCalled = contractsToPersistCaptor.getValue();
         assertThat(contratsToPersistCalled).isNotNull();
         assertThat(contratsToPersistCalled.size()).isEqualTo(5);
@@ -168,14 +169,14 @@ public class ManagementContractImplTest {
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
     }
 
     @Test
@@ -184,26 +185,26 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_minimal.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
         when(vitamCounterService.getNextSequenceAsString(eq(TENANT_ID), eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE)))
-                .thenReturn("MC-000001");
+            .thenReturn("MC-000001");
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isTrue();
 
         verify(mongoAccess, times(1)).insertDocuments(contractsToPersistCaptor.capture(),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         ArrayNode contratsToPersistCalled = contractsToPersistCaptor.getValue();
         assertThat(contratsToPersistCalled).isNotNull();
         assertThat(contratsToPersistCalled.size()).isEqualTo(1);
@@ -218,29 +219,29 @@ public class ManagementContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void when_create_should_insert_contracts_given_identifier_present_in_slave_mode()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isTrue();
         verify(mongoAccess, times(1)).insertDocuments(contractsToPersistCaptor.capture(),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         ArrayNode contratsToPersistCalled = contractsToPersistCaptor.getValue();
         assertThat(contratsToPersistCalled).isNotNull();
         assertThat(contratsToPersistCalled.size()).isEqualTo(5);
@@ -256,18 +257,18 @@ public class ManagementContractImplTest {
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<ManagementContractModel>) response).getResults().size()).isEqualTo(0);
 
         verify(vitamCounterService, never()).isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID));
         verify(vitamCounterService, never()).getNextSequenceAsString(eq(TENANT_ID),
-                eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE));
+            eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE));
         verify(mongoAccess, never()).insertDocuments(any(ArrayNode.class),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         verify(storageClient, never()).getStorageStrategies();
         verify(logbookOperationsClient, never()).create(any());
         verify(logbookOperationsClient, never()).update(any());
@@ -276,22 +277,22 @@ public class ManagementContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_identifier_not_present_in_slave_mode()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -299,48 +300,48 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(5);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).contains("Identifier")
-                .contains("mandatory");
+            .contains("mandatory");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_technical_insertion_error()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
         when(vitamCounterService.getNextSequenceAsString(eq(TENANT_ID), eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE)))
-                .thenReturn("MC-000001");
+            .thenReturn("MC-000001");
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenThrow(new ReferentialException("creation error"));
+            .thenThrow(new ReferentialException("creation error"));
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -348,68 +349,68 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getDescription()).contains("Import management contracts error >");
         assertThat(((VitamError) response).getStatus()).isEqualTo(500);
         assertThat(((VitamError) response).getHttpCode())
-                .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_contract_duplicate()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
 
         DbRequestResult dbRequestResultMock = mock(DbRequestResult.class);
         when(dbRequestResultMock.getCount()).thenReturn(1l);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(dbRequestResultMock);
+            .thenReturn(dbRequestResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(5);
         assertThat(((VitamError) response).getErrors().get(2).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
         assertThat(((VitamError) response).getErrors().get(2).getDescription())
-                .isEqualTo("The contract IdentifierMC3 already exists in database");
+            .isEqualTo("The contract IdentifierMC3 already exists in database");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
     }
 
     @Test
@@ -418,18 +419,18 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_missing_name.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -437,25 +438,25 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("The field Name is mandatory");
+            .isEqualTo("The field Name is mandatory");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -464,43 +465,43 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_invalid_date.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("The field CreationDate is mandatory");
+            .isEqualTo("The field CreationDate is mandatory");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -509,68 +510,68 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
         contractModelList.get(0).setId("guid_fake");
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("ManagementContract service error");
+            .isEqualTo("ManagementContract service error");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("Id must be null when creating contracts (mcContract1)");
+            .isEqualTo("Id must be null when creating contracts (mcContract1)");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("ManagementContract service error");
+            .isEqualTo("ManagementContract service error");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventDetailData))
-                .contains("managementContractCheck").contains("Id must be null when creating contracts (mcContract1)");
+            .contains("managementContractCheck").contains("Id must be null when creating contracts (mcContract1)");
 
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_strategy_not_found()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_strategies_not_found.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -578,55 +579,55 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getErrors().get(2).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_strategy_missing_referent_offer()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils
-                .getResourceFile("contracts_management_ko_strategies_missing_referent.json");
+            .getResourceFile("contracts_management_ko_strategies_missing_referent.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -634,51 +635,51 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+            "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_storage_technical_error()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(new DbRequestResult());
+            .thenReturn(new DbRequestResult());
         when(storageClient.getStorageStrategies())
-                .thenThrow(new StorageServerClientException("storage technical error"));
+            .thenThrow(new StorageServerClientException("storage technical error"));
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -686,48 +687,48 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Exception while validating contract (mcContract1), Error checking storage : storage technical error");
+            "Exception while validating contract (mcContract1), Error checking storage : storage technical error");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_create_should_return_error_given_schema_error()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<ManagementContractModel>>() {
-                });
+            new TypeReference<List<ManagementContractModel>>() {
+            });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
         when(vitamCounterService.getNextSequenceAsString(eq(TENANT_ID), eq(SequenceType.MANAGEMENT_CONTRACT_SEQUENCE)))
-                .thenReturn("MC-000001", "MC-000002", "MC-000003", "MC-000004", "MC-000005");
+            .thenReturn("MC-000001", "MC-000002", "MC-000003", "MC-000004", "MC-000005");
         when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenThrow(new SchemaValidationException("schema error test"));
+            .thenThrow(new SchemaValidationException("schema error test"));
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .createContracts(contractModelList);
+            .createContracts(contractModelList);
 
         // Then
         assertThat(response.isOk()).isFalse();
@@ -741,27 +742,27 @@ public class ManagementContractImplTest {
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.BAD_REQUEST.KO");
+            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.BAD_REQUEST.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_update_contracts_given_valid_query()
-            throws VitamException, InvalidCreateOperationException, FileNotFoundException {
+        throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
         final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "fake-md");
         final SetAction updateStorageObjectGroup = UpdateActionHelper.set("Storage.ObjectGroupStrategy",
-                "fake-md");
+            "fake-md");
         final SetAction updateStorageObject = UpdateActionHelper.set("Storage.ObjectStrategy", "fake-object");
 
         final Update update = new Update();
@@ -772,47 +773,47 @@ public class ManagementContractImplTest {
         updateResult.setCount(1l);
         updateResult.setDiffs(Collections.singletonMap("mc_guid", Arrays.asList("Name: +New Name -Old Name")));
         when(mongoAccess.updateData(any(JsonNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(updateResult);
+            .thenReturn(updateResult);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         ArgumentCaptor<JsonNode> contractToUpdateCaptor = ArgumentCaptor.forClass(JsonNode.class);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         assertThat(response.isOk()).isTrue();
 
         verify(mongoAccess, times(1)).updateData(contractToUpdateCaptor.capture(),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         JsonNode contractToUpdateCalled = contractToUpdateCaptor.getValue();
         assertThat(contractToUpdateCalled).isNotNull();
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_contract_not_exists()
-            throws VitamException, InvalidCreateOperationException {
+        throws VitamException, InvalidCreateOperationException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
         final Update update = new Update();
@@ -822,11 +823,11 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(0l);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
@@ -839,9 +840,9 @@ public class ManagementContractImplTest {
 
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.CONTRACT_NOT_FOUND.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.CONTRACT_NOT_FOUND.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("Management contract not foundIdentifierMC1");
+            .isEqualTo("Management contract not foundIdentifierMC1");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
@@ -854,13 +855,13 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                null);
+            null);
 
         // Then
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
@@ -877,7 +878,7 @@ public class ManagementContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_invalid_status()
-            throws VitamException, InvalidCreateOperationException {
+        throws VitamException, InvalidCreateOperationException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Status", "FAKE_STATUS");
         final Update update = new Update();
@@ -887,13 +888,13 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
@@ -901,37 +902,37 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("The management contract status must be ACTIVE or INACTIVE but not FAKE_STATUS");
+            .isEqualTo("The management contract status must be ACTIVE or INACTIVE but not FAKE_STATUS");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_strategy_not_found()
-            throws VitamException, InvalidCreateOperationException, FileNotFoundException {
+        throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "default-not-found-unit");
         final SetAction updateStorageObjectGroup = UpdateActionHelper.set("Storage.ObjectGroupStrategy",
-                "default-not-found-got");
+            "default-not-found-got");
         final SetAction updateStorageObject = UpdateActionHelper.set("Storage.ObjectStrategy",
-                "default-not-found-object");
+            "default-not-found-object");
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "IdentifierMC1"));
         update.addActions(updateStorageUnit, updateStorageObjectGroup, updateStorageObject);
@@ -939,57 +940,57 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getErrors().get(2).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_strategy_missing_default_offer()
-            throws VitamException, InvalidCreateOperationException, FileNotFoundException {
+        throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "fake-invalid-md");
         final SetAction updateStorageObjectGroup = UpdateActionHelper.set("Storage.ObjectGroupStrategy",
-                "fake-invalid-md");
+            "fake-invalid-md");
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "IdentifierMC1"));
         update.addActions(updateStorageUnit, updateStorageObjectGroup);
@@ -997,151 +998,153 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_storage_set_strategy_not_found()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
-        String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"default-not-found-unit\", \"ObjectGroupStrategy\" : \"default-not-found-got\", \"ObjectStrategy\" : \"default-not-found-object\" } } } ] }";
+        String update =
+            "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"default-not-found-unit\", \"ObjectGroupStrategy\" : \"default-not-found-got\", \"ObjectStrategy\" : \"default-not-found-object\" } } } ] }";
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                JsonHandler.getFromString(update));
+            JsonHandler.getFromString(update));
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription())
-                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getErrors().get(2).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
-                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_storage_set_strategy_missing_default_offer()
-            throws VitamException, FileNotFoundException {
+        throws VitamException, FileNotFoundException {
         // Given
-        String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"fake-invalid-md\", \"ObjectGroupStrategy\" : \"fake-object\" } } } ] }";
+        String update =
+            "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"fake-invalid-md\", \"ObjectGroupStrategy\" : \"fake-object\" } } } ] }";
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                JsonHandler.getFromString(update));
+            JsonHandler.getFromString(update));
 
         // Then
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+            "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_referential_technical_update_error()
-            throws VitamException, InvalidCreateOperationException {
+        throws VitamException, InvalidCreateOperationException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
         final Update update = new Update();
@@ -1149,18 +1152,18 @@ public class ManagementContractImplTest {
         update.addActions(updateName);
 
         when(mongoAccess.updateData(any(JsonNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenThrow(new ReferentialException("error data update"));
+            .thenThrow(new ReferentialException("error data update"));
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         verify(mongoAccess, times(1)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
@@ -1169,30 +1172,30 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
         assertThat(((VitamError) response).getDescription())
-                .isEqualTo("Update management contract error > error data update");
+            .isEqualTo("Update management contract error > error data update");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode())
-                .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.FATAL");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.FATAL");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_schema_technical_update_error()
-            throws VitamException, InvalidCreateOperationException {
+        throws VitamException, InvalidCreateOperationException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
         final Update update = new Update();
@@ -1200,18 +1203,18 @@ public class ManagementContractImplTest {
         update.addActions(updateName);
 
         when(mongoAccess.updateData(any(JsonNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenThrow(new SchemaValidationException("mongo schema error"));
+            .thenThrow(new SchemaValidationException("mongo schema error"));
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
-                update.getFinalUpdate());
+            update.getFinalUpdate());
 
         // Then
         verify(mongoAccess, times(1)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
@@ -1219,29 +1222,30 @@ public class ManagementContractImplTest {
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError) response).getDescription()).isEqualTo("Update management contract error > mongo schema error");
+        assertThat(((VitamError) response).getDescription()).isEqualTo(
+            "Update management contract error > mongo schema error");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.BAD_REQUEST.KO");
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.BAD_REQUEST.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void when_find_should_return_contracts_given_valid_query()
-            throws VitamException, InvalidCreateOperationException {
+        throws VitamException, InvalidCreateOperationException {
         // Given
         final Select select = new Select();
         select.setQuery(QueryHelper.eq("Name", "mcContract1"));
@@ -1249,23 +1253,23 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-                eq(ManagementContractModel.class)))
-                .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+            eq(ManagementContractModel.class)))
+            .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
 
         // When
         RequestResponse<ManagementContractModel> response = managementContractService
-                .findContracts(select.getFinalSelect());
+            .findContracts(select.getFinalSelect());
 
         // Then
         assertThat(response.isOk()).isTrue();
 
         verify(mongoAccess, times(1)).findDocuments(queryCaptor.capture(),
-                eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         JsonNode querySentToMongo = queryCaptor.getValue();
         assertThat(querySentToMongo).isNotNull();
         assertThat(querySentToMongo).isEqualTo(select.getFinalSelect());
@@ -1275,7 +1279,7 @@ public class ManagementContractImplTest {
     @RunWithCustomExecutor
     public void when_find_should_throw_exception_given_invalid_query() {
         assertThatThrownBy(() -> managementContractService.findContracts(null))
-                .isInstanceOf(InvalidParseOperationException.class);
+            .isInstanceOf(InvalidParseOperationException.class);
 
     }
 
@@ -1287,13 +1291,13 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-                eq(ManagementContractModel.class)))
-                .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+            eq(ManagementContractModel.class)))
+            .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         ManagementContractModel response = managementContractService.findByIdentifier("IdentifierMC1");
@@ -1311,13 +1315,13 @@ public class ManagementContractImplTest {
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-                .thenReturn(Arrays.asList());
+            .thenReturn(Arrays.asList());
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-                eq(ManagementContractModel.class)))
-                .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+            eq(ManagementContractModel.class)))
+            .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
-                .thenReturn(findResultMock);
+            .thenReturn(findResultMock);
 
         // When
         ManagementContractModel response = managementContractService.findByIdentifier("IdentifierMC1");
@@ -1331,22 +1335,22 @@ public class ManagementContractImplTest {
     @RunWithCustomExecutor
     public void when_find_by_identifier_should_throw_exception_given_invalid_identifier() {
         assertThatThrownBy(() -> managementContractService.findByIdentifier("&lt;script&gt;"))
-                .isInstanceOf(InvalidParseOperationException.class);
+            .isInstanceOf(InvalidParseOperationException.class);
 
     }
 
     private ManagementContractModel getManagementContract(String identifier) {
         ManagementContractModel mc = new ManagementContractModel();
         mc.setId("mc_guid").setName("New name").setIdentifier(identifier).setDescription("existing description")
-                .setCreationdate("2017-04-10T11:30:33.798").setActivationdate("2017-04-10T11:30:33.798")
-                .setLastupdate("2017-04-11T11:30:33.798").setStatus(ActivationStatus.ACTIVE);
+            .setCreationdate("2017-04-10T11:30:33.798").setActivationdate("2017-04-10T11:30:33.798")
+            .setLastupdate("2017-04-11T11:30:33.798").setStatus(ActivationStatus.ACTIVE);
         return mc;
     }
 
     private RequestResponseOK<StorageStrategy> loadStorageStrategies()
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         StorageStrategy[] storageStrategiesArray = JsonHandler.getFromFileLowerCamelCase(
-                PropertiesUtils.findFile("strategies_for_contracts_management.json"), StorageStrategy[].class);
+            PropertiesUtils.findFile("strategies_for_contracts_management.json"), StorageStrategy[].class);
         return new RequestResponseOK<StorageStrategy>().addAllResults(Arrays.asList(storageStrategiesArray));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -106,8 +106,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -533,7 +533,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .getContainerAsync(any(), anyString(), any(), any());
         CloseableIterator<ObjectEntry> iterator = mock(CloseableIterator.class);
         when(iterator.hasNext()).thenReturn(true);
-        when(iterator.next()).thenReturn(new ObjectEntry( "guid", 0L));
+        when(iterator.next()).thenReturn(new ObjectEntry("guid", 0L));
 
         when(storageClient.listContainer(anyString(), any())).thenReturn(iterator);
 
@@ -572,7 +572,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-            OBJECT_ID)
+                OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }

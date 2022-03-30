@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,8 +60,8 @@ import java.util.Map.Entry;
 public class PrepareStorageInfoActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(PrepareStorageInfoActionHandler.class);
-    
-        private static final String HANDLER_ID = "PREPARE_STORAGE_INFO";
+
+    private static final String HANDLER_ID = "PREPARE_STORAGE_INFO";
 
     private static final int STORAGE_INFO_OUT_RANK = 0;
     private static final int REFERENTIAL_INGEST_CONTRACT_IN_RANK = 0;
@@ -100,40 +100,42 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(handlerIO);
             ManagementContractModel managementContract = loadManagementContractFromWorkspace(handlerIO);
-            
+
             Map<String, JsonNode> storageCapacityNodeByStrategyId = new HashMap<>();
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageCapacityNodeByStrategyId.put(VitamConfiguration.getDefaultStrategy(),
-                        storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy()));
+                    storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy()));
                 if (managementContract != null && managementContract.getStorage() != null) {
                     if (managementContract.getStorage().getUnitStrategy() != null && !storageCapacityNodeByStrategyId
-                            .containsKey(managementContract.getStorage().getUnitStrategy())) {
+                        .containsKey(managementContract.getStorage().getUnitStrategy())) {
                         storageCapacityNodeByStrategyId.put(managementContract.getStorage().getUnitStrategy(),
-                                storageClient.getStorageInformation(managementContract.getStorage().getUnitStrategy()));
+                            storageClient.getStorageInformation(managementContract.getStorage().getUnitStrategy()));
                     }
                     if (managementContract.getStorage().getObjectGroupStrategy() != null
-                            && !storageCapacityNodeByStrategyId
-                                    .containsKey(managementContract.getStorage().getObjectGroupStrategy())) {
+                        && !storageCapacityNodeByStrategyId
+                        .containsKey(managementContract.getStorage().getObjectGroupStrategy())) {
                         storageCapacityNodeByStrategyId.put(managementContract.getStorage().getObjectGroupStrategy(),
-                                storageClient.getStorageInformation(
-                                        managementContract.getStorage().getObjectGroupStrategy()));
+                            storageClient.getStorageInformation(
+                                managementContract.getStorage().getObjectGroupStrategy()));
                     }
                     if (managementContract.getStorage().getObjectStrategy() != null && !storageCapacityNodeByStrategyId
-                            .containsKey(managementContract.getStorage().getObjectStrategy())) {
+                        .containsKey(managementContract.getStorage().getObjectStrategy())) {
                         storageCapacityNodeByStrategyId.put(managementContract.getStorage().getObjectStrategy(),
-                                storageClient
-                                        .getStorageInformation(managementContract.getStorage().getObjectStrategy()));
+                            storageClient
+                                .getStorageInformation(managementContract.getStorage().getObjectStrategy()));
                     }
                 }
             }
 
             ObjectNode strategiesInformation = JsonHandler.createObjectNode();
-            for(Entry<String, JsonNode> stategyStorageCapacities : storageCapacityNodeByStrategyId.entrySet()) {
-                final StorageInformation[] storageInformation = JsonHandler.getFromJsonNode(stategyStorageCapacities.getValue().get("capacities"),
+            for (Entry<String, JsonNode> stategyStorageCapacities : storageCapacityNodeByStrategyId.entrySet()) {
+                final StorageInformation[] storageInformation =
+                    JsonHandler.getFromJsonNode(stategyStorageCapacities.getValue().get("capacities"),
                         StorageInformation[].class);
-                strategiesInformation.set(stategyStorageCapacities.getKey(), generateStorageInfoNode(stategyStorageCapacities.getKey(), storageInformation));
+                strategiesInformation.set(stategyStorageCapacities.getKey(),
+                    generateStorageInfoNode(stategyStorageCapacities.getKey(), storageInformation));
             }
-            
+
             storeStrategiesStorageInfo(handlerIO, strategiesInformation);
 
             itemStatus.increment(StatusCode.OK);
@@ -147,7 +149,7 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
     }
 
     private JsonNode generateStorageInfoNode(String strategyId, StorageInformation[] storageInformation)
-            throws InvalidParseOperationException, ProcessingException {
+        throws InvalidParseOperationException, ProcessingException {
         ObjectNode storageInfo = JsonHandler.createObjectNode();
 
         int nbCopies = storageInformation.length > 0 ? storageInformation[0].getNbCopies() : 0;
@@ -161,7 +163,7 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
         storageInfo.put(SedaConstants.STRATEGY_ID, strategyId);
         return storageInfo;
     }
-    
+
     private void storeStrategiesStorageInfo(HandlerIO handlerIO, JsonNode strategiesInformation)
         throws InvalidParseOperationException, ProcessingException {
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(STORAGE_INFO_OUT_RANK).getPath());
@@ -171,8 +173,9 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
 
     private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        ContractsDetailsModel contractsDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
-            ContractsDetailsModel.class);
+        ContractsDetailsModel contractsDetailsModel =
+            JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+                ContractsDetailsModel.class);
         return contractsDetailsModel.getManagementContractModel();
     }
 

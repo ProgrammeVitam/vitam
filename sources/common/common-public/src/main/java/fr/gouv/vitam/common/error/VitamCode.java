@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -413,7 +413,7 @@ public enum VitamCode {
     ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "38",
         Status.BAD_REQUEST,
         "Access external client error in selectUnitsWithInheritedRules method."),
-    
+
     ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "53",
         Status.BAD_REQUEST,
         "Access external client error in the bulk atomic update units method."),
@@ -505,15 +505,16 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Security alert during local ingest attempt."),
     METADATA_INDEXATION_ERROR(ServiceName.METADATA, DomainName.DATABASE, "00", Status.INTERNAL_SERVER_ERROR,
-            "Indexation error"),
+        "Indexation error"),
     METADATA_SWITCH_INDEX_ERROR(ServiceName.METADATA, DomainName.DATABASE, "01", Status.INTERNAL_SERVER_ERROR,
-            "Switch index error"),
+        "Switch index error"),
     METADATA_REPOSITORY_DATABASE_ERROR(ServiceName.METADATA, DomainName.DATABASE, "02", Status.INTERNAL_SERVER_ERROR,
-            "DatabaseException while accessing database through repository service"),
+        "DatabaseException while accessing database through repository service"),
     METADATA_NOT_FOUND(ServiceName.METADATA, DomainName.DATABASE, "03", Status.NOT_FOUND, "Metadata not found"),
-    METADATA_INTERNAL_SERVER_ERROR(ServiceName.METADATA, DomainName.DATABASE, "04", Status.INTERNAL_SERVER_ERROR, "Metadata internal server error"),
+    METADATA_INTERNAL_SERVER_ERROR(ServiceName.METADATA, DomainName.DATABASE, "04", Status.INTERNAL_SERVER_ERROR,
+        "Metadata internal server error"),
     DATA_CONSISTENCY_AUDIT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.DATABASE, "05", Status.BAD_REQUEST,
-            "Access external client error in auditDataConsistency method."),
+        "Access external client error in auditDataConsistency method."),
 
     LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR(ServiceName.LOGBOOK, DomainName.NETWORK, "O0", Status.INTERNAL_SERVER_ERROR,
         "Logbook client error"),

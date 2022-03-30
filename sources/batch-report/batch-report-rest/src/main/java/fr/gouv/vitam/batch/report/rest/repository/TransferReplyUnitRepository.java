@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,21 +73,21 @@ public class TransferReplyUnitRepository extends ReportCommonRepository {
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
         return transferReplyReportCollection.aggregate(
-            Arrays.asList(
-                Aggregates.match(and(
-                    eq(TransferReplyUnitModel.PROCESS_ID, processId),
-                    eq(TransferReplyUnitModel.TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id"),
-                    new Document("distribGroup", null),
-                    new Document("params.id", "$_metadata.id"),
-                    new Document("params.type", new Document("$literal", "Unit")),
-                    new Document("params.status", "$_metadata.status")
-                    )
-                ))
-        )
+                Arrays.asList(
+                    Aggregates.match(and(
+                        eq(TransferReplyUnitModel.PROCESS_ID, processId),
+                        eq(TransferReplyUnitModel.TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("distribGroup", null),
+                            new Document("params.id", "$_metadata.id"),
+                            new Document("params.type", new Document("$literal", "Unit")),
+                            new Document("params.status", "$_metadata.status")
+                        )
+                    ))
+            )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();

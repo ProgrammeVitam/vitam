@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,11 +50,12 @@ public class ManagementMapper {
 
         managementType.setNeedAuthorization(managementModel.isNeedAuthorization());
         managementType.setAccessRule(ruleMapper.fillCommonRule(managementModel.getAccess(), AccessRuleType::new));
-        managementType.setAppraisalRule(ruleMapper.fillCommonRule(managementModel.getAppraisal(), AppraisalRuleType::new));
+        managementType.setAppraisalRule(
+            ruleMapper.fillCommonRule(managementModel.getAppraisal(), AppraisalRuleType::new));
         managementType.setClassificationRule(
-                ruleMapper.fillCommonRule(managementModel.getClassification(), ClassificationRuleType::new));
+            ruleMapper.fillCommonRule(managementModel.getClassification(), ClassificationRuleType::new));
         managementType.setDisseminationRule(
-                ruleMapper.fillCommonRule(managementModel.getDissemination(), DisseminationRuleType::new));
+            ruleMapper.fillCommonRule(managementModel.getDissemination(), DisseminationRuleType::new));
         managementType.setReuseRule(ruleMapper.fillCommonRule(managementModel.getReuse(), ReuseRuleType::new));
         managementType.setStorageRule(ruleMapper.fillCommonRule(managementModel.getStorage(), StorageRuleType::new));
         managementType.setHoldRule(ruleMapper.fillHoldRule(managementModel.getHold()));

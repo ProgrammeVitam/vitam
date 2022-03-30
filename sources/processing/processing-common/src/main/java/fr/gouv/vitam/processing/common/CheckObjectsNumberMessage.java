@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,7 @@ package fr.gouv.vitam.processing.common;
  */
 public enum CheckObjectsNumberMessage {
     /**
-     * message for duplicated digital object 
+     * message for duplicated digital object
      */
     DUPLICATED_DIGITAL_OBJECT_WORKSPACE("Objet numérique dupliqué trouvé dans le SIP: "),
     /**
@@ -51,11 +51,11 @@ public enum CheckObjectsNumberMessage {
      */
     NOT_FOUND_DIGITAL_OBJECT_MANIFEST("Objet(s) numériques non référencé(s) dans le bordereau: "),
     /**
-     * 
+     *
      */
     NOT_FOUND_DIGITAL_OBJECT_WORKSPACE("Objet(s) numériques non référencé(s) dans le SIP: "),
     /**
-     * 
+     *
      */
     COUNT_DIGITAL_OBJECT_CONSISTENT("Conformité du nombre d'objets numériques");
 

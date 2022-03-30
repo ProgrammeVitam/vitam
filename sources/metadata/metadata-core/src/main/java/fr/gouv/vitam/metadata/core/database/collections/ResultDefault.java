@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.Collection;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+
+import java.util.Collection;
 
 /**
  * Result LRU in memory version
- *
  */
 public class ResultDefault<T> extends Result<T> {
     /**

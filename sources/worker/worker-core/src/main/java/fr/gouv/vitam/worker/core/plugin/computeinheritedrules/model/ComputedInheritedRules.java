@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,13 +75,14 @@ public class ComputedInheritedRules {
 
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, JsonNode inheritedRulesAPIOutput,
         Map<String, Object> globalInheritedProperties, String indexationDate) {
         this(inheritedRules, indexationDate, globalInheritedProperties);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate, Map<String, Object> globalInheritedProperties) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate,
+        Map<String, Object> globalInheritedProperties) {
         this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);

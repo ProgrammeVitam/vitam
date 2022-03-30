@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-public class SedaUtilsException extends  IllegalArgumentException {
+public class SedaUtilsException extends IllegalArgumentException {
 
     public SedaUtilsException(Exception e) {
         super(e.getMessage(), e);

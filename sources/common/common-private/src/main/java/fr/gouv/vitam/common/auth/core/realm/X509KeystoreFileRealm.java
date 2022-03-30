@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.common.auth.core.realm;
 
-import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
+
+import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * X509 Keystore File Realm
@@ -51,7 +49,7 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
     private Map<String, String> certificateDnRoleMapping;
 
     private Map<String, String> roleDefs;
-    
+
     /**
      * empty constructor
      */

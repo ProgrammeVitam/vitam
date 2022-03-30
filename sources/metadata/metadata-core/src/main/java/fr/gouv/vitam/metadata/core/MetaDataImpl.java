@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -128,8 +128,6 @@ import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -740,7 +738,7 @@ public class MetaDataImpl {
     }
 
     private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId,
-            boolean forceUpdate) {
+        boolean forceUpdate) {
 
         try {
 

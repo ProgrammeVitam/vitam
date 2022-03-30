@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,29 +26,9 @@
  */
 package fr.gouv.vitam.metadata.core.reconstruction;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.LongStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import org.apache.commons.collections4.IteratorUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -63,7 +43,25 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import org.apache.commons.collections4.IteratorUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.when;
 
 /**
  * RestoreBackupService Test
@@ -113,8 +111,9 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(0L, 1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        Iterator<OfferLog> listingIterator = restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, null, 1, Order.DESC,
-            VitamConfiguration.getRestoreBulkSize());
+        Iterator<OfferLog> listingIterator =
+            restoreBackupService.getListing(STRATEGY_UNIT, DataCategory.UNIT, null, 1, Order.DESC,
+                VitamConfiguration.getRestoreBulkSize());
         // then
         List<OfferLog> listing = IteratorUtils.toList(listingIterator);
         assertThat(listing.size()).isEqualTo(1);
@@ -128,7 +127,7 @@ public class RestoreBackupServiceTest {
         throws StorageServerClientException {
         // given
         when(storageClientFactory.getClient().getOfferLogs(STRATEGY_UNIT, DataCategory.OBJECTGROUP, 100L, 2,
-                Order.ASC))
+            Order.ASC))
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
@@ -164,13 +163,15 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_returns_VitamError()
         throws StorageServerClientException {
         // given
-        when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient()
+            .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
 
         // when + then
         Iterator<OfferLog> listing =
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2,
+                Order.ASC,
                 VitamConfiguration.getRestoreBulkSize());
         assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
@@ -181,12 +182,14 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException {
         // given
-        when(storageClientFactory.getClient().getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient()
+            .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
         Iterator<OfferLog> listing =
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2, Order.ASC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 100L, 2,
+                Order.ASC,
                 VitamConfiguration.getRestoreBulkSize());
         assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
@@ -197,7 +200,8 @@ public class RestoreBackupServiceTest {
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_UNIT, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(STRATEGY_UNIT, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_unit.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -219,14 +223,17 @@ public class RestoreBackupServiceTest {
     public void should_get_got_model_when_loading_got_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.OBJECTGROUP,
+                AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_got.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP, "100.json", 100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP,
+                "100.json", 100L);
         // then
         assertThat(model).isNotNull();
         assertThat(model.getMetadatas()).isNotNull();
@@ -241,7 +248,9 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_metadata()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT,
+                AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_metadata.json"),
@@ -249,7 +258,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json", 100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json",
+                100L);
         // then
         assertThat(model).isNull();
     }
@@ -259,7 +269,9 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_lfc()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT,
+                AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_lfc.json"),
@@ -267,7 +279,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json", 100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json",
+                100L);
         // then
         assertThat(model).isNull();
     }
@@ -277,11 +290,15 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException, StorageNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT,
+                AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json", 100L))
+        assertThatCode(
+            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT,
+                "100.json", 100L))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -290,13 +307,17 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
+        when(storageClientFactory.getClient()
+            .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT,
+                AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json", 100L))
+        assertThatCode(
+            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT,
+                "100.json", 100L))
             .isInstanceOf(VitamRuntimeException.class);
     }
 

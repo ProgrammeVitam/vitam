@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,25 +26,23 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.bson.conversions.Bson;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import org.bson.conversions.Bson;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class RequestToMongodbTest {
@@ -114,7 +112,8 @@ public class RequestToMongodbTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
+    public static void tearDownAfterClass() throws Exception {
+    }
 
     private SelectToMongodb createSelect() {
         try {
@@ -310,7 +309,8 @@ public class RequestToMongodbTest {
         final SelectParserMultiple request1 = new SelectParserMultiple();
         request1.parse(JsonHandler.getFromString(example1));
         final SelectToMongodb rtm1 = new SelectToMongodb(request1);
-        assertEquals("{\"#dua\": 1, \"_id\": 1, \"#all\": 0}", MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
+        assertEquals("{\"#dua\": 1, \"_id\": 1, \"#all\": 0}",
+            MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
 
         final String example2 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1}} }";
         final SelectParserMultiple request2 = new SelectParserMultiple();

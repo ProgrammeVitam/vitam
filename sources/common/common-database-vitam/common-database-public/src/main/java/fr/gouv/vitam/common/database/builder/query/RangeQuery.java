@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,7 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -37,9 +34,10 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+import java.util.Date;
+
 /**
  * Range Query
- *
  */
 public class RangeQuery extends Query {
     private static final String IS_NOT_A_VALID_COMPARE_QUERY = " is not a valid Compare Query";
@@ -60,7 +58,6 @@ public class RangeQuery extends Query {
      * @param to lt, lte
      * @param valueTo end value
      * @throws InvalidCreateOperationException when can not create query
-     *
      */
     public RangeQuery(final String variableName, final QUERY from, final long valueFrom,
         final QUERY to, final long valueTo)

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,8 +68,8 @@ public class TraceabilityService {
     /**
      * @param timestampGenerator Service used to generate timestamp for the traceability
      * @param traceabilityHelper Implementation to handle specific method or values depending on the traceability type
-     * @param tenantId           used tenantId for the traceability
-     * @param tmpFolder          Folder witch one we store the ZipFile
+     * @param tenantId used tenantId for the traceability
+     * @param tmpFolder Folder witch one we store the ZipFile
      */
     public TraceabilityService(TimestampGenerator timestampGenerator, LogbookTraceabilityHelper traceabilityHelper,
         Integer tenantId, File tmpFolder) {
@@ -173,7 +173,7 @@ public class TraceabilityService {
         final byte[] timestampToken1 = helper.getPreviousTimestampToken();
         final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken();
         final byte[] timestampToken3 = helper.getPreviousYearTimestampToken();
-        
+
         final String timestampToken1Base64 =
             (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
         final String timestampToken2Base64 =

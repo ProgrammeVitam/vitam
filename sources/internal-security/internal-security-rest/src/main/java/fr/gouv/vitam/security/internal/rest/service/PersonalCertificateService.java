@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,11 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import java.security.cert.CertificateException;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -44,8 +40,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
@@ -53,6 +49,9 @@ import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
+
+import java.security.cert.CertificateException;
+import java.util.Optional;
 
 /**
  * Manages personal certificates
@@ -122,6 +121,7 @@ public class PersonalCertificateService {
 
     /**
      * Checks if the personal certificate if valid.
+     *
      * @param certificate the certificate to check
      * @param permission the permission for which access if checked (required for logbook logging)
      * @throws LogbookClientServerException
@@ -168,7 +168,7 @@ public class PersonalCertificateService {
             = personalRepository.findPersonalCertificateByHash(certificateHash);
 
         //check certificate validity
-        if(personalCertificateModelOptional.isPresent()){
+        if (personalCertificateModelOptional.isPresent()) {
             try {
                 X509PKIUtil.parseX509Certificate(personalCertificateModelOptional.get().getCertificate());
             } catch (CertificateException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.common.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -39,37 +37,39 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class StorageStrategyUtilsTest {
 
     @Test
     public void checkReferentOfferUsageInStrategiesValidOnComplexStrategiesValid()
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-complex-valid.json");
         List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-                new TypeReference<List<StorageStrategy>>() {
-                });
+            new TypeReference<List<StorageStrategy>>() {
+            });
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isTrue();
     }
 
     @Test
     public void checkReferentOfferUsageInStrategiesValidOnComplexStrategiesInvalid()
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-complex-invalid.json");
         List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-                new TypeReference<List<StorageStrategy>>() {
-                });
+            new TypeReference<List<StorageStrategy>>() {
+            });
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isFalse();
     }
 
     @Test
     public void checkReferentOfferUsageInStrategiesValidOnStrategiesNoReferent()
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-no-referent.json");
         List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-                new TypeReference<List<StorageStrategy>>() {
-                });
+            new TypeReference<List<StorageStrategy>>() {
+            });
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isTrue();
     }

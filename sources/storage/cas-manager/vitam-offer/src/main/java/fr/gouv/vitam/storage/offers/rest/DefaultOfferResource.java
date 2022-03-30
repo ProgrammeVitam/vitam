@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
-import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -66,9 +65,9 @@ import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.openstack4j.api.exceptions.ConnectionException;
 
 import javax.validation.constraints.NotNull;
@@ -101,7 +100,7 @@ import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildCont
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
-@Tag(name="Default-Offer")
+@Tag(name = "Default-Offer")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
@@ -705,12 +704,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
         return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
-            new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName())
-                .setHttpCode(vitamCode.getStatus().getStatusCode())
-                .setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage())
-                .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
+                new VitamError(VitamCodeHelper.getCode(vitamCode))
+                    .setContext(vitamCode.getService().getName())
+                    .setHttpCode(vitamCode.getStatus().getStatusCode())
+                    .setState(vitamCode.getDomain().getName())
+                    .setMessage(vitamCode.getMessage())
+                    .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
     }
 }

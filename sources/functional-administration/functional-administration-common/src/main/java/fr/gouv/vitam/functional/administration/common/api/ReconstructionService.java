@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -62,7 +62,7 @@ public interface ReconstructionService {
      *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
-     * @throws DatabaseException        database exception
+     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
     ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem);

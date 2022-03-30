@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -172,7 +172,7 @@ public class StoreMetaDataUnitActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
@@ -195,7 +195,7 @@ public class StoreMetaDataUnitActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
@@ -214,8 +214,8 @@ public class StoreMetaDataUnitActionPluginTest {
             ));
 
         when(storageClient.bulkStoreFilesFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), any()))
-                .thenThrow(new StorageServerClientException("wrong strategy"));
-        
+            .thenThrow(new StorageServerClientException("wrong strategy"));
+
         plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
             storageClientFactory);
 
@@ -225,9 +225,11 @@ public class StoreMetaDataUnitActionPluginTest {
         // Then
         checkItemStatus(response, StatusCode.OK);
 
-        JsonNode unitWithLfc1CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json"));
+        JsonNode unitWithLfc1CreatedFile = JsonHandler.getFromFile(
+            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json"));
         JsonNode unitWithLfc1MockFile = JsonHandler.getFromFile(unitWithLfc1);
-        JsonNode unitWithLfc2CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json"));
+        JsonNode unitWithLfc2CreatedFile = JsonHandler.getFromFile(
+            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json"));
         JsonNode unitWithLfc2MockFile = JsonHandler.getFromFile(unitWithLfc2);
         assertThat(unitWithLfc1CreatedFile).isEqualTo(unitWithLfc1MockFile);
         assertThat(unitWithLfc2CreatedFile).isEqualTo(unitWithLfc2MockFile);
@@ -241,7 +243,7 @@ public class StoreMetaDataUnitActionPluginTest {
     public void givenMetadataClientWhensearchUnitThenThrowsException() throws Exception {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
@@ -265,7 +267,7 @@ public class StoreMetaDataUnitActionPluginTest {
     public void givenLogbookLifeCycleClientWhenSearchLfcThenThrowsException() throws Exception {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
@@ -294,7 +296,7 @@ public class StoreMetaDataUnitActionPluginTest {
         // Given
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 

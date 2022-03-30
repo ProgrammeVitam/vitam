@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public final class TarTestHelper {
 
     public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-            throws IOException {
+        throws IOException {
 
         Digest digest = new Digest(DigestType.SHA512);
         OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
@@ -53,7 +53,7 @@ public final class TarTestHelper {
 
     // FIXME : usefull?
     public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-            throws IOException {
+        throws IOException {
 
         try (InputStream is = TarHelper.readEntryAtPos(tarFilePath, entryDescription)) {
             IOUtils.copy(is, outputStream);

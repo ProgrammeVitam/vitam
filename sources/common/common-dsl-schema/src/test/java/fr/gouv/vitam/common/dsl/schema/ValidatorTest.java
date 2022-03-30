@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -193,7 +193,8 @@ public class ValidatorTest {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_exists_with_invalid_field_request.json"));
         final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining("$exists: string ~ INVALID_JSON_FIELD: Title")
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+                "$exists: string ~ INVALID_JSON_FIELD: Title")
             .hasMessageContaining("$exists: string ~ INVALID_VALUE: OBJECT ~ found json");
 
     }
@@ -221,13 +222,13 @@ public class ValidatorTest {
     @Test
     public void should_retrieve_errors_when_send_subobject_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_subobject_invalid_request.json"));
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_subobject_invalid_request.json"));
         final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-                .hasMessageContaining(
-                        "Validating $roots: guid[] ~ MANDATORY ~ hint: Tableau d'identifiants d'AU racines ~ found json: {\\\"$query\\\":[{\\\"$and\\\":[{\\\"$match\\\":{\\\"FileInfo.FileName\\\":\\\"Montparnasse.txt\\\"}},{\\\"$subobject\\\":{}}]}],\\\"$projection\\\":{},\\\"$filter\\\":{}} ~ path: [$roots]\\nValidating NESTED_QUERY")
-                .hasMessageContaining(
-                        "ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $and, $subobject]");
+            .hasMessageContaining(
+                "Validating $roots: guid[] ~ MANDATORY ~ hint: Tableau d'identifiants d'AU racines ~ found json: {\\\"$query\\\":[{\\\"$and\\\":[{\\\"$match\\\":{\\\"FileInfo.FileName\\\":\\\"Montparnasse.txt\\\"}},{\\\"$subobject\\\":{}}]}],\\\"$projection\\\":{},\\\"$filter\\\":{}} ~ path: [$roots]\\nValidating NESTED_QUERY")
+            .hasMessageContaining(
+                "ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $and, $subobject]");
     }
 
     @Test

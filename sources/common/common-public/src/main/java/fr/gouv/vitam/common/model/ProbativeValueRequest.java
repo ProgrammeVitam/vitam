@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -38,7 +38,8 @@ public class ProbativeValueRequest {
     private final String version;
 
     @JsonCreator
-    public ProbativeValueRequest(@JsonProperty("dslQuery") JsonNode dslQuery, @JsonProperty("usage") String usage, @JsonProperty("version") String version) {
+    public ProbativeValueRequest(@JsonProperty("dslQuery") JsonNode dslQuery, @JsonProperty("usage") String usage,
+        @JsonProperty("version") String version) {
         this.dslQuery = Objects.requireNonNull(dslQuery);
         this.usage = Objects.requireNonNull(usage);
         this.version = Objects.requireNonNull(version);

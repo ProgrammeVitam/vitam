@@ -26,7 +26,7 @@
  */
 
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.traceability.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -145,7 +144,7 @@ public class VerifyMerkleTreeActionHandlerTest {
     @Test
     public void testVerifyMerkleTreeWithCompareToLoggedHashKOThenKO() throws Exception {
         final File traceabilityFile = PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY_WRONG_ROOT);
-        when(handler.getInput(eq(0),eq(File.class))).thenReturn(traceabilityFile);
+        when(handler.getInput(eq(0), eq(File.class))).thenReturn(traceabilityFile);
 
         final InputStream operationsJson = PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson = PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);

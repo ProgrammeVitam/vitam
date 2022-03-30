@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,14 +27,11 @@
 package fr.gouv.vitam.common.server.application.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * BasicVitamStatusServiceImpl : Manage Basic Functionality of Status Service
- *
- *
  */
 public class BasicVitamStatusServiceImpl implements VitamStatusService {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,22 +57,22 @@ import java.util.Set;
  * <br>
  * When using specific headers:<br><br>
  * <code>
- *          Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();<br>
- *          headers.put(HttpHeaders.CONTENT_TYPE, response.getMediaType().toString());<br>
- *          headers.put(HttpHeaders.CONTENT_DISPOSITION, response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION));<br>
- *          headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);<br>
- *          headers.put(GlobalDataRest.X_VERSION, xVersion);<br>
- *          return new VitamAsyncInputStreamResponse(response, Status.OK, headers);<br>
+ * Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();<br>
+ * headers.put(HttpHeaders.CONTENT_TYPE, response.getMediaType().toString());<br>
+ * headers.put(HttpHeaders.CONTENT_DISPOSITION, response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION));<br>
+ * headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);<br>
+ * headers.put(GlobalDataRest.X_VERSION, xVersion);<br>
+ * return new VitamAsyncInputStreamResponse(response, Status.OK, headers);<br>
  * </code>
  * <br>
  * When using standard headers:<br><br>
  * <code>
- *          return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);<br>
+ * return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);<br>
  * </code>
  * <br>
  * When using the native response as source:<br><br>
  * <code>
- *          return new VitamAsyncInputStreamResponse(response);<br>
+ * return new VitamAsyncInputStreamResponse(response);<br>
  * </code>
  */
 public class VitamAsyncInputStreamResponse extends Response {
@@ -147,6 +147,7 @@ public class VitamAsyncInputStreamResponse extends Response {
 
     /**
      * Return the default Map of headers from Response
+     *
      * @param response
      * @return the default map
      */

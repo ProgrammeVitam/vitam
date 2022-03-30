@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -81,12 +80,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -283,10 +280,10 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
-                .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
         handlerIO.addInIOParameters(in);
     }
@@ -1017,7 +1014,8 @@ public class ExtractSedaActionHandlerTest {
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_SP_DB_RESPONSE));
         // When
         when(metadataClient.selectObjectGroups(any())).thenReturn(
-            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og_results.json")));
+            getFromInputStream(
+                getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og_results.json")));
         when(metadataClient.selectUnits(any()))
             .thenReturn(objectGroupLinkedToExistingOne);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
@@ -1320,20 +1318,22 @@ public class ExtractSedaActionHandlerTest {
         assertNotNull(ExtractSedaActionHandler.getId());
         final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_MC_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
-                .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_MC_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
-        
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
-        
-        
-        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/StorageInfo/storageInfo.json"));
-        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/referential/contracts.json"));
-        
+
+
+        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder") +
+            "/ExtractSedaActionHandlerTest_workerId/StorageInfo/storageInfo.json"));
+        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder") +
+            "/ExtractSedaActionHandlerTest_workerId/referential/contracts.json"));
+
         String objectId = "SIP/manifest.xml";
         HandlerIOImpl handlerIO =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
@@ -1343,40 +1343,43 @@ public class ExtractSedaActionHandlerTest {
 
         handlerIO.addInIOParameters(in);
         handlerIO.addOutIOParameters(out);
-        
+
         saveWorkspacePutObject();
 
         final ItemStatus response = handler.execute(params, handlerIO);
         handlerIO.close();
-        
+
         ArgumentCaptor<String> fileNameArgumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("Units/"), any(InputStream.class));
-        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"), any(InputStream.class));
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"),
+            any(InputStream.class));
         verify(workspaceClient, atLeastOnce())
-        .putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
-        
+            .putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
+
         JsonNode unitJson = getSavedWorkspaceObject(fileNameArgumentCaptor.getAllValues().stream()
             .filter(str -> str.startsWith("Units/"))
             .findFirst().get());
         assertNotNull(unitJson);
-        assertEquals("default",unitJson.get(ARCHIVE_UNIT).get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
-        
+        assertEquals("default",
+            unitJson.get(ARCHIVE_UNIT).get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
+
         JsonNode gotJson = getSavedWorkspaceObject(fileNameArgumentCaptor.getAllValues().stream()
-                .filter(str -> str.startsWith("ObjectGroup/"))
-                .findFirst().get());
+            .filter(str -> str.startsWith("ObjectGroup/"))
+            .findFirst().get());
         assertNotNull(gotJson);
         assertEquals("default", gotJson.get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
         Assert.assertFalse(gotJson.get(SedaConstants.STORAGE).has(SedaConstants.OFFER_IDS));
         Assert.assertFalse(gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS)
-                .get("PhysicalMaster").get(SedaConstants.TAG_VERSIONS).get(0).has(SedaConstants.STORAGE));
+            .get("PhysicalMaster").get(SedaConstants.TAG_VERSIONS).get(0).has(SedaConstants.STORAGE));
         assertEquals("offerId",
-                gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
-                        .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
-                        .get(SedaConstants.STRATEGY_ID).asText());
-        Assert.assertFalse(gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
-                        .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
-                        .has(SedaConstants.OFFER_IDS));
-        
+            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+                .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
+                .get(SedaConstants.STRATEGY_ID).asText());
+        Assert.assertFalse(
+            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+                .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
+                .has(SedaConstants.OFFER_IDS));
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertNotNull(evDetData);
@@ -1394,7 +1397,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         handlerIO.addOutIOParameters(out);
 
         saveWorkspacePutObject();
@@ -1459,10 +1462,10 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
-    private Map<String, FileParams> getFilesWithParams(){
+    private Map<String, FileParams> getFilesWithParams() {
         Map<String, FileParams> fileParamsMap = new HashMap<>();
-        fileParamsMap.put("Content/Lake1.jpeg",new FileParams( 38628L));
-        fileParamsMap.put("Content/Lake2.jpeg",new FileParams( 38628L));
+        fileParamsMap.put("Content/Lake1.jpeg", new FileParams(38628L));
+        fileParamsMap.put("Content/Lake2.jpeg", new FileParams(38628L));
         return fileParamsMap;
     }
 

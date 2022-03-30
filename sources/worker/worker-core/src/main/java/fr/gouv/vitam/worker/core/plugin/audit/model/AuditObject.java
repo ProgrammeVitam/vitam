@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.audit.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.objectgroup.StorageJson;
 
 /**
@@ -53,7 +52,7 @@ public class AuditObject {
     }
 
     public AuditObject(String id, String opi, String qualifier, String version, String messageDigest,
-            String algorithm, StorageJson storage) {
+        String algorithm, StorageJson storage) {
         super();
         this.id = id;
         this.opi = opi;

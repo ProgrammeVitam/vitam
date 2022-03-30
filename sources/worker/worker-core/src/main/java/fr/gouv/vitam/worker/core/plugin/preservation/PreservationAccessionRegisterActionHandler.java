@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,7 +42,8 @@ import fr.gouv.vitam.worker.core.handler.AbstractAccessionRegisterAction;
  * Accession Register Handler
  */
 public class PreservationAccessionRegisterActionHandler extends AbstractAccessionRegisterAction {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationAccessionRegisterActionHandler.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(PreservationAccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "PRESERVATION_ACCESSION_REGISTRATION";
 
     /**
@@ -53,7 +54,7 @@ public class PreservationAccessionRegisterActionHandler extends AbstractAccessio
     }
 
     PreservationAccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory,
-                                               AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         super(metaDataClientFactory, adminManagementClientFactory);
     }
 
@@ -69,7 +70,8 @@ public class PreservationAccessionRegisterActionHandler extends AbstractAccessio
     }
 
     @Override
-    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
         throw new IllegalStateException("Not Implemented !");
     }
 

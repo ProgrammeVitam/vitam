@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,8 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import org.bson.Document;
 
 /**
  *
@@ -36,8 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class CollectionSample extends VitamDocument<CollectionSample> {
 
     /**
-    *
-    */
+     *
+     */
     private static final long serialVersionUID = -132115596185118655L;
 
     /**

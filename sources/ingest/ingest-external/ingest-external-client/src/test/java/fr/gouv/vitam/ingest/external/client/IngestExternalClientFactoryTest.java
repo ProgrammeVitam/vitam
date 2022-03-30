@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class IngestExternalClientFactoryTest {
@@ -54,7 +53,7 @@ public class IngestExternalClientFactoryTest {
         assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
 
         // Change to mock type and test
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
         final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof IngestExternalClientMock);
         assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());

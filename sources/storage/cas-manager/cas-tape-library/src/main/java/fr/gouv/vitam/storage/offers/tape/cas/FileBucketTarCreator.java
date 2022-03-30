@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,13 +33,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
@@ -253,7 +253,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
             LocalFileUtils
-                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
+                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId,
+                    this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
             this.currentTarAppender.getTarId());

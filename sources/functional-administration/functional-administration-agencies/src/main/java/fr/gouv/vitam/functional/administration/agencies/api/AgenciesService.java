@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -360,8 +360,8 @@ public class AgenciesService {
 
             Set<AgenciesModel> agenciesToDelete =
                 agenciesInDb.stream().filter(
-                    e -> agenciesToImport.stream().map(AgenciesModel::getIdentifier)
-                        .noneMatch(t -> t.equals(e.getIdentifier())))
+                        e -> agenciesToImport.stream().map(AgenciesModel::getIdentifier)
+                            .noneMatch(t -> t.equals(e.getIdentifier())))
                     .collect(Collectors.toSet());
 
             agenciesImportResult.setDeletedAgencies(agenciesToDelete);

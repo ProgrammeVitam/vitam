@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -193,7 +193,8 @@ public class WriteTaskTest {
 
         // Given WriterOrder and TapeCatalog
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
 
@@ -223,7 +224,8 @@ public class WriteTaskTest {
 
         assertThat(fileName.getAllValues()).hasSize(2);
 
-        assertThat(fileName.getAllValues().get(0)).contains(LocalFileUtils.INPUT_TAR_TMP_FOLDER).contains(WriteTask.TAPE_LABEL);
+        assertThat(fileName.getAllValues().get(0)).contains(LocalFileUtils.INPUT_TAR_TMP_FOLDER)
+            .contains(WriteTask.TAPE_LABEL);
         assertThat(fileName.getAllValues().get(1)).contains(FAKE_FILE_PATH).contains(".tar");
 
         assertThat(result).isNotNull();
@@ -250,7 +252,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.EMPTY);
 
@@ -296,7 +299,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -436,7 +440,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -516,7 +521,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -578,7 +584,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -635,7 +642,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
@@ -720,7 +728,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
@@ -806,7 +815,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         WriteTask writeTask =
@@ -890,7 +900,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
@@ -960,7 +971,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
@@ -1020,7 +1032,8 @@ public class WriteTaskTest {
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file)
+                .setArchiveId(file).setSize(10l);
 
         TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         tape.setBucket("wrongBucket");

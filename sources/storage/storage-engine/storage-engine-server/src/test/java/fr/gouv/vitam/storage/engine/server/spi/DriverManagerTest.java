@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -57,7 +57,6 @@ import static org.junit.Assert.fail;
  *
  * So, if the driver implementation change, do not forget to change the jars for
  * the two implementations in this way.
- *
  */
 public class DriverManagerTest {
 
@@ -149,7 +148,8 @@ public class DriverManagerTest {
         }
 
         @Override
-        public void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageDriverMapperException {
+        public void removeOffersTo(List<String> offersIdsToRemove, String driverName)
+            throws StorageDriverMapperException {
             // Nothing
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -70,7 +70,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -78,13 +77,14 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/batchreport/v1")
-@Tag(name="Batch-Report")
+@Tag(name = "Batch-Report")
 public class BatchReportResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 
     private static final String EMPTY_PROCESSID_ERROR_MESSAGE = "processId should be filed";
-    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {
-    };
+    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType =
+        new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {
+        };
     private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType =
         new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {
         };
@@ -97,20 +97,22 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final TypeReference<ReportBody<TransferReplyUnitReportEntry>> reportTransferReplyUnitType =
         new TypeReference<ReportBody<TransferReplyUnitReportEntry>>() {
         };
-    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {
-    };
+    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType =
+        new TypeReference<ReportBody<PreservationReportEntry>>() {
+        };
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType =
         new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {
-    };
+        };
     private static final TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportBulkUpdateMetadataType =
         new TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>>() {
-    };
+        };
     private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType =
-    new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {
-    };
-    private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> unitComputedInheritedRuleInvalidationType =
-    new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {
-    };
+        new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {
+        };
+    private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>
+        unitComputedInheritedRuleInvalidationType =
+        new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {
+        };
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -129,52 +131,71 @@ public class BatchReportResource extends ApplicationStatusResource {
             ReportType reportType = ReportType.valueOf(type);
             switch (reportType) {
                 case ELIMINATION_ACTION_UNIT:
-                    ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionUnitType);
+                    ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody =
+                        JsonHandler.getFromJsonNode(body, reportEliminationActionUnitType);
                     batchReportServiceImpl
-                        .appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(), eliminationUnitReportBody.getEntries(), tenantId);
+                        .appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(),
+                            eliminationUnitReportBody.getEntries(), tenantId);
                     break;
                 case PURGE_UNIT:
-                    ReportBody<PurgeUnitReportEntry> purgeUnitReportBody = JsonHandler.getFromJsonNode(body, reportPurgeUnitType);
-                    batchReportServiceImpl.appendPurgeUnitReport(purgeUnitReportBody.getProcessId(), purgeUnitReportBody.getEntries(), tenantId);
+                    ReportBody<PurgeUnitReportEntry> purgeUnitReportBody =
+                        JsonHandler.getFromJsonNode(body, reportPurgeUnitType);
+                    batchReportServiceImpl.appendPurgeUnitReport(purgeUnitReportBody.getProcessId(),
+                        purgeUnitReportBody.getEntries(), tenantId);
                     break;
                 case PURGE_OBJECTGROUP:
-                    ReportBody<PurgeObjectGroupReportEntry> purgeObjectGroupReportBody = JsonHandler.getFromJsonNode(body, reportPurgeObjectGroupType);
+                    ReportBody<PurgeObjectGroupReportEntry> purgeObjectGroupReportBody =
+                        JsonHandler.getFromJsonNode(body, reportPurgeObjectGroupType);
                     batchReportServiceImpl
-                        .appendPurgeObjectGroupReport(purgeObjectGroupReportBody.getProcessId(), purgeObjectGroupReportBody.getEntries(), tenantId);
+                        .appendPurgeObjectGroupReport(purgeObjectGroupReportBody.getProcessId(),
+                            purgeObjectGroupReportBody.getEntries(), tenantId);
                     break;
                 case TRANSFER_REPLY_UNIT:
-                    ReportBody<TransferReplyUnitReportEntry> transferReplyUnitReportBody = JsonHandler.getFromJsonNode(body, reportTransferReplyUnitType);
+                    ReportBody<TransferReplyUnitReportEntry> transferReplyUnitReportBody =
+                        JsonHandler.getFromJsonNode(body, reportTransferReplyUnitType);
                     batchReportServiceImpl
-                        .appendTransferReplyUnitReport(transferReplyUnitReportBody.getProcessId(), transferReplyUnitReportBody.getEntries(), tenantId);
+                        .appendTransferReplyUnitReport(transferReplyUnitReportBody.getProcessId(),
+                            transferReplyUnitReportBody.getEntries(), tenantId);
                     break;
                 case PRESERVATION:
-                    ReportBody<PreservationReportEntry> preservationReportBody = JsonHandler.getFromJsonNode(body, reportPreservationType);
-                    batchReportServiceImpl.appendPreservationReport(preservationReportBody.getProcessId(), preservationReportBody.getEntries(), tenantId);
+                    ReportBody<PreservationReportEntry> preservationReportBody =
+                        JsonHandler.getFromJsonNode(body, reportPreservationType);
+                    batchReportServiceImpl.appendPreservationReport(preservationReportBody.getProcessId(),
+                        preservationReportBody.getEntries(), tenantId);
                     break;
                 case AUDIT:
-                    ReportBody<AuditObjectGroupReportEntry> auditReportBody = JsonHandler.getFromJsonNode(body, reportAuditType);
-                    batchReportServiceImpl.appendAuditReport(auditReportBody.getProcessId(), auditReportBody.getEntries(), tenantId);
+                    ReportBody<AuditObjectGroupReportEntry> auditReportBody =
+                        JsonHandler.getFromJsonNode(body, reportAuditType);
+                    batchReportServiceImpl.appendAuditReport(auditReportBody.getProcessId(),
+                        auditReportBody.getEntries(), tenantId);
                     break;
                 case UPDATE_UNIT:
-                    ReportBody<UpdateUnitMetadataReportEntry> unitReportBody = JsonHandler.getFromJsonNode(body, reportMassUpdateType);
+                    ReportBody<UpdateUnitMetadataReportEntry> unitReportBody =
+                        JsonHandler.getFromJsonNode(body, reportMassUpdateType);
                     batchReportServiceImpl.appendUnitReport(unitReportBody.getEntries());
                     break;
                 case BULK_UPDATE_UNIT:
-                    ReportBody<BulkUpdateUnitMetadataReportEntry> bulkUnitMetadataReportBody = JsonHandler.getFromJsonNode(body, reportBulkUpdateMetadataType);
+                    ReportBody<BulkUpdateUnitMetadataReportEntry> bulkUnitMetadataReportBody =
+                        JsonHandler.getFromJsonNode(body, reportBulkUpdateMetadataType);
                     batchReportServiceImpl.appendBulkUpdateUnitMetadataReport(bulkUnitMetadataReportBody.getEntries());
                     break;
                 case EVIDENCE_AUDIT:
-                    ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody = JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
-                    batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(), evidenceAuditReportBody.getEntries(), tenantId);
+                    ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody =
+                        JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
+                    batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(),
+                        evidenceAuditReportBody.getEntries(), tenantId);
                     break;
                 case TRACEABILITY:
-                    ReportBody<TraceabilityReportEntry> traceabilityReportEntry = JsonHandler.getFromJsonNode(body, ReportBody.class, TraceabilityReportEntry.class);
-                    batchReportServiceImpl.appendTraceabilityReport(traceabilityReportEntry.getProcessId(), traceabilityReportEntry.getEntries(), tenantId);
+                    ReportBody<TraceabilityReportEntry> traceabilityReportEntry =
+                        JsonHandler.getFromJsonNode(body, ReportBody.class, TraceabilityReportEntry.class);
+                    batchReportServiceImpl.appendTraceabilityReport(traceabilityReportEntry.getProcessId(),
+                        traceabilityReportEntry.getEntries(), tenantId);
                     break;
                 case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
                     ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> unitInvalidationReportEntry =
                         JsonHandler.getFromJsonNode(body, unitComputedInheritedRuleInvalidationType);
-                    batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport(unitInvalidationReportEntry.getProcessId(),
+                    batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport(
+                        unitInvalidationReportEntry.getProcessId(),
                         unitInvalidationReportEntry.getEntries(), tenantId);
                     break;
                 default:
@@ -201,7 +222,8 @@ public class BatchReportResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("tenantId should be filed", reportInfo.getOperationSummary().getTenant());
         if (tenantId != reportInfo.getOperationSummary().getTenant()) {
             throw new IllegalArgumentException(
-                "Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
+                "Tenant id in request should match header. Header: " + tenantId + ", request: " +
+                    reportInfo.getOperationSummary().getTenant() + ".");
         }
 
         try {
@@ -218,7 +240,8 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportDistinctObjectGroup(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
+    public Response exportDistinctObjectGroup(@PathParam("processId") String processId,
+        ReportExportRequest reportExportRequest)
         throws ContentAddressableStorageServerException, IOException {
 
         try {
@@ -226,7 +249,8 @@ public class BatchReportResource extends ApplicationStatusResource {
 
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportPurgeDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.exportPurgeDistinctObjectGroupOfDeletedUnits(processId,
+                reportExportRequest.getFilename(), tenantId);
             return Response.status(OK).build();
         } catch (IllegalArgumentException | IllegalPathException e) {
             throw new BadRequestException(e);
@@ -249,7 +273,8 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportPurgeAccessionRegister(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
+    public Response exportPurgeAccessionRegister(@PathParam("processId") String processId,
+        ReportExportRequest reportExportRequest)
         throws ContentAddressableStorageServerException, IOException {
 
         try {
@@ -342,7 +367,8 @@ public class BatchReportResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createExtractedMetadataDistributionFileForAu(@PathParam("processId") String processId) {
         try {
-            batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(processId, VitamThreadUtils.getVitamSession().getTenantId());
+            batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(processId,
+                VitamThreadUtils.getVitamSession().getTenantId());
             return Response.ok().build();
         } catch (IOException | ContentAddressableStorageServerException | IllegalPathException e) {
             LOGGER.error(e);

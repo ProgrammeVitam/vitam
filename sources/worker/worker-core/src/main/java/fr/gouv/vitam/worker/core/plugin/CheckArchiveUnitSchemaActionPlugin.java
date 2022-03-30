@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -93,7 +93,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
      */
     static final String CONSISTENCY = "CONSISTENCY";
 
-    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<List<OntologyModel>>() {};
+    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE =
+        new TypeReference<List<OntologyModel>>() {
+        };
 
     private final UnitValidator unitValidator;
 
@@ -226,8 +228,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, updatedArchiveUnitJson);
         boolean isUpdateJsonMandatory = !archiveUnitJson.equals(updatedArchiveUnitJson);
 
-        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", CHECK_UNIT_SCHEMA_TASK_ID, "validationOntology",
-            ontologyTime.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance()
+            .log("STP_UNIT_CHECK_AND_PROCESS", CHECK_UNIT_SCHEMA_TASK_ID, "validationOntology",
+                ontologyTime.elapsed(TimeUnit.MILLISECONDS));
 
         handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
         if (isUpdateJsonMandatory) {

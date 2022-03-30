@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -236,8 +236,8 @@ public class TapeDriveWorker implements Runnable {
 
                     PerformanceLogger
                         .getInstance().log("STP_Offer_Tape", ((QueueMessageEntity) readWriteOrder).getId(),
-                        readWriteOrder.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
-                        loopStopWatch.getTime(TimeUnit.MILLISECONDS));
+                            readWriteOrder.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
+                            loopStopWatch.getTime(TimeUnit.MILLISECONDS));
 
                     if (StatusCode.FATAL.equals(readWriteResult.getStatus())) {
                         LOGGER.error(String.format(
@@ -276,7 +276,8 @@ public class TapeDriveWorker implements Runnable {
     }
 
     private RetryableOnException<Long, QueueException> retryable() {
-        return new RetryableOnException<>(new RetryableParameters(MAX_ATTEMPTS, RETRY_WAIT_SECONDS, RETRY_WAIT_SECONDS, RANDOM_RANGE_SLEEP, SECONDS));
+        return new RetryableOnException<>(
+            new RetryableParameters(MAX_ATTEMPTS, RETRY_WAIT_SECONDS, RETRY_WAIT_SECONDS, RANDOM_RANGE_SLEEP, SECONDS));
     }
 
     private void interceptPauseRequest() throws InterruptedException {

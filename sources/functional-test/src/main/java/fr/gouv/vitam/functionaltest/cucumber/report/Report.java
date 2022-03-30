@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,14 +69,13 @@ public class Report {
      * Start time
      */
     private LocalDateTime start;
-    
+
     /**
      * End time
      */
     private LocalDateTime end;
 
     /**
-     *
      * @return name of the feature
      */
     public String getFeature() {
@@ -84,7 +83,6 @@ public class Report {
     }
 
     /**
-     *
      * @param feature name of the feature
      */
     public void setFeature(String feature) {
@@ -92,7 +90,6 @@ public class Report {
     }
 
     /**
-     *
      * @return id operation
      */
     public String getOperationId() {
@@ -100,7 +97,6 @@ public class Report {
     }
 
     /**
-     *
      * @param operationId id operation
      */
     public void setOperationId(String operationId) {
@@ -108,7 +104,6 @@ public class Report {
     }
 
     /**
-     *
      * @return type
      */
     public String getType() {
@@ -116,7 +111,6 @@ public class Report {
     }
 
     /**
-     *
      * @param type type
      */
     public void setType(String type) {
@@ -124,7 +118,6 @@ public class Report {
     }
 
     /**
-     *
      * @return description
      */
     public String getDescription() {
@@ -132,7 +125,6 @@ public class Report {
     }
 
     /**
-     *
      * @param description description
      */
     public void setDescription(String description) {
@@ -140,7 +132,6 @@ public class Report {
     }
 
     /**
-     *
      * @return true if the error list is empty, false otherwise
      */
     public boolean isOK() {
@@ -148,7 +139,6 @@ public class Report {
     }
 
     /**
-     *
      * @return list of tags
      */
     public List<String> getTags() {
@@ -161,7 +151,6 @@ public class Report {
     }
 
     /**
-     *
      * @return list of errors
      */
     public List<String> getErrors() {
@@ -169,7 +158,6 @@ public class Report {
     }
 
     /**
-     *
      * @param error add error to the errors list
      */
     public void addError(String error) {
@@ -177,7 +165,6 @@ public class Report {
     }
 
     /**
-     *
      * @param tagName add tagName to the Tags list
      */
     public void addTag(String tagName) {
@@ -211,7 +198,7 @@ public class Report {
     public void setEnd(LocalDateTime end) {
         this.end = end;
     }
-    
-    
+
+
 
 }

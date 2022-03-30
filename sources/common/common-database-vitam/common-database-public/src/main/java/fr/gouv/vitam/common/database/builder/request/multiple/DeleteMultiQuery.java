@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,14 +28,12 @@ package fr.gouv.vitam.common.database.builder.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Delete: { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]
- *
  */
 public class DeleteMultiQuery extends RequestMultiple {
     /**
@@ -65,7 +63,6 @@ public class DeleteMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Delete
      * @throws InvalidParseOperationException if filter invalid
@@ -78,7 +75,6 @@ public class DeleteMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return the Final Delete containing all 3 parts: roots, queries array and filter
      */
     public final ObjectNode getFinalDelete() {

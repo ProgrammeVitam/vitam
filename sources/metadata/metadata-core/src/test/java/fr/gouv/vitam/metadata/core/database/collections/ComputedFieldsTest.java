@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,7 +53,8 @@ public class ComputedFieldsTest {
             MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
 
     private static List<String> expectedUnitMainFields = Arrays
-        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE, Unit.OPERATION_TRANSFERS,
+        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
+            Unit.OPERATION_TRANSFERS,
             Unit.DISSEMINATIONRULE, Unit.REUSERULE, Unit.CLASSIFICATIONRULE, Unit.RULE, Unit.END, Unit.STORAGERULES,
             Unit.STORAGEEND, Unit.APPRAISALRULES, Unit.APPRAISALEND, Unit.ACCESSRULES, Unit.ACCESSEND,
             Unit.DISSEMINATIONRULES, Unit.DISSEMINATIONEND, Unit.REUSERULES, Unit.REUSEEND, Unit.CLASSIFICATIONRULES,
@@ -68,14 +69,14 @@ public class ComputedFieldsTest {
         Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);
 
     private static List<String> expectedGotMainFields = Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE,
-            ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
-            ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
-            ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
-            ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
-            MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
-            MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
-            VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
-            VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION);
+        ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
+        ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
+        ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
+        ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
+        MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
+        MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
+        VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
+        VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION);
 
     @Test
     public void testUnitComputedFields() throws Exception {

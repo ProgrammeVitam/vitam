@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -1104,15 +1104,21 @@ public class StorageTwoOffersIT {
                 .collect(Collectors.toMap(BatchObjectInformationResponse::getObjectId, i -> i));
 
         assertThat(objectInformationByObjectId).containsOnlyKeys("file1", "file2", "file3");
-        assertThat(objectInformationByObjectId.get("file1").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
-        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(OFFER_ID)).isEqualTo("9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
-        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(SECOND_OFFER_ID)).isEqualTo("9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests()).containsOnlyKeys(OFFER_ID,
+            SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(OFFER_ID)).isEqualTo(
+            "9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(SECOND_OFFER_ID)).isEqualTo(
+            "9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
 
-        assertThat(objectInformationByObjectId.get("file2").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
-        assertThat(objectInformationByObjectId.get("file2").getOfferDigests().get(OFFER_ID)).isEqualTo("5067cebe816ea7a7c8a0e015613c732c67c09d9ddc3b88eb0a8e1b481dd54a72b42d0f7f8f6a77f309ecbc3cc2401cd41ed7deefec18dd9de77d67883b95b6bb");
+        assertThat(objectInformationByObjectId.get("file2").getOfferDigests()).containsOnlyKeys(OFFER_ID,
+            SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file2").getOfferDigests().get(OFFER_ID)).isEqualTo(
+            "5067cebe816ea7a7c8a0e015613c732c67c09d9ddc3b88eb0a8e1b481dd54a72b42d0f7f8f6a77f309ecbc3cc2401cd41ed7deefec18dd9de77d67883b95b6bb");
         assertThat(objectInformationByObjectId.get("file2").getOfferDigests().get(SECOND_OFFER_ID)).isNull();
 
-        assertThat(objectInformationByObjectId.get("file3").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file3").getOfferDigests()).containsOnlyKeys(OFFER_ID,
+            SECOND_OFFER_ID);
         assertThat(objectInformationByObjectId.get("file3").getOfferDigests().get(OFFER_ID)).isNull();
         assertThat(objectInformationByObjectId.get("file3").getOfferDigests().get(SECOND_OFFER_ID)).isNull();
     }

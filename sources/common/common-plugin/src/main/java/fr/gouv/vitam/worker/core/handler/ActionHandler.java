@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -48,16 +48,16 @@ import fr.gouv.vitam.worker.core.api.WorkerAction;
  *
  * <pre>
  * <code>
-    // Return the unique Id of this Handler
-    public static final String getId();
-    // Later on (not available now), some other methods for Input/Output arguments
+ * // Return the unique Id of this Handler
+ * public static final String getId();
+ * // Later on (not available now), some other methods for Input/Output arguments
  * </code></code>
  */
 public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable {
 
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
-    
+
     /**
      * Check mandatory parameters
      *
@@ -72,10 +72,10 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
     public void close() {
         // nothing;
     }
-    
+
     /**
      * Update a detail item status
-     * 
+     *
      * @param globalCompositeItemStatus
      * @param value
      * @param globalOutcomeDetailSubCode
@@ -103,5 +103,5 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
             globalCompositeItemStatus.increment(StatusCode.FATAL);
         }
     }
-    
+
 }

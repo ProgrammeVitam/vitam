@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -90,8 +90,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
             .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM, ingestRequestParameters.getManifestDigestAlgo())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE, ingestRequestParameters.getManifestDigestValue())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
+                ingestRequestParameters.getManifestDigestAlgo())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
+                ingestRequestParameters.getManifestDigestValue())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(stream, "Stream is a mandatory parameter")
             .withOctetContentType()
@@ -149,8 +151,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
             .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM, ingestRequestParameters.getManifestDigestAlgo())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE, ingestRequestParameters.getManifestDigestValue())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
+                ingestRequestParameters.getManifestDigestAlgo())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
+                ingestRequestParameters.getManifestDigestValue())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(localFile, "localFile is a mandatory parameter")
             .withJsonContentType()

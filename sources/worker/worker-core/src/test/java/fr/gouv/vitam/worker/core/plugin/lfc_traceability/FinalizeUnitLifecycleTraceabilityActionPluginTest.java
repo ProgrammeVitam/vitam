@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -151,11 +151,17 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(itemStatus.getMasterData()).containsOnlyKeys(LogbookParameterName.eventDetailData.name());
         JsonAssert.assertJsonEquals(
-             JsonHandler.getFromString((String)itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())),
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"))
+            JsonHandler.getFromString(
+                (String) itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())),
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"))
         );
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq("0_LogbookUnitLifecycles_20191218_051956.zip"), objectDescriptionArgumentCaptor.capture());
-        assertThat(objectDescriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(TRACEABILITY_ZIP_FILE_NAME);
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
+            ArgumentCaptor.forClass(ObjectDescription.class);
+        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.LOGBOOK), eq("0_LogbookUnitLifecycles_20191218_051956.zip"),
+            objectDescriptionArgumentCaptor.capture());
+        assertThat(objectDescriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
+            TRACEABILITY_ZIP_FILE_NAME);
     }
 }

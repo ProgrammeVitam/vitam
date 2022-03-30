@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -82,6 +82,7 @@ public class MongoRule extends ExternalResource {
     public static String getDatabaseName() {
         return VITAM_DB;
     }
+
     @Override
     protected void after() {
         if (!clientClosed) {

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.storage.offers.tape.worker;
 
-import java.util.Optional;
-
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+
+import java.util.Optional;
 
 public interface TapeDriveOrderProducer {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -28,36 +28,20 @@ package fr.gouv.vitam.purge;
 
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Sorts;
-import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.batch.report.rest.BatchReportMain;
-import fr.gouv.vitam.common.DataLoader;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -68,14 +52,11 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.bson.BsonDocument;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -99,7 +80,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -329,10 +309,10 @@ public class CompactionIT extends VitamRuleRunner {
 
             // Functional checks
             List<OfferLog> expectedUnitOfferLogs = Stream.concat(Stream.concat(
-                IntStream.rangeClosed(1, 40).mapToObj(
-                    i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE)),
-                IntStream.rangeClosed(61, 80).mapToObj(
-                    i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE))),
+                    IntStream.rangeClosed(1, 40).mapToObj(
+                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE)),
+                    IntStream.rangeClosed(61, 80).mapToObj(
+                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE))),
                 IntStream.rangeClosed(81, 90).mapToObj(
                     i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.DELETE))
             ).collect(Collectors.toList());

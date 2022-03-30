@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.traceability;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.reflect.TypeToken;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
@@ -38,7 +36,6 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.TraceabilityError;
-import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;

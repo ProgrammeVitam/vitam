@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,16 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -48,6 +39,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import javax.ws.rs.core.Response.Status;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * External Logbook Step

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -51,7 +51,7 @@ public class UpdateBulkSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_complete.json"));
-        assertThatCode( () -> dslValidator.validate(updateQuery)).doesNotThrowAnyException();
+        assertThatCode(() -> dslValidator.validate(updateQuery)).doesNotThrowAnyException();
     }
 
     @Test
@@ -59,7 +59,7 @@ public class UpdateBulkSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_threshold.json"));
-        assertThatCode( () -> dslValidator.validate(updateQuery)).doesNotThrowAnyException();
+        assertThatCode(() -> dslValidator.validate(updateQuery)).doesNotThrowAnyException();
     }
 
     @Test
@@ -77,7 +77,7 @@ public class UpdateBulkSchemaValidatorTest {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_queries.json"));
-        assertThatThrownBy(() ->dslValidator.validate(updateQuery))
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
     }
 
@@ -87,7 +87,7 @@ public class UpdateBulkSchemaValidatorTest {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_queries.json"));
-        assertThatThrownBy(() ->dslValidator.validate(updateQuery))
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
     }
 
@@ -177,7 +177,8 @@ public class UpdateBulkSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_regex_pattern_without_updatePattern.json"));
+            JsonHandler.getFromFile(
+                PropertiesUtils.findFile("bulk/update_bulk_regex_pattern_without_updatePattern.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
     }

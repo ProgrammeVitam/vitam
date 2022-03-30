@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,12 +36,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
@@ -216,13 +211,13 @@ public interface AccessInternalResource {
      * @return the response
      */
     Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions);
-    
-        /**
-         * gets objects group with Json query
-         *
-         * @param dslQuery null not allowed
-         * @return a objects group result list
-         */
+
+    /**
+     * gets objects group with Json query
+     *
+     * @param dslQuery null not allowed
+     * @return a objects group result list
+     */
     Response getObjects(JsonNode dslQuery)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -120,11 +120,11 @@ public class OfferSyncRequest {
         this.tenantId = tenantId;
         return this;
     }
-    
+
     public String getStrategyId() {
         return strategyId;
     }
-    
+
     public OfferSyncRequest setStrategyId(String strategyId) {
         this.strategyId = strategyId;
         return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,7 +27,10 @@
 package fr.gouv.vitam.common.accesslog;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -36,8 +39,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-
-import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 public class AccessLogUtils {
 
@@ -77,7 +78,7 @@ public class AccessLogUtils {
             logInfo.setArchiveId((String) objectInfo.get(ARCHIVE_ID));
             logInfo.setQualifier((String) objectInfo.get(QUALIFIER));
             logInfo.setVersion((Integer) objectInfo.get(VERSION));
-            logInfo.setSize(((Number)objectInfo.get(SIZE)).longValue());
+            logInfo.setSize(((Number) objectInfo.get(SIZE)).longValue());
         }
 
         return logInfo;

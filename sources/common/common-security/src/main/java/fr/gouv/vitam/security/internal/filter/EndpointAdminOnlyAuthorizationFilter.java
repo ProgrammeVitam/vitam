@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,6 +50,7 @@ public class EndpointAdminOnlyAuthorizationFilter implements ContainerRequestFil
 
     /**
      * Contructor with isAdminOnly option
+     *
      * @param isAdminOnly
      */
     public EndpointAdminOnlyAuthorizationFilter(boolean isAdminOnly) {
@@ -58,6 +59,7 @@ public class EndpointAdminOnlyAuthorizationFilter implements ContainerRequestFil
 
     /**
      * Checks authorization filter based of the current security profile permission set.
+     *
      * @param requestContext the invocation context
      * @throws java.io.IOException
      */
@@ -81,13 +83,13 @@ public class EndpointAdminOnlyAuthorizationFilter implements ContainerRequestFil
      */
     private VitamError generateVitamError() {
         final VitamError vitamError =
-                new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+            new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
 
         vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
-                .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
-                .setDescription(TENANT_ADMINISTRATION_IS_REQUIRED)
-                .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
-                .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
+            .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
+            .setDescription(TENANT_ADMINISTRATION_IS_REQUIRED)
+            .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
+            .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
         return vitamError;
     }
 

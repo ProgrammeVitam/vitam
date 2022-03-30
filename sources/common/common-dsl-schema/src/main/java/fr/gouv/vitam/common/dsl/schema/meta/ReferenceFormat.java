@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,15 +50,18 @@ public class ReferenceFormat extends Format {
         this.type = type;
     }
 
-    @Override public void setMax(int max) {
+    @Override
+    public void setMax(int max) {
         throw new UnsupportedOperationException();
     }
 
-    @Override public void setMin(Integer min) {
+    @Override
+    public void setMin(Integer min) {
         throw new UnsupportedOperationException();
     }
 
-    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+    @Override
+    public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         if (referred != null) {
             validateNotPrimitive(node, fieldReport, validator);
         } else {
@@ -76,7 +79,8 @@ public class ReferenceFormat extends Format {
         }
     }
 
-    @Override public void walk(Consumer<Format> consumer) {
+    @Override
+    public void walk(Consumer<Format> consumer) {
         consumer.accept(this);
     }
 
@@ -116,14 +120,16 @@ public class ReferenceFormat extends Format {
         }
     }
 
-    @Override public String debugInfo() {
+    @Override
+    public String debugInfo() {
         if (referred == null)
             return type;
         else
             return referred.debugInfo();
     }
 
-    @Override protected void resolve(Schema schema) {
+    @Override
+    protected void resolve(Schema schema) {
         Consumer<String> reportNothing = string -> {
             // do nothing
         };

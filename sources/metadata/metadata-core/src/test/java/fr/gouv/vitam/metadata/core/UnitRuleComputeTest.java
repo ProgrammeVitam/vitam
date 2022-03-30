@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,8 +26,13 @@
  */
 package fr.gouv.vitam.metadata.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.apache.commons.collections4.map.HashedMap;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -37,15 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections4.map.HashedMap;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @Deprecated
 public class UnitRuleComputeTest {

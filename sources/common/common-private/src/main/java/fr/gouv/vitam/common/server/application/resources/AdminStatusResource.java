@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
-import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -48,8 +47,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Collections;
-import java.util.Set;
 
 
 /**

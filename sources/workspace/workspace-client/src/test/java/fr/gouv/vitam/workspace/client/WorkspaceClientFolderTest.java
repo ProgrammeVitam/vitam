@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -242,9 +242,10 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris =
-            JsonHandler.getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-            });
+            JsonHandler.getFromStringAsTypeReference(
+                client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                });
         assertTrue(uris.isEmpty());
     }
 
@@ -258,9 +259,10 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(uriListWorkspaceOK).build());
         final List<URI> uris =
-            JsonHandler.getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-            });
+            JsonHandler.getFromStringAsTypeReference(
+                client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                });
         assertTrue(!uris.isEmpty());
         for (final URI uriWorkspace : uris) {
             assertTrue(uriWorkspace.toString().contains("content/"));

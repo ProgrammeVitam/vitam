@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -46,7 +46,7 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
     /**
      * Constructor from LogbookLifeCycleUnitParameters
      *
-     * @param parameters LogbookLifeCycleUnitParameters 
+     * @param parameters LogbookLifeCycleUnitParameters
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookLifeCycleUnit(LogbookLifeCycleUnitParameters parameters) {
@@ -83,7 +83,7 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
 
     @Override
     public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(
-    		JsonNode content) {
-    	return new LogbookLifeCycleUnit(content);
+        JsonNode content) {
+        return new LogbookLifeCycleUnit(content);
     }
 }

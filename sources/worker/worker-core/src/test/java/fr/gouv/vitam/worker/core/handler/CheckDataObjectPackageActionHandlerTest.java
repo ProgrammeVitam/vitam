@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -149,7 +149,8 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         sedaUtils = mock(SedaUtils.class);
 
-        handler = new CheckDataObjectPackageActionHandler(metadataClientFactory, adminManagementClientFactory, sedaUtilsFactory);
+        handler = new CheckDataObjectPackageActionHandler(metadataClientFactory, adminManagementClientFactory,
+            sedaUtilsFactory);
 
 
         String objectId = "objectId";
@@ -194,7 +195,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
@@ -220,7 +221,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         final InputStream ingestContract =
-                PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
+            PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
@@ -231,7 +232,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());

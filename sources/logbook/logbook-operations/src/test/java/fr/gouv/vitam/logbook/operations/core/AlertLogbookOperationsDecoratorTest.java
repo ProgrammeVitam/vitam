@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -93,8 +93,9 @@ public class AlertLogbookOperationsDecoratorTest {
         when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
         IndexationHelper indexationHelper = mock(IndexationHelper.class);
         indexManager = mock(ElasticsearchLogbookIndexManager.class);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,indexationHelper,
-            indexManager);
+        logbookOperationsImpl =
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
         eventType = "STP_IMPORT_ACCESS_CONTRACT";
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);

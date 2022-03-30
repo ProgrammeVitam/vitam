@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,7 +34,7 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeAccessionRegisterUpdatePlugin
 public class IngestCleanupAccessionRegisterUpdatePlugin extends PurgeAccessionRegisterUpdatePlugin {
 
     private static final String INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE =
-            "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE";
+        "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE";
 
     public IngestCleanupAccessionRegisterUpdatePlugin() {
         super(INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.INGEST_CLEANUP);

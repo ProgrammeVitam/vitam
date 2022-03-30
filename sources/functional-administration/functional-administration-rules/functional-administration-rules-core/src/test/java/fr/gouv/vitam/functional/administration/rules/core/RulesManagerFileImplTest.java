@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -68,9 +68,9 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;

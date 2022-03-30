@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -53,8 +53,8 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator.RejectionCause;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.conversions.Bson;
@@ -227,7 +227,7 @@ public class ProfileManager {
 
         try {
             System.setProperty(ValidationXsdUtils.RNG_PROPERTY_KEY, ValidationXsdUtils.RNG_FACTORY);
-             SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI).newSchema(file);
+            SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI).newSchema(file);
         } catch (SAXException e) {
             LOGGER.error("Malformed profile rng file", e);
             return false;

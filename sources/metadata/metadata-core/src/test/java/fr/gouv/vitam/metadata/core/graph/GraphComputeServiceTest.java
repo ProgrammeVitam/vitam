@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,18 +26,18 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bson.Document;
 import org.junit.Test;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphComputeServiceTest {
 

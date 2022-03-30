@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,9 +34,9 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
-import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import org.bson.Document;
 
 import java.util.Collection;

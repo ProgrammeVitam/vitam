@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -73,7 +73,7 @@ import java.util.Map;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AgenciesResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
@@ -103,14 +103,14 @@ public class AgenciesResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importAgencies(@Context HttpHeaders headers,InputStream inputStream, @Context UriInfo uri) {
+    public Response importAgencies(@Context HttpHeaders headers, InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
         try {
 
             String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
 
-            RequestResponse<AgenciesModel> requestResponse = agenciesService.importAgencies(inputStream,filename);
+            RequestResponse<AgenciesModel> requestResponse = agenciesService.importAgencies(inputStream, filename);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -162,7 +162,7 @@ public class AgenciesResource {
             RequestResponseOK<AgenciesModel> reponse =
                 agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
             return Response.status(Status.OK).entity(reponse).build();
-        } catch (Exception  e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -171,8 +171,8 @@ public class AgenciesResource {
 
     /**
      * check the agencie file
-     * @param agencyStream the stream containing agencies to be checked
      *
+     * @param agencyStream the stream containing agencies to be checked
      * @return Response
      * @throws IOException convert inputstream agency to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query

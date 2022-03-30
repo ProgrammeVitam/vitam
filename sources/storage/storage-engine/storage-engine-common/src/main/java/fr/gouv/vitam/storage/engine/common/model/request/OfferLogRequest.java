@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -58,7 +58,7 @@ public class OfferLogRequest {
 
     /**
      * Constructor
-     * 
+     *
      * @param offset offset
      * @param limit limit
      * @param order order
@@ -78,7 +78,6 @@ public class OfferLogRequest {
     }
 
     /**
-     * 
      * @param offset
      */
     public void setOffset(Long offset) {
@@ -87,7 +86,6 @@ public class OfferLogRequest {
 
 
     /**
-     *
      * @return limit.
      */
     public int getLimit() {
@@ -95,7 +93,6 @@ public class OfferLogRequest {
     }
 
     /**
-     * 
      * @param limit
      */
     public void setLimit(int limit) {

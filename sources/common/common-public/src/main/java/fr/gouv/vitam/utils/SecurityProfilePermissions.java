@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -161,8 +161,8 @@ public enum SecurityProfilePermissions {
         return permission;
     }
 
-    public static Boolean isPermissionValid(String permissionToCheck){
+    public static Boolean isPermissionValid(String permissionToCheck) {
         return Arrays.stream(SecurityProfilePermissions.values())
-                .anyMatch(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck));
+            .anyMatch(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck));
     }
 }

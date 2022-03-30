@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Query model to search in process.
@@ -69,7 +69,7 @@ public class ProcessQuery {
      * @param statuses
      * @param workflows
      * @param listSteps
-     * @param listProcessTypes 
+     * @param listProcessTypes
      * @param startDateMin
      * @param startDateMax
      */
@@ -87,7 +87,7 @@ public class ProcessQuery {
 
     /**
      * Gets the id
-     * 
+     *
      * @return the id
      */
     public String getId() {
@@ -96,7 +96,7 @@ public class ProcessQuery {
 
     /**
      * Gets the states
-     * 
+     *
      * @return the states
      */
     public List<String> getStates() {
@@ -105,7 +105,7 @@ public class ProcessQuery {
 
     /**
      * Gets the statuses
-     * 
+     *
      * @return the statuses
      */
     public List<String> getStatuses() {
@@ -114,7 +114,7 @@ public class ProcessQuery {
 
     /**
      * Gets the workflows
-     * 
+     *
      * @return the workflows
      */
     public List<String> getWorkflows() {
@@ -123,25 +123,25 @@ public class ProcessQuery {
 
     /**
      * Gets steps list
-     * 
+     *
      * @return the steps
      */
     public List<String> getListSteps() {
         return listSteps;
     }
-    
+
     /**
      * Gets process types list
-     * 
+     *
      * @return the listProcessTypes
      */
     public List<String> getListProcessTypes() {
         return listProcessTypes;
     }
 
-	/**
+    /**
      * Gets the startDateMin
-     * 
+     *
      * @return the startDateMin
      */
     public String getStartDateMin() {
@@ -150,7 +150,7 @@ public class ProcessQuery {
 
     /**
      * Gets the startDateMax
-     * 
+     *
      * @return the startDateMax
      */
     public String getStartDateMax() {
@@ -159,7 +159,7 @@ public class ProcessQuery {
 
     /**
      * Sets the id
-     * 
+     *
      * @param id the id to set
      */
     public void setId(String id) {
@@ -168,7 +168,7 @@ public class ProcessQuery {
 
     /**
      * Sets the states
-     * 
+     *
      * @param states the states to set
      */
     public void setStates(List<String> states) {
@@ -177,7 +177,7 @@ public class ProcessQuery {
 
     /**
      * Sets the statuses
-     * 
+     *
      * @param statuses the statuses to set
      */
     public void setStatuses(List<String> statuses) {
@@ -186,7 +186,7 @@ public class ProcessQuery {
 
     /**
      * Sets the workflows
-     * 
+     *
      * @param workflows the workflows to set
      */
     public void setWorkflows(List<String> workflows) {
@@ -195,16 +195,16 @@ public class ProcessQuery {
 
     /**
      * Sets the steps
-     * 
+     *
      * @param listSteps the steps to set
      */
     public void setListSteps(List<String> listSteps) {
         this.listSteps = listSteps;
-	}
-    
+    }
+
     /**
      * Sets the process types
-     * 
+     *
      * @param listProcessTypes the process types to set
      */
     public void setListProcessTypes(List<String> listProcessTypes) {
@@ -213,7 +213,7 @@ public class ProcessQuery {
 
     /**
      * Sets the startDateMin
-     * 
+     *
      * @param startDateMin the startDateMin to set
      */
     public void setStartDateMin(String startDateMin) {
@@ -222,7 +222,7 @@ public class ProcessQuery {
 
     /**
      * Sets the startDateMax
-     * 
+     *
      * @param startDateMax the startDateMax to set
      */
     public void setStartDateMax(String startDateMax) {

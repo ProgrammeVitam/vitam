@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -35,8 +35,8 @@ import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
@@ -97,7 +97,8 @@ public class TapeDriveWorkerManagerTest {
         reset(archiveOutputRetentionPolicy);
 
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
-            queueRepository, archiveReferentialRepository, readRequestReferentialRepository, tapeLibraryPool, driveTape, "", false,
+            queueRepository, archiveReferentialRepository, readRequestReferentialRepository, tapeLibraryPool, driveTape,
+            "", false,
             archiveOutputRetentionPolicy);
     }
 
@@ -107,12 +108,14 @@ public class TapeDriveWorkerManagerTest {
 
     @Test
     public void test_constructor() {
-        new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), readRequestReferentialRepository,
+        new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+            readRequestReferentialRepository,
             mock(TapeLibraryPool.class), mock(Map.class),
             "/tmp", false, archiveOutputRetentionPolicy);
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), readRequestReferentialRepository,
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                readRequestReferentialRepository,
                 mock(TapeLibraryPool.class), null, "/tmp", false, archiveOutputRetentionPolicy);
             fail("should fail driveTape map is required");
         } catch (Exception e) {
@@ -121,7 +124,8 @@ public class TapeDriveWorkerManagerTest {
 
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), readRequestReferentialRepository, null,
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                readRequestReferentialRepository, null,
                 mock(Map.class), "/tmp", false, archiveOutputRetentionPolicy);
             fail("should fail tape library pool is required");
         } catch (Exception e) {
@@ -131,7 +135,8 @@ public class TapeDriveWorkerManagerTest {
 
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), null, readRequestReferentialRepository, mock(TapeLibraryPool.class), mock(Map.class),
+            new TapeDriveWorkerManager(mock(QueueRepository.class), null, readRequestReferentialRepository,
+                mock(TapeLibraryPool.class), mock(Map.class),
                 "/tmp", false, archiveOutputRetentionPolicy);
             fail("should fail tar referential repository is required");
         } catch (Exception e) {
@@ -139,7 +144,8 @@ public class TapeDriveWorkerManagerTest {
         }
 
         try {
-            new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), readRequestReferentialRepository, mock(TapeLibraryPool.class),
+            new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), readRequestReferentialRepository,
+                mock(TapeLibraryPool.class),
                 mock(Map.class), "/tmp", false, archiveOutputRetentionPolicy);
             fail("should fail read write queue is required");
         } catch (Exception e) {
@@ -147,8 +153,9 @@ public class TapeDriveWorkerManagerTest {
         }
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null, mock(TapeLibraryPool.class),
-                    mock(Map.class), "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null,
+                mock(TapeLibraryPool.class),
+                mock(Map.class), "/tmp", false, archiveOutputRetentionPolicy);
             fail("should fail read request repository is required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -156,7 +163,8 @@ public class TapeDriveWorkerManagerTest {
 
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), readRequestReferentialRepository, mock(TapeLibraryPool.class),
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
+                readRequestReferentialRepository, mock(TapeLibraryPool.class),
                 mock(Map.class), "/tmp", false, null);
             fail("should fail read request archiveOutputRetentionPolicy is required");
         } catch (Exception e) {

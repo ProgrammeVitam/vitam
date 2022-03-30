@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -484,7 +484,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
                 client.traceability(Arrays.asList(tenants));
             // Collect to map with null values throws exceptions (https://bugs.openjdk.java.net/browse/JDK-8148463)
             return result.getResults().stream()
-                .collect(HashMap::new, (m,v)->m.put(v.getTenantId(), v.getOperationId()), HashMap::putAll);
+                .collect(HashMap::new, (m, v) -> m.put(v.getTenantId(), v.getOperationId()), HashMap::putAll);
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         }
@@ -522,12 +522,12 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     private List<String> parseLines(List<String> lines) {
         return lines.stream().map(line -> {
-            try {
-                return JsonHandler.getFromString(line);
-            } catch (InvalidParseOperationException e) {
-                throw new RuntimeException(e);
-            }
-        }).map(json -> json.get("_id").asText())
+                try {
+                    return JsonHandler.getFromString(line);
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            }).map(json -> json.get("_id").asText())
             .collect(Collectors.toList());
     }
 

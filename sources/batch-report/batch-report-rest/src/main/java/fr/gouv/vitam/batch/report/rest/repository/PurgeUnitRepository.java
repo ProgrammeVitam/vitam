@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -81,24 +81,24 @@ public class PurgeUnitRepository extends ReportCommonRepository {
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
         return purgeUnitReportCollection.aggregate(
-            Arrays.asList(
-                Aggregates.match(and(
-                    eq(PurgeUnitModel.PROCESS_ID, processId),
-                    eq(PurgeUnitModel.TENANT, tenantId)
-                )),
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document("id", "$_metadata.id"),
-                    new Document("distribGroup", null),
-                    new Document("params.id", "$_metadata.id"),
-                    new Document("params.type", new Document("$literal", "Unit")),
-                    new Document("params.status", "$_metadata.status"),
-                    new Document("params.opi", "$_metadata.opi"),
-                    new Document("params.originatingAgency", "$_metadata.originatingAgency"),
-                    new Document("params.objectGroupId", "$_metadata.objectGroupId")
-                    )
-                ))
-        )
+                Arrays.asList(
+                    Aggregates.match(and(
+                        eq(PurgeUnitModel.PROCESS_ID, processId),
+                        eq(PurgeUnitModel.TENANT, tenantId)
+                    )),
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("distribGroup", null),
+                            new Document("params.id", "$_metadata.id"),
+                            new Document("params.type", new Document("$literal", "Unit")),
+                            new Document("params.status", "$_metadata.status"),
+                            new Document("params.opi", "$_metadata.opi"),
+                            new Document("params.originatingAgency", "$_metadata.originatingAgency"),
+                            new Document("params.objectGroupId", "$_metadata.objectGroupId")
+                        )
+                    ))
+            )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();
@@ -128,30 +128,30 @@ public class PurgeUnitRepository extends ReportCommonRepository {
      */
     public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
         return purgeUnitReportCollection.aggregate(
-            Arrays.asList(
-                // Filter
-                Aggregates.match(and(
-                    eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                    eq(PurgeObjectGroupModel.TENANT, tenantId),
-                    eq("_metadata.status", "DELETED")
-                )),
-                // Group By
-                Aggregates.group("$_metadata." + OPI,
-                    Accumulators.first(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
-                    Accumulators.sum(TOTAL_UNITS, 1)
-                ),
-                // Projection
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document(OPI, "$_id"),
-                    new Document(ORIGINATING_AGENCY, 1),
-                    new Document(TOTAL_UNITS, 1)
-                    )
-                ),
-                // Sort
-                Aggregates.sort(Sorts.descending("opi"))
+                Arrays.asList(
+                    // Filter
+                    Aggregates.match(and(
+                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
+                        eq(PurgeObjectGroupModel.TENANT, tenantId),
+                        eq("_metadata.status", "DELETED")
+                    )),
+                    // Group By
+                    Aggregates.group("$_metadata." + OPI,
+                        Accumulators.first(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
+                        Accumulators.sum(TOTAL_UNITS, 1)
+                    ),
+                    // Projection
+                    Aggregates.project(Projections.fields(
+                            new Document("_id", 0),
+                            new Document(OPI, "$_id"),
+                            new Document(ORIGINATING_AGENCY, 1),
+                            new Document(TOTAL_UNITS, 1)
+                        )
+                    ),
+                    // Sort
+                    Aggregates.sort(Sorts.descending("opi"))
+                )
             )
-        )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();

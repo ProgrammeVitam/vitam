@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -273,7 +273,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                 case AUDIT:
                 case DATA_MIGRATION:
                     LOGGER.debug("Backup operation context. No operation context for the process type " +
-                            processWorkflow.getLogbookTypeProcess());
+                        processWorkflow.getLogbookTypeProcess());
                     break;
                 default:
                     operationContextMonitor

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -110,7 +110,7 @@ public class PurgeDeleteUnitPluginTest {
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_unit_1", "id_unit_2", "id_unit_3", "id_unit_4", "id_unit_5"))
@@ -123,7 +123,8 @@ public class PurgeDeleteUnitPluginTest {
             .when(purgeReportService)
             .appendUnitEntries(any(), any());
 
-        instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService, lfcClientFactory);
+        instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService,
+            lfcClientFactory);
     }
 
     @After

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,8 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.xmlunit.builder.Input.fromString;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 

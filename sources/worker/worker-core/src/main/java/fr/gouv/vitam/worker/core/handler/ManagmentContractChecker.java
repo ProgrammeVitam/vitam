@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -59,7 +59,7 @@ public class ManagmentContractChecker {
     private StorageClientFactory storageClientFactory;
 
     public ManagmentContractChecker(String managementContractId,
-            AdminManagementClientFactory adminManagementClientFactory, StorageClientFactory storageClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory, StorageClientFactory storageClientFactory) {
         this.managementContractId = managementContractId;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -67,23 +67,24 @@ public class ManagmentContractChecker {
 
     public CheckIngestContractStatus check() {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
-                StorageClient storageClient = storageClientFactory.getClient()) {
+            StorageClient storageClient = storageClientFactory.getClient()) {
             RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
-                    .findManagementContractsByID(managementContractId);
+                .findManagementContractsByID(managementContractId);
             if (ManagementContractResponse.isOk()) {
 
-                List<ManagementContractModel> results = ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
+                List<ManagementContractModel> results =
+                    ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
                         .getResults();
                 if (results.isEmpty()) {
                     LOGGER.error("CheckContract : The Management Contract " + managementContractId
-                            + "  not found in database");
+                        + "  not found in database");
                     return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
                 } else {
                     final ManagementContractModel managementContract = Iterables.getFirst(results, null);
 
                     if (!ActivationStatus.ACTIVE.equals(managementContract.getStatus())) {
                         LOGGER.error(
-                                "CheckContract : The Management Contract " + managementContract + "  is not activated");
+                            "CheckContract : The Management Contract " + managementContract + "  is not activated");
                         return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
                     }
 
@@ -94,22 +95,22 @@ public class ManagmentContractChecker {
                             throw new StorageServerClientException("Exception while retrieving storage strategies");
                         }
                         List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
-                                .getResults();
+                            .getResults();
 
                         try {
                             if (managementContract.getStorage().getObjectGroupStrategy() != null) {
                                 StorageStrategyUtils.checkStrategy(
-                                        managementContract.getStorage().getObjectGroupStrategy(), strategies,
-                                        ManagementContract.OBJECTGROUP_STRATEGY, true);
+                                    managementContract.getStorage().getObjectGroupStrategy(), strategies,
+                                    ManagementContract.OBJECTGROUP_STRATEGY, true);
                             }
                             if (managementContract.getStorage().getUnitStrategy() != null) {
                                 StorageStrategyUtils.checkStrategy(managementContract.getStorage().getUnitStrategy(),
-                                        strategies, ManagementContract.UNIT_STRATEGY, true);
+                                    strategies, ManagementContract.UNIT_STRATEGY, true);
                             }
 
                             if (managementContract.getStorage().getObjectStrategy() != null) {
                                 StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
-                                        strategies, ManagementContract.OBJECT_STRATEGY, false);
+                                    strategies, ManagementContract.OBJECT_STRATEGY, false);
                             }
                         } catch (StorageStrategyNotFoundException | StorageStrategyReferentOfferException exc) {
                             LOGGER.error(exc);
@@ -125,7 +126,7 @@ public class ManagmentContractChecker {
             return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
 
         } catch (AdminManagementClientServerException | InvalidParseOperationException
-                | StorageServerClientException e) {
+            | StorageServerClientException e) {
             LOGGER.error("Fatal check error :", e);
             return CheckIngestContractStatus.FATAL;
         }

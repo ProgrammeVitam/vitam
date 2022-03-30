@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -96,7 +96,7 @@ public class SelectParserSingle extends RequestParserSingle {
      *
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is
-     *                                        in error
+     * in error
      */
     public void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -122,7 +122,7 @@ public class SelectParserSingle extends RequestParserSingle {
      * Add the new Projection slice to the current Projection. If the existing projection is empty, the allFields is
      * added first.
      *
-     * @param slice     the projection to add
+     * @param slice the projection to add
      * @param allFields the default fields to add if none exists yet
      * @throws InvalidParseOperationException if slice or allFields is null or check sanity to them is in error
      */

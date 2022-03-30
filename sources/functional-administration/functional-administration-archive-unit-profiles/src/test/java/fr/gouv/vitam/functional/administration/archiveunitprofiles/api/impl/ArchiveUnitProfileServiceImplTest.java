@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -119,7 +119,8 @@ public class ArchiveUnitProfileServiceImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList, indexManager);
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
@@ -133,7 +134,8 @@ public class ArchiveUnitProfileServiceImplTest {
         archiveUnitProfileService =
             new ArchiveUnitProfileServiceImpl(
                 MongoDbAccessAdminFactory
-                    .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
+                    .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                        Collections::emptyList, indexManager),
                 vitamCounterService, functionalBackupService, false);
 
 
@@ -228,7 +230,8 @@ public class ArchiveUnitProfileServiceImplTest {
             JsonHandler
                 .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
                 });
-        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response =
+            archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         List<VitamError> errors = ((VitamError) response).getErrors();
         assertThat(errors.get(0).getDescription().equals(
@@ -421,7 +424,8 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(responseCast.getResults()).hasSize(1);
 
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-        String id3 = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().iterator().next().getIdentifier();
+        String id3 =
+            ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().iterator().next().getIdentifier();
         final ArchiveUnitProfileModel acm = archiveUnitProfileService.findByIdentifier(id3);
         assertEquals(acm.getFields().size(), 14);
     }
@@ -498,8 +502,10 @@ public class ArchiveUnitProfileServiceImplTest {
                 });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
-        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+            "The field Identifier is mandatory");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo(
+            "IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO");
         verifyZeroInteractions(functionalBackupService);
 
     }
@@ -525,6 +531,7 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(acm.getIdentifier()).startsWith("AUP-");
 
     }
+
     @Test
     @RunWithCustomExecutor
     public void givenTestFindAllThenReturnTwoProfiles() throws Exception {

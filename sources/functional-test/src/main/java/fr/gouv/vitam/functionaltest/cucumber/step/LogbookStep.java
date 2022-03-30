@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -327,7 +327,7 @@ public class LogbookStep {
     /**
      * check if the status is valid for a list of event type according to logbook
      *
-     * @param eventNames  list of event
+     * @param eventNames list of event
      * @param eventStatus status of event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -399,7 +399,7 @@ public class LogbookStep {
     /**
      * check if the outcome detail is valid for an event type according to logbook
      *
-     * @param eventName    the event
+     * @param eventName the event
      * @param eventResults outcome detail of the event
      * @throws VitamClientException
      * @throws InvalidParseOperationException

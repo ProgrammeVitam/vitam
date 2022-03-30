@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -44,9 +44,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class SedaConverterToolTest {
     private static final String UNIT_SEDA_2_0_FILE_1 = "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.0_1.json",
-                                UNIT_SEDA_2_0_FILE_2 = "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.0_2.json",
-                                UNIT_SEDA_2_1_FILE_1 =
-                                    "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.1_NotToBeMigrated.json";
+        UNIT_SEDA_2_0_FILE_2 = "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.0_2.json",
+        UNIT_SEDA_2_1_FILE_1 =
+            "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.1_NotToBeMigrated.json";
 
     @Test
     public void convertUnitToSeda21Test() throws InvalidParseOperationException, FileNotFoundException {
@@ -60,20 +60,20 @@ public class SedaConverterToolTest {
         Unit convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
 
         assertConvertedUnitOk(convertedUnit);
-        assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
+        assertTrue(((Document) ((List) convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
 
         //test 2
         jsonUnit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNIT_SEDA_2_0_FILE_2));
 
-         unit = new Unit(jsonUnit);
+        unit = new Unit(jsonUnit);
 
         assertTrue(unit.get("Signature") != null);
-        assertTrue(((Document)unit.get("Signature")).get("DateSignature") != null);
+        assertTrue(((Document) unit.get("Signature")).get("DateSignature") != null);
 
         convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
 
         assertConvertedUnitOk(convertedUnit);
-        assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
+        assertTrue(((Document) ((List) convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
 
         //not to be migrated
         jsonUnit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNIT_SEDA_2_1_FILE_1));
@@ -85,10 +85,10 @@ public class SedaConverterToolTest {
     private void assertConvertedUnitOk(Unit convertedUnit) {
         assertTrue(convertedUnit.get("OriginatingSystemId") instanceof List);
         assertTrue(convertedUnit.get("AuthorizedAgent") instanceof List);
-        assertTrue(convertedUnit.get("ArchivalAgencyArchiveUnitIdentifier")  instanceof List);
+        assertTrue(convertedUnit.get("ArchivalAgencyArchiveUnitIdentifier") instanceof List);
         assertTrue(convertedUnit.get("RestrictionEndDate") == null);
         assertTrue(convertedUnit.get("Href") == null);
         assertTrue(convertedUnit.get("Signature") instanceof List);
-        assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("Signer")  instanceof List);
+        assertTrue(((Document) ((List) convertedUnit.get("Signature")).get(0)).get("Signer") instanceof List);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -50,7 +50,7 @@ public class LogbookMain {
 
     /**
      * Constructor with a configuration file
-     * 
+     *
      * @param configurationFile the path to configuration file
      */
     public LogbookMain(String configurationFile) {
@@ -89,7 +89,7 @@ public class LogbookMain {
 
     /**
      * Start the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -98,7 +98,7 @@ public class LogbookMain {
 
     /**
      * Start and join the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -107,7 +107,7 @@ public class LogbookMain {
 
     /**
      * Stop the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {

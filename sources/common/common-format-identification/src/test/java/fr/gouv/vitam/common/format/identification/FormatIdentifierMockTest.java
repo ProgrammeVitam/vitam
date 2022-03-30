@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.format.identification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import org.junit.Test;
 
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
-import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * FormatIdentifierMock test

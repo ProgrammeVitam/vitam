@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -44,8 +37,15 @@ import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 @Path("/v1/api/personalCertificate")
-@Tag(name="Security")
+@Tag(name = "Security")
 public class PersonalCertificateResource {
 
     private final PermissionService permissionService;
@@ -54,7 +54,7 @@ public class PersonalCertificateResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param permissionService
      * @param personalCertificateService
      */
@@ -67,7 +67,7 @@ public class PersonalCertificateResource {
 
     /**
      * Check personal certificate
-     * 
+     *
      * @param certificate the certificate
      * @param permission the permission
      * @throws LogbookClientServerException

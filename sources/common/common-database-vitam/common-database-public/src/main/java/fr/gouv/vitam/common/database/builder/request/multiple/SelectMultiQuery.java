@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,13 +26,9 @@
  */
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -41,6 +37,9 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection, $facets : facet }
@@ -54,7 +53,6 @@ public class SelectMultiQuery extends RequestMultiple {
     protected Long threshold;
 
     /**
-     *
      * @return this Request
      */
     public final SelectMultiQuery resetFacets() {
@@ -137,7 +135,7 @@ public class SelectMultiQuery extends RequestMultiple {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if(trackTotalHits) {
+        if (trackTotalHits) {
             filter.put(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken(), true);
         } else {
             filter.remove(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken());
@@ -351,7 +349,7 @@ public class SelectMultiQuery extends RequestMultiple {
 
     /**
      * Add facets to given node
-     * 
+     *
      * @param node with facets
      */
     protected void addFacetsToNode(ObjectNode node) {
@@ -367,7 +365,7 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     private void addThresholdToNode(ObjectNode node) {
-        if(threshold != null) {
+        if (threshold != null) {
             node.put(GLOBAL.THRESOLD.exactToken(), threshold);
         }
     }
@@ -389,7 +387,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     * 
      * @return the facets
      */
     public final List<Facet> getFacets() {
@@ -397,7 +394,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param facets list of facet
      * @return this Request
      * @throws IllegalArgumentException when facet is invalid

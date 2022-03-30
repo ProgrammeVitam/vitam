@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -30,9 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- *
  * Action class containing an actionDefinition
- *
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class Action {
@@ -41,7 +39,6 @@ public class Action {
     private ActionDefinition actionDefinition;
 
     /**
-     *
      * @return the definition of the Action
      */
     public ActionDefinition getActionDefinition() {

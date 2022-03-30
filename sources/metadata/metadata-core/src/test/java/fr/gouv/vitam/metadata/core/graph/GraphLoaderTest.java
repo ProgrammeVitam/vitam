@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,27 +26,22 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
-import static fr.gouv.vitam.metadata.core.graph.GraphLoader.UNIT_VITAM_GRAPH_PROJECTION;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
-import java.util.Map;
-
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.UnitGraphModel;
-import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
+import static fr.gouv.vitam.metadata.core.graph.GraphLoader.UNIT_VITAM_GRAPH_PROJECTION;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 public class GraphLoaderTest {
 

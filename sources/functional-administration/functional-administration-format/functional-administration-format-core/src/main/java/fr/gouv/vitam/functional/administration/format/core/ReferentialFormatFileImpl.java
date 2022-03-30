@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -425,8 +425,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
         final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, REFERENTIAL_FORMAT_IMPORT.getEventType(), eip,
-                    REFERENTIAL_FORMAT_IMPORT.getLogbookTypeProcess(), report.getStatusCode(),
-                VitamLogbookMessages.getCodeOp(REFERENTIAL_FORMAT_IMPORT.getEventType(), report.getStatusCode()) + VERSION +
+                REFERENTIAL_FORMAT_IMPORT.getLogbookTypeProcess(), report.getStatusCode(),
+                VitamLogbookMessages.getCodeOp(REFERENTIAL_FORMAT_IMPORT.getEventType(), report.getStatusCode()) +
+                    VERSION +
                     pronomList.get(0).getVersionPronom() + FILE_PRONOM,
                 eip);
 

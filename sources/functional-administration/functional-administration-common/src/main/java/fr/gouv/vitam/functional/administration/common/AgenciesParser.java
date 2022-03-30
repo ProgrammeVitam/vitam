@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -31,7 +31,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -52,8 +51,8 @@ public class AgenciesParser {
         final CsvMapper csvMapper = new CsvMapper();
         final MappingIterator<AgenciesModel> mappingIterator =
             csvMapper.readerFor(AgenciesModel.class).with(bootstrap).readValues(input);
-        while (mappingIterator.hasNext()){
-            AgenciesModel  model = mappingIterator.next();
+        while (mappingIterator.hasNext()) {
+            AgenciesModel model = mappingIterator.next();
             list.add(model);
         }
         return list;

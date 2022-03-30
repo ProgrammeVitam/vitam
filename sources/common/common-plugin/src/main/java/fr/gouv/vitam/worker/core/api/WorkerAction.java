@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -37,12 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- *
  * Action interface: is a contract for different action Handler event
  *
  * action handler class must be implement this interface
- *
  */
 public interface WorkerAction {
 
@@ -59,7 +56,6 @@ public interface WorkerAction {
     }
 
     /**
-     *
      * @param workerParameters
      * @param handler
      * @return
@@ -77,7 +73,8 @@ public interface WorkerAction {
             for (int i = 0; i < objectNameList.size(); i++) {
 
                 String objectId = objectNameList.get(i);
-                JsonNode metadata = objectMetadataList != null && !objectMetadataList.isEmpty() ? objectMetadataList.get(i) : null;
+                JsonNode metadata =
+                    objectMetadataList != null && !objectMetadataList.isEmpty() ? objectMetadataList.get(i) : null;
 
                 workerParameters.setObjectName(objectId);
                 workerParameters.setObjectMetadata(metadata);
@@ -97,7 +94,7 @@ public interface WorkerAction {
 
     /**
      * Check mandatory parameter
-     * 
+     *
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -33,9 +33,9 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -292,12 +292,12 @@ public class MassUpdateIT extends VitamRuleRunner {
         // insert units
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON),
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON),
             TYPE_LIST_UNIT);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .save(units);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(units);
 
         // import contract
@@ -477,12 +477,12 @@ public class MassUpdateIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON),
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON),
             TYPE_LIST_UNIT);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .save(units);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(units);
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
@@ -854,17 +854,17 @@ public class MassUpdateIT extends VitamRuleRunner {
         throws fr.gouv.vitam.common.exception.InvalidParseOperationException, FileNotFoundException, DatabaseException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            unitFile),
+                unitFile),
             TYPE_LIST_UNIT);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .save(units);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(units);
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            lfcFile),
+                lfcFile),
             new TypeReference<>() {
             });
         List<Document> lfcs = unitsLfc.stream()

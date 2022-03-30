@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -27,9 +27,7 @@
 package fr.gouv.vitam.common.exception;
 
 /**
- *
  * Exception used when contract does not give access to the Vitam
- *
  */
 public class AccessUnauthorizedException extends VitamClientException {
 

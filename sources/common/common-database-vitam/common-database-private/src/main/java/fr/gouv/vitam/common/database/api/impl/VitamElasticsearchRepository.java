@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -34,10 +34,10 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -112,7 +112,8 @@ public class VitamElasticsearchRepository {
      * @param client the es client
      * @param elasticsearchIndexAliasResolver the name of the index
      */
-    public VitamElasticsearchRepository(RestHighLevelClient client, ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
+    public VitamElasticsearchRepository(RestHighLevelClient client,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
         this.client = client;
         this.elasticsearchIndexAliasResolver = elasticsearchIndexAliasResolver;
     }
@@ -465,7 +466,6 @@ public class VitamElasticsearchRepository {
     }
 
     /**
-     * 
      * @param id
      * @return
      * @throws DatabaseException

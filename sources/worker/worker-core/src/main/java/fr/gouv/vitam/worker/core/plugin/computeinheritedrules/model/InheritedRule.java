@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,9 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * InheritedRule
@@ -56,7 +56,7 @@ public class InheritedRule {
 
     public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule) {
         this.maxEndDate = maxEndDate;
-        if(ruleIdToRule == null) {
+        if (ruleIdToRule == null) {
             this.ruleIdToRule = Collections.emptyMap();
         } else {
             this.ruleIdToRule = ruleIdToRule;

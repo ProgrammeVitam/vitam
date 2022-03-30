@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -42,6 +39,9 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Logbook check consistency step.
@@ -85,7 +85,7 @@ public class LogbookCheckConsistencyStep {
         assertThat(result).as("Le rapport du test de cohérence des journaux n'est pas disponible").isNotNull();
         String resultAsString = JsonHandler.prettyPrint(JsonHandler.toJsonNode(result));
         assertThat(result.getCheckErrors()).as(
-            "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
+                "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
             .isNullOrEmpty();
     }
 

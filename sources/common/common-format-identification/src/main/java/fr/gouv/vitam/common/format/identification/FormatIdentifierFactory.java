@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,14 +26,7 @@
  */
 package fr.gouv.vitam.common.format.identification;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
@@ -43,6 +36,12 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierConfigur
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Format Identifier Factory : used to retrieve the FormatIdentifier implementations
@@ -74,7 +73,8 @@ public class FormatIdentifierFactory {
             final File configurationFile = PropertiesUtils.findFile(configurationPath);
             if (configurationFile != null) {
                 final Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
-                    new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
+                    new TypeReference<Map<String, FormatIdentifierConfiguration>>() {
+                    });
                 for (final FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
@@ -119,7 +119,7 @@ public class FormatIdentifierFactory {
      * @param formatIdentifierId format identifier id
      * @param configuration format identifier configuration
      * @throws IllegalArgumentException if the parameters are null : formatIdentifierId, configuration,
-     *         configuration.type
+     * configuration.type
      */
     public void addFormatIdentifier(String formatIdentifierId, FormatIdentifierConfiguration configuration) {
         ParametersChecker.checkParameter(FORMAT_IDENTIFIER_ID_NOT_NULL, formatIdentifierId);

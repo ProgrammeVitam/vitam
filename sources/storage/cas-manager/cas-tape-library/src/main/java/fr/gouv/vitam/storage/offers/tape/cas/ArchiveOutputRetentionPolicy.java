@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -69,7 +69,8 @@ public class ArchiveOutputRetentionPolicy {
             .expireAfterAccess(cacheTimeoutInMinutes, timeUnit)
             .concurrencyLevel(concurrencyLevel)
             .removalListener((RemovalListener<String, Path>) removalNotification -> cleanUpExecutor
-                .execute(() -> cleanUpExpiredEntry(removalNotification.getKey(), removalNotification.getValue()))).build();
+                .execute(() -> cleanUpExpiredEntry(removalNotification.getKey(), removalNotification.getValue())))
+            .build();
 
         // CleanUp to force call to removalListener (This is needed in case where we have just read and no write operations to cache)
         Executors

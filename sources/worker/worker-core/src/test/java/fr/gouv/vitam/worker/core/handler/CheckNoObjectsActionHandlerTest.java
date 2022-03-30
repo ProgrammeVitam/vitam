@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,19 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -50,6 +37,18 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CheckNoObjectsActionHandlerTest {
     private static final String GUID = "aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203";
@@ -57,9 +56,9 @@ public class CheckNoObjectsActionHandlerTest {
     private static final String OBJECT_NAME = "objectName.json";
     private static final String HTTP_LOCALHOST = "http://localhost:8080";
     private static final String PLAN_MANIFEST =
-            "CheckNoObjectsActionHandler/manifest.xml";
+        "CheckNoObjectsActionHandler/manifest.xml";
     private static final String KO_MANIFEST =
-            "CheckNoObjectsActionHandler/manifestKO.xml";
+        "CheckNoObjectsActionHandler/manifestKO.xml";
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
     private GUID guid;
@@ -72,22 +71,22 @@ public class CheckNoObjectsActionHandlerTest {
     public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
         guid = GUIDFactory.newGUID();
         params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
-                        .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
-                        .setContainerName(guid.getId()).setProcessId(GUID);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
+                .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
+                .setContainerName(guid.getId()).setProcessId(GUID);
         sedaOK = PropertiesUtils.getResourceAsStream(PLAN_MANIFEST);
         sedaKO = PropertiesUtils.getResourceAsStream(KO_MANIFEST);
     }
 
     @Test
     public void checkManifestHavingObjectOrNot()
-            throws Exception {
+        throws Exception {
         final CheckNoObjectsActionHandler handler = new CheckNoObjectsActionHandler();
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaOK);
         WorkerParameters parameters =
-                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                        .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
-                        .setObjectNameList(Lists.newArrayList("objectName.json"));
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
+                .setObjectNameList(Lists.newArrayList("objectName.json"));
         final ItemStatus response = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(response.getGlobalStatus(), StatusCode.OK);

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -42,12 +42,9 @@ public class ThreadResponseData {
     /**
      * Default constructor
      *
-     * @param putObjectResult
-     *            the result
-     * @param status
-     *            the status
-     * @param objectGuid
-     *            the object guid
+     * @param putObjectResult the result
+     * @param status the status
+     * @param objectGuid the object guid
      */
     public ThreadResponseData(StorageObjectResult putObjectResult, Response.Status status, String objectGuid) {
         this.response = putObjectResult;

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -52,7 +52,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;
@@ -194,8 +193,9 @@ public class BulkPutTransferManagerTest {
         doReturn(storageBulkPutResult).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -234,8 +234,9 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
@@ -267,8 +268,9 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
@@ -304,8 +306,9 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
@@ -350,8 +353,9 @@ public class BulkPutTransferManagerTest {
         doThrow(new StorageDriverException("", "", true)).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -401,8 +405,9 @@ public class BulkPutTransferManagerTest {
         doThrow(StorageDriverPreconditionFailedException.class).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -456,8 +461,9 @@ public class BulkPutTransferManagerTest {
         doReturn(2000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -496,7 +502,7 @@ public class BulkPutTransferManagerTest {
         long longFileSize = 10_000_000L;
         File veryLargeFile = folder.newFile(GUIDFactory.newGUID().toString());
         Digest digest = new Digest(DigestType.SHA512);
-        try(OutputStream os = new FileOutputStream(veryLargeFile)) {
+        try (OutputStream os = new FileOutputStream(veryLargeFile)) {
             MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(os);
 
             NullInputStream bigFileInputStream = new NullInputStream(longFileSize);
@@ -516,8 +522,9 @@ public class BulkPutTransferManagerTest {
         doThrow(new StorageDriverException("driver", "ko", true)).when(connection2).bulkPutObjects(any());
 
         // When / Then
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult =
+            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
+                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(1);

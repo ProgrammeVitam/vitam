@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -75,8 +75,8 @@ class LogbookAgenciesImportManager {
     /**
      * log start process
      *
-     * @throws VitamException thrown if the logbook could not be created
      * @param eventType the event type to be logged
+     * @throws VitamException thrown if the logbook could not be created
      */
     public void logStarted(GUID eip, String eventType) throws VitamException {
 
@@ -168,7 +168,7 @@ class LogbookAgenciesImportManager {
      */
     public void logError(GUID eip, String errorsDetails, String subEvenType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
-        
+
         // create logbook parameters
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
             .newLogbookOperationParameters(eip, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
@@ -211,7 +211,7 @@ class LogbookAgenciesImportManager {
 
 
     public boolean isImportOperationInProgress(GUID eip) throws VitamException {
-        try(LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+        try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
             final Select select = new Select();
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
@@ -232,7 +232,8 @@ class LogbookAgenciesImportManager {
                 if (result.get(LogbookDocument.EVENTS) != null && result.get(LogbookDocument.EVENTS).size() > 0) {
                     JsonNode lastEvent =
                         result.get(LogbookDocument.EVENTS).get(result.get(LogbookDocument.EVENTS).size() - 1);
-                    return !AGENCIES_IMPORT_EVENT.equals(lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
+                    return !AGENCIES_IMPORT_EVENT.equals(
+                        lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
                 } else {
                     return true;
                 }

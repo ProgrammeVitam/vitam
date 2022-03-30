@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.security.internal.filter;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Handles REST endpoints's access based on the basic authentication.
@@ -68,7 +68,8 @@ public class BasicAuthenticationFilter implements DynamicFeature {
      * @param resourceInfo
      * @param featureContext
      */
-    @Override public void configure(ResourceInfo resourceInfo, FeatureContext featureContext) {
+    @Override
+    public void configure(ResourceInfo resourceInfo, FeatureContext featureContext) {
 
         // retrieve @VitamAuthentication annotation.
         VitamAuthentication authentication = resourceInfo.getResourceMethod().getAnnotation(VitamAuthentication.class);
