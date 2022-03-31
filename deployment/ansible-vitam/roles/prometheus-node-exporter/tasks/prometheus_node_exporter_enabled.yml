@@ -75,11 +75,11 @@
   tags:
     - update_node_exporter_configuration
 
-- name: Ensure vitam-node-exporter service is started and enabled at boot
+- name: Ensure vitam-node-exporter service is started
   service:
     name: vitam-node-exporter
     state: started
-    enabled: true
+    enabled: "{{ prometheus.node_exporter.at_boot | default(service_at_boot) }}"
 
 - name: Wait for node_exporter port {{ prometheus.node_exporter.port | default(9101) }} to be open
   wait_for:

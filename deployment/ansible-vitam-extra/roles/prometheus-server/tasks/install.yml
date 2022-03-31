@@ -112,7 +112,7 @@
   service:
     name: vitam-prometheus
     state: started
-    enabled: true
+    enabled: "{{ prometheus.server.at_boot | default(service_at_boot) }}"
   tags:
     - update_prometheus_configuration
 

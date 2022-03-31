@@ -33,7 +33,7 @@
 - name: Enable consul service
   service:
     name: "{{ consul_service }}"
-    enabled: true
+    enabled: "{{ consul.at_boot | default(service_at_boot) }}"
   notify:
       - restart consul
 

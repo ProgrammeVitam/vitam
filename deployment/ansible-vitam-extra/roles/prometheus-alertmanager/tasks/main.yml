@@ -82,7 +82,7 @@
   service:
     name: vitam-alertmanager
     state: started
-    enabled: true
+    enabled: "{{ prometheus.alertmanager.at_boot | default(service_at_boot) }}"
   tags:
     - update_alertmanager_configuration
 
