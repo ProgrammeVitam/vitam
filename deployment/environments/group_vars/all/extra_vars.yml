@@ -44,6 +44,9 @@ metricbeat:
 packetbeat:
     enabled: false
 
+browser:
+    enabled: false
+
 docker_opts:
     registry_httponly: yes
     vitam_docker_tag: latest
