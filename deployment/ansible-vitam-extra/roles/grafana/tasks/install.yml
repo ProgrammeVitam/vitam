@@ -40,7 +40,7 @@
 - name: Make sure grafana-server is started and enabled at boot
   systemd:
     name: grafana-server
-    enabled: true
+    enabled: "{{ grafana.at_boot | default(service_at_boot) }}"
     state: started
 
 #### Consul configuration ####

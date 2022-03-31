@@ -4,3 +4,5 @@ curator_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/curator"
 curator_log_dir: "{{ vitam_defaults.folder.root_path }}/log/curator"
 topbeat_processes: "java|node|mongod|mongos|sf|consul"
 beats_version: "5.6.9"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

@@ -4,3 +4,5 @@ prometheus_consul_exporter_config_path: "{{ vitam_defaults.folder.root_path | de
 prometheus_consul_exporter_db_path:     "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/consul_exporter"
 prometheus_consul_exporter_app_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/app/consul_exporter"
 prometheus_consul_exporter_bin_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/bin/consul_exporter"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

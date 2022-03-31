@@ -85,7 +85,7 @@
   - name: ensure clamAV daemon is started at boot
     systemd:
       name: "clamd@scan"
-      enabled: yes
+      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: started
 
   - name: active clamav updates
@@ -129,14 +129,14 @@
     systemd:
       name: clamav-daemon.socket
       daemon_reload: yes
-      enabled: yes
+      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: restarted
 
   - name: stop clamav-freshclam service to force update
     systemd:
       name: clamav-freshclam
       daemon_reload: yes
-      enabled: yes
+      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: stopped
 
   - name: Add proxy directives to download databases when proxy is defined
@@ -161,14 +161,14 @@
   - name: restart clamav-freshclam service
     systemd:
       name: clamav-freshclam
-      enabled: yes
+      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: started
 
   - name: restart clamav-daemon service
     systemd:
       name: clamav-daemon
       daemon_reload: yes
-      enabled: yes
+      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: restarted
 
   - name: change check periodicity for clamAV database updates

@@ -4,3 +4,5 @@ consul_service: "vitam-consul"
 
 consul_folder_log: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/log/consul"
 consul_folder_data: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/consul"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

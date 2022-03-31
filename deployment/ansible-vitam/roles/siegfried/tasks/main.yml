@@ -14,7 +14,7 @@
 - name: Ensure siegfried is started on boot
   service:
     name: vitam-siegfried
-    enabled: true
+    enabled: "{{ siegfried.at_boot | default(service_at_boot) }}"
     state: started
   notify:
     - restart siegfried

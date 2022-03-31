@@ -226,7 +226,7 @@
     - name: restart mongod
       service:
          name: vitam-mongod
-         enabled: true
+         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
          state: restarted
       delegate_to: "{{ item }}"
       when:
@@ -238,7 +238,7 @@
     - name: restart mongoc
       service:
          name: vitam-mongoc
-         enabled: true
+         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
          state: restarted
       delegate_to: "{{ item }}"
       when:
@@ -250,7 +250,7 @@
     - name: restart mongos
       service:
          name: vitam-mongos
-         enabled: true
+         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
          state: restarted
       delegate_to: "{{ item }}"
       when:
