@@ -13,7 +13,7 @@ db.ObjectGroup.createIndex( { "_tenant" : 1 } )
 db.ObjectGroup.createIndex( { "_ops" : 1 } )
 db.ObjectGroup.createIndex( { "_glpd" : 1 } )
 
-db.Snapshot.createIndex( { "_tenant" : 1, "name" : 1 } , { unique: true } )
+db.Snapshot.createIndex( { "_tenant" : 1, "Name" : 1 } , { unique: true } )
 
 // Drop R6 indexes, if any
 
