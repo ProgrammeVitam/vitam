@@ -13,7 +13,7 @@
 - name: enable mongoc
   service:
     name: vitam-mongoc
-    enabled: true
+    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
   notify:
     - restart mongoc
 

@@ -15,3 +15,5 @@ base_url: "{{ vitam_struct|client_url }}"
 vitam_strategy_offers_names: []
 other_strategy_offers_list: []
 all_used_offers: []
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
