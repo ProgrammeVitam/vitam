@@ -3,3 +3,5 @@ mongo_tmp_path:    '{{ vitam_defaults.folder.root_path }}/tmp/mongos'
 mongo_config_path: '{{ vitam_defaults.folder.root_path }}/conf/mongos'
 mongo_db_path:     '{{ vitam_defaults.folder.root_path }}/data/mongos/db'
 mongo_folder_log:  '{{ vitam_defaults.folder.root_path }}/log/mongos'
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

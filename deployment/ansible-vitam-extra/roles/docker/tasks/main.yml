@@ -62,7 +62,6 @@
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
-    
 
   - name: upgrade pip & install docker python package
     pip:
@@ -83,7 +82,7 @@
   #   pip:
   #     name: "backports.ssl-match-hostname"
   #     state: absent
-  
+
   - name: install python-backports.ssl-match-hostname
     apt:
       name: "python-backports.ssl-match-hostname"
@@ -91,7 +90,7 @@
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"  
+    delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "Debian"
   # End docker debian
