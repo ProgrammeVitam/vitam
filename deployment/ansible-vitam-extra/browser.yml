@@ -3,4 +3,4 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - vitam_browser
+    - { role: vitam_browser, when: "browser.enabled | default(false) | bool == true" }
