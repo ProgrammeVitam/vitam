@@ -260,13 +260,13 @@
 						</goals>
 						<configuration>
 						<outputDirectory>${basedir}/rpm_signed/vitam-external/</outputDirectory>
-						<resources>          
+						<resources>
 							<resource>
 							<directory>../rpm/vitam-external/target/</directory>
 							<!-- <filtering>true</filtering> -->
 							</resource>
-						</resources>              
-						</configuration>            
+						</resources>
+						</configuration>
 					</execution>
 						<execution>
 						<id>copy-resources-product</id>
@@ -276,13 +276,13 @@
 						</goals>
 						<configuration>
 						<outputDirectory>${basedir}/rpm_signed/vitam-product/</outputDirectory>
-						<resources>          
+						<resources>
 							<resource>
 							<directory>../rpm/vitam-product/target/</directory>
 							<!-- <filtering>true</filtering> -->
 							</resource>
-						</resources>              
-						</configuration>            
+						</resources>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -389,6 +389,45 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+	    <dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-rest-collect</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-rest-collect</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+        <dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>workspace-rest-collect</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>workspace-rest-collect</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+        <dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>collect-rest</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>collect-rest</artifactId>
 			<version>${project.version}</version>
 			<type>deb</type>
 		</dependency>
