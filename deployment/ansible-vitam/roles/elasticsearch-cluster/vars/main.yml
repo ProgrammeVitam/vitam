@@ -5,3 +5,5 @@ elasticsearch_max_open_files: "65535"
 elasticsearch_log_dir: "{{ vitam_defaults.folder.root_path }}/log/{{ composant.cluster_name }}"
 elasticsearch_data_dir: "{{ vitam_defaults.folder.root_path }}/data/{{ composant.cluster_name }}"
 elasticsearch_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

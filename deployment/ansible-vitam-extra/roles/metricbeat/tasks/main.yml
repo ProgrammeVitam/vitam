@@ -78,4 +78,4 @@
   service:
     name: metricbeat
     state: restarted
-    enabled: true
+    enabled: "{{ metricbeat.at_boot | default(service_at_boot) }}"

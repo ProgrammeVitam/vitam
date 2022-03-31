@@ -31,11 +31,11 @@
   notify:
     - restart kibana
 
-- name: Add kibana autostart at boot
+- name: Configure kibana autostart at boot
   systemd:
     name: kibana
     daemon_reload: yes
-    enabled: yes
+    enabled: "{{ kibana.at_boot | default(service_at_boot) }}"
   notify:
     - restart kibana
 

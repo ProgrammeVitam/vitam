@@ -120,10 +120,10 @@
 
 - meta: flush_handlers
 
-- name: Ensure Avast daemon is started at boot
+- name: Ensure Avast daemon is started
   service:
     name: avast
-    enabled: yes
+    enabled: "{{ avast.at_boot | default(service_at_boot) }}"
     state: started
 
 - name: Enable logrotate for Avast

@@ -116,7 +116,7 @@
 - name: Add vitam-elasticsearch-cerebro autostart at boot
   service:
     name: "vitam-elasticsearch-cerebro"
-    enabled: yes
+    enabled: "{{ cerebro.at_boot | default(service_at_boot) }}"
   notify:
     - restart cerebro
 

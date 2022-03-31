@@ -3,16 +3,16 @@
 - name: Make sure timer is started on secundary site for all
   systemd:
     name: "{{ item[0] }}.timer"
-    enabled: "yes"
-    state: "started"
+    enabled: "{{ vitam_timers.at_boot | default(service_at_boot) }}"
+    state: started
   when: (inventory_hostname in groups[item[1]] ) and (item[3]|length > 0) and (item[3]=="in")
   loop: "{{ list_timers }}"
 
 - name: Make sure timer is started on secundary site for last
   systemd:
     name: "{{ item[0] }}.timer"
-    enabled: "yes"
-    state: "started"
+    enabled: "{{ vitam_timers.at_boot | default(service_at_boot) }}"
+    state: started
   when: (inventory_hostname == groups[item[1]]|last ) and (item[3]|length > 0) and (item[3]=="last")
   loop: "{{ list_timers }}"
 
