@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
@@ -34,7 +38,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  */
 public class SedaUtilsFactory {
 
-    private static SedaUtilsFactory sedaUtilsFactory = new SedaUtilsFactory();
+    public static final String SEDA_INGEST_PARAMS_FILE = "Maps/sedaParams.json";
+    private static final SedaUtilsFactory sedaUtilsFactory = new SedaUtilsFactory();
 
     private SedaUtilsFactory() {
         // Empty constructor
@@ -46,7 +51,24 @@ public class SedaUtilsFactory {
 
     public SedaUtils createSedaUtils(HandlerIO handlerIO) {
         ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
-        return new SedaUtils(handlerIO);
+        return new  SedaUtils(handlerIO);
+    }
+
+    public SedaUtils createSedaUtilsWithSedaIngestParams(HandlerIO handlerIO) throws ProcessingException {
+        try {
+            if (handlerIO.isExistingFileInWorkspace(SEDA_INGEST_PARAMS_FILE)) {
+                SedaUtils sedaUtils = createSedaUtils(handlerIO);
+                final JsonNode sedaPrams = handlerIO.getJsonFromWorkspace(SEDA_INGEST_PARAMS_FILE);
+                sedaUtils.setSedaIngestParams(JsonHandler.getFromJsonNode(sedaPrams, SedaIngestParams.class));
+                return sedaUtils;
+            } else {
+                throw new ProcessingException("Seda ingest params have not been saved!");
+            }
+        } catch (ProcessingException | InvalidParseOperationException e) {
+            throw new ProcessingException(
+                "A problem occurred when reading Seda ingest params from workspace for operation " +
+                    handlerIO.getContainerName());
+        }
     }
 
     /**

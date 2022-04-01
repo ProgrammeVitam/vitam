@@ -120,6 +120,7 @@ public class CheckObjectsNumberActionHandlerTest {
         sedaUtils = mock(SedaUtils.class);
         sedaUtilsFactory = mock(SedaUtilsFactory.class);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
+        when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
 
         handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
             "CheckObjectsNumberActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());

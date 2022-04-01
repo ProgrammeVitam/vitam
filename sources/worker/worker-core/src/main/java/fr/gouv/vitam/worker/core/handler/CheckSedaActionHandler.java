@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -35,13 +37,18 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+
 /**
  * Check Seda Handler
  */
 public class CheckSedaActionHandler extends ActionHandler {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
+
     private static final String NOT_XSD_VALID = "NOT_XSD_VALID";
     private static final String NOT_XML_FILE = "NOT_XML_FILE";
+    private static final String UNSUPPORTED_SEDA_VERSION = "UNSUPPORTED_SEDA_VERSION";
     private static final String NO_FILE = "NO_FILE";
     private static final String HANDLER_ID = "CHECK_SEDA";
     private static final String CONTAINER_FORMAT = "CONTAINER_FORMAT";
@@ -49,6 +56,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     private static final String DIRECTORY = "DIRECTORY";
     private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;
     private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = CONTAINER_FORMAT + "." + DIRECTORY;
+    private static final int SEDA_INGEST_PARAMS_RANK_OUTPUT = 0;
 
     private final SedaUtilsFactory sedaUtilsFactory;
 
@@ -74,46 +82,51 @@ public class CheckSedaActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
         final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
-
-        CheckSedaValidationStatus status;
-        status = sedaUtils.checkSedaValidation(params, itemStatus);
-
-        switch (status) {
-            case VALID:
-                itemStatus.increment(StatusCode.OK);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NO_FILE:
-                itemStatus.setGlobalOutcomeDetailSubcode(NO_FILE);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NOT_XML_FILE:
-                itemStatus.setGlobalOutcomeDetailSubcode(NOT_XML_FILE);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NOT_XSD_VALID:
-                itemStatus.setGlobalOutcomeDetailSubcode(NOT_XSD_VALID);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case MORE_THAN_ONE_MANIFEST:
-                itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_MANIFEST);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case MORE_THAN_ONE_FOLDER_CONTENT:
-                itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            default:
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        try {
+            sedaUtils.extractXmlNameSpaceAndSaveSedaParams(handlerIO, SEDA_INGEST_PARAMS_RANK_OUTPUT);
+            CheckSedaValidationStatus status = sedaUtils.checkSedaValidation(itemStatus);
+            switch (status) {
+                case VALID:
+                    itemStatus.increment(StatusCode.OK);
+                    break;
+                case NO_FILE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(NO_FILE);
+                    itemStatus.increment(KO);
+                    break;
+                case NOT_XML_FILE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(NOT_XML_FILE);
+                    itemStatus.increment(KO);
+                    break;
+                case NOT_XSD_VALID:
+                    itemStatus.setGlobalOutcomeDetailSubcode(NOT_XSD_VALID);
+                    itemStatus.increment(KO);
+                    break;
+                case MORE_THAN_ONE_MANIFEST:
+                    itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_MANIFEST);
+                    itemStatus.increment(KO);
+                    break;
+                case MORE_THAN_ONE_FOLDER_CONTENT:
+                    itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
+                    itemStatus.increment(KO);
+                    break;
+                case UNSUPPORTED_SEDA_VERSION:
+                    itemStatus.setGlobalOutcomeDetailSubcode(UNSUPPORTED_SEDA_VERSION);
+                    itemStatus.increment(KO);
+                    break;
+                default:
+                    itemStatus.increment(KO);
+                    break;
+            }
+        } catch (ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(KO);
         }
-
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 
 }

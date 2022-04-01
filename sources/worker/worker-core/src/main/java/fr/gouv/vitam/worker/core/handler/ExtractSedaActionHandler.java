@@ -134,6 +134,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
@@ -191,6 +192,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_LOGBOOK;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -374,6 +376,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final MetaDataClientFactory metaDataClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final TransformerFactory transformerFactory;
+    private final SedaUtilsFactory sedaUtilsFactory;
 
     private ObjectNode archiveUnitTree;
     private Map<String, JsonNode> existingGOTs;
@@ -384,7 +387,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public ExtractSedaActionHandler() {
-        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance(), SedaUtilsFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -414,7 +417,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     @VisibleForTesting
     ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory,
+        SedaUtilsFactory sedaUtilsFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -441,6 +445,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.transformerFactory = TransformerFactory.newInstance();
+        this.sedaUtilsFactory = sedaUtilsFactory;
         fileWithParmsFromFolder = new HashMap<>();
     }
 
@@ -478,6 +483,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalSedaParametersFile =
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
 
+            final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
             unmarshaller = jaxbContext.createUnmarshaller();
             listener = new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, guidToUnitId, unitIdToGroupId,
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
@@ -486,7 +492,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 dataObjectIdToGuid, unitIdToSetOfRuleId,
                 workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup,
                 isThereManifestRelatedReferenceRemained, existingGOTGUIDToNewGotGUIDInAttachment,
-                adminManagementClientFactory);
+                adminManagementClientFactory, sedaUtils.getSedaIngestParams().getVersion());
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
@@ -876,7 +882,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             while (true) {
                 final XMLEvent event = reader.peek();
-
                 if (event.isStartElement() && event.asStartElement().getName().equals(unitName)) {
 
                     try {
@@ -1067,7 +1072,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // Fill evDetData EvDetailReq, ArchivalAgreement, ArchivalProfile and ServiceLevel properties
             try {
                 JsonNode metadataAsJson =
-                    JsonHandler.getFromFile(globalSedaParametersFile).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+                    JsonHandler.getFromFile(globalSedaParametersFile).get(TAG_ARCHIVE_TRANSFER);
 
                 JsonNode comments = metadataAsJson.get(SedaConstants.TAG_COMMENT);
 

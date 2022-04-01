@@ -57,6 +57,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
@@ -127,6 +128,7 @@ public class ExtractSedaActionHandlerTest {
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithDifferentOriginatingAgency.xml";
     private static final String UNIT_ATTACHED_DB_RESPONSE = "extractSedaActionHandler/addLink/_Unit_CHILD.json";
     private static final String UNIT_ATTACHED_SP_DB_RESPONSE = "extractSedaActionHandler/addLink/Unit_Link.json";
+    private static final String SEDA_PARAMS_FIELD = "Maps/sedaParams.json";
     private ExtractSedaActionHandler handler;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
@@ -156,6 +158,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String STORAGE_INFO_JSON = "extractSedaActionHandler/storageInfo.json";
     private static final String STORAGE_INFO_MC_JSON = "extractSedaActionHandler/storageInfo_mc.json";
     private static final String CONTRACTS_JSON = "extractSedaActionHandler/contracts.json";
+    private static final String SEDA_PARAMS = "extractSedaActionHandler/SedaParams.json";
     private static final String CONTRACTS_MC_JSON = "extractSedaActionHandler/contracts_mc.json";
     private static final String INGEST_CONTRACT_JSON_COMPUTEINHERITEDRULESATINGEST =
         "extractSedaActionHandler/INGEST_CONTRACT_COMPUTEINHERITEDRULESATINGEST.json";
@@ -227,7 +230,7 @@ public class ExtractSedaActionHandlerTest {
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory);
+        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory, SedaUtilsFactory.getInstance());
 
 
         String objectId = "SIP/manifest.xml";
@@ -283,7 +286,11 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+        final InputStream sedaParams = PropertiesUtils.getResourceAsStream(SEDA_PARAMS);
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_FIELD))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_FIELD)))
+            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
         when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
         handlerIO.addInIOParameters(in);
     }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
+import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -89,6 +91,7 @@ public class CheckDataObjectPackageActionHandlerTest {
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String STORAGE_INFO_JSON = "CheckDataObjectPackageActionHandler/storageInfo.json";
     private static final String INGEST_CONTRACT = "CheckDataObjectPackageActionHandler/ingestContractWithDetails.json";
+    private static final String SEDA_INGEST_PARAMS = "CheckDataObjectPackageActionHandler/SedaParams.json";
     private AdminManagementClient adminManagementClient;
     private AdminManagementClientFactory adminManagementClientFactory;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
@@ -221,7 +224,10 @@ public class CheckDataObjectPackageActionHandlerTest {
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         final InputStream ingestContract =
-            PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
+                PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
+        SedaIngestParams sedaIngestParams = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS), SedaIngestParams.class);
+        when(sedaUtils.getSedaIngestParams()).thenReturn(sedaIngestParams);
+        when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
@@ -232,7 +238,9 @@ public class CheckDataObjectPackageActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+        when(workspaceClient.getObject(any(), eq("Maps/sedaParams.json")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
         when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());

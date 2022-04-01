@@ -1,0 +1,5 @@
+{
+  "Version": "2.1",
+  "NameSpaceUri": "fr:gouv:culture:archivesdefrance:seda:v2.1",
+  "XsdValidator": "seda-2.1-main.xsd"
+}

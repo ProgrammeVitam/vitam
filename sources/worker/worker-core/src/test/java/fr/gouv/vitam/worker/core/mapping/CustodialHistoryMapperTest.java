@@ -70,7 +70,8 @@ public class CustodialHistoryMapperTest {
             "/element_unit_with_custodial_history.xml"));
 
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            "sedaVersion");
 
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();

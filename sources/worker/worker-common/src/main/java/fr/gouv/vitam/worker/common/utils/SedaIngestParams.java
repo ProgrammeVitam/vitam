@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -24,13 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.utils;
+package fr.gouv.vitam.worker.common.utils;
 
-public class SedaUtilsVersion {
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 
-    private SedaUtilsVersion() throws IllegalAccessException {
-        throw new IllegalAccessException("Utility class!");
+/**
+ *
+ */
+public final class SedaIngestParams {
+
+    public String version;
+    public String nameSpaceUri;
+    public String xsdValidator;
+
+    public SedaIngestParams() {
     }
 
-    public static final String SEDA_XSD_VERSION_V2_1 = "seda/seda-2.1-main.xsd";
+    public SedaIngestParams(String version, String nameSpaceUri) {
+        this.version = version;
+        this.nameSpaceUri = nameSpaceUri;
+        if (SupportedSedaVersions.SEDA_2_1.getVersion().equals(version)) {
+            this.xsdValidator = SupportedSedaVersions.SEDA_2_1.getXsdValidator();
+        }
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getNameSpaceUri() {
+        return nameSpaceUri;
+    }
+
+    public String getXsdValidator() {
+        return xsdValidator;
+    }
 }

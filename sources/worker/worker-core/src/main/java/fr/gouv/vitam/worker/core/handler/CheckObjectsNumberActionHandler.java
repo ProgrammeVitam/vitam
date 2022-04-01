@@ -100,7 +100,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            final ExtractUriResponse extractUriResponse = getUriListFromManifest(handlerIO, params);
+            final ExtractUriResponse extractUriResponse = getUriListFromManifest(handlerIO);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
 
@@ -130,14 +130,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
      *
-     * @param params worker parameter
      * @return ExtractUriResponse
      * @throws ProcessingException throws when error in execution
      */
-    private ExtractUriResponse getUriListFromManifest(HandlerIO handlerIO, WorkerParameters params)
+    private ExtractUriResponse getUriListFromManifest(HandlerIO handlerIO)
         throws ProcessingException {
         // get uri list from manifest
-        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
+        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
         return sedaUtils.getAllDigitalObjectUriFromManifest();
     }
 

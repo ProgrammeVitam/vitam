@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -76,16 +77,14 @@ import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE_TRANSFER;
-import static fr.gouv.vitam.worker.common.utils.SedaUtils.SEDA_XSD_VERSION;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class VerifyAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL =
-        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(SEDA_XSD_VERSION));
-    private static final URL CATALOG_URL =
-        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
+    private static final URL SEDA_XSD_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(
+        SupportedSedaVersions.SEDA_2_1.getXsdValidator()));
+    private static final URL CATALOG_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
 
     private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;

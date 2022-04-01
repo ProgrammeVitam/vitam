@@ -288,7 +288,7 @@ public class ProcessingIT extends VitamRuleRunner {
         "integration-processing/SIP_KO_HoldRules_HoldEndDateForRuleWithDefinedDuration.zip";
     private static final String SIP_KO_HOLD_RULES_REF_NON_RULE_ID_UNKNOWN_RULE =
         "integration-processing/SIP_KO_HoldRule_RefNonRuleIdUnknownRule.zip";
-    private static final String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
+    private static final String SIP_INGEST_CONTRACT_UNKNOWN = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
     private static final String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT =
         "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
     private static final String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -723,14 +723,14 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowIngestContractUnknow() throws Exception {
+    public void testWorkflowIngestContractUnknown() throws Exception {
         prepareVitamSession();
 
         final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_UNKNOW);
+            PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_UNKNOWN);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
@@ -1001,7 +1001,6 @@ public class ProcessingIT extends VitamRuleRunner {
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
         prepareVitamSession();
-
         ingestSIP(SIP_WITHOUT_MANIFEST, DEFAULT_WORKFLOW.name(), StatusCode.KO);
     }
 

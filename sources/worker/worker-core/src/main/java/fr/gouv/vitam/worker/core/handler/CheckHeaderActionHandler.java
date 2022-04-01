@@ -64,13 +64,16 @@ import java.util.Map;
 public class CheckHeaderActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
+
     private static final String HANDLER_ID = "CHECK_HEADER";
-    private static final int CHECK_ORIGINATING_AGENCY_RANK = 0;
     private static final String EV_DETAIL_REQ = "EvDetailReq";
-    private static final int CHECK_PROFILE_RANK = 1;
-    private static final int GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK = 0;
     public static final String INGEST_CONTRACT = "ingestContract";
     public static final String MANAGEMENT_CONTRACT = "managementContract";
+
+    private static final int CHECK_ORIGINATING_AGENCY_RANK_INPUT = 0;
+    private static final int CHECK_PROFILE_RANK_INPUT = 1;
+
+    private static final int REFERENTIAL_CONTRACTS_RANK_OUTPUT = 0;
 
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final StorageClientFactory storageClientFactory;
@@ -102,17 +105,17 @@ public class CheckHeaderActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
         Map<String, String> mandatoryValueMap;
         ObjectNode infoNode = JsonHandler.createObjectNode();
         final boolean shouldCheckOriginatingAgency =
-            Boolean.parseBoolean((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
-        final boolean shouldCheckProfile = Boolean.parseBoolean((String) handlerIO.getInput(CHECK_PROFILE_RANK));
+            Boolean.parseBoolean((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK_INPUT));
+        final boolean shouldCheckProfile = Boolean.parseBoolean((String) handlerIO.getInput(CHECK_PROFILE_RANK_INPUT));
 
         try {
+            final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
             mandatoryValueMap = sedaUtils.getMandatoryValues(params);
         } catch (final ProcessingException e) {
-            LOGGER.error("getMandatoryValues ProcessingException", e);
+            LOGGER.error("Getting Mandatory Values throws ProcessingException", e);
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
@@ -285,11 +288,11 @@ public class CheckHeaderActionHandler extends ActionHandler {
         ContractsDetailsModel ingestContractWithDetailsModel)
         throws InvalidParseOperationException, ProcessingException {
 
-        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK).getPath());
+        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(REFERENTIAL_CONTRACTS_RANK_OUTPUT).getPath());
         // create json file
         JsonHandler.writeAsFile(ingestContractWithDetailsModel, tempFile);
         // put file in workspace
-        handlerIO.addOutputResult(GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(REFERENTIAL_CONTRACTS_RANK_OUTPUT, tempFile, true, false);
     }
 
     private void updateSedaInfo(Map<String, String> madatoryValueMap, ObjectNode infoNode) {

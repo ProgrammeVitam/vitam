@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -92,10 +93,12 @@ import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -113,6 +116,7 @@ public class IngestExternalIT extends VitamRuleRunner {
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
         "integration-ingest-external/expected-logbook.json";
+    private static final String SIP_INSUPPORTED_SEDA_VERSION = "integration-processing/KO_SIP_INSUPPORTED_SEDA_VERSION_2.2.zip";
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -162,7 +166,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
 
             assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
@@ -329,7 +333,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream,
                     ingestRequestParameters);
 
@@ -374,7 +378,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream,
                     ingestRequestParameters);
 
@@ -411,7 +415,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream,
                     DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
 
@@ -452,7 +456,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
 
             // Then
@@ -492,7 +496,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
 
             // Then
@@ -614,7 +618,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract("aName3"),
+                        .setAccessContract(ACCESS_CONTRACT),
                     inputStream,
                     ingestRequestParameters);
 
@@ -704,6 +708,52 @@ public class IngestExternalIT extends VitamRuleRunner {
                     JsonAssert.whenIgnoringPaths(excludeFields.toArray(String[]::new)));
         }
         JsonAssert.assertJsonEquals(expected, actual);
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_non_nsupported_sedaVersion() throws Exception {
+        // When
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(SIP_INSUPPORTED_SEDA_VERSION)) {
+            RequestResponse<Void> response = ingestExternalClient
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract(ACCESS_CONTRACT),
+                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+
+            // Then
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<ItemStatus> itemStatusRequestResponse =
+                adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
+            assertThat(itemStatusRequestResponse.isOk()).isTrue();
+            assertEquals(KO,
+                ((ItemStatus) ((RequestResponseOK) itemStatusRequestResponse).getResults().get(0)).getGlobalStatus());
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation =
+                ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
+
+            assertNotNull(logbookOperation);
+            LogbookEventOperation checkSedaEvent =
+                logbookOperation.getEvents().stream().filter(elmt -> elmt.getEvType().equals("CHECK_SEDA")).findFirst()
+                    .get();
+            assertEquals("CHECK_SEDA.UNSUPPORTED_SEDA_VERSION.KO",checkSedaEvent.getOutDetail() );
+            assertThat(checkSedaEvent.getOutMessg()).contains(
+                "Échec de la vérification globale du SIP : La version SEDA renseignée n'est pas supportée.");
+        }
 
     }
 

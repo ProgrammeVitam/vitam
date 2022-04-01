@@ -63,7 +63,7 @@ import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.utils.SedaUtilsVersion;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import org.apache.commons.collections4.CollectionUtils;
@@ -190,7 +190,7 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeDefaultNamespace(NAMESPACE_URI);
         writer.writeNamespace("xsi", XSI_URI);
         writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " " +
-            SedaUtilsVersion.SEDA_XSD_VERSION_V2_1);
+            SupportedSedaVersions.SEDA_2_1.getXsdValidator());
 
         switch (exportType) {
             case ArchiveTransfer:
