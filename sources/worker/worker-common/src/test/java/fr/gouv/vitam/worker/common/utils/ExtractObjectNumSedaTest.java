@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.common.utils;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -72,8 +74,11 @@ public class ExtractObjectNumSedaTest {
         when(client.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda).build());
         final HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getWorkspaceClientFactory()).thenReturn(workspaceClientFactory);
+        when(handlerIO.isExistingFileInWorkspace(any())).thenReturn(true);
+        when(handlerIO.getJsonFromWorkspace(any())).thenReturn(JsonHandler.toJsonNode(
+            new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNameSpaceUri())));
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
-        utils = SedaUtilsFactory.create(handlerIO);
+        utils = SedaUtilsFactory.getInstance().createSedaUtilsWithSedaIngestParams(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest();
 
         assertThat(extractUriResponse.getUriSetManifest()).isNotNull().isNotEmpty();

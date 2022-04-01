@@ -102,6 +102,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
+    private static final String SEDA_PARAMS = "transferNotificationActionHandler/SedaParams.json";
 
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private static final String LOGBOOK_OPERATION_OK = "transferNotificationActionHandler/logbookOperationOK.json";
@@ -175,6 +176,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
         handlerIO.addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(7, PropertiesUtils.getResourceFile(SEDA_PARAMS), false);
 
         File existingGOTGUIDToNewGotGUIDInAttachmentFile =
             handlerIO.getNewLocalFile("existingGOTGUIDToNewGotGUIDInAttachmentFile");

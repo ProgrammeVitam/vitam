@@ -105,7 +105,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null,
                 null,
-                null, null, null);
+                null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -144,7 +144,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
                 null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null, null
-                , null, null, null);
+                , null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -187,7 +187,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT,
                 null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -236,7 +236,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT,
                 null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -284,7 +284,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null);
+                agenciesList, null, null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -339,7 +339,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null);
+                agenciesList, null, null, null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -394,7 +394,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null);
+                agenciesList, null, null, null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -454,7 +454,7 @@ public class ArchiveUnitListenerTest {
                 dataObjectIdToObjectGroupId,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, objectGroupIdToGuid, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null);
+                agenciesList, null, null, null, null, null, null);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -496,7 +496,7 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null);
+                agenciesList, null, null, null, null, null, null);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -544,7 +544,8 @@ public class ArchiveUnitListenerTest {
                 null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, objectGroupIdToGuid, dataObjectIdToGuid, null, UnitType.INGEST,
-                agenciesList, null, null, isThereManifestRelatedReferenceRemained, null, null);
+                agenciesList, null, null, isThereManifestRelatedReferenceRemained, null, null,
+                null);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);

@@ -68,6 +68,7 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -81,13 +82,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CheckHeaderActionHandlerTest {
+
     private static final String CONTRACT_NAME = "ArchivalAgreement0";
+    private static final String SEDA_PARAMS_JSON = "Maps/sedaParams.json";
+
     private final SedaUtils sedaUtils = mock(SedaUtils.class);
     private GUID guid;
     private static final Integer TENANT_ID = 0;
@@ -95,6 +100,7 @@ public class CheckHeaderActionHandlerTest {
     private static final String SIP_ADD_UNIT = "CheckHeaderActionHandler/manifest.xml";
     private static final String MANIFEST_WITHOUT_ARCHIVAL_PROFILE =
         "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
+    private static final String SEDA_PARAMS = "extractSedaActionHandler/SedaParams.json";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -118,9 +124,11 @@ public class CheckHeaderActionHandlerTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Before
     public void setUp()
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException, ProcessingException {
         guid = GUIDFactory.newGUID();
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -166,6 +174,7 @@ public class CheckHeaderActionHandlerTest {
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "AG-0000001");
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
+        when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
@@ -205,7 +214,6 @@ public class CheckHeaderActionHandlerTest {
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
         action.partialClose();
-
     }
 
 
@@ -224,6 +232,15 @@ public class CheckHeaderActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         assertNotNull(CheckHeaderActionHandler.getId());
+        when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
+
+        final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
+
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -233,6 +250,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("false");
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
+
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
@@ -269,6 +287,15 @@ public class CheckHeaderActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         assertNotNull(CheckHeaderActionHandler.getId());
+        when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
+
+        final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
+
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
             .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
             .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
@@ -277,6 +304,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("false");
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
+
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
@@ -293,16 +321,25 @@ public class CheckHeaderActionHandlerTest {
     @RunWithCustomExecutor
     public void testDefinedProfileInIngestContractButNotInManifest()
         throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
-            SedaUtilsFactory.getInstance());
+        ContentAddressableStorageServerException, InvalidParseOperationException {
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(MANIFEST_WITHOUT_ARCHIVAL_PROFILE));
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+
+        final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
+            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
+
+
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
+        when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
 
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =

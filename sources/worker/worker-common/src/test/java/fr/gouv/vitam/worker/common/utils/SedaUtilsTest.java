@@ -29,8 +29,12 @@ package fr.gouv.vitam.worker.common.utils;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -38,6 +42,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -51,6 +56,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -64,6 +70,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -76,6 +83,8 @@ public class SedaUtilsTest {
 
     private static final String SIP = "sip1.xml";
     private static final String SIP_PDO = "sip-physical-archive.xml";
+    private static final String SEDA_PARAMS_JSON = "Maps/sedaParams.json";
+
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -83,7 +92,7 @@ public class SedaUtilsTest {
     private final InputStream sedaPdo;
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
-    private final SedaUtils utils = SedaUtilsFactory.getInstance().createSedaUtils(handlerIO);
+    private SedaUtils utils;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList(OBJ)).setObjectName(OBJ)
@@ -95,11 +104,17 @@ public class SedaUtilsTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp()
+        throws ProcessingException, ContentAddressableStorageServerException,
+        ContentAddressableStorageNotFoundException, FileNotFoundException, InvalidParseOperationException {
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(handlerIO.isExistingFileInWorkspace(SEDA_PARAMS_JSON)).thenReturn(true);
+        when(handlerIO.getJsonFromWorkspace(any())).thenReturn(JsonHandler.toJsonNode(
+            new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNameSpaceUri())));
+        utils = SedaUtilsFactory.getInstance().createSedaUtilsWithSedaIngestParams(handlerIO);
     }
 
     @Test
@@ -107,7 +122,8 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
-        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params, new ItemStatus())));
+        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(new ItemStatus()
+        )));
     }
 
     @Test
@@ -117,7 +133,8 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(any(), anyString()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
+        );
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
@@ -128,7 +145,8 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
+        );
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
 
@@ -138,7 +156,8 @@ public class SedaUtilsTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         when(handlerIO.getInputStreamFromWorkspace(any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
+        );
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
 
@@ -146,7 +165,11 @@ public class SedaUtilsTest {
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceAsStream(SIP));
+        when(handlerIO.getNewLocalFile(any())).thenReturn(tempFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+            SupportedSedaVersions.SEDA_2_1.getNameSpaceUri()));
         assertEquals(3, utils.getMandatoryValues(params).size());
     }
 
@@ -249,7 +272,8 @@ public class SedaUtilsTest {
         listUri.add(new URI("manifest.xml"));
         listUri.add(new URI("manifest2.xml"));
         when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
+        );
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
     }
 
@@ -260,7 +284,8 @@ public class SedaUtilsTest {
         listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI("manifest.xml"));
         when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
+        );
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }
 

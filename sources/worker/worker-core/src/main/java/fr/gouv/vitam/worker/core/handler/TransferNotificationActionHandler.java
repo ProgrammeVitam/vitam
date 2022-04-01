@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -86,6 +87,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
+import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -122,19 +124,24 @@ import static javax.xml.datatype.DatatypeFactory.newInstance;
 public class TransferNotificationActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
 
+    // Output params
     private static final int ATR_RESULT_OUT_RANK = 0;
+
+    //  input Params
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int DATAOBJECT_MAP_RANK = 1;
     private static final int BDO_OG_STORED_MAP_RANK = 2;
     private static final int DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK = 3;
     private static final int SEDA_PARAMETERS_RANK = 4;
     private static final int OBJECT_GROUP_ID_TO_GUID_MAP_RANK = 5;
-    static final int HANDLER_IO_PARAMETER_NUMBER = 7;
     private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 6;
+    private static final int SEDA_INGEST_PARAMS = 7;
+    public static final String SEDA_INGEST_PARAMS_FILE = "Maps/sedaParams.json";
+
+    static final int HANDLER_IO_PARAMETER_NUMBER = 8;
 
     private static final String XML = ".xml";
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
-    private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
     private static final ObjectFactory objectFactory = new ObjectFactory();
 
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -181,16 +188,32 @@ public class TransferNotificationActionHandler extends ActionHandler {
             final LogbookOperation logbookOperation = getLogbookOperation(params);
 
             String atrObjectName = handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath();
-
             // Generate ATR only if not already generated (idempotency)
-            try (WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
-                boolean atrAlreadyGenerated =
-                    workspaceClient.isExistingObject(params.getContainerName(), atrObjectName);
+            try(WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
 
-                if (atrAlreadyGenerated) {
-                    atrFile = handlerIO.getFileFromWorkspace(atrObjectName);
+                boolean atrAlreadyGenerated = workspaceClient.isExistingObject(params.getContainerName(), atrObjectName);
+
+                SedaIngestParams sedaIngestParams;
+                if (handlerIO.isExistingFileInWorkspace(SEDA_INGEST_PARAMS_FILE)) {
+                    sedaIngestParams =
+                        JsonHandler.getFromFile(handlerIO.getInput(SEDA_INGEST_PARAMS, File.class),
+                            SedaIngestParams.class);
+                    if (sedaIngestParams == null) {
+                        throw new ProcessingException("Seda ingest params is empty!");
+                    }
                 } else {
-                    atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus);
+                    // IF any problem occured before executing the CHECK_SEDA action,
+                    // the ATR generation will be based on default SEDA version wich is 2.1 ( for the moment )
+                    LOGGER.warn("Seda Ingest has not been created!");
+                    sedaIngestParams = new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+                        SupportedSedaVersions.SEDA_2_1.getNameSpaceUri());
+                }
+
+                if(atrAlreadyGenerated) {
+                    atrFile = handlerIO.getFileFromWorkspace(atrObjectName);
+                    checkAtrFile(atrFile, sedaIngestParams);
+                } else {
+                    atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus, sedaIngestParams);
                     try (InputStream is = new FileInputStream(atrFile)) {
                         workspaceClient.putAtomicObject(handlerIO.getContainerName(), atrObjectName, is,
                             atrFile.length());
@@ -215,8 +238,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
             itemStatus.setEvDetailData(eventDetailData);
-
-            checkAtrFile(atrFile);
 
             // store data object
             final ObjectDescription description = new ObjectDescription();
@@ -249,9 +270,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void checkAtrFile(File atrFile) throws IOException {
+    private void checkAtrFile(File atrFile, SedaIngestParams sedaIngestParams) throws IOException {
         try {
-            validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), SedaUtils.SEDA_XSD_VERSION);
+            validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), sedaIngestParams.getXsdValidator());
         } catch (SAXException e) {
             if (e.getCause() == null) {
                 // In case of an exception while parsing the manifest file, when the exception is thrown before parsing
@@ -295,11 +316,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @param params of type WorkerParameters
      * @param handlerIO of type HandlerIO
      * @param workflowStatus
+     * @param sedaIngestParams
      * @throws ProcessingException ProcessingException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     private File createATR(WorkerParameters params, HandlerIO handlerIO, LogbookOperation logbookOperation,
-        StatusCode workflowStatus)
+        StatusCode workflowStatus, SedaIngestParams sedaIngestParams)
         throws ProcessingException, InvalidParseOperationException {
 
         ParametersChecker.checkNullOrEmptyParameters(params);
@@ -337,7 +359,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             Marshaller archiveTransferReplyMarshaller =
                 marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
             archiveTransferReplyMarshaller
-                .setProperty(Marshaller.JAXB_SCHEMA_LOCATION, NAMESPACE_URI + " " + SedaUtils.SEDA_XSD_VERSION);
+                .setProperty(Marshaller.JAXB_SCHEMA_LOCATION, sedaIngestParams.getNameSpaceUri() + " " + sedaIngestParams.getXsdValidator());
             archiveTransferReplyMarshaller.marshal(archiveTransferReply, atrFile);
 
         } catch (IOException e) {

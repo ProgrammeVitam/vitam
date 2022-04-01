@@ -84,10 +84,11 @@ public class ArchiveUnitMapper {
      * @param groupId
      * @param operationId
      * @param unitType
+     * @param sedaVersion
      * @return ArchiveUnitRoot
      */
     public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId, String operationId,
-        String unitType)
+        String unitType, String sedaVersion)
         throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
@@ -129,8 +130,7 @@ public class ArchiveUnitMapper {
 
             archiveUnitRoot.setLogbookLifeCycleExternal(logbookExternal);
         }
-
-        archiveUnit.setSedaVersion(VitamConstants.SEDA_CURRENT_VERSION);
+        archiveUnit.setSedaVersion(sedaVersion);
         String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
         if (vitamImplVersion != null) {
             archiveUnit.setImplementationVersion(vitamImplVersion);

@@ -10,7 +10,13 @@
         {
           "action": {
             "actionKey": "CHECK_SEDA",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "sedaParams.json",
+                "uri": "WORKSPACE:Maps/sedaParams.json"
+              }
+            ]
           }
         },
         {

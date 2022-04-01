@@ -178,6 +178,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
     private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
     private AdminManagementClientFactory adminManagementClientFactory;
+    private String sedaVersion;
 
     private boolean attachByIngestContractChecked = false;
 
@@ -202,6 +203,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param originatingAgencies
      * @param existingGOTs
      * @param existingUnitIdWithExistingObjectGroup
+     * @param sedaVersion
      */
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
         Map<String, String> guidToUnitId,
@@ -218,7 +220,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Map<String, String> existingUnitIdWithExistingObjectGroup,
         Map<String, Boolean> isThereManifestRelatedReferenceRemained,
         Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory, String sedaVersion) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -247,6 +249,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         RuleMapper ruleMapper = new RuleMapper();
         archiveUnitMapper = new ArchiveUnitMapper(descriptiveMetadataMapper, ruleMapper);
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.sedaVersion = sedaVersion;
     }
 
     private static ObjectMapper getObjectMapper() {
@@ -351,7 +354,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 String operationId = handlerIO.getContainerName();
 
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId, operationId,
-                    workflowUnitType.name());
+                    workflowUnitType.name(), sedaVersion);
             } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
                 throw new VitamRuntimeException(e);
             }

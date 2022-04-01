@@ -63,7 +63,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,12 +77,17 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TransferNotificationActionHandlerIteratorTestSpecific {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private static final String ATR_PATH = "ATR/responseReply.xml";
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/ARCHIVE_ID_TO_GUID_MAP_objKO.json";
@@ -94,6 +101,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         "globalSEDAParametersWithoutInfoFields.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
+    private static final String SEDA_PARAMS = "transferNotificationActionHandler/SedaParams.json";
+
 
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private static final String LOGBOOK_OPERATION = "transferNotificationActionHandler/logbookOperationKO.json";
@@ -158,6 +167,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action
             .addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
         action.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        action.addOutputResult(7, PropertiesUtils.getResourceFile(SEDA_PARAMS), false);
         action.reset();
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, ATR_PATH)));

@@ -26,6 +26,16 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+
+import java.io.InputStream;
+import java.util.List;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -51,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 public class ArchiveUnitMapperTest {
 
+    public static final String SEDA_VERSION = "sedaVersion";
     private static JAXBContext jaxbContext;
 
     private ArchiveUnitMapper archiveUnitMapper;
@@ -74,7 +85,8 @@ public class ArchiveUnitMapperTest {
             "/element_unit_with_agent_type.xml"));
 
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
 
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -129,7 +141,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -145,7 +158,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -161,7 +175,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -177,7 +192,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -193,7 +209,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -210,7 +227,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -227,7 +245,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -244,7 +263,8 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -260,7 +280,7 @@ public class ArchiveUnitMapperTest {
             "/archiveUnit_multiple_objectreference.xml"));
 
         // When
-        assertThatThrownBy(() -> archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST"))
+        assertThatThrownBy(() -> archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION))
             .isInstanceOf(ProcessingObjectReferenceException.class)
             .hasMessageContaining("references more than one technical object group");
     }
@@ -274,10 +294,11 @@ public class ArchiveUnitMapperTest {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
+            SEDA_VERSION);
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
-        assertThat(archiveUnit.getSedaVersion()).isEqualTo(VitamConstants.SEDA_CURRENT_VERSION);
+        assertEquals(SEDA_VERSION, archiveUnit.getSedaVersion());
         assertThat(archiveUnit.getImplementationVersion()).isEqualTo("");
     }
 }
