@@ -68,7 +68,9 @@ function initVault {
         ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
     else
         pki_logger "Création du fichier ${VAULT_FILE}"
-        ansible-vault create ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+        mkdir -p "${VAULT_FILE%/*}"
+        touch ${VAULT_FILE}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
     fi
 
     if [ -f "${VAULT_FILE}.example" ]; then
