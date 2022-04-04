@@ -376,7 +376,7 @@ public class EvidenceService {
             // store binary data object
             storageMetadataResultListJsonNode = storageClient.
                 getInformation(mdOptimisticStorageInfo.getStrategy(),
-                    dataCategory, uid, mdOptimisticStorageInfo.getOfferIds(), true);
+                    dataCategory, uid, mdOptimisticStorageInfo.getOfferIds(), false);
 
 
         } catch (StorageServerClientException | StorageNotFoundClientException e) {

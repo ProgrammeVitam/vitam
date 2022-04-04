@@ -385,7 +385,7 @@ public class SwiftTest {
     }
 
     @Test
-    public void when_get_object_metadata_then_return_metadata() throws Exception {
+    public void when_get_object_metadata_and_cache_activated_then_return_metadata() throws Exception {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
@@ -401,23 +401,24 @@ public class SwiftTest {
         assertThat(objectMetadata.getType()).isEqualTo("object");
 
         // Expected 1x HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequests(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)), 2);
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(2);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
     }
 
     @Test
-    public void when_get_object_metadata_with_lowercase_headers_response_then_return_metadata() throws Exception {
+    public void when_get_object_metadata_with_desactivated_cache_and_lowercase_headers_response_then_return_metadata() throws Exception {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         givenHeadObjectReturns20xWithLowerCaseHeaders(data);
+        givenGetObjectReturns20x(data);
 
         // When
-        MetadatasObject objectMetadata = swift.getObjectMetadata(CONTAINER_NAME, OBJECT_NAME, false);
+        MetadatasObject objectMetadata = swift.getObjectMetadata(CONTAINER_NAME, OBJECT_NAME, true);
 
         // Then
         assertThat(objectMetadata.getObjectName()).isEqualTo(OBJECT_NAME);
@@ -426,8 +427,9 @@ public class SwiftTest {
 
         // Expected 1x HEAD
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(1);
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test
@@ -566,6 +568,8 @@ public class SwiftTest {
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
 
         givenGetObjectReturns20x(data);
+        // This POST REquest is used to update metadata object in case it does not exist ( even when getting the object )
+        givenPostObjetReturns20x();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -579,8 +583,8 @@ public class SwiftTest {
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(2);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -1015,6 +1019,8 @@ public class SwiftTest {
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
 
         givenGetObjectReturns20x(data);
+        // This POST REquest is used to update metadata object in case it does not exist ( even when getting the object )
+        givenPostObjetReturns20x();
 
         // Disable vitam cookie
         configuration.setEnableCustomHeaders(false);
@@ -1031,7 +1037,7 @@ public class SwiftTest {
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(2);
+        assertSwiftRequestCountEqualsTo(3);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(0);
     }
 
@@ -1076,6 +1082,43 @@ public class SwiftTest {
 
         assertSwiftRequestCountEqualsTo(15);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(0);
+    }
+
+    @Test
+    public void get_object_digest_with_cache_and_object_not_found_then_ok() throws Exception {
+        // Given
+        byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
+        givenHeadObjectReturns20x(data);
+        givenGetObjectReturns404();
+        Swift swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When
+        String objectDigest = swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false);
+
+        // Then
+        assertThat(objectDigest).isEqualTo(sha512sum(data));
+        verifySwiftRequests(headRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 1);
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 0);
+        assertSwiftRequestCountEqualsTo(1);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+    }
+
+    @Test
+    public void get_object_digest_without_cache_and_object_not_found_then_throw_exception() throws Exception {
+        // Given
+        byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
+        givenHeadObjectReturns20x(data);
+        givenGetObjectReturns404();
+        Swift swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When
+        assertThatThrownBy(()->  swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+
+        // Then
+        verifySwiftRequests(headRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 0);
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 1);
+        assertSwiftRequestCountEqualsTo(1);
     }
 
     private void givenPutObjectReturns20x() {

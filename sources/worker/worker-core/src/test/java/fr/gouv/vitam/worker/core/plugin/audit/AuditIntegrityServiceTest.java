@@ -94,7 +94,7 @@ public class AuditIntegrityServiceTest {
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
         when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
-            eq("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
+                eq("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq"), any(), eq(false))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
             getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"), JsonLineModel.class);
@@ -121,7 +121,7 @@ public class AuditIntegrityServiceTest {
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
         when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
-            eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
+                eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(false))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
             getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
@@ -150,7 +150,7 @@ public class AuditIntegrityServiceTest {
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
         when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
-            eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
+                eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(false))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
             getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
@@ -172,8 +172,8 @@ public class AuditIntegrityServiceTest {
     public void storageExceptionThenFatal() throws Exception {
         reset(storageClient);
         when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
-            eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true)))
-            .thenThrow(StorageServerClientException.class);
+                eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(false)))
+                        .thenThrow(StorageServerClientException.class);
 
         JsonLineModel objectGroupLine = getFromInputStream(
             getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
