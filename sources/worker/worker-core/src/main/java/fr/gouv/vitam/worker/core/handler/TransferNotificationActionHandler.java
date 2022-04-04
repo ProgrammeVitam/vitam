@@ -394,7 +394,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         archiveTransferReply.setDate(buildXMLGregorianCalendar());
 
-        archiveTransferReply.setMessageIdentifier(buildIdentifierType(params.getContainerName()));
+        archiveTransferReply.setMessageIdentifier(params.getContainerName());
         //to attach to DataObjectPackage
         ManagementMetadataType mgmtMetadata = objectFactory.createManagementMetadataType();
         DescriptiveMetadataType descMetaData = objectFactory.createDescriptiveMetadataType();

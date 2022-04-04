@@ -148,18 +148,17 @@
                     <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
-            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
-                 <xsd:annotation>
-                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
-                    </xsd:documentation>
-                 </xsd:annotation>
-            </xsd:element>
-
             <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
             <xsd:element name="HoldRule" type="HoldRuleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
+            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 

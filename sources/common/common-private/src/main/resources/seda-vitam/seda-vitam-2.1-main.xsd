@@ -335,7 +335,7 @@
                     <xsd:documentation>Date du message.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="MessageIdentifier" type="IdentifierType">
+            <xsd:element name="MessageIdentifier" type="NonEmptyTokenType">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant du message.</xsd:documentation>
                 </xsd:annotation>

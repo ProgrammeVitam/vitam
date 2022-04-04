@@ -132,9 +132,7 @@ public class SaveAtrPluginTest {
 
     private ArchiveTransferReplyType createATR() {
         ArchiveTransferReplyType atr = new ArchiveTransferReplyType();
-        IdentifierType value = new IdentifierType();
-        value.setValue("ATR_MESSAGE_IDENTIFIER");
-        atr.setMessageIdentifier(value);
+        atr.setMessageIdentifier("ATR_MESSAGE_IDENTIFIER");
 
         IdentifierType messageRequestIdentifier = new IdentifierType();
         messageRequestIdentifier.setValue("ATR_MESSAGE_REQUEST_IDENTIFIER");

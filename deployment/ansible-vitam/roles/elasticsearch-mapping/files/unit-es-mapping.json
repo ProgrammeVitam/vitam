@@ -173,6 +173,18 @@
     "TextContent": {
       "type": "text"
     },
+    "OriginatingSystemIdReplyTo": {
+      "type": "text"
+    },
+    "LinkingAgentRole": {
+      "type": "text"
+    },
+    "DateLitteral": {
+      "type": "text"
+    },
+    "DataObjectProfile": {
+      "type": "text"
+    },
     "Title": {
       "type": "text",
       "fielddata": true
@@ -238,6 +250,16 @@
           "type": "text"
         },
         "Juridictional": {
+          "type": "text"
+        }
+      }
+    },
+    "LinkingAgentIdentifier": {
+      "properties": {
+        "LinkingAgentIdentifierType": {
+          "type": "text"
+        },
+        "LinkingAgentIdentifierValue": {
           "type": "text"
         }
       }
@@ -1704,7 +1726,7 @@
                 "OriginatingAgenciesInConflict": {
                   "type": "keyword"
                 },
-                "HoldRuleIds" : {
+                "HoldRuleIds": {
                   "type": "keyword"
                 }
               }
