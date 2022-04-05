@@ -119,8 +119,13 @@ public class CheckSedaActionHandler extends ActionHandler {
                     break;
             }
         } catch (ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(KO);
+            if (e.getMessage() != null && e.getMessage().equals(CheckSedaValidationStatus.NOT_XML_FILE.name())) {
+                itemStatus.setGlobalOutcomeDetailSubcode(NOT_XML_FILE);
+                itemStatus.increment(KO);
+            } else {
+                LOGGER.error(e);
+                itemStatus.increment(KO);
+            }
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }

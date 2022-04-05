@@ -116,7 +116,9 @@ public class IngestExternalIT extends VitamRuleRunner {
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
         "integration-ingest-external/expected-logbook.json";
-    private static final String SIP_INSUPPORTED_SEDA_VERSION = "integration-processing/KO_SIP_INSUPPORTED_SEDA_VERSION_2.2.zip";
+    private static final String SIP_UNSUPPORTED_SEDA_VERSION =
+        "integration-processing/KO_SIP_INSUPPORTED_SEDA_VERSION_2.2.zip";
+    private static final String NOT_XML_MANIFEST_SIP = "integration-processing/KO_manifest_mauvais_format.zip";
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -713,10 +715,10 @@ public class IngestExternalIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void test_ingest_with_non_nsupported_sedaVersion() throws Exception {
+    public void test_ingest_with_non_supported_sedaVersion() throws Exception {
         // When
         try (InputStream inputStream =
-            PropertiesUtils.getResourceAsStream(SIP_INSUPPORTED_SEDA_VERSION)) {
+            PropertiesUtils.getResourceAsStream(SIP_UNSUPPORTED_SEDA_VERSION)) {
             RequestResponse<Void> response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
@@ -750,11 +752,55 @@ public class IngestExternalIT extends VitamRuleRunner {
             LogbookEventOperation checkSedaEvent =
                 logbookOperation.getEvents().stream().filter(elmt -> elmt.getEvType().equals("CHECK_SEDA")).findFirst()
                     .get();
-            assertEquals("CHECK_SEDA.UNSUPPORTED_SEDA_VERSION.KO",checkSedaEvent.getOutDetail() );
+            assertEquals("CHECK_SEDA.UNSUPPORTED_SEDA_VERSION.KO", checkSedaEvent.getOutDetail());
             assertThat(checkSedaEvent.getOutMessg()).contains(
                 "Échec de la vérification globale du SIP : La version SEDA renseignée n'est pas supportée.");
         }
+    }
 
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_non_xml_manifest_ingest() throws Exception {
+        // When
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(NOT_XML_MANIFEST_SIP)) {
+            RequestResponse<Void> response = ingestExternalClient
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract(ACCESS_CONTRACT),
+                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+
+            // Then
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<ItemStatus> itemStatusRequestResponse =
+                adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
+            assertThat(itemStatusRequestResponse.isOk()).isTrue();
+            assertEquals(KO,
+                ((ItemStatus) ((RequestResponseOK) itemStatusRequestResponse).getResults().get(0)).getGlobalStatus());
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation =
+                ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
+
+            assertNotNull(logbookOperation);
+            LogbookEventOperation checkSedaEvent =
+                logbookOperation.getEvents().stream().filter(elmt -> elmt.getEvType().equals("CHECK_SEDA")).findFirst()
+                    .get();
+            assertEquals("CHECK_SEDA.NOT_XML_FILE.KO", checkSedaEvent.getOutDetail());
+            assertThat(checkSedaEvent.getOutMessg()).contains(
+                "Échec de la vérification globale du SIP : bordereau de transfert non conforme aux caractéristiques d'un fichier xml");
+        }
     }
 
     private JsonNode getQueryDslByOpi(String Opi) throws InvalidCreateOperationException {
