@@ -2280,6 +2280,36 @@
     "cardinality": "one"
   },
   {
+    "path": "LinkingAgentIdentifier",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "LinkingAgentIdentifier.LinkingAgentIdentifierType",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "LinkingAgentIdentifier.LinkingAgentIdentifierValue",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "LinkingAgentIdentifier.LinkingAgentRole",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "DateLitteral",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "SubmissionAgency",
     "type": "object",
     "indexed": true,
@@ -2311,6 +2341,12 @@
   },
   {
     "path": "TextContent",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "OriginatingSystemIdReplyTo",
     "type": "text",
     "indexed": true,
     "cardinality": "one"

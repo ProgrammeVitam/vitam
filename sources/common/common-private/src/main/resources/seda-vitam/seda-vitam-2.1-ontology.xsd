@@ -46,6 +46,8 @@
             <xsd:group ref="EventGroup"/>
             <xsd:group ref="SignatureGroup"/>
             <xsd:group ref="GpsGroup"/>
+            <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
+            <xsd:group ref="TextContentGroup"/>
         </xsd:sequence>
     </xsd:group>
 

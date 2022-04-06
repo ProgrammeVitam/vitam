@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.mapping;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
+import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
 import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
@@ -88,6 +90,10 @@ public class DescriptiveMetadataMapper {
 
         descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
         descriptiveMetadataModel.setAgent(metadataContentType.getAgent());
+
+        descriptiveMetadataModel.setTextContent(metadataContentType.getTextContent());
+        descriptiveMetadataModel.setOriginatingSystemIdReplyTo(metadataContentType.getOriginatingSystemIdReplyTo());
+        descriptiveMetadataModel.setDateLitteral(metadataContentType.getDateLitteral());
 
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
         descriptiveMetadataModel.setCreatedDate(
@@ -221,7 +227,24 @@ public class DescriptiveMetadataMapper {
             .setEventTypeCode(event.getEventTypeCode())
             .setOutcome(event.getOutcome())
             .setOutcomeDetail(event.getOutcomeDetail())
-            .setOutcomeDetailMessage(event.getOutcomeDetailMessage());
+            .setOutcomeDetailMessage(event.getOutcomeDetailMessage())
+            .setLinkingAgentIdentifier(event.getLinkingAgentIdentifier().stream().map(this::mapLinkingAgentIdentifier)
+                .collect(Collectors.toList()));
+
+    }
+
+    private LinkingAgentIdentifierTypeModel mapLinkingAgentIdentifier(
+        LinkingAgentIdentifierType linkingAgentIdentifierType) {
+        if (linkingAgentIdentifierType == null) {
+            return null;
+        }
+        var linkingAgentIdentifierTypeModel = new LinkingAgentIdentifierTypeModel();
+        linkingAgentIdentifierTypeModel
+            .setLinkingAgentIdentifierType(linkingAgentIdentifierType.getLinkingAgentIdentifierType());
+        linkingAgentIdentifierTypeModel
+            .setLinkingAgentIdentifierValue(linkingAgentIdentifierType.getLinkingAgentIdentifierValue());
+        linkingAgentIdentifierTypeModel.setLinkingAgentRole(linkingAgentIdentifierType.getLinkingAgentRole());
+        return linkingAgentIdentifierTypeModel;
     }
 
     public String findDefaultTextType(List<TextType> textTypes) {

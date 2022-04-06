@@ -147,6 +147,7 @@ public class DescriptiveMetadataMapper {
         }
 
 
+
         if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
             dmc.getSignature().addAll(mapSignatures(metadataModel.getSignature()));
         }

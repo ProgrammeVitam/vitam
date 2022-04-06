@@ -68,6 +68,21 @@
         ]
       }
     },
+    "linking-agent-identifier-type": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "LinkingAgentIdentifierType": {
+          "type": "string"
+        },
+        "LinkingAgentIdentifierValue": {
+          "type": "string"
+        },
+        "LinkingAgentRole": {
+          "type": "string"
+        }
+      }
+    },
     "agent-type+signature+validation": {
       "additionalProperties": false,
       "type": "object",
@@ -347,6 +362,12 @@
         },
         "evDetData": {
           "type": "string"
+        },
+        "linkingAgentIdentifier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linking-agent-identifier-type"
+          }
         }
       },
       "required": [
@@ -930,6 +951,9 @@
     "EndDate": {
       "$ref": "#/definitions/date-time-opt"
     },
+    "DateLitteral": {
+      "type": "string"
+    },
     "Event": {
       "type": "array",
       "items": {
@@ -1030,6 +1054,12 @@
           "type": "string"
         }
       }
+    },
+    "TextContent": {
+      "type": "string"
+    },
+    "OriginatingSystemIdReplyTo": {
+      "type": "string"
     }
   },
   "required": [

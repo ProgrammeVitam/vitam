@@ -176,13 +176,7 @@
     "OriginatingSystemIdReplyTo": {
       "type": "text"
     },
-    "LinkingAgentRole": {
-      "type": "text"
-    },
     "DateLitteral": {
-      "type": "text"
-    },
-    "DataObjectProfile": {
       "type": "text"
     },
     "Title": {
@@ -257,10 +251,13 @@
     "LinkingAgentIdentifier": {
       "properties": {
         "LinkingAgentIdentifierType": {
-          "type": "text"
+          "type": "keyword"
         },
         "LinkingAgentIdentifierValue": {
           "type": "text"
+        },
+        "LinkingAgentRole": {
+          "type": "keyword"
         }
       }
     },

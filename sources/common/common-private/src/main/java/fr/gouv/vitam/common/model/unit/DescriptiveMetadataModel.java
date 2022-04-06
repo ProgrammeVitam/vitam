@@ -177,6 +177,16 @@ public class DescriptiveMetadataModel {
     @JsonProperty("Gps")
     private GpsType gps;
 
+    @JsonProperty("TextContent")
+    private String textContent;
+
+
+    @JsonProperty("OriginatingSystemIdReplyTo")
+    private String originatingSystemIdReplyTo;
+
+    @JsonProperty("DateLitteral")
+    private String dateLitteral;
+
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
 
@@ -808,6 +818,38 @@ public class DescriptiveMetadataModel {
      */
     public void setGps(GpsType gps) {
         this.gps = gps;
+    }
+
+
+    /**
+     * @return
+     */
+    public String getTextContent() {
+        return textContent;
+    }
+
+
+    /**
+     * @param textContent
+     */
+    public void setTextContent(String textContent) {
+        this.textContent = textContent;
+    }
+
+    public String getOriginatingSystemIdReplyTo() {
+        return originatingSystemIdReplyTo;
+    }
+
+    public void setOriginatingSystemIdReplyTo(String originatingSystemIdReplyTo) {
+        this.originatingSystemIdReplyTo = originatingSystemIdReplyTo;
+    }
+
+    public String getDateLitteral() {
+        return dateLitteral;
+    }
+
+    public void setDateLitteral(String dateLitteral) {
+        this.dateLitteral = dateLitteral;
     }
 
     /**

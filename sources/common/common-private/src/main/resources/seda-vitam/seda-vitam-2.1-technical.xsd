@@ -133,6 +133,11 @@
     </xsd:group>
     <xsd:complexType name="MinimalDataObjectType" abstract="true">
         <xsd:sequence>
+            <xsd:element name="DataObjectProfile" type="IdentifierType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un objet technique en particulier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="DataObjectSystemId" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant attribué aux objets de données. Il est attribué par le SAE et correspond à un identifiant interne.</xsd:documentation>

@@ -29,6 +29,8 @@ package fr.gouv.vitam.common.model.unit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
+import java.util.List;
+
 public class EventTypeModel {
 
     @JsonProperty("evId")
@@ -57,6 +59,11 @@ public class EventTypeModel {
 
     @JsonProperty("evDetData")
     private String eventDetailData;
+
+    @JsonProperty("linkingAgentIdentifier")
+    private List<LinkingAgentIdentifierTypeModel> linkingAgentIdentifier;
+
+
 
     public EventTypeModel() {
         // Empty constructor for deserialization
@@ -140,6 +147,16 @@ public class EventTypeModel {
 
     public EventTypeModel setEventDetailData(String eventDetailData) {
         this.eventDetailData = eventDetailData;
+        return this;
+    }
+
+    public List<LinkingAgentIdentifierTypeModel> getLinkingAgentIdentifier() {
+        return linkingAgentIdentifier;
+    }
+
+    public EventTypeModel setLinkingAgentIdentifier(
+        List<LinkingAgentIdentifierTypeModel> linkingAgentIdentifier) {
+        this.linkingAgentIdentifier = linkingAgentIdentifier;
         return this;
     }
 }

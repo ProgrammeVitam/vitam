@@ -26,6 +26,7 @@
             <xsd:group ref="DisseminationRuleCodeListGroup" minOccurs="0"/>
             <xsd:group ref="ReuseRuleCodeListGroup" minOccurs="0"/>
             <xsd:group ref="ClassificationRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="HoldRuleCodeListGroup" minOccurs="0"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -96,6 +97,16 @@
             <xsd:element name="StorageRuleCodeListVersion" type="CodeType">
                 <xsd:annotation>
                     <xsd:documentation>Version des listes de codes pour les règles de durée d'utilité courante.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="HoldRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="HoldRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de gel.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
