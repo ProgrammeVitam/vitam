@@ -7,22 +7,24 @@
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
 
-    {% if vitam_reverse_external_protocol == "https" %}
+{% if vitam_reverse_external_protocol == "https" %}
     # SSL
     SSLEngine on
-    # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
     {% if ansible_os_family == "RedHat" %}
+    # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
     SSLCertificateFile /etc/pki/tls/certs/localhost.crt
     SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
     {% endif %}
-    # according to https://wiki.debian.org/Self-Signed_Certificate
     {% if ansible_os_family == "Debian" %}
+    # according to https://wiki.debian.org/Self-Signed_Certificate
     SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
     SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
     {% endif %}
-    {% endif %}
+{% endif %}
 
     # Client certificate path
+    # Warning: Never uncomment the following line on production.
+    # Allow direct call to API by using reverse certificate (if configured on admin_context_certs list).
     # SSLProxyMachineCertificateFile /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem
     # Client CA path
     SSLProxyCACertificatePath /etc/{{ apache_service }}/ca/{{ vitam_site_name }}
