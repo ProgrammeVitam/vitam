@@ -1,8 +1,0 @@
-ca_root_server: changeme
-ca_intermediate_server: changeme
-ca_root_client_external: changeme
-ca_intermediate_client_external: changeme
-ca_root_client_storage: changeme
-ca_intermediate_client_storage: changeme
-ca_root_timestamping: changeme
-ca_intermediate_timestamping: changeme
