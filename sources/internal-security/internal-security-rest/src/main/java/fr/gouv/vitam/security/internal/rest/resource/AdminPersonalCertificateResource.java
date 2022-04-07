@@ -42,7 +42,7 @@ import javax.ws.rs.core.MediaType;
 @Tag(name = "Security")
 public class AdminPersonalCertificateResource {
 
-    private PersonalCertificateService personalCertificateService;
+    private final PersonalCertificateService personalCertificateService;
 
     public AdminPersonalCertificateResource(
         PersonalCertificateService personalCertificateService) {

@@ -49,8 +49,8 @@ public class SecurityDataMigrationRepository {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityDataMigrationRepository.class);
 
-    private MongoCollection<Document> identityCertificateCollection,
-        personalCertificateCollection;
+    private final MongoCollection<Document> identityCertificateCollection;
+    private final MongoCollection<Document> personalCertificateCollection;
 
     public SecurityDataMigrationRepository(MongoDbAccess mongoDbAccess) {
 

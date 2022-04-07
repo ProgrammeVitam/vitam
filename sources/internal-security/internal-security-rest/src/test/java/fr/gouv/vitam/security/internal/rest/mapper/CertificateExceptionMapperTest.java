@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CertificateExceptionMapperTest {
 
-    private CertificateExceptionMapper certificateExceptionMapper = new CertificateExceptionMapper();
+    private final CertificateExceptionMapper certificateExceptionMapper = new CertificateExceptionMapper();
 
     @Test
     public void should_convert_exception_to_response() throws Exception {

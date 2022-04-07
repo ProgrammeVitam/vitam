@@ -49,7 +49,7 @@ public class IdentityMain {
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.identity.port";
 
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     public IdentityMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,

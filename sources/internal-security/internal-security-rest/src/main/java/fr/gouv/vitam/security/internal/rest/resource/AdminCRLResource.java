@@ -42,7 +42,7 @@ import java.security.cert.CertificateException;
 @Tag(name = "Security")
 public class AdminCRLResource {
 
-    private CRLService crlService;
+    private final CRLService crlService;
 
     public AdminCRLResource(
         CRLService crlService) {

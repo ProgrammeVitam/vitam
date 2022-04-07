@@ -45,7 +45,7 @@ import java.security.cert.CertificateException;
 @Tag(name = "Security")
 public class IdentityResource {
 
-    private IdentityService identityService;
+    private final IdentityService identityService;
 
     /**
      * @param identityService

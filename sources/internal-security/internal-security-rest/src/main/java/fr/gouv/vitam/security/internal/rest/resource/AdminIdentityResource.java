@@ -49,7 +49,7 @@ import java.security.cert.CertificateException;
 @Tag(name = "Security")
 public class AdminIdentityResource {
 
-    private IdentityService identityService;
+    private final IdentityService identityService;
 
     /**
      * @param identityService

@@ -61,5 +61,5 @@ public interface CertificateCRLCheckStateUpdater<T extends CertificateBaseModel>
     /**
      * @return certificate model class type
      */
-    <T extends CertificateBaseModel> Class<T> getEntityModelType();
+    Class<T> getEntityModelType();
 }
