@@ -14,7 +14,7 @@ Executez le playbook suivant:
 
 .. code-block:: bash
 
-     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/remove_old_kibana_indexes.yml.yml --ask-vault-pass
+     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_kibana_indexes.yml.yml --ask-vault-pass
 
 Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
 
@@ -34,7 +34,7 @@ Elle est réalisée en exécutant la commande suivante (sur le site primaire uni
 
 .. code-block:: bash
 
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5rc.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_v5rc.yml --ask-vault-pass
 
 Après le passage du script de migration, il faut procéder à la réindexation de toutes les unités archivistiques :
 
@@ -57,7 +57,7 @@ Si vous disposez d'une instance R16.3 ou inférieur (4.0.3-), vers une version V
 
 .. code-block:: bash
 
-    $ ansible-playbook ansible-vitam-exploitation/migration_swift_v2_and_v3.yml -i environments/hosts.{env} --ask-vault-pass
+    $ ansible-playbook ansible-vitam-migration/migration_swift_v2_and_v3.yml -i environments/hosts.{env} --ask-vault-pass
 
     # Confirm playbook execution
     # Enter swift offer id (ex offer-swift-1)

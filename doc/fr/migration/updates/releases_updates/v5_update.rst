@@ -16,7 +16,7 @@ Elle est réalisée en exécutant la commande suivante (sur le site primaire uni
 
 .. code-block:: bash
 
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_v5.yml --ask-vault-pass
 
 Après le passage du script de migration, il faut procéder à la réindexation de toutes les unités archivistiques :
 
@@ -49,7 +49,7 @@ Cette migration doit être effectuée après la montée de version V5.
 
 Suite à l'ajout des nouvelles propriétés ``Comment`` ( Commentaire ) et ``obIdInd`` (Identifiant du message ) au niveau de la collection ``AccessionRegisterDetail``, il faut lancer une migration sur les anciennes données à travers la commande suivante :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_accession_register_details_v5.yml --vault-password-file vault_pass.txt``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_accession_register_details_v5.yml --vault-password-file vault_pass.txt``
 
 En cas d'installation multi-sites, il faut obligatoirement lancer cette migration sur le site 1 et sur les autres sites si les reconstructions ont été faites correctement et la collection ``logbook`` est synchrone par rapport à celle du site 1.
 
@@ -62,7 +62,7 @@ Elle est réalisée en exécutant la commande suivante (sur tous les sites, dans
 
 .. code-block:: bash
 
-  ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5_certificate.yml --ask-vault-pass
+  ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_v5_certificate.yml --ask-vault-pass
 
 ..
 
