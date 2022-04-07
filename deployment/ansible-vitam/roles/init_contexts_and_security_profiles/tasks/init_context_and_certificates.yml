@@ -26,6 +26,10 @@
       timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
+- name: "Clean empty results from admin_context_certs list"
+  set_fact:
+    admin_context_certs: "{{ admin_context_certs|reject('match', '^$')|list }}"
+
 - name: Upload context certificates into security-internal
   uri:
     method: POST
@@ -43,7 +47,7 @@
     method: POST
     body: "{{ lookup('file','{{ inventory_dir }}/certs/client-vitam-users/clients/{{ item }}') }}"
     status_code: 204
-    timeout: "{{ vitam_defaults.services.api_call_timeout }}" 
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     url: http://{{ hostvars[groups['hosts_security_internal'][0]]['ip_admin'] }}:{{ vitam.security_internal.port_admin }}/v1/api/personalCertificate
     body_format: "raw"
     headers:
