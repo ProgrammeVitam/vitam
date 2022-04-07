@@ -236,6 +236,7 @@
     vitam_struct: "{{ vitam.workspace }}"
 
 - hosts: hosts_metadata_collect
+  serial: 1
   gather_facts: no
   any_errors_fatal: true
   roles:
