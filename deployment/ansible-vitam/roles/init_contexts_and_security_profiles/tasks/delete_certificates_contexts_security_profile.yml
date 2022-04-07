@@ -21,15 +21,14 @@
 - name: copy temporary script to delete certificates on groups['hosts_mongos_data'] associated to contexts (that are related to {{ admin_security_profile }} security profile)
   template:
     src: "delete_certificates.js.j2"
-    dest: "{{ vitam_defaults.folder.root_path }}/tmp/mongos/delete_certificates_{{ item[0].Identifier }}.js"
+    dest: "{{ vitam_defaults.folder.root_path }}/tmp/mongos/delete_certificates_{{ item.Identifier }}.js"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  delegate_to: "{{ item[1] }}"
+  delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
   run_once: true
-  with_nested:
-    - "{{ context_check_json.results }}" # item[0]
-    - "{{ groups['hosts_mongos_data'] | first }}" # item[1]
+  loop:
+    - "{{ context_check_json.results }}"
 
 #TODO : a endpoint rather than a mongo query !
 - name: delete in mongo certificates (mongo query) associated to contexts (that are related to {{ admin_security_profile }} security profile)
