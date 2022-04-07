@@ -186,7 +186,7 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
     private Map<String, String> getOfferDigests(StorageClient storageClient, DataCategory dataCategory,
         String objectGuid,
         String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information = storageClient.getInformation(strategyId, dataCategory, objectGuid, offerIds, false);
+        JsonNode information = storageClient.getInformation(strategyId, dataCategory, objectGuid, offerIds, true);
 
         return offerIds.stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))
