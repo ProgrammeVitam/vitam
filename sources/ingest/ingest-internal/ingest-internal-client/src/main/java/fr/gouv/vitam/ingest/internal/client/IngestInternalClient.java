@@ -73,16 +73,6 @@ public interface IngestInternalClient extends MockOrRestClient {
         throws VitamException;
 
     /**
-     * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
-     *
-     * @param logbookParametersList
-     * @throws VitamClientException
-     */
-    void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamClientException;
-
-
-    /**
      * Download object stored by ingest operation
      *
      * @param objectId

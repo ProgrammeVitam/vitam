@@ -117,7 +117,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private GLOBAL(String realName) {
+        GLOBAL(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 

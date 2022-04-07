@@ -43,7 +43,6 @@
     <dependency>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>cas-tape-library-simulator</artifactId>
-        <version>${project.version}</version>
         <scope>test</scope>
     </dependency>
     <dependency>
@@ -62,6 +61,19 @@
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>common-private</artifactId>
         <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>cas-tape-library</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>common-storage</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>junit</groupId>
@@ -91,6 +103,7 @@
     <dependency>
         <groupId>com.squareup.retrofit2</groupId>
         <artifactId>converter-jackson</artifactId>
+        <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>org.assertj</groupId>
@@ -120,6 +133,21 @@
                         <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
                     </classpathDependencyExcludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>../licenses/cecill21.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </pluginManagement>

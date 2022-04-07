@@ -58,24 +58,14 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-exec</artifactId>
-			<version>1.3</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-private</artifactId>
+			<version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

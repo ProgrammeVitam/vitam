@@ -59,11 +59,6 @@
 			<artifactId>logback-classic</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-public</artifactId>
 			<version>${project.version}</version>

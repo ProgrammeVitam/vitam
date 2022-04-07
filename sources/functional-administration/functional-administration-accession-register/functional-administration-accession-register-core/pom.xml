@@ -14,51 +14,8 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>logbook-operations-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>logbook-common-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
             <artifactId>metadata-client</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>processing-management-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>storage-engine-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>storage-engine-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>workspace-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>workspace-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
@@ -66,8 +23,30 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.flipkart.zjsonpatch</groupId>
-            <artifactId>zjsonpatch</artifactId>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-junit</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

@@ -77,12 +77,6 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList) {
-        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
-
-    }
-
-    @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type) {
         return ClientMockResultHelper.getObjectStream();
     }

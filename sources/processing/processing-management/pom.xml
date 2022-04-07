@@ -27,18 +27,8 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations</artifactId>
+			<artifactId>metadata-client</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlet</artifactId>
 		</dependency>
 	<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -52,6 +42,11 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -74,7 +69,12 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8-standalone</artifactId>
+            <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+		</dependency>
     </dependencies>
 
 	<build>
@@ -91,6 +91,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<includeScope>compile</includeScope>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -260,7 +261,21 @@
 					</dataSet>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<header>../../licenses/cecill21.txt</header>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -46,13 +46,12 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.ingest.internal.common.exception.IllegalZipFileNameException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientConflictException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
-import fr.gouv.vitam.logbook.common.client.ErrorMessage;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalServerUnavailableClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
-import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -81,6 +80,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String SERVICE_UNAVAILABLE_EXCEPTION = "Workspace Server Error";
     private static final String NOT_ACCEPTABLE_EXCEPTION = "File or folder name is not allowed";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
 
     private static final String LOGBOOK_URL = "/logbooks";
@@ -129,8 +129,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         try (Response response = make(request)) {
             check(response);
         } catch (NotAcceptableClientException e) {
-            throw new ZipFilesNameNotAllowedException("File or folder name is not allowed");
-        } catch (IngestInternalClientServerException | WorkspaceClientServerException e) {
+            throw new IllegalZipFileNameException("File or folder name is not allowed", e);
+        } catch (IngestInternalClientServerException | IngestInternalServerUnavailableClientException e) {
             throw new IngestInternalClientServerException(e);
         } catch (VitamClientException e) {
             throw new VitamException(e);
@@ -156,18 +156,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamClientException {
-        try (Response response = make(put()
-            .withPath(LOGBOOK_URL).withBody(logbookParametersList, "check Upload Parameter")
-            .withJson())) {
-            check(response);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
-            throw new VitamClientException(e);
-        }
-    }
-
-    @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type)
         throws InvalidParseOperationException, IngestInternalClientServerException,
         IngestInternalClientNotFoundException {
@@ -182,7 +170,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 .withOctetAccept());
             check(response);
             return response;
-        } catch (VitamClientException | WorkspaceClientServerException | NotAcceptableClientException e) {
+        } catch (VitamClientException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new IngestInternalClientServerException(e);
         } catch (IngestInternalClientNotFoundException e) {
             throw new IngestInternalClientNotFoundException(e);
@@ -207,7 +195,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
         }
     }
@@ -226,7 +214,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
                 .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
-        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientNotFoundException | WorkflowNotFoundException | IngestInternalClientServerException e) {
             throw new VitamClientInternalException(e);
@@ -242,7 +230,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientInternalException(e);
@@ -261,7 +249,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
@@ -283,7 +271,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
@@ -304,7 +292,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
@@ -325,7 +313,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return Optional.of(response.readEntity(WorkFlow.class));
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException e) {
             throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
         } catch (IngestInternalClientNotFoundException e) {
             return Optional.empty();
@@ -347,7 +335,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 .withJson()
             );
             check(response);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
         } finally {
             if (response != null) {
@@ -358,7 +346,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
     private void check(Response response)
         throws VitamClientException, IngestInternalClientServerException,
-        WorkspaceClientServerException, InvalidParseOperationException, IngestInternalClientNotFoundException,
+        IngestInternalServerUnavailableClientException, InvalidParseOperationException, IngestInternalClientNotFoundException,
         NotAcceptableClientException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
@@ -367,13 +355,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
         switch (status) {
             case INTERNAL_SERVER_ERROR:
-                throw new IngestInternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new IngestInternalClientServerException(INTERNAL_SERVER_ERROR);
             case NOT_ACCEPTABLE:
                 throw new NotAcceptableClientException(NOT_ACCEPTABLE_EXCEPTION);
             case NO_CONTENT:
                 throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION);
             case SERVICE_UNAVAILABLE:
-                throw new WorkspaceClientServerException(SERVICE_UNAVAILABLE_EXCEPTION);
+                throw new IngestInternalServerUnavailableClientException(SERVICE_UNAVAILABLE_EXCEPTION);
             case NOT_FOUND:
                 throw new IngestInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             case CONFLICT:

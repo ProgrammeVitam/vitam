@@ -75,6 +75,10 @@
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,6 +95,7 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                            <includeScope>compile</includeScope>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
@@ -168,7 +173,7 @@
 						<require>vitam-user-${unix.user}</require>
 					</requires>
 					<defaultDirmode>750</defaultDirmode>
-					<defaultFileMode>640</defaultFileMode>
+					<defaultFilemode>640</defaultFilemode>
 					<defaultUsername>${unix.user}</defaultUsername>
 					<defaultGroupname>${unix.group}</defaultGroupname>
 					<mappings>

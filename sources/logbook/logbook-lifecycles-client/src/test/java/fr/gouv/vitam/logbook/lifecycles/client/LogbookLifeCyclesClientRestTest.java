@@ -686,14 +686,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void updateExecutionUnitLifeCycle() throws Exception {
+    public void updateExecutionUnitLifeCycle() {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         assertThatCode(() -> client.update(log)).doesNotThrowAnyException();
     }
 
     @Test
-    public void commitExecutionUnitLifeCycle() throws Exception {
+    public void commitExecutionUnitLifeCycle() {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         assertThatCode(() -> client.commit(log)).doesNotThrowAnyException();
@@ -721,7 +721,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void rollbacktExecutionUnitLifeCycle() throws Exception {
+    public void rollbacktExecutionUnitLifeCycle() {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         assertThatCode(() -> client.rollback(log)).doesNotThrowAnyException();
@@ -749,7 +749,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void statusExecutionWithouthBody() throws Exception {
+    public void statusExecutionWithouthBody() {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
         assertThatCode(() -> client.checkStatus()).doesNotThrowAnyException();
@@ -792,7 +792,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void createExecutionObjectGroupLifeCycle() throws Exception {
+    public void createExecutionObjectGroupLifeCycle() {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         assertThatCode(() -> client.create(log)).doesNotThrowAnyException();
@@ -821,14 +821,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void updateExecutionObjectGroupLifeCycle() throws Exception {
+    public void updateExecutionObjectGroupLifeCycle() {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         assertThatCode(() -> client.update(log)).doesNotThrowAnyException();
     }
 
     @Test
-    public void commitExecutionObjectGroupLifeCycle() throws Exception {
+    public void commitExecutionObjectGroupLifeCycle() {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         assertThatCode(() -> client.commit(log)).doesNotThrowAnyException();

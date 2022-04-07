@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.context.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -91,7 +92,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import org.apache.commons.lang.StringUtils;
-import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;

@@ -26,14 +26,11 @@
  */
 package fr.gouv.vitam.common.security.merkletree;
 
+import fr.gouv.vitam.common.BaseXx;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-
 import static fr.gouv.vitam.common.digest.DigestType.SHA512;
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MerkleTreeAlgoTest {
@@ -46,7 +43,7 @@ public class MerkleTreeAlgoTest {
     }
 
     @Test
-    public void shoud_compute_merkle_tree() throws IOException, NoSuchAlgorithmException {
+    public void shoud_compute_merkle_tree() {
         // Given
         merkleTreeAlgo.addLeaf("a");
         merkleTreeAlgo.addLeaf("b");
@@ -57,11 +54,12 @@ public class MerkleTreeAlgoTest {
 
         // Then
         assertThat(mt.getRoot()).isEqualTo(
-            decodeBase64("QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
+            BaseXx.getFromBase64(
+                "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
     }
 
     @Test
-    public void shoud_compute_merkle_tree_for_one_element() throws IOException, NoSuchAlgorithmException {
+    public void shoud_compute_merkle_tree_for_one_element() {
         // Given
         merkleTreeAlgo.addLeaf("a");
 
@@ -70,11 +68,12 @@ public class MerkleTreeAlgoTest {
 
         // Then
         assertThat(mt.getRoot()).isEqualTo(
-            decodeBase64("H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
+            BaseXx.getFromBase64(
+                "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
     }
 
     @Test
-    public void should_add_thre_element_when_five_leafs() throws Exception {
+    public void should_add_thre_element_when_five_leafs() {
         // Given
         merkleTreeAlgo.addLeaf("a");
         merkleTreeAlgo.addLeaf("b");
@@ -91,7 +90,7 @@ public class MerkleTreeAlgoTest {
     }
 
     @Test
-    public void should_not_add_element_when_four_leafs() throws Exception {
+    public void should_not_add_element_when_four_leafs() {
         // Given
         merkleTreeAlgo.addLeaf("a");
         merkleTreeAlgo.addLeaf("b");

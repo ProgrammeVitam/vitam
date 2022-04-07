@@ -118,6 +118,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IllegalZipFileNameException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -150,7 +151,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoHoldRule;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
-import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
@@ -451,7 +451,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testIngestInternalUploadSipWithBadContentFormatThenKO() {
 
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        assertThrows(ZipFilesNameNotAllowedException.class, () -> {
+        assertThrows(IllegalZipFileNameException.class, () -> {
             String operationId = VitamTestHelper.doIngest(tenantId, SIP_CONTENT_KO_FORMAT);
             verifyOperation(operationId, KO);
         });

@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.junit.Test;
-import org.yaml.snakeyaml.introspector.PropertyUtils;
 
 import java.io.IOException;
 
@@ -49,7 +49,7 @@ public class ElasticsearchUtilTest {
     @Test
     public void test() throws IOException {
         String mappingTrans =
-            ElasticsearchUtil.transferJsonToMapping(PropertyUtils.class.getResourceAsStream(FILE_JSON));
+            ElasticsearchUtil.transferJsonToMapping(PropertiesUtils.class.getResourceAsStream(FILE_JSON));
         System.out.println(mappingTrans);
         System.out.println(mapping);
         assertEquals(mapping, mappingTrans);

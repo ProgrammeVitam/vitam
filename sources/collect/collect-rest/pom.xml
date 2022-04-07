@@ -75,6 +75,10 @@
             <artifactId>common-format-identification</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+        </dependency>
 
     </dependencies>
 
@@ -105,6 +109,7 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                            <includeScope>compile</includeScope>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>

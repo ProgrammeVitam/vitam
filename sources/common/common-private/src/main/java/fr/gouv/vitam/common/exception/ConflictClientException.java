@@ -24,39 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common.exception;
 
-import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 
-/**
- *
- */
-public final class SedaIngestParams {
+public class ConflictClientException extends VitamException {
+    private static final long serialVersionUID = -544990974532693321L;
 
-    public String version;
-    public String nameSpaceUri;
-    public String xsdValidator;
-
-    public SedaIngestParams() {
+    public ConflictClientException(String message) {
+        super(message);
     }
 
-    public SedaIngestParams(String version, String nameSpaceUri) {
-        this.version = version;
-        this.nameSpaceUri = nameSpaceUri;
-        if (SupportedSedaVersions.SEDA_2_1.getVersion().equals(version)) {
-            this.xsdValidator = SupportedSedaVersions.SEDA_2_1.getXsdValidator();
-        }
+
+    public ConflictClientException(Throwable cause) {
+        super(cause);
     }
 
-    public String getVersion() {
-        return version;
+    public ConflictClientException(String messsage, Throwable cause) {
+        super(messsage, cause);
     }
 
-    public String getNameSpaceUri() {
-        return nameSpaceUri;
-    }
 
-    public String getXsdValidator() {
-        return xsdValidator;
-    }
 }

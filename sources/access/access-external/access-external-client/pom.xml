@@ -44,11 +44,6 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-public-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-http-interface</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -61,10 +56,12 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-public-client</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -99,5 +96,5 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+    </dependencies>
 </project>
