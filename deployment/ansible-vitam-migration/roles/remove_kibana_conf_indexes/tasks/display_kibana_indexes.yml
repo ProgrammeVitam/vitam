@@ -1,0 +1,14 @@
+---
+
+- name: Display kibana configuration indexes
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{  elasticsearch_port }}/_cat/indices?v"
+    method: GET
+    return_content: yes
+  register: es_result
+
+- set_fact:
+    array: "{{ es_result.content.split('\n') }}" # grep .kibana ??
+
+- debug:
+    var: array
