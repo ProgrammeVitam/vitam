@@ -8,7 +8,7 @@ Si vous disposez d'une instance R16.3 ou inférieur (4.0.3-), vers une version R
 
 .. code-block:: bash
 
-    $ ansible-playbook ansible-vitam-exploitation/migration_swift_v2_and_v3.yml -i environments/hosts.{env} --ask-vault-pass
+    $ ansible-playbook ansible-vitam-migration/migration_swift_v2_and_v3.yml -i environments/hosts.{env} --ask-vault-pass
 
     # Confirm playbook execution
     # Enter swift offer id (ex offer-swift-1)
