@@ -276,14 +276,21 @@
     {% endif %}
 
     {% if groups['hosts_prometheus']|length >0 %}
-        # Prometheus server
-        ProxyPass /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
-        ProxyPassReverse /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
+    # Prometheus server
+    ProxyPass /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
+    ProxyPassReverse /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
     {% endif %}
 
     {% if groups['hosts_grafana']|length >0 %}
-        # Grafana server
-        ProxyPass /grafana http://{{ hostvars[groups['hosts_grafana'][0]]['ip_admin'] }}:{{ grafana.http_port }}/grafana
-        ProxyPassReverse /grafana http://{{ hostvars[groups['hosts_grafana'][0]]['ip_admin'] }}:{{ grafana.http_port }}/grafana
+    # Grafana server
+    ProxyPass /grafana http://{{ hostvars[groups['hosts_grafana'][0]]['ip_admin'] }}:{{ grafana.http_port }}/grafana
+    ProxyPassReverse /grafana http://{{ hostvars[groups['hosts_grafana'][0]]['ip_admin'] }}:{{ grafana.http_port }}/grafana
     {% endif %}
+
+    {% if groups['hosts_alertmanager']|length >0 %}
+    # Alertmanager server
+    ProxyPass /alertmanager http://{{ hostvars[groups['hosts_alertmanager'][0]]['ip_admin'] }}:{{ prometheus.alertmanager.api_port }}
+    ProxyPassReverse /alertmanager http://{{ hostvars[groups['hosts_alertmanager'][0]]['ip_admin'] }}:{{ prometheus.alertmanager.api_port }}
+    {% endif %}
+
 </VirtualHost>
