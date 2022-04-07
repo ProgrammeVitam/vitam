@@ -1,0 +1,98 @@
+---
+
+- set_fact:
+    elasticsearch_host: "{{ elasticsearch.log.host }}"
+    elasticsearch_port: "{{ elasticsearch.log.port_http }}"
+  when: inventory_hostname in groups['hosts_kibana_log']
+
+- set_fact:
+    elasticsearch_host: "{{ elasticsearch.data.host }}"
+    elasticsearch_port: "{{ elasticsearch.data.port_http }}"
+  when: inventory_hostname in groups['hosts_kibana_data']
+
+- name: Ensure Elasticsearch data cluster is in "green" state
+  # command: "curl -I --silent -k -H \"Accept: application/json\"  http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ elasticsearch.data.baseuri }}/_cluster/health"
+  uri:
+    method: GET
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/_cluster/health"
+  register: result
+  until:
+    - result.json is defined
+    - result.json.status == "green"
+  retries: "{{ vitam_defaults.services.api_call_timeout }}"
+  delay: 10
+  run_once: true
+
+- name: Stop kibana service
+  systemd:
+    name: kibana
+    state: stopped
+
+- include_tasks: display_kibana_indexes.yml
+
+# curl -H "content-type: application/json" -X PUT http://elasticsearch-log.service.consul:9201/.kibana_1/_settings -d '{ "settings": { "index.blocks.write": "true" } }'
+# curl -H "content-type: application/json" -X PUT http://elasticsearch-log.service.consul:9201/.kibana_task_manager_1/_settings -d '{ "settings": { "index.blocks.write": "true" } }'
+- name: Disable write operations on .kibana and .kibana_task_manager indexes
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}/_settings"
+    method: PUT
+    body: "{ \"settings\": { \"index.blocks.write\": \"true\" }}"
+    body_format: json
+    status_code: 200,201
+  run_once: true
+  with_items:
+    - ".kibana_1"
+    - ".kibana_task_manager_1"
+
+# curl -H "content-type: application/json" -X POST http://elasticsearch-log.service.consul:9201/.kibana_1/_clone/.kibana_1_backup -d '{ "settings": { "index.blocks.write": null } }'
+# curl -H "content-type: application/json" -X POST http://elasticsearch-log.service.consul:9201/.kibana_task_manager_1/_clone/.kibana_task_manager_1_backup -d '{ "settings": { "index.blocks.write": null } }'
+- name: Clone .kibana and .kibana_task_manager indexes
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}/_clone/{{ item }}_backup"
+    method: POST
+    body: "{ \"settings\": { \"index.blocks.write\": null }}"
+    body_format: json
+    status_code: 200,201
+  run_once: true
+  with_items:
+    - ".kibana_1"
+    - ".kibana_task_manager_1"
+
+# curl -s -XGET http://elasticsearch-log.service.consul:9201/_cluster/health/.kibana_1_backup?wait_for_status=green&timeout=30s
+# curl -s -XGET http://elasticsearch-log.service.consul:9201/_cluster/health/.kibana_task_manager_1_backup?wait_for_status=green&timeout=30s
+- name: Wait for status on .kibana and .kibana_task_manager
+  ignore_errors: yes
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/_cluster/health/{{ item }}?wait_for_status=green&timeout=30s"
+    method: GET
+    status_code: 200,201
+  run_once: true
+  with_items:
+    - ".kibana_1_backup"
+    - ".kibana_task_manager_1_backup"
+
+# curl -X DELETE http://elasticsearch-log.service.consul:9201/.kibana_1
+# curl -X DELETE http://elasticsearch-log.service.consul:9201/.kibana_task_manager_1
+- name: Delete indexes (.kibana and .kibana_task_manager)
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}"
+    method: DELETE
+    status_code: 200,201
+  run_once: true
+  with_items:
+    - ".kibana_1"
+    - ".kibana_task_manager_1"
+
+# curl -X POST http://elasticsearch-log.service.consul:9201/.kibana_1_backup/_close/
+# curl -X POST http://elasticsearch-log.service.consul:9201/.kibana_task_manager_1_backup/_close/
+- name: Close kibana backup indexes
+  uri:
+    url: "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}/{{ item }}/_close/"
+    method: POST
+    status_code: 200,201
+  run_once: true
+  with_items:
+    - ".kibana_1_backup"
+    - ".kibana_task_manager_1_backup"
+
+- include_tasks: display_kibana_indexes.yml
