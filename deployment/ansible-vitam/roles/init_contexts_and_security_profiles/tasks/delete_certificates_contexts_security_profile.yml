@@ -27,7 +27,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
   run_once: true
-  loop:
+  with_items:
     - "{{ context_check_json.results }}"
 
 #TODO : a endpoint rather than a mongo query !
