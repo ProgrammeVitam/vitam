@@ -63,6 +63,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -91,9 +92,11 @@ import static fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse.OPERATI
 import static fr.gouv.vitam.metadata.core.MetaDataImpl.SNAPSHOT_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 public class AccessExternalIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
@@ -101,6 +104,7 @@ public class AccessExternalIT extends VitamRuleRunner {
     private static final String ACCESS_CONTRACT = "aName3";
 
     private static final String UNITS_RESOURCE_FILE = "access/units.json";
+    private static final String GOT_RESOURCE_FILE = "database/got.json";
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -128,6 +132,7 @@ public class AccessExternalIT extends VitamRuleRunner {
 
         new DataLoader("integration-ingest-internal").prepareData();
         insertUnits(UNITS_RESOURCE_FILE);
+        insertGots(GOT_RESOURCE_FILE);
     }
 
     @After
@@ -151,8 +156,10 @@ public class AccessExternalIT extends VitamRuleRunner {
             .setAccessContract(ACCESS_CONTRACT);
 
         // WHEN
-        RequestResponse<JsonNode> unitsWithPrecision = getUnitsWithTrackTotalHits(true, vitamContext);
-        RequestResponse<JsonNode> unitsWithoutPrecision = getUnitsWithTrackTotalHits(false, vitamContext);
+        RequestResponse<JsonNode> unitsWithPrecision = getMetadataWithTrackTotalHits(true, vitamContext,
+            MetadataCollections.UNIT);
+        RequestResponse<JsonNode> unitsWithoutPrecision = getMetadataWithTrackTotalHits(false, vitamContext,
+            MetadataCollections.UNIT);
 
         // THEN
         assertFalse(unitsWithPrecision.isOk());
@@ -176,16 +183,6 @@ public class AccessExternalIT extends VitamRuleRunner {
 
         final List<String> declaredBlackListedFieldsForGotInMetadatConf =
             List.of(FILENAME, LAST_MODIFIED, OPERATIONS);
-        final String OBJECTGROUP_RESOURCE_FILE = "database/got.json";
-
-        List<Document> gots = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-            OBJECTGROUP_RESOURCE_FILE), new TypeReference<>() {
-        });
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
-            .save(gots);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
-            .save(gots);
 
         SelectMultiQuery query = new SelectMultiQuery();
         query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
@@ -289,6 +286,29 @@ public class AccessExternalIT extends VitamRuleRunner {
             VitamClientException.class);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void selectObjectGroupsWithTrackTotalHitsInDSL() throws Exception {
+        // given
+        VitamContext vitamContext = new VitamContext(tenantId)
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
+
+        // WHEN
+        assertThatThrownBy(() -> {
+            getMetadataWithTrackTotalHits(true, vitamContext, MetadataCollections.OBJECTGROUP);
+        }).isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Error with the response, get status: '401' and reason 'Unauthorized'.");
+
+        RequestResponse<JsonNode> gotsWithoutPrecision =
+            getMetadataWithTrackTotalHits(false, vitamContext, MetadataCollections.OBJECTGROUP);
+
+        // THEN
+        List<JsonNode> resultsWithoutPrecision = ((RequestResponseOK<JsonNode>) gotsWithoutPrecision).getResults();
+        assertNotNull(resultsWithoutPrecision);
+        assertThat(resultsWithoutPrecision.size()).isGreaterThan(0);
+    }
+
     private static void insertUnitAndLFC(final String unitFile, final String lfcFile)
         throws InvalidParseOperationException, FileNotFoundException, MetaDataExecutionException {
         insertUnits(unitFile);
@@ -311,8 +331,18 @@ public class AccessExternalIT extends VitamRuleRunner {
         MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, tenantId, units);
     }
 
-    private RequestResponse<JsonNode> getUnitsWithTrackTotalHits(boolean shouldTrackTotalHits,
-        VitamContext vitamContext)
+    private static void insertGots(String gotFile)
+        throws InvalidParseOperationException, FileNotFoundException, MetaDataExecutionException {
+        List<ObjectGroup> gots =
+            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(gotFile), new TypeReference<>() {
+            });
+        MetadataCollections.OBJECTGROUP.<ObjectGroup>getVitamCollection().getCollection().insertMany(gots);
+        MetadataCollections.OBJECTGROUP.getEsClient()
+            .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, gots);
+    }
+
+    private RequestResponse<JsonNode> getMetadataWithTrackTotalHits(boolean shouldTrackTotalHits,
+        VitamContext vitamContext, MetadataCollections collection)
         throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
@@ -321,6 +351,9 @@ public class AccessExternalIT extends VitamRuleRunner {
             JsonHandler.createObjectNode().set(
                 BuilderToken.PROJECTION.FIELDS.name(),
                 JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1)));
-        return accessExternalClient.selectUnits(vitamContext, select.getFinalSelect());
+        if (collection.equals(MetadataCollections.UNIT)) {
+            return accessExternalClient.selectUnits(vitamContext, select.getFinalSelect());
+        }
+        return accessExternalClient.selectObjects(vitamContext, select.getFinalSelect());
     }
 }

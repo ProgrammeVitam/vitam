@@ -1573,6 +1573,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
 
+            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(queryJson,
+                configuration.isAuthorizeTrackTotalHits());
+
             RequestResponse<JsonNode> selectedObjectGroups = client.selectObjects(queryJson);
 
             if (!((RequestResponseOK) selectedObjectGroups).getResults().isEmpty()) {
@@ -1612,6 +1615,13 @@ public class AccessExternalResource extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             LOGGER.error(NO_SEARCH_QUERY, e);
             status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (ValidationException e) {
+            LOGGER.error(UNAUTHORIZED_DSL_PARAMETER, e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))

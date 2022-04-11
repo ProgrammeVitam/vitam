@@ -24,3 +24,30 @@ X-Tenant-Id: {{tenant}}
   },
   "$projection": {}
 }
+
+### Rechercher tout les objects groups avec une précision  sur la taille des résultats 
+### !!! authorizeTrackTotalHits should be true in access-external.conf !!!
+GET {{url}}/access-external/v1/objects
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$exists": "#id"
+    }
+  ],
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100,
+    "$track_total_hits": true
+  },
+  "$projection": {
+    "$fields": {
+      "#id": 1
+    }
+  }
+}
