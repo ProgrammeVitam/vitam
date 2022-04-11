@@ -32,6 +32,7 @@ import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -80,6 +81,23 @@ public class AdminIdentityResourceTest {
 
         // Then
         assertThat(response.getStatusInfo()).isEqualTo(Response.Status.CREATED);
+    }
+
+    @Test
+    public void should_not_create_identity_when_exists() throws Exception {
+        // Given
+        byte[] bytes = new byte[] {1, 2};
+        IdentityInsertModel identityModel = new IdentityInsertModel();
+        identityModel.setContextId("contextId");
+        identityModel.setCertificate(bytes);
+
+        given(identityService.findIdentity(bytes)).willReturn(Optional.of(new IdentityModel()));
+
+        // When
+        Response response = identityResource.createIdentity(identityModel, uriInfo);
+
+        // Then
+        assertThat(response.getStatusInfo()).isEqualTo(Response.Status.CONFLICT);
     }
 
     @Test

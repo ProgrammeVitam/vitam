@@ -44,6 +44,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.security.cert.CertificateException;
+import java.util.Optional;
 
 @Path("/v1/api/identity")
 @Tag(name = "Security")
@@ -70,6 +71,10 @@ public class AdminIdentityResource {
     public Response createIdentity(IdentityInsertModel identityInsertModel, @Context UriInfo uri)
         throws InvalidParseOperationException, CertificateException {
         ParametersChecker.checkParameter("Certificate cannot be null", (Object) identityInsertModel.getCertificate());
+        final Optional<IdentityModel> identity = identityService.findIdentity(identityInsertModel.getCertificate());
+        if(identity.isPresent()) {
+            return Response.status(Response.Status.CONFLICT).build();
+        }
         identityService.createIdentity(identityInsertModel);
         return Response.created(uri.getRequestUri().normalize()).build();
     }
