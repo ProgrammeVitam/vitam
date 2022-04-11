@@ -96,22 +96,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>copy-systemd-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/systemd</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/main/systemd</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
 
@@ -165,21 +149,6 @@
                             <sources>
                                 <source>
                                     <location>${project.build.directory}/conf</location>
-                                </source>
-                            </sources>
-                        </mapping>
-
-
-                        <!-- OMA : added for future use -->
-                        <mapping>
-                            <directory>/usr/lib/systemd/system/</directory>
-                            <filemode>644</filemode>
-                            <username>root</username>
-                            <groupname>root</groupname>
-                            <directoryIncluded>false</directoryIncluded>
-                            <sources>
-                                <source>
-                                    <location>${project.build.directory}/systemd</location>
                                 </source>
                             </sources>
                         </mapping>
@@ -257,18 +226,6 @@
                                 <prefix>/vitam/conf/${unix.name}</prefix>
                             </mapper>
                         </data>
-                        <data>
-                            <src>${project.build.directory}/systemd/vitam-${unix.name}.service</src>
-                            <type>file</type>
-                            <mapper>
-                                <type>perm</type>
-                                <user>${unix.user}</user>
-                                <group>${unix.group}</group>
-                                <filemode>0755</filemode>
-                                <prefix>/lib/systemd/system/</prefix>
-                            </mapper>
-                        </data>
-
                         <!-- Additional templates -->
                         <data>
                             <type>template</type>
