@@ -1,0 +1,16 @@
+[Unit]
+Description={{ vitam_struct.vitam_component }}
+After=network.target
+After=syslog.target
+
+[Service]
+Type=forking
+EnvironmentFile={{ vitam_folder_conf }}/sysconfig/entry_opts
+EnvironmentFile=-{{ vitam_folder_conf }}/sysconfig/java_opts
+ExecStart={{ vitam_folder_scripts }}/{{ vitam_struct.vitam_component }}.sh
+User={{ vitam_defaults.users.user | default('vitam') }}
+Group={{ vitam_defaults.users.group | default('vitam') }}
+PIDFile={{ vitam_folder_run }}/{{ vitam_struct.vitam_component }}.pid
+
+[Install]
+WantedBy=multi-user.target

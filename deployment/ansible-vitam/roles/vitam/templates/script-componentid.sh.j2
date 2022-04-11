@@ -3,4 +3,5 @@
 # Fork the java service
 /usr/bin/env java $JAVA_OPTS $JAVA_ENTRYPOINT $JAVA_ARGS &
 # Write the PID for systemd
-echo $! > /vitam/run/${unix.name}/${unix.name}.pid
+echo $! > {{ vitam_folder_run }}/{{ vitam_struct.vitam_component }}.pid
+exit 0

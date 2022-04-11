@@ -169,16 +169,6 @@
                             </sources>
                         </mapping>
                     </mappings>
-                    <!-- Systemd hook scriptlets -->
-                    <postinstallScriptlet>
-                        <script>%systemd_post vitam-${unix.name}.service</script>
-                    </postinstallScriptlet>
-                    <preremoveScriptlet>
-                        <script>%systemd_preun vitam-${unix.name}.service</script>
-                    </preremoveScriptlet>
-                    <postremoveScriptlet>
-                        <script>%systemd_postun vitam-${unix.name}.service</script>
-                    </postremoveScriptlet>
                 </configuration>
             </plugin>
 
