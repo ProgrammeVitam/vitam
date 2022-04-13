@@ -68,7 +68,7 @@ public class AdminIdentityApplication extends Application {
 
     private final AdminApplication adminApplication;
     private Set<Object> singletons;
-    private String configurationFile;
+    private final String configurationFile;
 
     public AdminIdentityApplication(@Context ServletConfig servletConfig) {
         this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);

@@ -41,7 +41,7 @@ import java.util.Arrays;
 public class ParsedCertificate {
 
     private static final int MAX_CERTIFICATE_LOG_LENGTH = 10240;
-    private static DigestType digestType = DigestType.SHA256;
+    private static final DigestType digestType = DigestType.SHA256;
 
     private final X509Certificate x509Certificate;
     private final byte[] rawCertificate;

@@ -62,11 +62,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
  */
 public class BusinessApplication extends ConfigurationApplication {
 
-    private final CommonBusinessApplication commonBusinessApplication;
-
-    private Set<Object> singletons;
-
-    private String configurationFile;
+    private final Set<Object> singletons;
 
     /**
      * Constructor
@@ -74,7 +70,7 @@ public class BusinessApplication extends ConfigurationApplication {
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
-        this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         singletons = new HashSet<>();
 
@@ -98,7 +94,7 @@ public class BusinessApplication extends ConfigurationApplication {
                 LogbookOperationsClientFactory.getInstance(), personalRepository);
             PermissionService permissionService = new PermissionService(personalCertificatePermissionConfig);
 
-            commonBusinessApplication = new CommonBusinessApplication();
+            CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());
 
             singletons.add(new IdentityResource(identityService));

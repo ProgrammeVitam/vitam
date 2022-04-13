@@ -72,7 +72,6 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     public void checkPersonalCertificate(byte[] certificate, String permission)
         throws VitamClientInternalException, InternalSecurityException {
         //nothing to do
-        return;
     }
 
     @Override

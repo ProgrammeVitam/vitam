@@ -57,10 +57,10 @@ public class PersonalCertificatePermissionConfigLoader {
         }
 
         if (config.getPermissionsRequiringPersonalCertificate() == null)
-            config.setPermissionsRequiringPersonalCertificate(Collections.EMPTY_SET);
+            config.setPermissionsRequiringPersonalCertificate(Collections.emptySet());
 
         if (config.getPermissionsWithoutPersonalCertificate() == null)
-            config.setPermissionsWithoutPersonalCertificate(Collections.EMPTY_SET);
+            config.setPermissionsWithoutPersonalCertificate(Collections.emptySet());
 
         validateConfiguration(config);
 

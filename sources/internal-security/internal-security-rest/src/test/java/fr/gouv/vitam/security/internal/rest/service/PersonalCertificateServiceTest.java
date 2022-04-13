@@ -74,19 +74,6 @@ public class PersonalCertificateServiceTest {
         "  }\n" +
         "}";
 
-    private static String evedetDataNoCertificate = "{\n" +
-        "  \"Context\" : {\n" +
-        "    \"Certificate\" : \"No certificate\",\n" +
-        "    \"Permission\" : \"TEST_PERMISSION\"\n" +
-        "  }\n" +
-        "}";
-
-    private static String evedetDataInvalidCertificate = "{\n" +
-        "  \"Context\" : {\n" +
-        "    \"Certificate\" : \"Invalid certificate\",\n" +
-        "    \"Permission\" : \"TEST_PERMISSION\"\n" +
-        "  }\n" +
-        "}";
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -130,6 +117,12 @@ public class PersonalCertificateServiceTest {
         assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
         assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
 
+        String evedetDataInvalidCertificate = "{\n" +
+            "  \"Context\" : {\n" +
+            "    \"Certificate\" : \"Invalid certificate\",\n" +
+            "    \"Permission\" : \"TEST_PERMISSION\"\n" +
+            "  }\n" +
+            "}";
         assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetDataInvalidCertificate);
     }
 
@@ -154,6 +147,12 @@ public class PersonalCertificateServiceTest {
         assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
         assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
 
+        String evedetDataNoCertificate = "{\n" +
+            "  \"Context\" : {\n" +
+            "    \"Certificate\" : \"No certificate\",\n" +
+            "    \"Permission\" : \"TEST_PERMISSION\"\n" +
+            "  }\n" +
+            "}";
         assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetDataNoCertificate);
     }
 

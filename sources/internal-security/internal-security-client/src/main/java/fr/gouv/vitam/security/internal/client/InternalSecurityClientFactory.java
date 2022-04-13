@@ -47,7 +47,7 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
     private static final String RESOURCE_PATH = "/v1/api";
 
     private InternalSecurityClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        super(changeConfigurationFile(), RESOURCE_PATH);
     }
 
     /**
@@ -55,29 +55,29 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
      *
      * @return the instance
      */
-    public static final InternalSecurityClientFactory getInstance() {
+    public static InternalSecurityClientFactory getInstance() {
         return ACCESS_CLIENT_FACTORY;
     }
 
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath the path to the configuration file
      * @return ClientConfiguration
      */
-    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
+    private static ClientConfiguration changeConfigurationFile() {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(
+                InternalSecurityClientFactory.CONFIGURATION_FILENAME),
                 SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
+                InternalSecurityClientFactory.CONFIGURATION_FILENAME,
                 fnf);
         }
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
+                InternalSecurityClientFactory.CONFIGURATION_FILENAME);
         }
         return configuration;
     }
@@ -85,7 +85,7 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
     /**
      * @param configuration null for MOCK
      */
-    public static final void changeMode(ClientConfiguration configuration) {
+    public static void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
