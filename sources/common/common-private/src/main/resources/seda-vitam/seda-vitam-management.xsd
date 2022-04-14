@@ -7,7 +7,7 @@
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
     version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     
     <!--
                 *****************************
@@ -26,6 +26,7 @@
             <xsd:group ref="DisseminationRuleCodeListGroup" minOccurs="0"/>
             <xsd:group ref="ReuseRuleCodeListGroup" minOccurs="0"/>
             <xsd:group ref="ClassificationRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="HoldRuleCodeListGroup" minOccurs="0"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -100,6 +101,16 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+
+    <xsd:group name="HoldRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="HoldRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de gel.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
     
     <!-- Management content -->
     <xsd:group name="ManagementGroup">
@@ -148,18 +159,17 @@
                     <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
-            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
-                 <xsd:annotation>
-                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
-                    </xsd:documentation>
-                 </xsd:annotation>
-            </xsd:element>
-
             <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
             <xsd:element name="HoldRule" type="HoldRuleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
+            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 

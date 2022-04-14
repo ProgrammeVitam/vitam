@@ -60,7 +60,7 @@ public class CheckAtrAndAddItToWorkspacePlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         ArchiveTransferReplyType atr = (ArchiveTransferReplyType) handler.getInput(0);
         try {
-            String messageIdentifier = atr.getMessageIdentifier().getValue();
+            String messageIdentifier = atr.getMessageIdentifier();
 
             if (!isValidStatus(atr)) {
                 return buildItemStatus(PLUGIN_NAME, KO,
@@ -87,7 +87,7 @@ public class CheckAtrAndAddItToWorkspacePlugin extends ActionHandler {
     private InputStream streamFromIds(ArchiveTransferReplyType atr) throws InvalidParseOperationException {
         return JsonHandler.writeToInpustream(new TransferReplyContext(
             atr.getMessageRequestIdentifier().getValue(),
-            atr.getMessageIdentifier().getValue()
+            atr.getMessageIdentifier()
         ));
     }
 }

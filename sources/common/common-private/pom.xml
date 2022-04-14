@@ -242,7 +242,7 @@
                             <strict>false</strict>
                             <schemaDirectory>src/main/resources</schemaDirectory>
                             <schemaIncludes>
-                                <include>seda-vitam/seda-vitam-2.1-main.xsd</include>
+                                <include>seda-vitam/seda-vitam-main.xsd</include>
                             </schemaIncludes>
                             <plugins>
                                 <plugin>

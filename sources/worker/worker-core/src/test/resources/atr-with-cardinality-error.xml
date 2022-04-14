@@ -1,4 +1,4 @@
-<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-2.1-main.xsd">
+<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-main.xsd">
     <Date>2019-10-04T09:22:33.617Z</Date>
     <MessageIdentifier>aeeaaaaaachnfr3yab6tmalnsyj3uiqaaaaq</MessageIdentifier>
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>

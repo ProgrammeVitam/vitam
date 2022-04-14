@@ -14,25 +14,25 @@
                 ***   Types de base
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     <!--
                 *****************************
                 ***   Base technique
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-technical.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-technical.xsd"/>
     <!--
                 *****************************
                 ***   Base de gestion
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-management.xsd"/>
     <!--
                 *****************************
                 ***   Base descriptive
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-descriptive.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-descriptive.xsd"/>
 
     <!--
                 *****************************
@@ -335,7 +335,7 @@
                     <xsd:documentation>Date du message.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="MessageIdentifier" type="IdentifierType">
+            <xsd:element name="MessageIdentifier" type="NonEmptyTokenType">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant du message.</xsd:documentation>
                 </xsd:annotation>

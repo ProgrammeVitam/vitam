@@ -123,7 +123,7 @@ public class SedaUtils {
 
     private SedaIngestParams sedaIngestParams;
 
-    public static final String SEDA_2_1_VITAM_XSD_FILE = "seda-vitam/seda-vitam-2.1-main.xsd";
+    public static final String SEDA_2_1_VITAM_XSD_FILE = "seda-vitam/seda-vitam-main.xsd";
     private static final String NAMESPACE_FIELD_REGEX = "fr:gouv:culture:archivesdefrance:seda:v(\\w+.\\w)$";
     private static final String SEDA_PARAMS_ARE_NOT_VALID = "Seda params are not valid!";
 

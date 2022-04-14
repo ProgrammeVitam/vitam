@@ -73,7 +73,7 @@ public class SaveAtrPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         ArchiveTransferReplyType atr = (ArchiveTransferReplyType) handler.getInput(0);
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            String messageIdentifier = atr.getMessageIdentifier().getValue();
+            String messageIdentifier = atr.getMessageIdentifier();
 
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
 

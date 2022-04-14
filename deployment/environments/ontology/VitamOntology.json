@@ -880,6 +880,72 @@
     ]
   },
   {
+    "Identifier": "LinkingAgentIdentifierType",
+    "SedaField": "LinkingAgentIdentifierType",
+    "Description": "Mapping : unit-es-mapping.json. LinkingAgentIdentifierType ",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "LinkingAgentIdentifierType",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "LinkingAgentIdentifierValue",
+    "SedaField": "LinkingAgentIdentifierValue",
+    "Description": "Mapping : unit-es-mapping.json. LinkingAgentIdentifierValue",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "LinkingAgentIdentifierValue",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "LinkingAgentRole",
+    "SedaField": "LinkingAgentRole",
+    "Description": "Mapping : unit-es-mapping.json. LinkingAgentRole",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "LinkingAgentRole",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "OriginatingSystemIdReplyTo",
+    "SedaField": "OriginatingSystemIdReplyTo",
+    "Description": "Mapping : unit-es-mapping.json. OriginatingSystemIdReplyTo",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "OriginatingSystemIdReplyTo",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "DateLitteral",
+    "SedaField": "DateLitteral",
+    "Description": "Mapping : unit-es-mapping.json. DateLitteral",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "DateLitteral",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "DataObjectProfile",
+    "SedaField": "DataObjectProfile",
+    "Description": "Mapping : og-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "DataObjectProfile",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
     "Identifier": "TransactedDate",
     "SedaField": "TransactedDate",
     "Description": "Mapping : unit-es-mapping.json",

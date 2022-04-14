@@ -2,9 +2,9 @@
 <xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
-    <xsd:include schemaLocation="seda-vitam-2.1-management.xsd"/>
-    <xsd:include schemaLocation="seda-vitam-2.1-ontology.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-ontology.xsd"/>
     
     <!-- Hierarchy and recursivity -->
     <xsd:complexType name="ArchiveUnitType">
@@ -88,7 +88,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- In ArchiveUnitType fseda-vitam-2.1-descriptive.xsd.xsd: Descriptive Metadata Content -->
+    <!-- In ArchiveUnitType fseda-vitam-descriptive.xsd.xsd: Descriptive Metadata Content -->
     <xsd:complexType name="DescriptiveMetadataContentType">
         <xsd:annotation>
             <xsd:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xsd:documentation>

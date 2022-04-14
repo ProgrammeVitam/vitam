@@ -95,6 +95,9 @@
             "DataObjectVersion": {
               "type": "keyword"
             },
+            "DataObjectProfile": {
+              "type": "keyword"
+            },
             "DataObjectSystemId": {
               "type": "keyword"
             },

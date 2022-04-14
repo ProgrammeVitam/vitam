@@ -186,6 +186,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_qualifiers.versions.DataObjectProfile",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_qualifiers.versions.FileInfo",
     "type": "object",
     "indexed": true,

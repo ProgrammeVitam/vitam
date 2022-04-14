@@ -3,8 +3,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
-    <xsd:include schemaLocation="seda-vitam-2.1-ontology.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-ontology.xsd"/>
     <!--
                 *****************************
                 ***   Code List
@@ -133,6 +133,11 @@
     </xsd:group>
     <xsd:complexType name="MinimalDataObjectType" abstract="true">
         <xsd:sequence>
+            <xsd:element name="DataObjectProfile" type="IdentifierType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un objet technique en particulier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="DataObjectSystemId" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant attribué aux objets de données. Il est attribué par le SAE et correspond à un identifiant interne.</xsd:documentation>

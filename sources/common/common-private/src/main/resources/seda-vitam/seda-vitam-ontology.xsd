@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     
     <xsd:group name="ObjectGroup">
         <xsd:annotation>
@@ -46,6 +46,8 @@
             <xsd:group ref="EventGroup"/>
             <xsd:group ref="SignatureGroup"/>
             <xsd:group ref="GpsGroup"/>
+            <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
+            <xsd:group ref="TextContentGroup"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -589,6 +591,11 @@
                     <xsd:documentation>Références : AGKRMS.EndDate</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="DateLitteral" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Champ date en texte libre.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:group>
     <xsd:simpleType name="DateType">
@@ -652,7 +659,31 @@
                     <xsd:documentation>Message technique détaillant l'erreur.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="LinkingAgentIdentifier" type="LinkingAgentIdentifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de renseigner des agents répertoriés dans des évènements.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="LinkingAgentIdentifierType">
+        <xsd:sequence>
+            <xsd:element name="LinkingAgentIdentifierType" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant d'un agent répertorié dans des évènements.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LinkingAgentIdentifierValue" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Mention d'un agent répertorié dans des évènements.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LinkingAgentRole" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Fonction d'un agent répertorié dans des évènements.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->
@@ -1009,5 +1040,22 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
+    <xsd:group name="OriginatingSystemIdReplyToGroup">
+        <xsd:sequence>
+            <xsd:element name="OriginatingSystemIdReplyTo" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Réponse au système émetteur d'un message électronique.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:group name="TextContentGroup">
+        <xsd:sequence>
+            <xsd:element name="TextContent" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Contenu du message électronique.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
 </xsd:schema>
