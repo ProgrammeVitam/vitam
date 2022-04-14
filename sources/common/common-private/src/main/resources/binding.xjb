@@ -20,7 +20,7 @@
         </jxb:bindings>              
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-descriptive.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-descriptive.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='ArchiveUnitType']">
             <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
@@ -37,7 +37,7 @@
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-main.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-main.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='DataObjectPackageType']">
             <annox:annotate>
@@ -53,7 +53,7 @@
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-technical.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-technical.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='BinaryDataObjectType']">
             <annox:annotate>
@@ -73,7 +73,7 @@
 
 
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-management.xsd">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-management.xsd">
         <jxb:bindings node="//xs:complexType[@name='StorageRuleType']">
             <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
@@ -94,7 +94,7 @@
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-types.xsd">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-types.xsd">
         <jxb:bindings node="//xs:element[@name='DataObjectReferenceId']">
             <jxb:property>
                 <jxb:baseType>
@@ -112,7 +112,7 @@
 
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-ontology.xsd">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-ontology.xsd">
         <jxb:bindings node="//xs:element[@name='SignedObjectId']">
             <jxb:property>
                 <jxb:baseType>

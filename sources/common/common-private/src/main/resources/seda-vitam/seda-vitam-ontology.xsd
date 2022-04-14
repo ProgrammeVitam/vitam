@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     
     <xsd:group name="ObjectGroup">
         <xsd:annotation>

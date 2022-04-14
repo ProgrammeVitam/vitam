@@ -14,25 +14,25 @@
                 ***   Types de base
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     <!--
                 *****************************
                 ***   Base technique
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-technical.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-technical.xsd"/>
     <!--
                 *****************************
                 ***   Base de gestion
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-management.xsd"/>
     <!--
                 *****************************
                 ***   Base descriptive
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam-2.1-descriptive.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-descriptive.xsd"/>
 
     <!--
                 *****************************
