@@ -1,231 +1,201 @@
+#jinja2: lstrip_blocks: True
 <!doctype html>
-<html lang="fr" >
-<head>
-	<meta charset="utf-8">
-	<meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
-	<meta name="format-detection" content="telephone=no">
-
-	<title>VITAM - environnement : {{ vitam_site_name }}</title>
-	<link rel="shortcut icon" type= "image/x-icon" href="favicon.ico" />
-	<link rel="stylesheet" href="css/app.css" />
-
-	<link rel="stylesheet" href="css/bootstrap.min.css" />
-	<link rel="stylesheet" href="css/material-icons.css">
-	<link rel="stylesheet" href="css/styles.css" />
-
-	<script src="js/jquery.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-
-</head>
-
-<body  >
-
-    <!--
-    *
-    *    #GLOBAL
-    *
-    *    @desc: Main container
-    *
--->
-<div id="global" class="container-fluid">
-
-	<!-- MAIN HEADER -->
-	<header id="mainHeader" class="navbar navbar-default navbar-fixed-top" >
-
-		<div class="container-fluid">
-
-			<div class="navbar-header">
-				<a href="#" class="navbar-brand"><img class="logo pull-left" src="images/logo_vitam.png" alt="Vitam" title="Vitam" /></a>
-			</div>
-
-			<div id="navbar" class="navbar-collapse collapse" >
-				<ul class="nav navbar-nav">
-					<li>
-						<a href="#">
-							<i class="material-icons pull-left">search</i>
-							<span class="pull-left m-l-10">Environnement : {{ vitam_site_name }}</span>
-						</a>
-					</li>
-					<li>
-						<a href="#">
-							<i class="material-icons pull-left">search</i>
-							<span class="pull-left m-l-10">Déployé : {{ ansible_date_time.date }} {{ ansible_date_time.time }} ({{ ansible_date_time.tz }})</span>
-						</a>
-					</li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<a href="#"></a>
-					</li>
-				</ul>
-			</div>
-
-		</div>
-
-	</header>
-	<!-- end MAIN HEADER -->
-
-	<!-- ////////////////////////////////////////////////////////////////////////////// -->
-
-	<div class="page-container" >
-		<div class="page">
-
-			<div class="panel panel-default col-md-12 container" style="margin-top: 50px">
-				<a class="panel-header no-toggle" href="#">
-					<h2>Métier</h2>
-				</a>
-				<div class="panel-body">
-
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">VITAM</div>
-						<div class="col-md-2"><a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
-						<div class="col-md-2"><a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
-					</p>
-{% if groups['hosts_kibana_data']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Kibana métier</div>
-						<div class="col-md-2"><a href="/kibana_data/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a></div>
-						<div class="col-md-2"><a href="/kibana_data/api/status" class="btn btn-primary btn-xs" target="_blank">Statut</a></div>
-					</p>
-{% endif %}
-				</div>
-			</div>
-
-			<div class="panel panel-default col-md-12 container">
-				<a class="panel-header no-toggle" href="#">
-					<h2>Technique</h2>
-				</a>
-				<div class="panel-body">
-
-
-{% if groups['hosts_kibana_log']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Kibana log</div>
-						<div class="col-md-2"><a href="/kibana_log/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a> <a href="/kibana_log/api/status" class="btn btn-primary btn-xs" target="_blank">Statut</a></div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_prometheus']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Prometheus server</div>
-						<div class="col-md-2"><a href="/prometheus" class="btn btn-primary btn-xs" target="_blank">Prometheus</a></div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_grafana']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Grafana</div>
-						<div class="col-md-2"><a href="/grafana" class="btn btn-primary btn-xs" target="_blank">Grafana</a></div>
-					</p>
-{% endif %}
-
-{% if groups['library']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Documentation</div>
-						<div class="col-md-5"><a href="/{{ vitam.library.baseuri }}/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_consul_server']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Consul</div>
-						<div class="col-md-5"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_dev_tools']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">MongoDB</div>
-						<div class="col-md-5">
-						{% for host in mongo_express_hosts %}
-						<a href="/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}" class="btn btn-primary btn-xs" target="_blank">Mongo express {{ hostvars[host]['mongo_cluster_name'] }}</a>
-					    {% endfor %}
-						</div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_elasticsearch_log']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Elasticsearch logs</div>
-						<div class="col-md-9">
-{% if groups['hosts_dev_tools']|length >0 %}
-
-							<a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-
-{% endif %}
-{% if groups['hosts_cerebro']|length >0 %}
-
-							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
-{% endif %}
-
-							<a href="/{{ elasticsearch.log.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
-							<a href="/{{ elasticsearch.log.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
-						</div>
-					</p>
-{% endif %}
-
-{% if groups['hosts_elasticsearch_data']|length >0 %}
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Elasticsearch data</div>
-						<div class="col-md-9">
-
-{% if groups['hosts_dev_tools']|length >0 %}
-
-							<a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-{% endif %}
-{% if groups['hosts_cerebro']|length >0 %}
-
-							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.data|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
-{% endif %}
-
-							<a href="/{{ elasticsearch.data.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
-							<a href="/{{ elasticsearch.data.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
-						</div>
-					</p>
-{% endif %}
-
-
-				</div>
-			</div>
-		</div>
-		<div class="panel panel-default col-md-12 container">
-			<a class="panel-header no-toggle" href="#">
-				<h2>Debug</h2>
-			</a>
-			<div class="panel-body">
-				{% for item in groups['vitam'] %}
-                    <div class="row component-line">
-                        <div class="col-md-3">{{ item }}</div>
-                        <div class="col-md-2">
-                            {% for groupe in groups %}
-                                {% if item in groups[groupe] %}
-                                    {% if (groupe not in ('hosts','all','vitam','prometheus','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}
-                                        {{ groupe|regex_replace('hosts_', '')| replace('_','-') }}<br/>
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <div class="col-md-2">
-                            {% for groupe in groups %}
-                                {% if groupe is search('^zone') %}
-                                    {% if item in groups[groupe] %}{{ groupe| replace('_',' ') }}<br/>{% endif %}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <div class="col-md-2">
-                            <a href="/nodes/{{ item }}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
-                        </div>
-                    </div>
-				{% endfor %}
-			</div>
-		</div>
-	</div>
-</div>
-<!-- ////////////////////////////////////////////////////////////////////////////// -->
-<!-- MAIN FOOTER -->
-<footer class="mainFooter">
-</footer>
-<!-- end MAIN FOOTER -->
-</div>
-</body>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>Vitam - {{ vitam_site_name }}</title>
+    <link rel="shortcut icon" type= "image/x-icon" href="favicon.ico"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/material-icons.css">
+    <link rel="stylesheet" href="css/styles.css"/>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div id="global" class="container-fluid">
+      <header id="mainHeader" class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a href="#" class="navbar-brand"><img class="logo pull-left" src="images/logo_vitam.png" alt="Vitam" title="Vitam"/></a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li>
+                <a href="#">
+                  <i class="material-icons pull-left">search</i>
+                  <span class="pull-left m-l-10">Environnement : {{ vitam_site_name }}</span>
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="material-icons pull-left">search</i>
+                  <span class="pull-left m-l-10">Déployé : {{ ansible_date_time.date }} {{ ansible_date_time.time }} ({{ ansible_date_time.tz }})</span>
+                </a>
+              </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <a href="#"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="page-container">
+        <div class="page">
+          <div class="panel panel-default col-md-12 container" style="margin-top: 50px">
+            <a class="panel-header no-toggle" href="#">
+              <h2>Vitam - Liens</h2>
+            </a>
+            <div class="panel-body">
+              {% if groups['hosts_ihm_demo']|length >0 or groups['hosts_ihm_recette']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Métier</div>
+                <div class="col-md-9">
+                  {% if groups['hosts_ihm_demo']|length >0 %}
+                  <a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">ihm-demo</a>
+                  {% endif %}
+                  {% if groups['hosts_ihm_recette']|length >0 %}
+                  <a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">ihm-recette</a>
+                  {% endif %}
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['library']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Documentation</div>
+                <div class="col-md-9"><a href="/{{ vitam.library.baseuri }}/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_grafana']|length >0 or groups['hosts_prometheus']|length >0 or groups['hosts_alertmanager']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Supervision</div>
+                <div class="col-md-9">
+                  {% if groups['hosts_grafana']|length >0 %}
+                  <a href="/grafana" class="btn btn-primary btn-xs" target="_blank">Grafana</a>
+                  {% endif %}
+                  {% if groups['hosts_prometheus']|length >0 %}
+                  <a href="/prometheus" class="btn btn-primary btn-xs" target="_blank">Prometheus</a>
+                  {% endif %}
+                  {% if groups['hosts_alertmanager']|length >0 %}
+                  <a href="/alertmanager" class="btn btn-primary btn-xs" target="_blank">Alertmanager</a>
+                  {% endif %}
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_consul_server']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Consul</div>
+                <div class="col-md-9">
+                  <a href="/ui" class="btn btn-primary btn-xs" target="_blank">Consul</a>
+                  <a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Health</a>
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_kibana_data']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Kibana Data</div>
+                <div class="col-md-9">
+                  <a href="/kibana_data/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a>
+                  <a href="/kibana_data/api/status" class="btn btn-primary btn-xs" target="_blank">Status</a>
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_kibana_log']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Kibana Log</div>
+                <div class="col-md-9">
+                  <a href="/kibana_log/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a>
+                  <a href="/kibana_log/api/status" class="btn btn-primary btn-xs" target="_blank">Status</a>
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_elasticsearch_data']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Elasticsearch Data</div>
+                <div class="col-md-9">
+                  {% if groups['hosts_cerebro']|length >0 %}
+                  <a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.data|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+                  {% endif %}
+                  {% if groups['hosts_dev_tools']|length >0 %}
+                  <a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+                  {% endif %}
+                  <a href="/{{ elasticsearch.data.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
+                  <a href="/{{ elasticsearch.data.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Health</a>
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_elasticsearch_log']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Elasticsearch Log</div>
+                <div class="col-md-9">
+                  {% if groups['hosts_cerebro']|length >0 %}
+                  <a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+                  {% endif %}
+                  {% if groups['hosts_dev_tools']|length >0 %}
+                  <a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+                  {% endif %}
+                  <a href="/{{ elasticsearch.log.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
+                  <a href="/{{ elasticsearch.log.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Health</a>
+                </div>
+              </p>
+              {% endif %}
+              {% if groups['hosts_dev_tools']|length >0 %}
+              <p class="row" style="vertical-align: middle">
+                <div class="col-md-3">Mongo Express</div>
+                <div class="col-md-9">
+                  {% for host in mongo_express_hosts %}
+                  <a href="/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}" class="btn btn-primary btn-xs" target="_blank">{{ hostvars[host]['mongo_cluster_name'] }}</a>
+                  {% endfor %}
+                </div>
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Vitam UI - Liens -->
+          <div class="panel panel-default col-md-12 container">
+            <a class="panel-header no-toggle" href="#">
+              <h2>Vitam - Debug</h2>
+            </a>
+            <div class="panel-body">
+              {% for item in groups['vitam'] %}
+              <div class="row component-line">
+                <div class="col-md-3">{{ item }}</div>
+                <div class="col-md-2">{{ hostvars[item]['ip_admin'] }}</div>
+                <div class="col-md-2">
+                  {% for group in groups %}
+                  {% if item in groups[group] %}
+                  {% if (group not in ('hosts','all','vitam','prometheus','reverse','elasticsearch','mongo_common')) and (not(group is search('^zone'))) %}
+                  {{ group|regex_replace('hosts_', '')| replace('_','-') }}<br/>
+                  {% endif %}
+                  {% endif %}
+                  {% endfor %}
+                </div>
+                <div class="col-md-2">
+                  {% for group in groups %}
+                  {% if group is search('^zone') %}
+                  {% if item in groups[group] %}
+                  {{ group| replace('_',' ') }}<br/>
+                  {% endif %}
+                  {% endif %}
+                  {% endfor %}
+                </div>
+                {% if browser.enabled | default(false) | bool == true %}
+                <div class="col-md-2">
+                  <a href="/nodes/{{ item }}/browse/" class="btn btn-primary btn-xs" target="_blank">Browser</a>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <!-- Vitam UI - Debug -->
+        </div>
+      </div>
+    </div>
+    <footer class="mainFooter"></footer>
+  </body>
 </html>
