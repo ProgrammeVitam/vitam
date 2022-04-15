@@ -1,6 +1,8 @@
-db = db.getSiblingDB('metadata')
-
-db.Unit.find(
+var db = db.getSiblingDB('metadata')
+var counter = 0;
+var chunk = 10000;
+var bulkedUnitsQueries = [];
+var unitsToScan = db.Unit.find(
     {
         $or: [
             { "_computedInheritedRules.StorageRule.EndDates": { $exists: true } },
@@ -11,8 +13,14 @@ db.Unit.find(
             { "_computedInheritedRules.ClassificationRule.EndDates": { $exists: true } },
             { "_computedInheritedRules.HoldRule.EndDates": { $exists: true } }
         ]
+    },
+    {
+        "_id": 1,
+        "_computedInheritedRules": 1
     }
-).forEach(function (document) {
+);
+
+unitsToScan.forEach(function (document) {
     // StorageRule
     if (document._computedInheritedRules.StorageRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.StorageRule.EndDates);
@@ -91,5 +99,30 @@ db.Unit.find(
         }
     }
 
-    db.Unit.save(document);
-})
+    // Bulk insert stage
+    counter++;
+    bulkedUnitsQueries.push({
+        "updateOne": {
+            "filter": {
+                "_id": document._id
+            },
+            "update": {
+                $set: {
+                    _computedInheritedRules: document._computedInheritedRules
+                }
+            }
+        }
+
+    });
+    if (counter % chunk == 0) {
+        db.Unit.bulkWrite(bulkedUnitsQueries, { ordered: false });
+        print(bulkedUnitsQueries.length + " have been treated! Still in progress ...")
+        bulkedUnitsQueries = [];
+    }
+});
+
+// Process the rest of the data that was not in the batch size
+if (bulkedUnitsQueries.length > 0) {
+    db.Unit.bulkWrite(bulkedUnitsQueries, { ordered: false });
+    print(counter + "/" + unitsToScan.count() + " units have been treated in this script!")
+}
