@@ -224,7 +224,6 @@
         <org.xmlunit.version>2.6.3</org.xmlunit.version>
         <com.github.tomakehurst.version>2.26.0</com.github.tomakehurst.version>
         <io.reactivex.rxjava2.version>2.2.12</io.reactivex.rxjava2.version>
-        <xalan.version>2.7.2</xalan.version>
         <cucumber-java.version>1.2.5</cucumber-java.version>
         <cucumber-picocontainer.version>1.2.5</cucumber-picocontainer.version>
         <cucumber-junit.version>1.2.5</cucumber-junit.version>
@@ -1413,11 +1412,6 @@
                 <groupId>com.mikesamuel</groupId>
                 <artifactId>json-sanitizer</artifactId>
                 <version>${json-sanitize.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>xalan</artifactId>
-                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>

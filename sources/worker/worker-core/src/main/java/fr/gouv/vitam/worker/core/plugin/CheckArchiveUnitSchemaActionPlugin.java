@@ -177,6 +177,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
+            LOGGER.error(e);
             itemStatus.setItemId(UNIT_SANITIZE);
             itemStatus.increment(StatusCode.KO);
             final ObjectNode object = JsonHandler.createObjectNode();

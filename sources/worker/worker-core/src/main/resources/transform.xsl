@@ -28,7 +28,7 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     <xsl:mode streamable="yes"/>
-    <xsl:output indent="no"/>
+    <xsl:output indent="no" encoding="UTF-8" method="xml"/>
     <xsl:strip-space elements="*"/>
     <xsl:template match="node()|@*">
         <xsl:copy>
