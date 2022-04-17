@@ -54,7 +54,7 @@ import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
-import org.apache.xerces.dom.ElementNSImpl;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBElement;
@@ -161,10 +161,10 @@ public class ArchiveUnitMapper {
     private String getElementAsText(EventType eventType, String name) {
         return eventType.getAny()
             .stream()
-            .map(object -> (ElementNSImpl) object)
+            .map(object -> (Element) object)
             .filter(element -> element.getLocalName().equals(name))
             .findFirst()
-            .map(element -> ((ElementNSImpl) element).getFirstChild())
+            .map(Node::getFirstChild)
             .map(Node::getTextContent)
             .orElse(null);
     }
