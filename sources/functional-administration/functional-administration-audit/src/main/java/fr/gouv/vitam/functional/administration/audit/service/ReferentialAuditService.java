@@ -276,7 +276,7 @@ public class ReferentialAuditService {
 
             JsonNode information =
                 storageClient.getInformation(strategyId, DataCategory.BACKUP, next.getObjectId(),
-                    offerIds, true);
+                    offerIds, false);
 
             return offerIds.stream()
                 .map(e -> new SimpleEntry<>(e, information.get(e)))
