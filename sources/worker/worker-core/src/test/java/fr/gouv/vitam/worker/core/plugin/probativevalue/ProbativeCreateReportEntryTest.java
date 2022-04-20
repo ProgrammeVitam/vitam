@@ -212,11 +212,9 @@ public class ProbativeCreateReportEntryTest {
 
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
-            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
         given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId,
-            Collections.singletonList(storageId), true))
-            .willReturn(storageInformation);
+            Collections.singletonList(storageId), false)).willReturn(storageInformation);
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -253,10 +251,9 @@ public class ProbativeCreateReportEntryTest {
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
             getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true))
-            .willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
-        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(
-            objectMapper.valueToTree(new LogbookLifecycle()));
+        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId),
+            false)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);

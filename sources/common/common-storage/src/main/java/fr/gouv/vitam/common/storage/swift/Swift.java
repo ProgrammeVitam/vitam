@@ -272,22 +272,26 @@ public class Swift extends ContentAddressableStorageAbstract {
             return null;
         });
 
-        String largeObjectPrefix = (size > swiftLimit) ? getLargeObjectPrefix(containerName, objectName) : null;
-        storeDigest(containerName, objectName, digestType, objectDigest, largeObjectPrefix);
+        updateMetadataObject(containerName, objectName, digestType, objectDigest, size);
     }
 
-    private void storeDigest(String containerName, String objectName, DigestType digestType, String digest,
-        String largeObjectPrefix)
+    private void updateMetadataObject(String containerName, String objectName, DigestType digestType, String digest,
+        long size)
         throws ContentAddressableStorageException {
-
-        Stopwatch stopwatch = Stopwatch.createStarted();
         Map<String, String> headers = new HashMap<>();
+        if (size > swiftLimit) {
+            headers.put(X_OBJECT_MANIFEST, getLargeObjectPrefix(containerName, objectName));
+        }
+        storeDigest(headers, containerName, objectName, digest, digestType);
+    }
+
+    private void storeDigest(Map<String, String> headers, String containerName, String objectName, String digest,
+        DigestType digestType) throws ContentAddressableStorageException {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         // Not necessary to put the "X-Object-Meta-"
         headers.put(X_OBJECT_META_DIGEST, digest);
         headers.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
-        if (largeObjectPrefix != null) {
-            headers.put(X_OBJECT_MANIFEST, largeObjectPrefix);
-        }
+
         enrichHeadersRequestWithVitamCookie(headers);
 
         RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
@@ -318,19 +322,31 @@ public class Swift extends ContentAddressableStorageAbstract {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
-            if (metadata != null
-                && metadata.containsKey(X_OBJECT_META_DIGEST)
-                && metadata.containsKey(X_OBJECT_META_DIGEST_TYPE)
-                && digestType.getName().equals(metadata.get(X_OBJECT_META_DIGEST_TYPE))) {
-
-                return metadata.get(X_OBJECT_META_DIGEST);
+            if ( null != metadata  && checkDigestProperty(metadata)
+                && checkDigestTypeProperty(metadata, digestType) ) {
+                return metadata.entrySet().stream()
+                    .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
+                    .get();
+            } else {
+                LOGGER.warn(String.format(
+                    "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
+                String digestToStore = computeObjectDigest(containerName, objectName, digestType);
+                storeDigest(new HashMap<>(), containerName, objectName, digestToStore, digestType);
+                return digestToStore;
             }
-
-            LOGGER.warn(String.format(
-                "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
         }
 
         return computeObjectDigest(containerName, objectName, digestType);
+    }
+
+    private boolean checkDigestTypeProperty(Map<String, String> metadata, DigestType digestType) {
+        return metadata.entrySet().stream().anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST_TYPE) &&
+            e.getValue().equals( digestType.getName()) );
+    }
+
+    private boolean checkDigestProperty(Map<String, String> metadata) {
+        return metadata.entrySet().stream().anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST) &&
+            e.getValue() != null);
     }
 
     @Override
@@ -401,11 +417,10 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
                 " can not be found for container " + containerName);
         }
+
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);
-        result.setDigest(object.get().getMetadata().entrySet().stream()
-            .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
-            .orElse(null));
+        result.setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
         result.setFileSize(object.get().getSizeInBytes());
         result.setLastModifiedDate(object.get().getLastModified().toString());
 

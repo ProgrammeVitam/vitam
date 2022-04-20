@@ -50,6 +50,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -80,6 +81,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -100,17 +102,6 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
      */
     private final AmazonS3 client;
 
-    /**
-     * Constructor
-     *
-     * TODO gafou define exceptions + tu
-     *
-     * @throws IOException
-     * @throws CertificateException
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
-     */
     public AmazonS3V1(StorageConfiguration configuration) throws KeyManagementException, NoSuchAlgorithmException,
         KeyStoreException, CertificateException, IOException {
         super(configuration);
@@ -296,7 +287,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     @Override
     public ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Download object %s from container %s", objectName, containerName));
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
@@ -333,7 +324,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     @Override
     public void deleteObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
@@ -378,8 +369,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Get digest of object %s in container %s", objectName, containerName));
 
         if (!noCache) {
@@ -392,15 +382,19 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
                     "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
-                if (objectMetadata != null && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST)
-                    && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) && digestType
-                    .getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE))) {
+                if (null != objectMetadata && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
+                    objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
+                    digestType.getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
+                    null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)) {
 
                     return objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST);
                 } else {
                     LOGGER.warn(String.format(
                         "Could not retrieve cached digest of object '%s' in container '%s'. Recomputing digest",
                         objectName, containerName));
+                    String digestToStore = computeObjectDigest(containerName, objectName, digestType);
+                    storeDigest(containerName, objectName, digestType, digestToStore, bucketName);
+                    return digestToStore;
                 }
             } catch (AmazonServiceException e) {
                 LOGGER.debug(String.format(
@@ -451,7 +445,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             // ugly
             result.setType(containerName.split("_")[1]);
             result.setObjectName(objectId);
-            result.setDigest(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST));
+            result.setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(),noCache));
             result.setFileSize(objectMetadata.getContentLength());
             result.setLastModifiedDate(objectMetadata.getLastModified().toString());
             return result;
