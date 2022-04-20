@@ -935,9 +935,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .collect(Collectors.toSet());
     }
 
-    private List<String> getOfferDigests(StorageClient storageClient, String objectGuid, String strategyId,
-        List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information = storageClient.getInformation(strategyId, OBJECT, objectGuid, offerIds, true);
+    private List<String> getOfferDigests(StorageClient storageClient, String objectGuid, String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
+        JsonNode information = storageClient.getInformation(strategyId, OBJECT, objectGuid, offerIds, false);
         return offerIds.stream()
             .map(information::get)
             .filter(Objects::nonNull)

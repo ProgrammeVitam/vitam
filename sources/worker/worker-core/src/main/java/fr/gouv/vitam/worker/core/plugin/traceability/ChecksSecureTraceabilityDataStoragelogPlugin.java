@@ -216,8 +216,7 @@ public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler 
     private Map<String, String> getOfferDigests(StorageClient storageClient,
         String objectGuid,
         String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information =
-            storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, true);
+        JsonNode information = storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, false);
 
         return offerIds.stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))
