@@ -30,7 +30,7 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
@@ -78,8 +78,8 @@ public class BusinessApplication extends ConfigurationApplication {
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
-            CollectRepository collectRepository = new CollectRepository(mongoDbAccess);
-            CollectService collectService = new CollectService(collectRepository);
+            TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
+            CollectService collectService = new CollectService(transactionRepository);
             SipService sipService = new SipService(configuration);
             TransactionService transactionService = new TransactionService(collectService, configuration);
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();

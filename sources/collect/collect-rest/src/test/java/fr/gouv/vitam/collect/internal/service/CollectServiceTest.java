@@ -28,9 +28,9 @@ package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
-import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
@@ -54,7 +54,7 @@ public class CollectServiceTest {
     @InjectMocks
     private CollectService collectService;
     @Mock
-    private CollectRepository collectRepository;
+    private TransactionRepository transactionRepository;
 
     @Test
     public void createCollectTest() throws CollectException {
@@ -66,10 +66,10 @@ public class CollectServiceTest {
         collectService.createCollect(transactionDto);
 
         // Then
-        ArgumentCaptor<CollectModel> collectModelCaptor = ArgumentCaptor.forClass(CollectModel.class);
-        then(collectRepository).should().createCollect(collectModelCaptor.capture());
-        CollectModel collectModelAdded = collectModelCaptor.getValue();
-        Assertions.assertThat(collectModelAdded.getId()).isEqualTo(
+        ArgumentCaptor<TransactionModel> collectModelCaptor = ArgumentCaptor.forClass(TransactionModel.class);
+        then(transactionRepository).should().createTransaction(collectModelCaptor.capture());
+        TransactionModel transactionModelAdded = collectModelCaptor.getValue();
+        Assertions.assertThat(transactionModelAdded.getId()).isEqualTo(
             transactionDto.getId());
 
     }
@@ -78,28 +78,26 @@ public class CollectServiceTest {
     public void testFindCollect() throws CollectException {
         final String idCollect = "XXXX000002222222";
         // Given
-        TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
-        doReturn(Optional.of(transactionDto)).when(collectRepository).findCollect(any());
+        TransactionDto transactionDto = new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null);
+        doReturn(Optional.of(transactionDto)).when(transactionRepository).findTransaction(any());
 
         // When
-        collectService.findCollect(idCollect);
+        collectService.findTransaction(idCollect);
 
         // Then
-        then(collectRepository).should()
-            .findCollect(idCollect);
+        then(transactionRepository).should()
+                .findTransaction(idCollect);
     }
 
     @Test
     public void testCheckStatus_OK() throws CollectException {
         // Given
         final String idCollect = "XXXX000002222222";
-        CollectModel collectModel =
-            new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+        TransactionModel
+            transactionModel = new TransactionModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
 
         // When
-        boolean checkStatus =
-            collectService.checkStatus(collectModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
+        boolean checkStatus =  collectService.checkStatus(transactionModel, TransactionStatus.OPEN, TransactionStatus.ACK_ERROR);
 
         // Then
         Assertions.assertThat(checkStatus).isTrue();
@@ -109,12 +107,11 @@ public class CollectServiceTest {
     public void testCheckStatus_KO() throws InvalidParseOperationException {
         // Given
         final String idCollect = "XXXX000002222222";
-        CollectModel collectModel =
-            new CollectModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
+        TransactionModel
+            transactionModel = new TransactionModel(idCollect, "archival", null, null, null, null, null, null, null, TransactionStatus.OPEN);
 
         // When
-        boolean checkStatus =
-            collectService.checkStatus(collectModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
+        boolean checkStatus =  collectService.checkStatus(transactionModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
 
         // Then
         Assertions.assertThat(checkStatus).isFalse();

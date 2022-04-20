@@ -26,37 +26,49 @@
  */
 package fr.gouv.vitam.collect.internal.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /**
  * Collect model
  */
-public class CollectModel {
+public class TransactionModel {
 
+    @JsonProperty("_id")
     private String id;
 
+    @JsonProperty("archivalAgreement")
     private String archivalAgreement;
 
+    @JsonProperty("messageIdentifier")
     private String messageIdentifier;
 
+    @JsonProperty("archivalAgencyIdentifier")
     private String archivalAgencyIdentifier;
 
+    @JsonProperty("transferingAgencyIdentifier")
     private String transferingAgencyIdentifier;
 
+    @JsonProperty("originatingAgencyIdentifier")
     private String originatingAgencyIdentifier;
 
+    @JsonProperty("submissionAgencyIdentifier")
     private String submissionAgencyIdentifier;
 
+    @JsonProperty("archivalProfile")
     private String archivalProfile;
 
+    @JsonProperty("comment")
     private String comment;
 
+    @JsonProperty("status")
     private TransactionStatus status;
 
-    public CollectModel() {
+    public TransactionModel() {
     }
 
-    public CollectModel(String id, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+    public TransactionModel(String id, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment, TransactionStatus status) {
         this.id = id;
@@ -157,7 +169,7 @@ public class CollectModel {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        CollectModel that = (CollectModel) o;
+        TransactionModel that = (TransactionModel) o;
         return Objects.equals(id, that.id);
     }
 

@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.collect.internal.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -46,78 +47,76 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
- * repository for collect entities  management in mongo.
+ * repository for transaction entities  management in mongo.
  */
-public class CollectRepository {
+public class TransactionRepository {
 
-    public static final String COLLECT_COLLECTION = "Collect";
-    public static final String ID = "Id";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectRepository.class);
+    public static final String TRANSACTION_COLLECTION = "Transaction";
+    public static final String ID = "_id";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionRepository.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final MongoCollection<Document> collectCollection;
+    private final MongoCollection<Document> transactionCollection;
 
     @VisibleForTesting
-    public CollectRepository(MongoDbAccess mongoDbAccess, String collectionName) {
-        collectCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
+    public TransactionRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+        transactionCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public CollectRepository(MongoDbAccess mongoDbAccess) {
-        this(mongoDbAccess, COLLECT_COLLECTION);
+    public TransactionRepository(MongoDbAccess mongoDbAccess) {
+        this(mongoDbAccess, TRANSACTION_COLLECTION);
     }
 
     /**
-     * create a collect model
+     * create a transaction model
      *
-     * @param collectModel collect model to create
+     * @param transactionModel transaction model to create
      * @throws CollectException exception thrown in case of error
      */
-    public void createCollect(CollectModel collectModel) throws CollectException {
-        LOGGER.debug("Collect to create: {}", collectModel);
+    public void createTransaction(TransactionModel transactionModel) throws CollectException {
+        LOGGER.debug("Transaction to create: {}", transactionModel);
         try {
-            String json = JsonHandler.writeAsString(collectModel);
-            collectCollection.insertOne(Document.parse(json));
+            String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
+            transactionCollection.insertOne(Document.parse(transactionModelAsString));
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when creating collect: ", e);
-            throw new CollectException("Error when creating collect: " + e);
+            throw new CollectException("Error when creating transaction: " + e);
         }
     }
 
     /**
-     * replace a collect model
+     * replace a transaction model
      *
-     * @param collectModel collect model to replace
+     * @param transactionModel transaction model to replace
      * @throws CollectException exception thrown in case of error
      */
-    public void replaceCollect(CollectModel collectModel) throws CollectException {
-        LOGGER.debug("Collect to replace: {}", collectModel);
+    public void replaceTransaction(TransactionModel transactionModel) throws CollectException {
+        LOGGER.debug("Transaction to replace: {}", transactionModel);
         try {
-            String json = JsonHandler.writeAsString(collectModel);
-            final Bson condition = and(eq(ID, collectModel.getId()));
-            collectCollection.replaceOne(condition, Document.parse(json));
+            String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
+            final Bson condition = and(eq(ID, transactionModel.getId()));
+            transactionCollection.replaceOne(condition, Document.parse(transactionModelAsString));
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when replacing collect: ", e);
-            throw new CollectException("Error when replacing collect: " + e);
+            throw new CollectException("Error when replacing transaction: " + e);
         }
     }
 
     /**
      * return collection according to id
      *
-     * @param id collect id to find
-     * @return Optional<CollectModel>
+     * @param id transaction id to find
+     * @return Optional<TransactionModel>
      * @throws CollectException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id) throws CollectException {
-        LOGGER.debug("Collect id to find : {}", id);
+    public Optional<TransactionModel> findTransaction(String id) throws CollectException {
+        LOGGER.debug("Transaction id to find : {}", id);
         try {
-            Document first = collectCollection.find(Filters.eq(ID, id)).first();
+            Document first = transactionCollection.find(Filters.eq(ID, id)).first();
             if (first == null) {
                 return Optional.empty();
             }
-            return Optional.of(BsonHelper.fromDocumentToObject(first, CollectModel.class));
+            return Optional.of(BsonHelper.fromDocumentToObject(first, TransactionModel.class));
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when searching collect by id: ", e);
-            throw new CollectException("Error when searching collect by id: " + e);
+            throw new CollectException("Error when searching transaction by id: " + e);
         }
     }
 }

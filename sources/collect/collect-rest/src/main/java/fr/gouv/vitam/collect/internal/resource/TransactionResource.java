@@ -34,7 +34,7 @@ import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.service.CollectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
@@ -126,7 +126,7 @@ public class TransactionResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(unitJsonNode);
 
-            Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
+            Optional<TransactionModel> collectModel = collectService.findTransaction(transactionId);
 
             if (collectModel.isEmpty() || !collectService.checkStatus(collectModel.get(), TransactionStatus.OPEN)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
@@ -241,7 +241,7 @@ public class TransactionResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkParameter(transactionId);
 
-            Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
+            Optional<TransactionModel> collectModel = collectService.findTransaction(transactionId);
             if (collectModel.isEmpty() || !collectService.checkStatus(collectModel.get(), TransactionStatus.CLOSE)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
@@ -260,9 +260,9 @@ public class TransactionResource extends ApplicationStatusResource {
                     SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
             }
 
-            CollectModel currentCollectModel = collectModel.get();
-            currentCollectModel.setStatus(TransactionStatus.SENT);
-            collectService.replaceCollect(currentCollectModel);
+            TransactionModel currentTransactionModel = collectModel.get();
+            currentTransactionModel.setStatus(TransactionStatus.SENT);
+            collectService.replaceTransaction(currentTransactionModel);
 
             return CollectRequestResponse.toResponseOK(new IngestDto(operationGuiid));
         } catch (CollectException e) {

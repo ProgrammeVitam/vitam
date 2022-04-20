@@ -35,7 +35,7 @@ import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.SipHelper;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -127,9 +127,9 @@ public class SipService {
         this.objectMapper = buildObjectMapper();
     }
 
-    public String generateSip(CollectModel collectModel) throws CollectException {
+    public String generateSip(TransactionModel transactionModel) throws CollectException {
 
-        File localDirectory = PropertiesUtils.fileFromTmpFolder(collectModel.getId());
+        File localDirectory = PropertiesUtils.fileFromTmpFolder(transactionModel.getId());
 
         File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(SEDA_FILE));
 
@@ -143,10 +143,10 @@ public class SipService {
             OutputStream outputStream = new FileOutputStream(manifestFile);
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
-            ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(collectModel);
-            ExportRequest exportRequest = SipHelper.buildExportRequest(collectModel, exportRequestParameters);
+            ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
+            ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
-            manifestBuilder.startDocument(collectModel.getMessageIdentifier(), ExportType.ArchiveTransfer,
+            manifestBuilder.startDocument(transactionModel.getMessageIdentifier(), ExportType.ArchiveTransfer,
                 exportRequestParameters);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
@@ -213,12 +213,12 @@ public class SipService {
                 });
             manifestBuilder.endDescriptiveMetadata();
 
-            String submissionAgencyIdentifier = collectModel.getSubmissionAgencyIdentifier();
+            String submissionAgencyIdentifier = transactionModel.getSubmissionAgencyIdentifier();
             if (submissionAgencyIdentifier == null) {
-                submissionAgencyIdentifier = collectModel.getOriginatingAgencyIdentifier();
+                submissionAgencyIdentifier = transactionModel.getOriginatingAgencyIdentifier();
             }
 
-            manifestBuilder.writeManagementMetadata(collectModel.getOriginatingAgencyIdentifier(),
+            manifestBuilder.writeManagementMetadata(transactionModel.getOriginatingAgencyIdentifier(),
                 submissionAgencyIdentifier);
             manifestBuilder.endDataObjectPackage();
 
@@ -233,7 +233,7 @@ public class SipService {
         }
 
         try (InputStream inputStream = new FileInputStream(manifestFile)) {
-            return saveManifestInWorkspace(collectModel, inputStream);
+            return saveManifestInWorkspace(transactionModel, inputStream);
         } catch (IOException e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectException(e);
@@ -247,21 +247,22 @@ public class SipService {
 
     }
 
-    private String saveManifestInWorkspace(CollectModel collectModel, InputStream inputStream) throws CollectException {
+    private String saveManifestInWorkspace(TransactionModel transactionModel, InputStream inputStream)
+        throws CollectException {
         LOGGER.debug("Try to push manifest to workspace...");
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            if (workspaceClient.isExistingContainer(collectModel.getId())) {
+            if (workspaceClient.isExistingContainer(transactionModel.getId())) {
                 Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
                 InputStream digestInputStream = digest.getDigestInputStream(inputStream);
-                workspaceClient.putObject(collectModel.getId(), SEDA_FILE, digestInputStream);
+                workspaceClient.putObject(transactionModel.getId(), SEDA_FILE, digestInputStream);
                 LOGGER.debug(" -> push manifest to workspace finished");
                 // compress
                 CompressInformation compressInformation = new CompressInformation();
                 compressInformation.getFiles().add(SEDA_FILE);
                 compressInformation.getFiles().add(CONTENT_FOLDER);
-                compressInformation.setOutputFile(collectModel.getId() + SIP_EXTENSION);
-                compressInformation.setOutputContainer(collectModel.getId());
-                workspaceClient.compress(collectModel.getId(), compressInformation);
+                compressInformation.setOutputFile(transactionModel.getId() + SIP_EXTENSION);
+                compressInformation.setOutputContainer(transactionModel.getId());
+                workspaceClient.compress(transactionModel.getId(), compressInformation);
                 return digest.digestHex();
             }
             throw new CollectException("Container already exists");
@@ -271,11 +272,11 @@ public class SipService {
         }
     }
 
-    public String ingest(CollectModel collectModel, String digest) throws CollectException {
+    public String ingest(TransactionModel transactionModel, String digest) throws CollectException {
 
         try (IngestExternalClient client = ingestExternalClientFactory.getClient()) {
             Integer tenantId = ParameterHelper.getTenantParameter();
-            InputStream sipInputStream = getFileFromWorkspace(collectModel);
+            InputStream sipInputStream = getFileFromWorkspace(transactionModel);
             if (sipInputStream == null) {
                 throw new CollectException("Can't fetch SIP file from Collect workspace!");
             }
@@ -297,17 +298,16 @@ public class SipService {
         }
     }
 
-    private InputStream getFileFromWorkspace(CollectModel collectModel) throws CollectException {
+    private InputStream getFileFromWorkspace(TransactionModel transactionModel) throws CollectException {
         LOGGER.debug("Try to get Zip from workspace...");
         InputStream sipInputStream = null;
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            if (!workspaceClient.isExistingContainer(collectModel.getId())) {
+            if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
                 return null;
             }
-            Response response = workspaceClient.getObject(collectModel.getId(), collectModel.getId() + SIP_EXTENSION);
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                sipInputStream = (InputStream) response.getEntity();
-            }
+            Response response = workspaceClient.getObject(
+                transactionModel.getId(), transactionModel.getId() + SIP_EXTENSION);
+            sipInputStream = (InputStream) response.getEntity();
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
             LOGGER.error("Error when processing ingest: {}", e);
             throw new CollectException(e);

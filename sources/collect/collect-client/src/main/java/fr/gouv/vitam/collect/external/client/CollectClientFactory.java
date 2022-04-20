@@ -40,13 +40,13 @@ import java.io.IOException;
  */
 public class CollectClientFactory extends VitamClientFactory<CollectClient> {
 
-    private static final CollectClientFactory COLLECT_CLIENT_FACTORY = new CollectClientFactory();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "collect-client.conf";
     private static final String RESOURCE_PATH = "/collect/v1";
+    private static final CollectClientFactory COLLECT_CLIENT_FACTORY = new CollectClientFactory();
 
     protected CollectClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
     }
 
     /**
@@ -85,10 +85,10 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            //LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            //LOGGER.error("Error when retrieving configuration file {}, using mock",CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
         return configuration;
     }

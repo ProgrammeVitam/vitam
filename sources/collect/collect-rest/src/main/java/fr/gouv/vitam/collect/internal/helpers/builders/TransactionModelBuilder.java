@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 
-public class CollectModelBuilder {
+public class TransactionModelBuilder {
     private String id;
     private String archivalAgreement;
     private String messageIdentifier;
@@ -41,58 +41,58 @@ public class CollectModelBuilder {
     private String comment;
     private TransactionStatus status;
 
-    public CollectModelBuilder withId(String id) {
+    public TransactionModelBuilder withId(String id) {
         this.id = id;
         return this;
     }
 
-    public CollectModelBuilder withArchivalAgreement(String archivalAgreement) {
+    public TransactionModelBuilder withArchivalAgreement(String archivalAgreement) {
         this.archivalAgreement = archivalAgreement;
         return this;
     }
 
-    public CollectModelBuilder withMessageIdentifier(String messageIdentifier) {
+    public TransactionModelBuilder withMessageIdentifier(String messageIdentifier) {
         this.messageIdentifier = messageIdentifier;
         return this;
     }
 
-    public CollectModelBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+    public TransactionModelBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         return this;
     }
 
-    public CollectModelBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+    public TransactionModelBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         return this;
     }
 
-    public CollectModelBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+    public TransactionModelBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         return this;
     }
 
-    public CollectModelBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+    public TransactionModelBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         return this;
     }
 
-    public CollectModelBuilder withArchivalProfile(String archivalProfile) {
+    public TransactionModelBuilder withArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
         return this;
     }
 
-    public CollectModelBuilder withComment(String comment) {
+    public TransactionModelBuilder withComment(String comment) {
         this.comment = comment;
         return this;
     }
 
-    public CollectModelBuilder withStatus(TransactionStatus status) {
+    public TransactionModelBuilder withStatus(TransactionStatus status) {
         this.status = status;
         return this;
     }
 
-    public CollectModel build() {
-        return new CollectModel(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
+    public TransactionModel build() {
+        return new TransactionModel(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
             comment, status);
     }
