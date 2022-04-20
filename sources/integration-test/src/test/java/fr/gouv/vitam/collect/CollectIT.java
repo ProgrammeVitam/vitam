@@ -41,6 +41,7 @@ import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -63,9 +64,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -75,7 +74,6 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CollectIT extends VitamRuleRunner {
 
     private static String transactionGuuid;
@@ -83,10 +81,7 @@ public class CollectIT extends VitamRuleRunner {
     private static String usage = DataObjectVersionType.BINARY_MASTER.getName();
     private static Integer version = 1;
     private ObjectMapper mapper = new ObjectMapper();
-
-    private static final Integer tenantId = 0;
-    private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
-    private static final String ACCESS_CONTRACT = "aName3";
+    private TransactionRepository transactionRepository;
 
     private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
     private static final String JSON_NODE_OBJECT = "collect/upload_got_collect.json";
@@ -135,7 +130,7 @@ public class CollectIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void test1_transaction_ok() throws Exception {
+    public void should_perform_collect_operation() throws Exception {
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         TransactionDto transactionDto = new TransactionDtoBuilder()
@@ -151,11 +146,14 @@ public class CollectIT extends VitamRuleRunner {
         TransactionDto transactionDtoResult =
             mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
         transactionGuuid = transactionDtoResult.getId();
+        uploadUnit();
+        uploadGot();
+        uploadBinary();
+        closeTransaction();
+        ingest();
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test2_upload_unit() throws Exception {
+    public void uploadUnit() throws Exception {
         JsonNode archiveUnitJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_UNIT));
         RequestResponseOK<JsonNode> response = collectClient.uploadArchiveUnit(transactionGuuid, archiveUnitJson);
         assertThat(response.isOk()).isTrue();
@@ -165,9 +163,7 @@ public class CollectIT extends VitamRuleRunner {
 
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test3_upload_got() throws Exception {
+    public void uploadGot() throws Exception {
         JsonNode gotJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_OBJECT));
         RequestResponseOK<JsonNode> response = collectClient.addObjectGroup(unitGuuid, usage, version, gotJson);
         assertThat(response.isOk()).isTrue();
@@ -175,9 +171,7 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult().get("id")).isNotNull();
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test4_upload_binary() throws Exception {
+    public void uploadBinary() throws Exception {
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
             Response response = collectClient.addBinary(unitGuuid, usage, version, inputStream);
@@ -185,22 +179,19 @@ public class CollectIT extends VitamRuleRunner {
         }
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test5_close_transaction() throws Exception {
+    public void closeTransaction() throws Exception {
         Response response = collectClient.closeTransaction(transactionGuuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test5_ingest() throws Exception {
+
+    public void ingest() throws Exception {
         RequestResponseOK<JsonNode> response = collectClient.ingest(transactionGuuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
         String operationId = response.getFirstResult().get("id").textValue();
-
+        Assertions.assertThat(operationId).isNotNull();
     }
 
 }

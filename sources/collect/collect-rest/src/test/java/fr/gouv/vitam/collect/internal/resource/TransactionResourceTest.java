@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.collect.internal.dto.FileInfoDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.collect.internal.service.CollectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
@@ -170,9 +170,9 @@ public class TransactionResourceTest {
         String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
         sampleUploadArchiveUnit =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<CollectModel> collectModel =
-            Optional.of(new CollectModel(transactionId, null, null, null, null, null, null, null, null, null));
-        given(collectService.findCollect(transactionId)).willReturn(collectModel);
+        Optional<TransactionModel> collectModel =
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null, null, null));
+        given(collectService.findTransaction(transactionId)).willReturn(collectModel);
         //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
         given(collectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
@@ -194,9 +194,9 @@ public class TransactionResourceTest {
         String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
         sampleUploadArchiveUnit =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<CollectModel> collectModel =
-            Optional.of(new CollectModel(transactionId, null, null, null, null, null, null, null, null, null));
-        given(collectService.findCollect(transactionId)).willReturn(collectModel);
+        Optional<TransactionModel> collectModel =
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null, null, null));
+        given(collectService.findTransaction(transactionId)).willReturn(collectModel);
         //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
         given(collectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d764");
@@ -224,9 +224,9 @@ public class TransactionResourceTest {
         String archiveUnitId = "1a9a3e4e-26b6-45eb-b8d1-5fd41cba8a59";
         sampleUploadArchiveUnit =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<CollectModel> collectModel =
-            Optional.of(new CollectModel(transactionId, null, null, null, null, null, null, null, null, null));
-        given(collectService.findCollect(transactionId)).willReturn(collectModel);
+        Optional<TransactionModel> collectModel =
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null, null, null));
+        given(collectService.findTransaction(transactionId)).willReturn(collectModel);
 
         ObjectGroupDto objectGroupDto = new ObjectGroupDto();
         objectGroupDto.setFileInfo(new FileInfoDto("Pereire.txt", lastModified));

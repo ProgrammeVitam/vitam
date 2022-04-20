@@ -912,21 +912,15 @@ public class VitamServerRunner extends ExternalResource {
         }
         SystemPropertyUtil.set(CollectMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_COLLECT));
-      /*  File collectConfigurationFile = PropertiesUtils.findFile(COLLECT_CONF);
-        final CollectConfiguration collectConfiguration =
-                readYaml(collectConfigurationFile, CollectConfiguration.class);
-        collectConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        writeYaml(collectConfigurationFile, collectConfiguration);*/
 
         LOGGER.warn("=== VitamServerRunner start  Collect");
 
         CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
+        CollectClientFactory.changeMode(COLLECT_CLIENT_CONF);
         collectMain = new CollectMain(COLLECT_CONF);
         collectMain.start();
-        CollectClientFactory.changeMode(COLLECT_CLIENT_CONF);
-        SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
 
-        //waitServerStart(CollectClientFactory.getInstance().getClient());
+        waitServerStart(CollectClientFactory.getInstance().getClient());
         SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
     }
 

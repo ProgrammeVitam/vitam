@@ -29,7 +29,7 @@ package fr.gouv.vitam.collect.external.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -44,10 +44,8 @@ import java.util.UUID;
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
     ObjectMapper mapper = new ObjectMapper();
-
     @Override
-    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
-        throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws VitamClientException {
         transactionDto.setId(UUID.randomUUID().toString());
         return new RequestResponseOK<JsonNode>()
             .setHttpCode(Response.Status.OK.getStatusCode())
@@ -56,29 +54,29 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
 
     @Override
     public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
-        throws InvalidParseOperationException {
+        throws VitamClientException {
         return null;
     }
 
     @Override
     public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
-        JsonNode objectJsonNode) throws InvalidParseOperationException {
+        JsonNode objectJsonNode) throws VitamClientException {
         return null;
     }
 
     @Override
     public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
-        throws InvalidParseOperationException {
+        throws VitamClientException {
         return null;
     }
 
     @Override
-    public Response closeTransaction(String transactionId) throws InvalidParseOperationException {
+    public Response closeTransaction(String transactionId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> ingest(String transactionId) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> ingest(String transactionId) throws VitamClientException {
         return null;
     }
 }

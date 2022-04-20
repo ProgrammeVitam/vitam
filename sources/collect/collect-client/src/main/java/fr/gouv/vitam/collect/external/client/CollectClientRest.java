@@ -30,8 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -43,7 +42,9 @@ import java.io.InputStream;
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
@@ -53,19 +54,22 @@ import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 public class CollectClientRest extends DefaultClient implements CollectClient {
     private static final String TENANT_ID = "0";
     private static final String X_ACCESS_CONTRACT_ID = "ContratTNR";
+    private static final String TRANSACTION_PATH = "/transactions";
+    private static final String UNITS_PATH = "/units";
 
     public CollectClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
 
     @Override
-    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) {
+    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
+        throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
 
         VitamRequestBuilder request = post()
-            .withPath("/transactions")
+            .withPath(TRANSACTION_PATH)
             .withHeaders(headers)
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(transactionDto)
@@ -73,115 +77,98 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
             .withJsonAccept();
 
         try (Response response = make(request)) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                return RequestResponse.parseFromResponse(response, JsonNode.class);
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
-        return null;
     }
 
     @Override
     public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
-        throws InvalidParseOperationException {
+        throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(
-            post().withPath("/transactions/" + transactionId + "/units").withHeaders(headers).withBody(unitJsonNode)
+            post().withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH).withHeaders(headers)
+                .withBody(unitJsonNode)
                 .withJson())) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-                return (RequestResponseOK<JsonNode>) result;
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
         }
-        return null;
     }
 
     @Override
     public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
-        JsonNode objectJsonNode) throws InvalidParseOperationException {
+        JsonNode objectJsonNode) throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(
-            post().withPath("/units/" + unitId + "/objects/" + usage + "/" + version).withHeaders(headers)
+            post().withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version).withHeaders(headers)
                 .withBody(objectJsonNode)
                 .withJson())) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-                return (RequestResponseOK<JsonNode>) result;
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
         }
-        return null;
     }
 
     @Override
     public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
-        throws InvalidParseOperationException {
+        throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-            .withPath("/units/" + unitId + "/objects/" + usage + "/" + version + "/binary")
+            .withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version + "/binary")
             .withHeaders(headers)
             .withBody(inputStreamUploaded)
             .withOctetContentType())) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                return response;
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            return response;
         }
-        return null;
     }
 
     @Override
-    public Response closeTransaction(String transactionId) throws InvalidParseOperationException {
+    public Response closeTransaction(String transactionId) throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-            .withPath("/transactions/" + transactionId + "/close")
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/close")
             .withHeaders(headers)
             .withJsonAccept())) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                return response;
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            return response;
         }
-        return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> ingest(String transactionId) throws InvalidParseOperationException {
+    public RequestResponseOK<JsonNode> ingest(String transactionId)
+        throws VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_TENANT_ID, TENANT_ID);
         headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
-            .withPath("/transactions/" + transactionId + "/send")
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/send")
             .withHeaders(headers)
             .withJson())) {
-            Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily())) {
-                RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-                return (RequestResponseOK<JsonNode>) result;
-            }
-        } catch (VitamClientInternalException e) {
-            return null;
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
         }
-        return null;
+    }
+
+    private void check(Response response) throws VitamClientException {
+        Response.Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
+
+        throw new VitamClientException(String
+            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()));
     }
 
 

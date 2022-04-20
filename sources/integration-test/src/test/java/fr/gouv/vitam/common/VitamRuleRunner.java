@@ -33,7 +33,7 @@ import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
-import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
@@ -104,7 +104,7 @@ public class VitamRuleRunner {
             EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
             TransferReplyUnitRepository.TRANSFER_REPLY_UNIT,
             AuditReportRepository.AUDIT_OBJECT_GROUP,
-            EvidenceAuditReportRepository.EVIDENCE_AUDIT, CollectRepository.COLLECT_COLLECTION);
+            EvidenceAuditReportRepository.EVIDENCE_AUDIT, TransactionRepository.TRANSACTION_COLLECTION);
 
     @ClassRule
     public static final ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

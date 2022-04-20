@@ -28,10 +28,10 @@ package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.helpers.builders.CollectModelBuilder;
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.helpers.builders.TransactionModelBuilder;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
-import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -41,14 +41,14 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class CollectService {
-    private final CollectRepository collectRepository;
+    private final TransactionRepository transactionRepository;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectService.class);
 
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
 
-    public CollectService(CollectRepository collectRepository) {
-        this.collectRepository = collectRepository;
+    public CollectService(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
     }
 
     /**
@@ -57,7 +57,7 @@ public class CollectService {
      * @throws CollectException exception thrown in case of error
      */
     public void createCollect(TransactionDto transactionDto) throws CollectException {
-        CollectModel collectModel = new CollectModelBuilder()
+        TransactionModel transactionModel = new TransactionModelBuilder()
             .withId(transactionDto.getId())
             .withArchivalAgreement(transactionDto.getArchivalAgreement())
             .withMessageIdentifier(transactionDto.getMessageIdentifier())
@@ -69,7 +69,7 @@ public class CollectService {
             .withComment(transactionDto.getComment())
             .withStatus(TransactionStatus.OPEN)
             .build();
-        collectRepository.createCollect(collectModel);
+        transactionRepository.createTransaction(transactionModel);
     }
 
     /**
@@ -79,22 +79,22 @@ public class CollectService {
      * @return Optional<CollectModel>
      * @throws CollectException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id) throws CollectException {
-        return collectRepository.findCollect(id);
+    public Optional<TransactionModel> findTransaction(String id) throws CollectException {
+        return transactionRepository.findTransaction(id);
     }
 
     public void closeTransaction(String transactionId) throws CollectException {
-        Optional<CollectModel> collectModel = findCollect(transactionId);
+        Optional<TransactionModel> collectModel = findTransaction(transactionId);
         if (collectModel.isEmpty() || !checkStatus(collectModel.get(), TransactionStatus.OPEN)) {
             throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
         }
-        CollectModel currentCollectModel = collectModel.get();
-        currentCollectModel.setStatus(TransactionStatus.CLOSE);
-        replaceCollect(currentCollectModel);
+        TransactionModel currentTransactionModel = collectModel.get();
+        currentTransactionModel.setStatus(TransactionStatus.CLOSE);
+        replaceTransaction(currentTransactionModel);
     }
 
-    public void replaceCollect(CollectModel collectModel) throws CollectException {
-        collectRepository.replaceCollect(collectModel);
+    public void replaceTransaction(TransactionModel transactionModel) throws CollectException {
+        transactionRepository.replaceTransaction(transactionModel);
     }
 
     public String createRequestId() {
@@ -103,8 +103,8 @@ public class CollectService {
         return id;
     }
 
-    public boolean checkStatus(CollectModel collectModel, TransactionStatus... transactionStatus) {
-        return Arrays.stream(transactionStatus).anyMatch(tr -> collectModel.getStatus().equals(tr));
+    public boolean checkStatus(TransactionModel transactionModel, TransactionStatus... transactionStatus) {
+        return Arrays.stream(transactionStatus).anyMatch(tr -> transactionModel.getStatus().equals(tr));
     }
 
 }

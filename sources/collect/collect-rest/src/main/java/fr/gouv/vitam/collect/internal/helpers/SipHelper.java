@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -47,22 +47,22 @@ public class SipHelper {
         throw new IllegalAccessException("Utility class!");
     }
 
-    public static ExportRequestParameters buildExportRequestParameters(CollectModel collectModel) {
+    public static ExportRequestParameters buildExportRequestParameters(TransactionModel transactionModel) {
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
-        exportRequestParameters.setArchivalAgencyIdentifier(collectModel.getArchivalAgencyIdentifier());
+        exportRequestParameters.setArchivalAgencyIdentifier(transactionModel.getArchivalAgencyIdentifier());
         exportRequestParameters.setRequesterIdentifier(COLLECT_REQUESTER_IDENTIFIER);
-        exportRequestParameters.setComment(collectModel.getComment());
-        exportRequestParameters.setArchivalAgreement(collectModel.getArchivalAgreement());
-        exportRequestParameters.setTransferringAgency(collectModel.getTransferingAgencyIdentifier());
+        exportRequestParameters.setComment(transactionModel.getComment());
+        exportRequestParameters.setArchivalAgreement(transactionModel.getArchivalAgreement());
+        exportRequestParameters.setTransferringAgency(transactionModel.getTransferingAgencyIdentifier());
         return exportRequestParameters;
     }
 
-    public static ExportRequest buildExportRequest(CollectModel collectModel,
+    public static ExportRequest buildExportRequest(TransactionModel transactionModel,
         ExportRequestParameters exportRequestParameters)
         throws InvalidCreateOperationException {
         SelectMultiQuery exportSelect = new SelectMultiQuery();
-        exportSelect.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), collectModel.getId()));
+        exportSelect.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionModel.getId()));
         exportSelect.setScrollFilter(SCROLL_ACTIVATE_KEYWORD, DEFAULT_SCROLL_TIMEOUT, 10000);
 
         ExportRequest exportRequest = new ExportRequest();
