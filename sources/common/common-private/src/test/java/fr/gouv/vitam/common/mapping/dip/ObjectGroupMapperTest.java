@@ -51,8 +51,8 @@ import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.PhysicalDimensionsModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import org.apache.xerces.dom.ElementNSImpl;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -169,7 +169,7 @@ public class ObjectGroupMapperTest {
             assertEquals(((List) otherMetadadata.getAny()).size(), 1);
             assertTrue(otherMetadadata.getAny() instanceof List);
 
-            ElementNSImpl eleNsImplObject = ((ElementNSImpl) ((List<Object>) otherMetadadata.getAny()).get(0));
+            Element eleNsImplObject = ((Element) otherMetadadata.getAny().get(0));
             String optionalMDkey = otherMetadataFromVersionModel.keySet().iterator().next();
             Object optionalMDValue = otherMetadataFromVersionModel.get(optionalMDkey);
             assertEquals(eleNsImplObject.getNodeName(), optionalMDkey);

@@ -162,6 +162,7 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -1270,6 +1271,23 @@ public class ExtractSedaActionHandler extends ActionHandler {
         Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
 
         Transformer transformer = transformerFactory.newTransformer(xsl);
+        transformer.setErrorListener(new ErrorListener() {
+            @Override
+            public void warning(TransformerException exception) {
+                LOGGER.warn("An error occurred while processing SEDA transformation", exception);
+            }
+
+            @Override
+            public void error(TransformerException exception) throws TransformerException {
+                throw exception;
+            }
+
+            @Override
+            public void fatalError(TransformerException exception) throws TransformerException {
+                throw exception;
+            }
+        });
+
         transformer.transform(new StreamSource(xmlFile), new StreamResult(cleanManifest));
 
         return new FileInputStream(cleanManifest);

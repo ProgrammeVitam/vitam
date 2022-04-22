@@ -465,8 +465,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             operationGuid = GUIDReader.getGUID(operationId);
             verifyOperation(operationId, OK);
             // Try to check AU
+
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API", TITLE);
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API 😂", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get(RESULTS);
@@ -1256,7 +1257,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             verifyProcessState(operationId, tenantId, COMPLETED);
 
             SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.match("Title", "Sensibilisation API"));
+            select.addQueries(QueryHelper.match("Title", "Sensibilisation API 😂"));
             // Get AU
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
