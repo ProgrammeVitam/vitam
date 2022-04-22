@@ -98,7 +98,7 @@ public class AuditIntegrityService {
                 List<String> offerIds =
                     StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                 JsonNode offerToMetadata = storageClient.getInformation(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), offerIds, false);
+                    DataCategory.OBJECT, object.getId(), offerIds, true);
                 for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
                     if (object.getMessageDigest() == null || metadata == null || !metadata.has(DIGEST)) {

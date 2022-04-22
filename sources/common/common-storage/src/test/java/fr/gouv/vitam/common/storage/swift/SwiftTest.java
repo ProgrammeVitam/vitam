@@ -409,7 +409,8 @@ public class SwiftTest {
     }
 
     @Test
-    public void when_get_object_metadata_with_desactivated_cache_and_lowercase_headers_response_then_return_metadata() throws Exception {
+    public void when_get_object_metadata_with_deactivated_cache_and_lowercase_headers_response_then_return_metadata()
+        throws Exception {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
@@ -582,6 +583,7 @@ public class SwiftTest {
         // Expected HEAD + GET
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(3);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
@@ -1006,7 +1008,7 @@ public class SwiftTest {
     }
 
     @Test
-    public void when_get_object_digest_with_cache_miss_and_disabled_vitam_cookie_then_ok() throws Exception {
+    public void when_get_object_digest_with_used_cache_and_disabled_vitam_cookie_then_ok() throws Exception {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
         String digest = sha512sum(data);
@@ -1019,7 +1021,7 @@ public class SwiftTest {
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
 
         givenGetObjectReturns20x(data);
-        // This POST REquest is used to update metadata object in case it does not exist ( even when getting the object )
+        // This POST Request is used to update metadata object in case it does not exist ( even when getting the object )
         givenPostObjetReturns20x();
 
         // Disable vitam cookie
@@ -1036,6 +1038,7 @@ public class SwiftTest {
         // Expected HEAD + GET
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(3);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(0);
@@ -1112,7 +1115,7 @@ public class SwiftTest {
         Swift swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When
-        assertThatThrownBy(()->  swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
+        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Then
@@ -1140,6 +1143,7 @@ public class SwiftTest {
         swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(
             aResponse().withStatus(202)));
     }
+
 
     private void givenPutLargeObjectPartReturns50x(String path) {
         swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(
