@@ -391,21 +391,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 ObjectMetadata objectMetadata = client.getObjectMetadata(getObjectMetadataRequest);
                 PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
                     "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
-
-                if (null != objectMetadata && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
-                    objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
-                    digestType.getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
-                    null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)) {
-
-                    return objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST);
-                } else {
-                    LOGGER.warn(String.format(
-                        "Could not retrieve cached digest of object '%s' in container '%s'. Recomputing digest",
-                        objectName, containerName));
-                    String digestToStore = computeObjectDigest(containerName, objectName, digestType);
-                    storeDigest(containerName, objectName, digestType, digestToStore, bucketName);
-                    return digestToStore;
-                }
+                return getDigestFromObjectMetadata(containerName, objectName, digestType, bucketName, objectMetadata);
             } catch (AmazonServiceException e) {
                 LOGGER.debug(String.format(
                     "Error when trying to compute digest of object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
@@ -427,6 +413,25 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         }
 
         return computeObjectDigest(containerName, objectName, digestType);
+    }
+
+    private String getDigestFromObjectMetadata(String containerName, String objectName, DigestType digestType,
+        String bucketName,
+        ObjectMetadata objectMetadata) throws ContentAddressableStorageException {
+        if (null != objectMetadata && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
+            objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
+            digestType.getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
+            null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)) {
+
+            return objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST);
+        } else {
+            LOGGER.warn(String.format(
+                "Could not retrieve cached digest of object '%s' in container '%s'. Recomputing digest",
+                objectName, containerName));
+            String digestToStore = computeObjectDigest(containerName, objectName, digestType);
+            storeDigest(containerName, objectName, digestType, digestToStore, bucketName);
+            return digestToStore;
+        }
     }
 
     @Override
@@ -455,7 +460,10 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             // ugly
             result.setType(containerName.split("_")[1]);
             result.setObjectName(objectId);
-            result.setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(),noCache));
+            result.setDigest(
+                noCache ? computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()) :
+                    getDigestFromObjectMetadata(containerName, objectId, VitamConfiguration.getDefaultDigestType(),
+                        bucketName, objectMetadata));
             result.setFileSize(objectMetadata.getContentLength());
             result.setLastModifiedDate(objectMetadata.getLastModified().toString());
             return result;

@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.common.ActionResponse;
@@ -64,6 +66,7 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -322,17 +325,19 @@ public class Swift extends ContentAddressableStorageAbstract {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
-            if ( null != metadata  && checkDigestProperty(metadata)
-                && checkDigestTypeProperty(metadata, digestType) ) {
+            if (null != metadata && checkDigestProperty(metadata)
+                && checkDigestTypeProperty(metadata, digestType)) {
                 return metadata.entrySet().stream()
                     .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
                     .get();
             } else {
                 LOGGER.warn(String.format(
                     "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
-                String digestToStore = computeObjectDigest(containerName, objectName, digestType);
-                storeDigest(new HashMap<>(), containerName, objectName, digestToStore, digestType);
-                return digestToStore;
+                Pair<String, Long> objectDigestAndSize =
+                    getObjectDigestAndSize(containerName, objectName, digestType);
+                updateMetadataObject(containerName, objectName, digestType, objectDigestAndSize.getLeft(),
+                    objectDigestAndSize.getRight());
+                return objectDigestAndSize.getLeft();
             }
         }
 
@@ -341,7 +346,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private boolean checkDigestTypeProperty(Map<String, String> metadata, DigestType digestType) {
         return metadata.entrySet().stream().anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST_TYPE) &&
-            e.getValue().equals( digestType.getName()) );
+            e.getValue().equals(digestType.getName()));
     }
 
     private boolean checkDigestProperty(Map<String, String> metadata) {
@@ -597,4 +602,23 @@ public class Swift extends ContentAddressableStorageAbstract {
         return headers;
     }
 
+    private Pair<String, Long> getObjectDigestAndSize(String containerName, String objectName, DigestType algo)
+        throws ContentAddressableStorageException {
+
+        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
+            algo);
+
+        Stopwatch sw = Stopwatch.createStarted();
+        ObjectContent object = getObject(containerName, objectName);
+        try (InputStream stream = object.getInputStream()) {
+            final Digest digest = new Digest(algo);
+            digest.update(stream);
+            return Pair.of(digest.toString(), object.getSize());
+        } catch (final IOException e) {
+            throw new ContentAddressableStorageException(e);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
+        }
+    }
 }
