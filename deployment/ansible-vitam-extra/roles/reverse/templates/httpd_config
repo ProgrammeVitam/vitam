@@ -63,7 +63,7 @@
     </Directory>
 
     # External API for status (must be the first proxypass as ihms or API proxypass can use the same context and this one is more specific)
-    {% for host in groups['hosts_collect'] %}
+    {% for host in (groups['hosts_collect'] | default([])) %}
     ProxyPass /{{ vitam.collect.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect.port_admin }}/admin/v1 {{ reverse_connection_params }}
     ProxyPassReverse  /{{ vitam.collect.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect.port_admin }}/admin/v1
     {% endfor %}
@@ -142,7 +142,7 @@
     </LocationMatch>
 
     # External API collect
-    {% for host in groups['hosts_collect'] %}
+    {% for host in (groups['hosts_collect'] | default([])) %}
      ProxyPass /{{ vitam.collect.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect.port_service }}/{{ vitam.collect.baseuri }} {{ reverse_connection_params }}
      ProxyPassReverse  /{{ vitam.collect.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect.port_service }}/{{ vitam.collect.baseuri }}
     {% endfor %}
@@ -159,12 +159,6 @@
      ProxyPassReverse  /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/{{ vitam.accessexternal.baseuri}}
      ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external {{ reverse_connection_params }}
      ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external
-    {% endfor %}
-
-    # @Deprecated, TODO: check if this proxypass is still needed.
-    {% for host in groups['hosts_logbook'] %}
-     ProxyPass /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_service }}/{{ vitam.logbook.baseuri }} {{ reverse_connection_short_params }}
-     ProxyPassReverse /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_service }}/{{ vitam.logbook.baseuri }}
     {% endfor %}
 
     # /vitam subdir browser
