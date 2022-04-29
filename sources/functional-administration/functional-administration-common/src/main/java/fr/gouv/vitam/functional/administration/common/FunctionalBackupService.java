@@ -177,6 +177,7 @@ public class FunctionalBackupService {
                         break;
                     default:
                         storeBackupFileInStorage(fileName, is, DataCategory.BACKUP);
+                        break;
                 }
 
 
