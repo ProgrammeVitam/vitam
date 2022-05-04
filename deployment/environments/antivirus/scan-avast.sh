@@ -138,11 +138,17 @@ else # one argument, let's go
 
     FILE_SIZE=$(stat -c '%s' "$SIP")
     TYPE_SIP=$(file -b --mime-type "$SIP")
+    FILE_SUM=$(sha256sum $SIP | cut -d' ' -f1)
 
-    echo "DEBUG: SIP_size: $FILE_SIZE; SIP_format: $TYPE_SIP" |& tee -a ${WORKING_DIR}/scan.log
+    echo "DEBUG: SIP_size: $FILE_SIZE; SIP_format: $TYPE_SIP; sha256sum: $FILE_SUM" |& tee -a ${WORKING_DIR}/scan.log
 
-    custom_scan "$SIP"
-    RET=$? # return code of scan
+    if grep -Fxq "$FILE_SUM" /etc/avast/whitelist; then
+      echo "File whitelisted, escape scanning..." |& tee -a ${WORKING_DIR}/scan.log
+      RET=0
+    else
+      custom_scan "$SIP"
+      RET=$? # return code of scan
+    fi
 
     # Catch global output reason
     if [ $RET == $RET_OK ]; then
