@@ -65,7 +65,11 @@ La structuration d'un Unit est la suivante :
 
 ## Objects api
 
-**/units/{idu}/objects** est le point d'entrée pour :
+**/units/{idu}/objects** est le point d'entrée pour la recherche sur les groupes d'objets associés à une unité archivistique dont l'identifiant est passé en paramètre.
+
+**/objects** est le point d'entrée pour la recherche sur tout les groupes d'objets.
+
+Ces points d'entrée permettent la recherche sur :
 
  * tous les groupes objets, qui contiennent les métadonnées techniques (nom des objets, format, type MIME...)
  * tous les objets binaires (des fichiers) non binaires (des références à des objets d'archives physiques ou externes au système).
