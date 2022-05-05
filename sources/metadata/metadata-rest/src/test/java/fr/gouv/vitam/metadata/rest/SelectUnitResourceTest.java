@@ -377,7 +377,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY)).when()
             .get("/units/" + GUID_0).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -403,7 +403,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
             .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseOK1 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
@@ -418,7 +418,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_DESC_LEVEL)).when()
             .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseOK2 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK2.getFacetResults().size()).isEqualTo(1);
@@ -434,7 +434,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_FILTERS)).when()
             .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseOK3 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK3.getFacetResults().size()).isEqualTo(1);
@@ -489,7 +489,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_RULE)).when()
             .get("/units/" + GUID_1).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
 
@@ -608,7 +608,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_1)).when()
             .get("/unitsWithInheritedRules").then()
-            .statusCode(Status.FOUND.getStatusCode())
+            .statusCode(Status.OK.getStatusCode())
             .extract().asInputStream();
         RequestResponseOK<JsonNode> responseOK =
             JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
@@ -642,7 +642,7 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
             .get("/unitsWithInheritedRules").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseOK1 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
@@ -681,12 +681,12 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseVitam =
             JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
-        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.OK.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
         RequestResponseOK<JsonNode> firstResultVitam =
             RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
@@ -739,12 +739,12 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseVitam =
             JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
-        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.OK.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
         RequestResponseOK<JsonNode> firstResultVitam =
             RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
@@ -779,12 +779,12 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseVitam =
             JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
-        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.OK.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
         RequestResponseOK<JsonNode> firstResultVitam =
             RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
@@ -813,12 +813,12 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
 
         RequestResponseOK<JsonNode> responseVitam =
             JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
         assertThat(responseVitam.isOk()).isTrue();
-        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.OK.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(0);
 
     }

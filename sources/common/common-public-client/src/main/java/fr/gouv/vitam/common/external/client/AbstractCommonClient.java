@@ -135,7 +135,7 @@ abstract class AbstractCommonClient implements BasicClient {
         }
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            if (SUCCESSFUL.equals(status.getFamily())) {
                 return;
             }
             LOGGER.error(status.getReasonPhrase());

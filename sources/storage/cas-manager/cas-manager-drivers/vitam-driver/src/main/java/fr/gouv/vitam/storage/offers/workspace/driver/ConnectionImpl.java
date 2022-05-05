@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -89,6 +88,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
@@ -135,11 +135,11 @@ public class ConnectionImpl extends AbstractConnection {
     private void checkStorageException(Response response) throws StorageDriverException {
         final Status status = fromStatusCode(response.getStatus());
 
+        if (SUCCESSFUL.equals(status.getFamily())) {
+            return;
+        }
 
         switch (status) {
-            case CREATED:
-            case OK:
-                return;
             case NOT_FOUND:
                 throw new StorageDriverNotFoundException(getDriverName(), status.getReasonPhrase());
             case PRECONDITION_FAILED:
@@ -437,7 +437,6 @@ public class ConnectionImpl extends AbstractConnection {
             return new StorageRemoveResult(request.getTenantId(), request.getType(),
                 request.getGuid(), Status.OK.toString().equals(json.get("status").asText()));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), true, e);
         }
     }
@@ -462,14 +461,11 @@ public class ConnectionImpl extends AbstractConnection {
                 case NOT_FOUND:
                     return false;
                 case BAD_REQUEST:
-                    LOGGER.error(BAD_REQUEST_ERROR_MESSAGE);
                     throw new StorageDriverPreconditionFailedException(getDriverName(), BAD_REQUEST_ERROR_MESSAGE);
                 default:
-                    LOGGER.error(status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), true, e);
         }
     }
@@ -492,7 +488,6 @@ public class ConnectionImpl extends AbstractConnection {
             checkStorageException(response);
             return response.readEntity(StorageMetadataResult.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(),
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e);
         }
@@ -517,7 +512,6 @@ public class ConnectionImpl extends AbstractConnection {
             checkStorageException(response);
             return response.readEntity(StorageBulkMetadataResult.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(),
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e);
         }
@@ -535,18 +529,11 @@ public class ConnectionImpl extends AbstractConnection {
             .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
             .withJsonAccept();
 
-        try {
-            Response response = make(requestBuilder);
-            try {
-                checkStorageException(response);
-            } catch (Exception e) {
-                StreamUtils.consumeAnyEntityAndClose(response);
-                throw e;
-            }
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
             InputStream rawResponseInputStream = response.readEntity(InputStream.class);
             return new ObjectEntryReader(rawResponseInputStream);
         } catch (VitamClientInternalException exc) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageDriverException(getDriverName(), true, exc);
         }
     }
@@ -571,6 +558,7 @@ public class ConnectionImpl extends AbstractConnection {
             .withJson();
 
         try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
             return RequestResponse.parseFromResponse(response, OfferLog.class);
         } catch (Exception exc) {
             throw new StorageDriverException(getDriverName(), true, exc);

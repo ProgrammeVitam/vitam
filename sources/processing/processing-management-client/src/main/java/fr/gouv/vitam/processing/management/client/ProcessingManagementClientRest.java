@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -62,7 +64,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -71,6 +72,7 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
  * Processing Management Client
  */
 class ProcessingManagementClientRest extends DefaultClient implements ProcessingManagementClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
 
     private static final String ERR_CONTAINER_IS_MANDATORY = "Container is mandatory";
     private static final String ERR_WORKFLOW_IS_MANDATORY = "Workflow is mandatory";
@@ -205,6 +207,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withPath(OPERATION_URI + "/" + operationId)
             .withJsonAccept();
         try (Response response = make(request)) {
+            // FIXME : What if 50x / 40x?
             if (response.getStatus() != Status.ACCEPTED.getStatusCode()) {
                 return true;
             }
@@ -220,6 +223,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             return false;
         } catch (final Exception e) {
+            LOGGER.error(e);
+            // FIXME : Why is that?!!
             return true;
         }
     }
@@ -275,7 +280,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (InternalServerException e) {
             throw new VitamClientInternalException(
                 "Internal error while trying to register worker : family (" + familyId + "), workerId (" +
-                    workerId + "");
+                    workerId + "", e);
         }
     }
 
@@ -379,7 +384,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         InternalServerException {
         final Status status = fromStatusCode(response.getStatus());
 
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
@@ -404,8 +409,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             default:
                 throw new VitamClientInternalException(
-                    String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                    String.format("Error with the response, get status: '%d' and reason '%s'.", status,
+                        status.getReasonPhrase()));
         }
 
     }

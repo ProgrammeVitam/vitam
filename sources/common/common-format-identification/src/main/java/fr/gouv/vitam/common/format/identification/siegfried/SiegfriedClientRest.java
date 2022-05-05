@@ -80,7 +80,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
 
     private void check(Response response) throws FormatIdentifierNotFoundException, FormatIdentifierTechnicalException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
         String message =

@@ -908,10 +908,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         StorageOfferLogRequest offerLogRequest =
             new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
         try (Connection connection = driver.connect(offer.getId())) {
-            final RequestResponse<OfferLog> result = connection.getOfferLogs(offerLogRequest);
-            assertNotNull(result);
-            assertFalse(result.isOk());
-            assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
+            assertThatThrownBy(() -> connection.getOfferLogs(offerLogRequest))
+                .isInstanceOf(StorageDriverException.class);
         }
     }
 
@@ -1138,7 +1136,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         StorageAccessRequestCreationRequest request = new StorageAccessRequestCreationRequest(
             3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
 
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {

@@ -73,7 +73,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class WorkspaceClient extends DefaultClient {
@@ -99,7 +98,7 @@ public class WorkspaceClient extends DefaultClient {
     public JsonNode getFreespacePercent() throws VitamClientException {
         try (Response response = make(get().withPath(FREESPACE_URL).withJsonAccept())) {
             Response.StatusType status = response.getStatusInfo();
-            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            if (SUCCESSFUL.equals(status.getFamily())) {
                 return JsonHandler.getFromInputStream(response.readEntity(InputStream.class));
             }
             throw new VitamClientException("Could not retrieve workspace free space");
@@ -397,9 +396,9 @@ public class WorkspaceClient extends DefaultClient {
         try (Response response = make(request)) {
             check(response);
         } catch (ContentAddressableStorageBadRequestException e) {
-            throw new ContentAddressableStorageZipException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            throw new ContentAddressableStorageZipException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } catch (ContentAddressableStorageNotAcceptableException e) {
-            throw new ZipFilesNameNotAllowedException("File or folder name not allowed");
+            throw new ZipFilesNameNotAllowedException("File or folder name not allowed", e);
         } catch (VitamClientInternalException e) {
             throw new ContentAddressableStorageServerException(e);
         }
@@ -457,9 +456,10 @@ public class WorkspaceClient extends DefaultClient {
         ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageNotAcceptableException, ContentAddressableStorageBadRequestException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
+
         switch (status) {
             case NOT_FOUND:
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());

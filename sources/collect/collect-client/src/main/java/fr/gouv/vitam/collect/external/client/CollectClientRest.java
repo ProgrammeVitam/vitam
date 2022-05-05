@@ -315,7 +315,7 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
 
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 

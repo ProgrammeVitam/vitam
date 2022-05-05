@@ -51,7 +51,6 @@ import java.util.List;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
@@ -188,8 +187,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withBody(new ReportBody(processId, reportType, null))
             .withJson();
-        try {
-            Response response = make(request);
+        try (Response response = make(request)) {
             check(response);
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException | InvalidParseOperationException e) {
@@ -200,7 +198,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
 
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
