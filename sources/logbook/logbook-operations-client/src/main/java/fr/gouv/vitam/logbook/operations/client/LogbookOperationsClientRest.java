@@ -65,7 +65,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
 import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_CROSS_TENANT;
 import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_SLICED_OPERATIONS;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
@@ -313,7 +312,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 

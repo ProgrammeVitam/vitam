@@ -73,7 +73,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.logbook.common.client.ErrorMessage.LOGBOOK_NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCyclesClient {
@@ -207,7 +206,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         } catch (VitamClientInternalException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } catch (PreconditionFailedClientException e) {
-            throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            throw new LogbookClientException(REQUEST_PRECONDITION_FAILED, e);
         }
     }
 
@@ -599,7 +598,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 .withJson())) {
             check(response);
         } catch (PreconditionFailedClientException | VitamClientInternalException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }
 
@@ -610,7 +609,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             .withBody(objectGroupIds, "objectGroupIds has to be provided").withJson())) {
             check(response);
         } catch (PreconditionFailedClientException | VitamClientInternalException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }
 
@@ -621,7 +620,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 .withJson())) {
             check(response);
         } catch (PreconditionFailedClientException | VitamClientInternalException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }
 
@@ -642,7 +641,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         LogbookClientNotFoundException,
         PreconditionFailedClientException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 

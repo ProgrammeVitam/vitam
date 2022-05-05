@@ -78,9 +78,6 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
-import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -211,9 +208,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (InvalidParseOperationException e) {
             JsonNode resp = response.readEntity(JsonNode.class);
             if (resp != null && resp.get("description") != null) {
-                throw new InvalidParseOperationException(JsonHandler.unprettyPrint(resp.get("description")));
+                throw new InvalidParseOperationException(JsonHandler.unprettyPrint(resp.get("description")), e);
             }
-            throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         } finally {
@@ -546,24 +543,31 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public Response streamUnits(JsonNode selectQuery)
         throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
         MetadataScrollLimitExceededException {
+        Response response = null;
         try {
-            Response response = make(get().withJsonContentType().withOctetAccept().withPath("/units/stream")
+            response = make(get().withJsonContentType().withOctetAccept().withPath("/units/stream")
                 .withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()));
 
             Status status = response.getStatusInfo().toEnum();
-            if (CLIENT_ERROR.equals(status.getFamily()) || SERVER_ERROR.equals(status.getFamily())) {
-                switch (status) {
-                    case CONFLICT:
-                        throw new MetadataScrollThresholdExceededException(status.toString());
-                    case UNAUTHORIZED:
-                        throw new MetadataScrollLimitExceededException(status.toString());
-                    default:
-                        throw new MetaDataClientServerException(status.toString());
-                }
+
+            if (status.getFamily() == SUCCESSFUL) {
+                return response;
             }
-            return response;
+
+            switch (status) {
+                case CONFLICT:
+                    throw new MetadataScrollThresholdExceededException(status.toString());
+                case UNAUTHORIZED:
+                    throw new MetadataScrollLimitExceededException(status.toString());
+                default:
+                    throw new MetaDataClientServerException(status.toString());
+            }
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
         }
     }
 
@@ -572,7 +576,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         InvalidParseOperationException,
         MetaDataClientServerException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 

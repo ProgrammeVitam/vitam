@@ -301,8 +301,8 @@ public class MetadataResource extends ApplicationStatusResource {
         }
         RequestResponseOK<RequestResponseOK<JsonNode>> vitamResponse =
             new RequestResponseOK<RequestResponseOK<JsonNode>>()
-                .addAllResults(results).setHttpCode(Status.FOUND.getStatusCode());
-        return Response.status(Status.FOUND).entity(vitamResponse).build();
+                .addAllResults(results).setHttpCode(Status.OK.getStatusCode());
+        return Response.status(Status.OK).entity(vitamResponse).build();
     }
 
 
@@ -318,7 +318,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response selectUnit(JsonNode request) {
         RequestResponse<?> result = selectUnitsByQuery(request);
-        int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+        int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
         Status status = Status.fromStatusCode(st);
         return Response.status(status).entity(result).build();
     }
@@ -583,7 +583,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             final MetadataResult metadataResult = metaData.selectUnitsById(selectRequest, unitId);
 
-            return Response.status(Status.FOUND.getStatusCode())
+            return Response.status(Status.OK.getStatusCode())
                 .entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
                     .addAllResults(metadataResult.getResults()).addAllFacetResults(metadataResult.getFacetResults())
                     .setHits(metadataResult.getHits())).build();
@@ -1062,7 +1062,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             final MetadataResult metadataResult = metadataRuleService.selectUnitsWithInheritedRules(selectRequest);
 
-            return Response.status(Status.FOUND.getStatusCode())
+            return Response.status(Status.OK.getStatusCode())
                 .entity(new RequestResponseOK<JsonNode>(metadataResult.getQuery())
                     .addAllResults(metadataResult.getResults())
                     .addAllFacetResults(metadataResult.getFacetResults())

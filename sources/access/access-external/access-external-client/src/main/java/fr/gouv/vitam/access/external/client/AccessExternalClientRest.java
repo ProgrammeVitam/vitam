@@ -60,7 +60,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
@@ -93,7 +92,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 .withJson();
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (!SUCCESSFUL.equals(status.getFamily()) && !REDIRECTION.equals(status.getFamily())) {
+            if (!SUCCESSFUL.equals(status.getFamily())) {
                 LOGGER.error(String
                     .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
                         fromStatusCode(response.getStatus()).getReasonPhrase()));
@@ -110,9 +109,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         VitamRequestBuilder request =
             get().withPath("/units/stream").withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
                 .withJsonContentType().withOctetAccept();
-        Response response = make(request);
-        check(response);
-        return JsonLineIterator.parseFromResponse(response, JsonNode.class);
+        try (Response response = make(request)) {
+            check(response);
+            return JsonLineIterator.parseFromResponse(response, JsonNode.class);
+        }
     }
 
     @Override
@@ -138,7 +138,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withJson();
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (!SUCCESSFUL.equals(status.getFamily()) && !REDIRECTION.equals(status.getFamily())) {
+            if (!SUCCESSFUL.equals(status.getFamily())) {
                 LOGGER.error(String
                     .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
                         fromStatusCode(response.getStatus()).getReasonPhrase()));
@@ -180,17 +180,23 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeader(GlobalDataRest.X_VERSION, version)
             .withJsonContentType()
             .withOctetAccept();
-        Response response = make(request);
+        Response response = null;
+        try {
+            response = make(request);
 
-        if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
-            throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
-                "Object unavailable for immediate access. Access Request required");
+            if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
+                throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
+                    "Object unavailable for immediate access. Access Request required");
+            }
+
+            check(response);
+
+            return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
         }
-
-        // FIXME : Seams buggy for 404 & 401 error codes
-        check(response);
-
-        return response;
     }
 
     @Override
@@ -206,19 +212,20 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeader(GlobalDataRest.X_QUALIFIER, usage)
             .withHeader(GlobalDataRest.X_VERSION, version)
             .withJson();
-        Response response = make(request);
+        try (Response response = make(request)) {
 
-        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            throw new AccessExternalClientNotFoundException(
-                "No such object matching unitId and object qualifier usage & version");
-        }
-        if (response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()) {
-            throw new AccessUnauthorizedException(
-                "Access forbidden to object with specified qualifier usage & version");
-        }
-        check(response);
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new AccessExternalClientNotFoundException(
+                    "No such object matching unitId and object qualifier usage & version");
+            }
+            if (response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(
+                    "Access forbidden to object with specified qualifier usage & version");
+            }
+            check(response);
 
-        return RequestResponse.parseFromResponse(response, AccessRequestReference.class);
+            return RequestResponse.parseFromResponse(response, AccessRequestReference.class);
+        }
     }
 
     @Override
@@ -239,17 +246,18 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withJson()
             .withBody(accessRequestReferences);
-        Response response = make(request);
+        try (Response response = make(request)) {
 
-        if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
-            throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
-                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
-                    response.getStatus(),
-                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+            if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
+                throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
+                    String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+            }
+            check(response);
+
+            return RequestResponse.parseFromResponse(response, StatusByAccessRequest.class);
         }
-        check(response);
-
-        return RequestResponse.parseFromResponse(response, StatusByAccessRequest.class);
     }
 
     @Override
@@ -266,17 +274,18 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withJsonContentType()
             .withBody(accessRequestReference);
-        Response response = make(request);
+        try (Response response = make(request)) {
 
-        if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
-            throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
-                String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
-                    response.getStatus(),
-                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+            if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
+                throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
+                    String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+            }
+            check(response);
+
+            return RequestResponse.parseFromResponse(response, Void.class);
         }
-        check(response);
-
-        return RequestResponse.parseFromResponse(response, Void.class);
     }
 
     @Override
@@ -364,6 +373,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withJsonContentType()
             .withOctetAccept();
+        // Do not check status code because it would break API
         return make(request);
     }
 
@@ -376,6 +386,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withJsonContentType()
             .withOctetAccept();
+        // Do not check status code because it would break API
         return make(request);
     }
 
@@ -422,7 +433,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withJson();
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (!SUCCESSFUL.equals(status.getFamily()) && !REDIRECTION.equals(status.getFamily())) {
+            if (!SUCCESSFUL.equals(status.getFamily())) {
                 LOGGER.error(String
                     .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
                         fromStatusCode(response.getStatus()).getReasonPhrase()));
@@ -497,6 +508,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withBody(params)
             .withHeaders(vitamContext.getHeaders())
             .withJsonOctet();
+        // Do not check status code because it would break API
         return make(request);
     }
 
@@ -588,12 +600,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
         throw new VitamClientException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+            .format("Error with the response, get status: '%d' and reason '%s'.", status.getStatusCode(),
+                status.getReasonPhrase()));
     }
 }
