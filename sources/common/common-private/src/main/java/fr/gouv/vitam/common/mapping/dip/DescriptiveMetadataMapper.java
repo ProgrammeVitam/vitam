@@ -80,7 +80,7 @@ public class DescriptiveMetadataMapper {
 
         dmc.getAddressee().addAll(metadataModel.getAddressee());
         dmc.getAny().addAll(
-            TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
+            TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
 
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());

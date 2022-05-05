@@ -272,7 +272,7 @@ public class ArchiveUnitMapperTest {
         IdentifierType identifierType = new IdentifierType();
         identifierType.setValue("Identifier");
 
-        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(map);
         OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
             new OrganizationDescriptiveMetadataType();
         organizationDescriptiveMetadataType.getAny().addAll(elements);

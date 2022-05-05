@@ -88,7 +88,7 @@ public class CoreMetadataMapper {
     }
 
     private List<Element> mapToOpenType(Map<String, Object> object) {
-        return TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(object));
+        return TransformJsonTreeToListOfXmlElement.mapJsonToElement(object);
     }
 
 }
