@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
-import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.SedaConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -50,24 +49,19 @@ public class TransformJsonTreeToListOfXmlElement {
     /**
      * Transform Json Tree to list of xml elements
      *
-     * @param any
+     * @param map Json tree
      * @return the list of elements transformed into xml
      */
-    public static List<Element> mapJsonToElement(List<Object> any) {
+    public static List<Element> mapJsonToElement(Map<String, ?> map) {
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.newDocument();
             List<Element> elementToReturn = new ArrayList<>();
-            for (Object o : any) {
-                if (o instanceof Map) {
-                    Map map = (Map) o;
-                    transformMapToElement(elementToReturn::add, document, map);
-                }
-            }
+            transformMapToElement(elementToReturn::add, document, map);
             return elementToReturn;
         } catch (ParserConfigurationException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -78,49 +72,39 @@ public class TransformJsonTreeToListOfXmlElement {
      * @param document xml document
      * @param map Json tree
      */
-    private static void transformMapToElement(Consumer<Element> consumer, Document document, Map map) {
-
-        for (Object key : map.keySet()) {
-            Object value = map.get(key);
+    private static void transformMapToElement(Consumer<Element> consumer, Document document, Map<String, ?> map) {
+        for (Map.Entry<String,?> entry : map.entrySet()) {
             //skip vitam technical metadata (_opi,..)
-            if (key.toString().startsWith("#")) {
+            if (entry.getKey().startsWith("#")) {
                 continue;
             }
 
-            if (value instanceof String) {
-                final String str = (String) value;
-                Element childElement =
-                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                childElement.appendChild(document.createTextNode(str));
-                consumer.accept(childElement);
-            } else if (value instanceof Number) {
-                final Number number = (Number) value;
-                Element childElement =
-                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                childElement.appendChild(document.createTextNode(number.toString()));
-                consumer.accept(childElement);
-            } else if (value instanceof List) {
-                List<Object> list = (List<Object>) value;
-                list.forEach(s -> {
-                        if (s instanceof String) {
-                            Element childElement =
-                                document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                            childElement.appendChild(document.createTextNode((String) s));
-                            consumer.accept(childElement);
-                        } else if (s instanceof Map) {
-                            Element childElement =
-                                document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                            transformMapToElement(childElement::appendChild, document, (Map) s);
-                            consumer.accept(childElement);
-                        }
-                    }
-                );
-            } else if (value instanceof Map) {
-                Element childElement =
-                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                transformMapToElement(childElement::appendChild, document, (Map) value);
-                consumer.accept(childElement);
-            }
+            mapObject(consumer, document, entry.getKey(), entry.getValue());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void mapList(Consumer<Element> consumer, Document document, String key, Object value) {
+        List<Object> list = (List<Object>) value;
+        list.forEach(e -> mapObject(consumer, document, key, e));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void mapObject(Consumer<Element> consumer, Document document, String key, Object value) {
+        if (value instanceof String || value instanceof Number || value instanceof Boolean) {
+            mapObject(consumer, document, key, value.toString());
+        } else if (value instanceof List) {
+            mapList(consumer, document, key, value);
+        } else if (value instanceof Map) {
+            Element childElement = document.createElementNS(SedaConstants.NAMESPACE_URI, key);
+            transformMapToElement(childElement::appendChild, document, (Map<String, ?>) value);
+            consumer.accept(childElement);
+        }
+    }
+
+    private static void mapObject(Consumer<Element> consumer, Document document, String key, String value) {
+        Element childElement = document.createElementNS(SedaConstants.NAMESPACE_URI, key);
+        childElement.appendChild(document.createTextNode(value));
+        consumer.accept(childElement);
     }
 }
