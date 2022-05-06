@@ -479,17 +479,22 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withBody(logInfo)
             .withContentType(MediaType.APPLICATION_JSON_TYPE)
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        Response response = null;
         try {
-            Response response = make(request);
-            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
-            return handleCommonResponseStatus(response);
-        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
-            final String errorMessage =
-                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
-            throw new StorageServerClientException(errorMessage, e);
-        } catch (StorageNotFoundClientException e) {
-            throw new StorageNotFoundException(e);
+            try {
+                response = make(request);
+                checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
+                return handleCommonResponseStatus(response);
+            } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
+                final String errorMessage =
+                    VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+                throw new StorageServerClientException(errorMessage, e);
+            } catch (StorageNotFoundClientException e) {
+                throw new StorageNotFoundException(e);
+            }
+        } catch (Exception e) {
+            StreamUtils.consumeAnyEntityAndClose(response);
+            throw e;
         }
     }
 
@@ -503,20 +508,17 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
 
+        Response response = null;
         try {
-            Response response = make(request);
-
             try {
-
+                response = make(request);
                 return new ObjectEntryReader(handleCommonResponseStatus(response).readEntity(InputStream.class));
-
-            } catch (Exception e) {
-                StreamUtils.consumeAnyEntityAndClose(response);
-                throw e;
+            } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
+                throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
             }
-
-        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
-            throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
+        } catch (Exception e) {
+            StreamUtils.consumeAnyEntityAndClose(response);
+            throw e;
         }
     }
 
