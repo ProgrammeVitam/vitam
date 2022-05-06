@@ -230,7 +230,7 @@ public class StreamUtils {
      * @throws IOException
      */
     public static final String toString(InputStream inputStream) throws IOException {
-        try (InputStreamReader isr = new InputStreamReader(inputStream, Charsets.UTF_8);) {
+        try (InputStreamReader isr = new InputStreamReader(inputStream, Charsets.UTF_8)) {
             return CharStreams.toString(isr);
         } catch (IOException e) {
             throw e;
@@ -288,7 +288,7 @@ public class StreamUtils {
      *
      * @param response
      */
-    public static final void consumeAnyEntityAndClose(Response response) {
+    public static void consumeAnyEntityAndClose(Response response) {
         try {
             if (response != null && response.hasEntity()) {
                 final Object object = response.getEntity();
