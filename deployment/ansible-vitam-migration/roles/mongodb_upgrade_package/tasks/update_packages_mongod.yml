@@ -72,6 +72,7 @@
           - "mongodb-org-server={{ mongo_version }}"
           - "mongodb-org-shell={{ mongo_version }}"
           - "mongodb-org-tools={{ mongo_version }}"
+          - "mongodb-org-database-tools-extra={{ mongo_version }}"
       when: ansible_distribution == "Debian"
 
     - name: Disable default mongodb service
