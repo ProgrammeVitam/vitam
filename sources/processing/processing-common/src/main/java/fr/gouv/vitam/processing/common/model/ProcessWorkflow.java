@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.common.model;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -63,7 +64,7 @@ public class ProcessWorkflow {
 
     private List<ProcessStep> steps = new ArrayList<>();
 
-    private Date processDate = new Date();
+    private String processDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
 
     private LocalDateTime processCompletedDate;
 
@@ -184,7 +185,7 @@ public class ProcessWorkflow {
     /**
      * @return the processDate
      */
-    public Date getProcessDate() {
+    public String getProcessDate() {
         return processDate;
     }
 
@@ -192,7 +193,7 @@ public class ProcessWorkflow {
      * @param processDate the processDate to set
      * @return this
      */
-    public ProcessWorkflow setProcessDate(Date processDate) {
+    public ProcessWorkflow setProcessDate(String processDate) {
         this.processDate = processDate;
         return this;
     }
