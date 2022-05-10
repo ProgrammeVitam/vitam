@@ -95,7 +95,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import org.apache.shiro.util.Assert;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -763,8 +762,8 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
         ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);
 
-        Assert.notNull(archiveUnitModel);
-        Assert.notNull(archiveUnitModel.getManagement());
+        assertThat(archiveUnitModel).isNotNull();
+        assertThat(archiveUnitModel.getManagement()).isNotNull();
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_XML)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")

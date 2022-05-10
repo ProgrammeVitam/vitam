@@ -76,6 +76,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
 			<version>${project.version}</version>
@@ -85,6 +90,10 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -103,6 +112,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<includeScope>compile</includeScope>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>

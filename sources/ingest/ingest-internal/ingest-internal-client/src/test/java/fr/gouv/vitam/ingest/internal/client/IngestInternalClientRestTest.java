@@ -52,12 +52,12 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.ingest.internal.common.exception.IllegalZipFileNameException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
@@ -307,7 +307,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
             ThrowingCallable throwingCallable =
                 () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
             assertThatThrownBy(throwingCallable)
-                .isInstanceOf(ZipFilesNameNotAllowedException.class);
+                .isInstanceOf(IllegalZipFileNameException.class);
         }
 
     }

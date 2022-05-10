@@ -31,7 +31,7 @@ echo "End"
 
 echo "Import personal certificate"
 echo "Begin"
-curl -XPOST -H "Content-type: application/octet-stream" --data-binary @../../deployment/environments/certs/client-vitam-users/clients/userOK.crt 'http://security-internal.service.consul:28005/v1/api/personalCertificate'
+curl -XPOST -H "Content-type: application/octet-stream" --data-binary @./userOK.crt 'http://security-internal.service.consul:28005/v1/api/personalCertificate'
 echo "End"
 
 echo "Import ontologies"

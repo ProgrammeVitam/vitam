@@ -30,7 +30,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
 
-import javax.annotation.Nonnull;
+import javax.validation.constraints.NotNull;
 
 public class VitamMongoCursor<T> implements MongoCursor<T> {
     private final MongoCursor<T> cursor;
@@ -57,7 +57,7 @@ public class VitamMongoCursor<T> implements MongoCursor<T> {
     }
 
     @Override
-    @Nonnull
+    @NotNull
     public T next() {
         return cursor.next();
     }
@@ -73,7 +73,7 @@ public class VitamMongoCursor<T> implements MongoCursor<T> {
     }
 
     @Override
-    @Nonnull
+    @NotNull
     public ServerAddress getServerAddress() {
         return cursor.getServerAddress();
     }

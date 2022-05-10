@@ -10,18 +10,6 @@
 	<artifactId>functional-administration-format</artifactId>
 	<name>functional-administration-format</name>
 	<packaging>pom</packaging>
-	<dependencies>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 	<modules>
 		<module>functional-administration-format-core</module>
 	</modules>

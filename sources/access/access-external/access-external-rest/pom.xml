@@ -22,11 +22,6 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>access-external-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>access-internal-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -78,7 +73,17 @@
             <artifactId>common-dsl-schema</artifactId>
             <version>${project.version}</version>
         </dependency>
-	</dependencies>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-public-client</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+		</dependency>
+    </dependencies>
 	<properties>
 		<unix.name>access-external</unix.name>
 		<unix.user>vitam</unix.user>
@@ -99,6 +104,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<includeScope>compile</includeScope>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>

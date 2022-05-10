@@ -28,13 +28,13 @@ package fr.gouv.vitam.common.stream;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.elasticsearch.core.List;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 

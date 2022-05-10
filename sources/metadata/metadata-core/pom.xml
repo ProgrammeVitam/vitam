@@ -41,14 +41,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.java-diff-utils</groupId>
-			<artifactId>diffutils</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.wnameless.json</groupId>
-			<artifactId>json-flattener</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -79,7 +71,12 @@
 			<artifactId>json-path</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-client</artifactId>
+			<version>${project.version}</version>
+        </dependency>
+    </dependencies>
 	<build>
 		<plugins>
 			<plugin>

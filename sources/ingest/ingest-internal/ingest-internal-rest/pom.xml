@@ -30,6 +30,7 @@
                     </goals>
                     <configuration>
                         <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                        <includeScope>compile</includeScope>
                         <overWriteReleases>false</overWriteReleases>
                         <overWriteSnapshots>false</overWriteSnapshots>
                         <overWriteIfNewer>true</overWriteIfNewer>
@@ -250,11 +251,6 @@
 
     <!-- test -->
     <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
         <groupId>io.rest-assured</groupId>
         <artifactId>rest-assured</artifactId>
         <scope>test</scope>
@@ -275,5 +271,9 @@
      <version>${project.version}</version>
      <scope>test</scope>
  </dependency>
+<dependency>
+    <groupId>io.swagger.core.v3</groupId>
+    <artifactId>swagger-jaxrs2</artifactId>
+</dependency>
 </dependencies>
 </project>

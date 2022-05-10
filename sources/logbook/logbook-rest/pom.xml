@@ -49,6 +49,7 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-lifecycles-client</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -70,11 +71,11 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- #HACK test normally, use in script -->
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-operations-client</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -101,6 +102,10 @@
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+		</dependency>
     </dependencies>
 
 
@@ -118,6 +123,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<includeScope>compile</includeScope>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>

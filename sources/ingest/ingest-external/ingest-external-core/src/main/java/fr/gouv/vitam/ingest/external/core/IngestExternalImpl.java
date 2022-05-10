@@ -74,7 +74,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -179,10 +178,6 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.debug("Initialize Workflow operation (" + guid + ") ... ");
                 ingestClient.initWorkflow(workflow);
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
-            } catch (WorkspaceClientServerException e) {
-                LOGGER.error("Workspace Server error", e);
-                e.setWorkflowIdentifier(workflow.getIdentifier());
-                throw e;
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
             }

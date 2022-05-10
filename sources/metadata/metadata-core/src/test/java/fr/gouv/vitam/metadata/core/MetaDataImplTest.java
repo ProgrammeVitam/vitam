@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
@@ -488,7 +487,7 @@ public class MetaDataImplTest {
             .thenThrow(new DatabaseException("prb"));
         when(indexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
-        LogbookCollections.OPERATION.getVitamCollection().initialize(mock(MongoDatabase.class), false);
+        MetadataCollections.UNIT.getVitamCollection().initialize(mock(MongoDatabase.class), false);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("Unit");
         List<Integer> tenants = new ArrayList<>();

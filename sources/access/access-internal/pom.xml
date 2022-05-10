@@ -17,11 +17,4 @@
 		<module>access-internal-client</module>
 	</modules>
 	<name>Access Internal </name>
-	<dependencies>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-public</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
 </project>

@@ -24,39 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.ingest.internal.common.exception;
 
-import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.exception.VitamException;
 
-/**
- *
- */
-public final class SedaIngestParams {
+public class IngestInternalServerUnavailableClientException extends VitamException {
 
-    public String version;
-    public String nameSpaceUri;
-    public String xsdValidator;
-
-    public SedaIngestParams() {
-    }
-
-    public SedaIngestParams(String version, String nameSpaceUri) {
-        this.version = version;
-        this.nameSpaceUri = nameSpaceUri;
-        if (SupportedSedaVersions.SEDA_2_1.getVersion().equals(version)) {
-            this.xsdValidator = SupportedSedaVersions.SEDA_2_1.getXsdValidator();
-        }
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getNameSpaceUri() {
-        return nameSpaceUri;
-    }
-
-    public String getXsdValidator() {
-        return xsdValidator;
+    public IngestInternalServerUnavailableClientException(String message) {
+        super(message);
     }
 }

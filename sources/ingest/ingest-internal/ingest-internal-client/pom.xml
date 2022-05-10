@@ -24,10 +24,16 @@
 			<artifactId>common-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		    <dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-internal-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>logbook-common</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -45,7 +44,6 @@ import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
@@ -54,7 +52,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -168,7 +165,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws InvalidParseOperationException {
-        LOGGER.debug("Select request with id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
         return ClientMockResultHelper.getLogbookLifecycle();
     }
 
@@ -229,8 +225,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws InvalidParseOperationException {
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query) {
         return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
     }
 
@@ -254,9 +249,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            final Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
-            while (iterator.hasNext()) {
-                logInformation(UPDATE, iterator.next());
+            for (LogbookLifeCycleParameters logbookLifeCycleParameters : queue) {
+                logInformation(UPDATE, logbookLifeCycleParameters);
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
@@ -267,25 +261,25 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public void bulkCreateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException {
         bulkCreate(eventIdProc, queue);
     }
 
     @Override
     public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientBadRequestException {
         bulkUpdate(eventIdProc, queue);
     }
 
     @Override
     public void bulkCreateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException {
         bulkCreate(eventIdProc, queue);
     }
 
     @Override
     public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientBadRequestException {
         bulkUpdate(eventIdProc, queue);
     }
 
@@ -296,8 +290,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void commitObjectGroup(String operationId, String objectGroupId)
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+    public void commitObjectGroup(String operationId, String objectGroupId) {
         commitObject(operationId, objectGroupId);
     }
 
@@ -314,13 +307,13 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public void rollBackUnitsByOperation(String operationId)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientNotFoundException {
         rollBackObjectByOperation(operationId);
     }
 
     @Override
     public void rollBackObjectGroupsByOperation(String operationId)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientNotFoundException {
         rollBackObjectByOperation(operationId);
     }
 
@@ -354,15 +347,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
-        LOGGER
-            .debug("Select request without id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
+        throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookLifecycle();
     }
 
     @Override
-    public void bulkObjectGroup(String eventIdProc, List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels)
-        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+    public void bulkObjectGroup(String eventIdProc, List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels) {
         // do nothing
     }
 
@@ -373,38 +363,34 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws)
-        throws LogbookClientBadRequestException, LogbookClientServerException {
+    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws) {
     }
 
     @Override
-    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
-        throws LogbookClientBadRequestException, LogbookClientServerException {
+    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws) {
     }
 
     @Override
-    public void deleteLifecycleUnitsBulk(Collection<String> listIds)
-        throws LogbookClientBadRequestException, LogbookClientServerException {
+    public void deleteLifecycleUnitsBulk(Collection<String> listIds) {
         throw new IllegalArgumentException("Stop mocking in production ");
 
     }
 
     @Override
-    public void deleteLifecycleObjectGroupBulk(Collection<String> listIds)
-        throws LogbookClientBadRequestException, LogbookClientServerException {
+    public void deleteLifecycleObjectGroupBulk(Collection<String> listIds) {
         throw new IllegalArgumentException("Stop mocking in production ");
     }
 
 
     @Override
     public void bulkLifeCycleTemporary(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         // do nothing
     }
 
     @Override
     public void bulkLifeCycle(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         // do nothing
     }
 

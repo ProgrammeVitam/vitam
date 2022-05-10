@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.common.model;
 
-import org.bson.Document;
-
 /**
  * Offer sequence.
  */
@@ -89,21 +87,5 @@ public class OfferSequence {
      */
     public void setCounter(long counter) {
         this.counter = counter;
-    }
-
-    /**
-     * Ugly workaround to keep object type when convert JSON to Mongo Document
-     *
-     * TODO: switch to mongo-java-driver &gt;= 3.5.0 and use PojoCodecProvider
-     *
-     * @return Document
-     * @see <a href=
-     * "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
-     */
-    public Document toDocument() {
-        Document document = new Document();
-        document.put(ID_FIELD, id);
-        document.put(COUNTER_FIELD, counter);
-        return document;
     }
 }

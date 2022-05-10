@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ConflictClientException;
 import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
@@ -47,8 +48,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -110,12 +109,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJson();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (VitamClientInternalException | ForbiddenClientException | DatabaseConflictException | AccessUnauthorizedException e) {
+        } catch (VitamClientInternalException | ForbiddenClientException | ConflictClientException | AccessUnauthorizedException e) {
             throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (PreconditionFailedClientException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
-        } catch (ReferentialNotFoundException e) {
-            throw new WorkflowNotFoundException(NOT_FOUND, e);
         }
     }
 
@@ -137,7 +134,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (DatabaseConflictException | ReferentialNotFoundException | PreconditionFailedClientException | BadRequestException | ForbiddenClientException e) {
+        } catch (ConflictClientException | WorkflowNotFoundException | PreconditionFailedClientException | BadRequestException | ForbiddenClientException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -154,7 +151,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException | PreconditionFailedClientException e) {
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -171,12 +168,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             response = make(request);
             checkWithSpecificException(response);
             return getItemStatusFromResponse(response);
-        } catch (ForbiddenClientException | DatabaseConflictException e) {
+        } catch (ForbiddenClientException | ConflictClientException e) {
             return getItemStatusFromResponse(response);
         } catch (PreconditionFailedClientException e) {
             throw new BadRequestException(ILLEGAL_ARGUMENT, e);
-        } catch (ReferentialNotFoundException e) {
-            throw new WorkflowNotFoundException(NOT_FOUND, e);
         } finally {
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
@@ -239,7 +234,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException | PreconditionFailedClientException e) {
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -254,7 +249,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make((request))) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException | PreconditionFailedClientException e) {
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -272,8 +267,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJson();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (final VitamClientInternalException | AccessUnauthorizedException | DatabaseConflictException |
-            ReferentialNotFoundException | PreconditionFailedClientException | ForbiddenClientException e) {
+        } catch (final VitamClientInternalException | AccessUnauthorizedException | ConflictClientException |
+            WorkflowNotFoundException | PreconditionFailedClientException | ForbiddenClientException e) {
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (BadRequestException e) {
             throw new ProcessingBadRequestException(BAD_REQUEST_EXCEPTION, e);
@@ -293,7 +288,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJsonAccept();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException |
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
             PreconditionFailedClientException | AccessUnauthorizedException | InternalServerException e) {
             throw new ProcessingBadRequestException(e);
         } catch (final VitamClientInternalException e) {
@@ -310,7 +305,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException |
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
             PreconditionFailedClientException | InternalServerException e) {
             throw new VitamClientInternalException(e);
         }
@@ -324,7 +319,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException |
+        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
             PreconditionFailedClientException | IllegalStateException | InternalServerException e) {
             throw new VitamClientInternalException(e);
         }
@@ -339,9 +334,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             checkWithSpecificException(response);
             return Optional.of(response.readEntity(WorkFlow.class));
         } catch (ForbiddenClientException | BadRequestException | PreconditionFailedClientException |
-            InternalServerException | DatabaseConflictException e) {
+            InternalServerException | ConflictClientException e) {
             throw new VitamClientInternalException(e);
-        } catch (ReferentialNotFoundException e) {
+        } catch (WorkflowNotFoundException e) {
             return Optional.empty();
         }
     }
@@ -356,8 +351,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-        } catch (VitamClientInternalException | ReferentialNotFoundException | BadRequestException | AccessUnauthorizedException |
-            ForbiddenClientException | DatabaseConflictException | PreconditionFailedClientException | InternalServerException e) {
+        } catch (VitamClientInternalException | WorkflowNotFoundException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | ConflictClientException | PreconditionFailedClientException | InternalServerException e) {
             throw new ProcessingException(e);
         }
     }
@@ -372,16 +367,16 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-        } catch (VitamClientInternalException | ReferentialNotFoundException | BadRequestException | AccessUnauthorizedException |
-            ForbiddenClientException | DatabaseConflictException | PreconditionFailedClientException | InternalServerException e) {
+        } catch (VitamClientInternalException | WorkflowNotFoundException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | ConflictClientException | PreconditionFailedClientException | InternalServerException e) {
             throw new ProcessingException(e.getMessage(), e);
         }
     }
 
     private void checkWithSpecificException(Response response)
-        throws ReferentialNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException,
-        DatabaseConflictException,
-        VitamClientInternalException, PreconditionFailedClientException, InternalServerException {
+        throws WorkflowNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException,
+        ConflictClientException, VitamClientInternalException, PreconditionFailedClientException,
+        InternalServerException {
         final Status status = fromStatusCode(response.getStatus());
 
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
@@ -390,7 +385,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
         switch (status) {
             case NOT_FOUND:
-                throw new ReferentialNotFoundException(status.getReasonPhrase());
+                throw new WorkflowNotFoundException(status.getReasonPhrase());
             case BAD_REQUEST:
                 String reason = (response.hasEntity()) ? response.readEntity(String.class)
                     : Response.Status.BAD_REQUEST.getReasonPhrase();
@@ -404,7 +399,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             case PRECONDITION_FAILED:
                 throw new PreconditionFailedClientException("Precondition Failed");
             case CONFLICT:
-                throw new DatabaseConflictException(Response.Status.CONFLICT.getReasonPhrase());
+                throw new ConflictClientException(Response.Status.CONFLICT.getReasonPhrase());
             case INTERNAL_SERVER_ERROR:
                 throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             default:
