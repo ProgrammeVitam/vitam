@@ -24,45 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers.builders;
+package fr.gouv.vitam.collect.internal.model;
 
-import fr.gouv.vitam.collect.internal.model.ManifestContext;
-import fr.gouv.vitam.collect.internal.model.TransactionModel;
-import fr.gouv.vitam.collect.internal.model.TransactionStatus;
-
-public class TransactionModelBuilder {
-    private String id;
-    private ManifestContext manifestContext;
-    private TransactionStatus status;
-    private String projectId;
-    private Integer tenant;
-
-    public TransactionModelBuilder withId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public TransactionModelBuilder withManifestContext(ManifestContext manifestContext) {
-        this.manifestContext = manifestContext;
-        return this;
-    }
-
-    public TransactionModelBuilder withStatus(TransactionStatus status) {
-        this.status = status;
-        return this;
-    }
-
-    public TransactionModelBuilder withProjectId(String projectId) {
-        this.projectId = projectId;
-        return this;
-    }
-
-    public TransactionModelBuilder withTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-    public TransactionModel build() {
-        return new TransactionModel(id, manifestContext, status, projectId, tenant);
-    }
+public enum CollectType {
+    OPEN,
+    CLOSE,
+    SENT,
+    WAITING_ACK,
+    ACK_OK,
+    ACK_ERROR;
 }

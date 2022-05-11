@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
 
-public class TransactionDtoBuilder {
+public class ProjectDtoBuilder {
     private String id;
     private String archivalAgreement;
     private String messageIdentifier;
@@ -40,58 +40,58 @@ public class TransactionDtoBuilder {
     private String comment;
     private Integer tenant;
 
-    public TransactionDtoBuilder withId(String id) {
+    public ProjectDtoBuilder withId(String id) {
         this.id = id;
         return this;
     }
 
-    public TransactionDtoBuilder withArchivalAgreement(String archivalAgreement) {
+    public ProjectDtoBuilder withArchivalAgreement(String archivalAgreement) {
         this.archivalAgreement = archivalAgreement;
         return this;
     }
 
-    public TransactionDtoBuilder withMessageIdentifier(String messageIdentifier) {
+    public ProjectDtoBuilder withMessageIdentifier(String messageIdentifier) {
         this.messageIdentifier = messageIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+    public ProjectDtoBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+    public ProjectDtoBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+    public ProjectDtoBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+    public ProjectDtoBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withArchivalProfile(String archivalProfile) {
+    public ProjectDtoBuilder withArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
         return this;
     }
 
-    public TransactionDtoBuilder withComment(String comment) {
+    public ProjectDtoBuilder withComment(String comment) {
         this.comment = comment;
         return this;
     }
 
-    public TransactionDtoBuilder withTenant(Integer tenant) {
+    public ProjectDtoBuilder withTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
-    public TransactionDto build() {
-        return new TransactionDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
+    public ProjectDto build() {
+        return new ProjectDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
             comment, tenant);
     }

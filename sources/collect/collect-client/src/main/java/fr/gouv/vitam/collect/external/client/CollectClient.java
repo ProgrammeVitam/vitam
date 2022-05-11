@@ -27,9 +27,9 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -43,12 +43,91 @@ import java.io.InputStream;
 public interface CollectClient extends MockOrRestClient {
 
     /**
+     * Initialize a collect project
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> initProject(ProjectDto projectDto) throws VitamClientException;
+
+
+    /**
+     * Update a collect project
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> updateProject(ProjectDto projectDto) throws VitamClientException;
+
+    /**
+     * get a collect project
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> getProjectById(String projectId) throws VitamClientException;
+
+    /**
+     * get all collect project by tenant
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> getProjects() throws VitamClientException;
+
+
+
+    /**
+     * get an archive unit by Id
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponseOK<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> getUnitById(String unitId) throws VitamClientException;
+
+
+
+    /**
+     * get an archive unit by transaction Id
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> getUnitsByTransaction(String transactionId) throws VitamClientException;
+
+
+
+    /**
+     * get an object group by Id
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponseOK<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> getObjectById(String gotId) throws VitamClientException;
+
+
+
+    /**
      * Initialize a collect transaction
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<TransactionDto> guid created for the transaction
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return RequestResponse<JsonNode> guid created for the transaction
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
         throws VitamClientException;
@@ -58,8 +137,8 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return RequestResponse<JsonNode> Archive Unit saved
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
         throws VitamClientException;
@@ -69,8 +148,8 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return RequestResponse<JsonNode> objectgroup saved
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode)
         throws VitamClientException;
@@ -78,10 +157,10 @@ public interface CollectClient extends MockOrRestClient {
     /**
      * ADD Binary
      *
-     * Consume and produce MediaType.APPLICATION_JSON
+     * Consume and produce MediaType.OCTET_STREAM
      *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
         throws VitamClientException;
@@ -91,8 +170,8 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     Response closeTransaction(String transactionId) throws VitamClientException;
 
@@ -102,10 +181,20 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<CollectUnitDto> Archive Unit saved
-     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     * @return RequestResponseOK<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponseOK<JsonNode> ingest(String transactionId) throws
         VitamClientException;
+
+    /**
+     * Upload zip and consume
+     *
+     * Consume and produce CommonMediaType.ZIP
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response uploadProjectZip(String projectId, InputStream inputStreamUploaded) throws VitamClientException;
 
 }

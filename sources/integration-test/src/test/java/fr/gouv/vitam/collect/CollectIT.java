@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.collect;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -39,14 +40,15 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.internal.CollectMain;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
+import fr.gouv.vitam.collect.internal.helpers.builders.ProjectDtoBuilder;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -64,6 +66,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -74,19 +77,12 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class CollectIT extends VitamRuleRunner {
-
-    private static String transactionGuuid;
-    private static String unitGuuid;
-    private static String usage = DataObjectVersionType.BINARY_MASTER.getName();
-    private static Integer version = 1;
-    private ObjectMapper mapper = new ObjectMapper();
-    private TransactionRepository transactionRepository;
 
     private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
     private static final String JSON_NODE_OBJECT = "collect/upload_got_collect.json";
     private static final String BINARY_FILE = "collect/Plan-Barbusse.txt";
-
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
@@ -103,11 +99,17 @@ public class CollectIT extends VitamRuleRunner {
                 AccessExternalMain.class,
                 IngestExternalMain.class,
                 CollectMain.class));
-
+    private static String transactionGuuid;
+    private static String projectGuuid;
+    private static String unitGuuid;
+    private static String objectGroupGuuid;
+    private static String usage = DataObjectVersionType.BINARY_MASTER.getName();
+    private static Integer version = 1;
     private static CollectClient collectClient;
     private static AdminExternalClient adminExternalClient;
     private static AccessExternalClient accessExternalClient;
-
+    private ObjectMapper mapper = new ObjectMapper();
+    private TransactionRepository transactionRepository;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -133,24 +135,34 @@ public class CollectIT extends VitamRuleRunner {
     public void should_perform_collect_operation() throws Exception {
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        TransactionDto transactionDto = new TransactionDtoBuilder()
-            .withArchivalAgencyIdentifier("ArchivalAgencyIdentifier")
-            .withTransferingAgencyIdentifier("TransferingAgencyIdentifier")
-            .withOriginatingAgencyIdentifier("FRAN_NP_009913")
+        ProjectDto projectDto = new ProjectDtoBuilder()
+            .withArchivalAgencyIdentifier("Vitam")
+            .withTransferingAgencyIdentifier("AN")
+            .withOriginatingAgencyIdentifier("MICHEL_MERCIER")
+            .withSubmissionAgencyIdentifier("MICHEL_MERCIER")
+            .withMessageIdentifier("20220302-000005")
+            .withArchivalAgreement("IC-000001")
             .withArchivalProfile("ArchiveProfile")
-            .withComment("Comments")
+            .withComment("Versement du service producteur : Cabinet de Michel Mercier")
             .build();
-        RequestResponse<JsonNode> response = collectClient.initTransaction(transactionDto);
+
+        RequestResponse<JsonNode> response = collectClient.initProject(projectDto);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
-        TransactionDto transactionDtoResult =
-            mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
-        transactionGuuid = transactionDtoResult.getId();
+        ProjectDto projectDtoResult =
+            mapper.readValue(requestResponseOK.getFirstResult().toString(), ProjectDto.class);
+        transactionGuuid = projectDtoResult.getTransactionId();
+        projectGuuid = projectDtoResult.getId();
+        getProjectById();
+        //uploadProjectZip();
         uploadUnit();
+        getUnitById(unitGuuid);
         uploadGot();
+        getObjectById(objectGroupGuuid);
         uploadBinary();
         closeTransaction();
         ingest();
+        updateProject();
     }
 
     public void uploadUnit() throws Exception {
@@ -169,6 +181,7 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
+        objectGroupGuuid = response.getFirstResult().get("id").textValue();
     }
 
     public void uploadBinary() throws Exception {
@@ -192,6 +205,60 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult().get("id")).isNotNull();
         String operationId = response.getFirstResult().get("id").textValue();
         Assertions.assertThat(operationId).isNotNull();
+    }
+
+
+    public void getProjectById() throws Exception {
+        RequestResponse<JsonNode> response = collectClient.getProjectById(projectGuuid);
+        assertThat(response.isOk()).isTrue();
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        ProjectDto projectDtoResult =
+            mapper.readValue(requestResponseOK.getFirstResult().toString(), ProjectDto.class);
+
+        assertThat(projectDtoResult).isNotNull();
+        assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
+    }
+
+    public void getUnitById(String unitId) throws Exception {
+        RequestResponseOK<JsonNode> response = collectClient.getUnitById(unitId);
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getFirstResult()).isNotNull();
+        assertThat(response.getFirstResult().get("#id")).isNotNull();
+        assertThat(response.getFirstResult().get("#id").textValue()).isEqualTo(unitId);
+        assertThat(response.getFirstResult().get("#opi").textValue()).isEqualTo(transactionGuuid);
+    }
+
+    public void getObjectById(String objectId) throws Exception {
+        RequestResponseOK<JsonNode> response = collectClient.getObjectById(objectId);
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getFirstResult()).isNotNull();
+        assertThat(response.getFirstResult().get("_id")).isNotNull();
+        assertThat(response.getFirstResult().get("_id").textValue()).isEqualTo(objectGroupGuuid);
+    }
+
+    public void updateProject() throws VitamClientException, JsonProcessingException {
+        ProjectDto projectDto = new ProjectDtoBuilder()
+            .withId(projectGuuid)
+            .withArchivalAgencyIdentifier("Vitam")
+            .withTransferingAgencyIdentifier("AN")
+            .withOriginatingAgencyIdentifier("MICHEL_MERCIER")
+            .withSubmissionAgencyIdentifier("MICHEL_MERCIER")
+            .withMessageIdentifier("20220302-000005")
+            .withArchivalAgreement("IC-000001")
+            .withArchivalProfile("ArchiveProfile")
+            .withComment("New Comment")
+            .build();
+
+        collectClient.updateProject(projectDto);
+        RequestResponse<JsonNode> response = collectClient.getProjectById(projectGuuid);
+        assertThat(response.isOk()).isTrue();
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        ProjectDto projectDtoResult =
+            mapper.readValue(requestResponseOK.getFirstResult().toString(), ProjectDto.class);
+        assertThat(projectDtoResult).isNotNull();
+        assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
+        assertThat(projectDtoResult.getComment()).isEqualTo(projectDto.getComment());
+
     }
 
 }

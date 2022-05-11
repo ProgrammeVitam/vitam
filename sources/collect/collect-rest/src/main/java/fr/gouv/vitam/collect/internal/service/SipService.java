@@ -146,8 +146,9 @@ public class SipService {
             ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
             ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
-            manifestBuilder.startDocument(transactionModel.getMessageIdentifier(), ExportType.ArchiveTransfer,
-                exportRequestParameters);
+            manifestBuilder
+                .startDocument(transactionModel.getManifestContext().getMessageIdentifier(), ExportType.ArchiveTransfer,
+                    exportRequestParameters);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -213,13 +214,14 @@ public class SipService {
                 });
             manifestBuilder.endDescriptiveMetadata();
 
-            String submissionAgencyIdentifier = transactionModel.getSubmissionAgencyIdentifier();
+            String submissionAgencyIdentifier = transactionModel.getManifestContext().getSubmissionAgencyIdentifier();
             if (submissionAgencyIdentifier == null) {
-                submissionAgencyIdentifier = transactionModel.getOriginatingAgencyIdentifier();
+                submissionAgencyIdentifier = transactionModel.getManifestContext().getOriginatingAgencyIdentifier();
             }
 
-            manifestBuilder.writeManagementMetadata(transactionModel.getOriginatingAgencyIdentifier(),
-                submissionAgencyIdentifier);
+            manifestBuilder
+                .writeManagementMetadata(transactionModel.getManifestContext().getOriginatingAgencyIdentifier(),
+                    submissionAgencyIdentifier);
             manifestBuilder.endDataObjectPackage();
 
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
@@ -307,7 +309,9 @@ public class SipService {
             }
             Response response = workspaceClient.getObject(
                 transactionModel.getId(), transactionModel.getId() + SIP_EXTENSION);
-            sipInputStream = (InputStream) response.getEntity();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                sipInputStream = (InputStream) response.getEntity();
+            }
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
             LOGGER.error("Error when processing ingest: {}", e);
             throw new CollectException(e);

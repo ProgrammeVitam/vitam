@@ -26,397 +26,120 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
-import fr.gouv.vitam.collect.internal.helpers.adapters.CollectVarNameAdapter;
-import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
-import fr.gouv.vitam.collect.internal.helpers.builders.ObjectMapperBuilder;
-import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;
-import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.format.identification.FormatIdentifier;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
-import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
+import fr.gouv.vitam.collect.internal.helpers.builders.TransactionModelBuilder;
+import fr.gouv.vitam.collect.internal.model.ManifestContext;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
+import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
-import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.client.MetadataType;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceType;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.CountingInputStream;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
-import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
+import java.util.Arrays;
+import java.util.Optional;
 
 public class TransactionService {
-
-    private static final String TAG_STATUS = "#status";
-    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
-    public static final String UNABLE_TO_FIND_ARCHIVE_UNIT_ID = "Unable to find archiveUnit Id";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
+    private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private final TransactionRepository transactionRepository;
 
-    private final CollectService collectService;
-    private final WorkspaceClientFactory workspaceCollectClientFactory;
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final FormatIdentifierFactory formatIdentifierFactory;
-    private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
-    private final CollectVarNameAdapter collectVarNameAdapter;
-
-    public TransactionService(CollectService collectService, CollectConfiguration collectConfiguration) {
-        this.collectService = collectService;
-        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl(), WorkspaceType.COLLECT);
-        this.workspaceCollectClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
-        this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
-        this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
-        this.collectVarNameAdapter = new CollectVarNameAdapter();
+    public TransactionService(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
     }
 
-    public void checkParameters(String unitId, DataObjectVersionType usage, Integer version) {
-        if (usage == null || unitId == null || version == null) {
-            LOGGER.error("usage({}), unitId({}) or version({}) can't be null", usage, unitId, version);
-            throw new IllegalArgumentException("usage, unitId or version can't be null");
-        }
+    /**
+     * create a transaction model
+     *
+     * @throws CollectException exception thrown in case of error
+     */
+    public void createTransaction(TransactionDto transactionDto) throws CollectException {
+        ManifestContext manifestContext = new ManifestContextBuilder()
+            .withArchivalAgreement(transactionDto.getArchivalAgreement())
+            .withMessageIdentifier(transactionDto.getMessageIdentifier())
+            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
+            .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(transactionDto.getArchivalProfile())
+            .withComment(transactionDto.getComment())
+            .build();
+        TransactionModel transactionModel = new TransactionModelBuilder()
+            .withId(transactionDto.getId())
+            .withManifestContext(manifestContext)
+            .withStatus(TransactionStatus.OPEN)
+            .withTenant(transactionDto.getTenant())
+            .build();
+        transactionRepository.createTransaction(transactionModel);
     }
 
-    public ArchiveUnitModel getArchiveUnitModel(String unitId) throws CollectException {
-
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            JsonNode jsonNode = client.selectUnitbyId(new Select().getFinalSelect(), unitId);
-            if (jsonNode == null || !jsonNode.has(TAG_RESULTS) || jsonNode.get(TAG_RESULTS).size() == 0) {
-                LOGGER.error("Can't get unit by ID: {}" + unitId);
-                throw new CollectException("Can't get unit by ID: " + unitId);
-            }
-            ArchiveUnitModel archiveUnitModel =
-                objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
-            if (archiveUnitModel == null) {
-                LOGGER.error(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
-                throw new CollectException(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
-            }
-            return objectMapper.convertValue(jsonNode.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
-        } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
-            | InvalidParseOperationException | MetaDataClientServerException e) {
-            LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
-            throw new CollectException("Error when fetching unit by id(" + unitId + ") " + e);
-        }
+    /**
+     * create a transaction model from project model
+     *
+     * @throws CollectException exception thrown in case of error
+     */
+    public void createTransactionFromProjectDto(ProjectDto projectDto, String transactionId) throws CollectException {
+        ManifestContext manifestContext = new ManifestContextBuilder()
+            .withArchivalAgreement(projectDto.getArchivalAgreement())
+            .withMessageIdentifier(projectDto.getMessageIdentifier())
+            .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
+            .withTransferingAgencyIdentifier(projectDto.getTransferingAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(projectDto.getArchivalProfile())
+            .withComment(projectDto.getComment())
+            .build();
+        TransactionModel transactionModel = new TransactionModelBuilder()
+            .withId(transactionId)
+            .withManifestContext(manifestContext)
+            .withProjectId(projectDto.getId())
+            .withStatus(TransactionStatus.OPEN)
+            .withTenant(projectDto.getTenant())
+            .build();
+        transactionRepository.createTransaction(transactionModel);
     }
 
-    public ObjectGroupDto saveObjectGroupInMetaData(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage,
-        int version,
-        ObjectGroupDto objectGroupDto) throws CollectException {
-
-        try {
-            objectGroupDto.setId(collectService.createRequestId());
-            if (archiveUnitModel.getOg() == null) {
-                insertNewObject(archiveUnitModel, usage, version, objectGroupDto);
-            } else {
-                updateExistingObject(archiveUnitModel, usage, version, objectGroupDto);
-            }
-            return objectGroupDto;
-        } catch (CollectException e) {
-            LOGGER.error("Error when saving Object in metadata: {}", e);
-            throw new CollectException(e);
-        }
+    /**
+     * return transaction according to id
+     *
+     * @param id model id to find
+     * @return Optional<TransactionModel>
+     * @throws CollectException exception thrown in case of error
+     */
+    public Optional<TransactionModel> findTransaction(String id) throws CollectException {
+        return transactionRepository.findTransaction(id);
     }
 
-    private void updateExistingObject(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage, int version,
-        ObjectGroupDto objectGroupDto) throws CollectException {
-
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            RequestResponse<JsonNode> requestResponse = client.getObjectGroupByIdRaw(archiveUnitModel.getOg());
-            if (!requestResponse.isOk()) {
-                LOGGER.error("Cannot found got with id({}))", archiveUnitModel.getOg());
-                throw new CollectException("Cannot found got with id(" + archiveUnitModel.getOg() + ")");
-            }
-            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-            DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
-            DbQualifiersModel qualifierModelToUpdate =
-                CollectHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
-
-            if (qualifierModelToUpdate == null) {
-                CollectHelper.checkVersion(version, 1);
-                addQualifierToObjectGroups(dbObjectGroupModel, usage, version,
-                    objectGroupDto);
-            } else {
-                DbVersionsModel dbVersionsModel =
-                    CollectHelper.getObjectVersionsModel(dbObjectGroupModel, usage, version);
-
-                if (dbVersionsModel != null) {
-                    LOGGER.error("Qualifier already exist with usage {} and version {})", usage, version);
-                    throw new CollectException("Qualifier already exist with usage " + usage + " and version " +
-                        version + "");
-                }
-
-                int lastVersion = CollectHelper.getLastVersion(qualifierModelToUpdate) + 1;
-                CollectHelper.checkVersion(version, lastVersion);
-                addVersionToObjectGroups(qualifierModelToUpdate, dbObjectGroupModel, usage, lastVersion,
-                    dbObjectGroupModel.getQualifiers(), objectGroupDto);
-            }
-        } catch (VitamClientException | InvalidParseOperationException e) {
-            LOGGER.error("Error when updating existing Object : {}", e);
-            throw new CollectException(e);
-        }
+    /**
+     * return transaction according to id
+     *
+     * @param id model id to find
+     * @return Optional<TransactionModel>
+     * @throws CollectException exception thrown in case of error
+     */
+    public Optional<TransactionModel> findTransactionByProjectId(String id) throws CollectException {
+        return transactionRepository.findTransactionByProjectId(id);
     }
 
-    private void insertNewObject(ArchiveUnitModel archiveUnitModel, DataObjectVersionType usage, int version,
-        ObjectGroupDto objectGroupDto) throws CollectException {
 
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            CollectHelper.checkVersion(version, 1);
-            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
-                .withId(objectGroupDto.getId())
-                .withOpi(archiveUnitModel.getOpi())
-                .withFileInfoModel(objectGroupDto.getFileInfo().getFileName())
-                .withQualifiers(collectService.createRequestId(), objectGroupDto.getFileInfo().getFileName(), usage,
-                    version)
-                .build();
-
-            final ObjectNode insertRequest = QueryHandler.insertObjectMultiQuery(dbObjectGroupModel);
-            JsonNode jsonNode = client.insertObjectGroup(insertRequest);
-            if (jsonNode == null) {
-                LOGGER.error("Error when trying to insert ObjectGroup : {})", insertRequest);
-                throw new CollectException("Error when trying to insert ObjectGroup : : " + insertRequest);
-            }
-
-            JsonNode firstResult = QueryHandler.updateUnitMultiQuery(archiveUnitModel, client, objectGroupDto.getId());
-
-            if (firstResult != null && firstResult.has(TAG_STATUS) &&
-                firstResult.get(TAG_STATUS).textValue().equals(KO.name())) {
-                //TODO : Manage Object Group rollback
-                LOGGER.error("Unit update failed on id : ", archiveUnitModel.getId());
-                throw new CollectException("Unit update failed on id : " + archiveUnitModel.getId());
-            }
-        } catch (final CollectException | MetaDataExecutionException | MetaDataNotFoundException
-            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
-            | InvalidParseOperationException e) {
-            LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
-            throw new CollectException("Error when saving new objectGroup in metadata: " + e);
+    public void closeTransaction(String transactionId) throws CollectException {
+        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
+        if (transactionModel.isEmpty() || !checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
         }
+        TransactionModel currentTransactionModel = transactionModel.get();
+        currentTransactionModel.setStatus(TransactionStatus.CLOSE);
+        replaceTransaction(currentTransactionModel);
     }
 
-    public void addQualifierToObjectGroups(DbObjectGroupModel objectGroup, DataObjectVersionType usage, int version,
-        ObjectGroupDto objectGroupDto) throws CollectException {
-
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            String versionId = collectService.createRequestId();
-            UpdateMultiQuery query =
-                QueryHandler.getQualifiersAddMultiQuery(usage, version, objectGroup.getQualifiers(), objectGroupDto,
-                    versionId,
-                    objectGroup.getNbc());
-            client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("Error when adding usage/version to existing qualifier: {}", e);
-            throw new CollectException("Error when adding usage/version to existing qualifier: " + e);
-        }
+    public void replaceTransaction(TransactionModel transactionModel) throws CollectException {
+        transactionRepository.replaceTransaction(transactionModel);
     }
 
-    public void addVersionToObjectGroups(DbQualifiersModel qualifierModelToUpdate, DbObjectGroupModel objectGroup,
-        DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers, ObjectGroupDto objectGroupDto)
-        throws CollectException {
-
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            String versionId = collectService.createRequestId();
-            UpdateMultiQuery query = QueryHandler.getQualifiersUpdateMultiQuery(qualifierModelToUpdate,
-                usage, version, qualifiers, objectGroupDto, versionId, objectGroup.getNbc());
-
-            client.updateObjectGroupById(query.getFinalUpdate(), objectGroup.getId());
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("Error when adding version to Object: {}", e);
-            throw new CollectException("Error when adding version to Object: " + e);
-        }
-    }
-
-    public DbObjectGroupModel getDbObjectGroup(ArchiveUnitModel archiveUnitModel) throws CollectException {
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            if (archiveUnitModel.getOg() == null) {
-                LOGGER.debug("Cannot found any got attached to unit with id({}))", archiveUnitModel.getId());
-                throw new IllegalArgumentException(
-                    "Cannot found any object attached to unit with id(" + archiveUnitModel.getId() + ")");
-            }
-            RequestResponse<JsonNode> requestResponse = client.getObjectGroupByIdRaw(archiveUnitModel.getOg());
-            if (!requestResponse.isOk()) {
-                LOGGER.debug("Cannot found object with id({}))", archiveUnitModel.getOg());
-                throw new IllegalArgumentException("Cannot found object with id(" + archiveUnitModel.getOg() + ")");
-            }
-            JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-            return objectMapper.convertValue(firstResult, DbObjectGroupModel.class);
-        } catch (VitamClientException e) {
-            LOGGER.error("Error when fetching Object from metadata: {}", e);
-            throw new CollectException("Error when fetching Object from metadata: " + e);
-        }
-    }
-
-    public void addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel, DataObjectVersionType usage,
-        int version, InputStream uploadedInputStream) throws CollectException {
-
-        DbQualifiersModel qualifierModelToUpdate =
-            CollectHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
-
-        if (qualifierModelToUpdate == null) {
-            LOGGER.debug("Cannot found usage for object  with id({}))", dbObjectGroupModel.getId());
-            throw new IllegalArgumentException(
-                "Cannot found usage for object with id(" + dbObjectGroupModel.getId() + ")");
-        }
-
-        DbVersionsModel dbVersionsModel = CollectHelper.getObjectVersionsModel(dbObjectGroupModel, usage, version);
-
-        if (dbVersionsModel == null) {
-            LOGGER.debug("Cannot found version for object  with id({}))", dbObjectGroupModel.getId());
-            throw new IllegalArgumentException(
-                "Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
-        }
-
-        String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
-        String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
-        CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
-        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileName);
-        DbFormatIdentificationModel formatIdentifierResponse =
-            getFormatIdentification(dbObjectGroupModel.getOpi(), fileName);
-
-        if (null != formatIdentifierResponse) {
-            dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
-        }
-
-        int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
-        int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
-        dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
-        dbVersionsModel.setUri(CONTENT_FOLDER + "/" + fileName);
-        dbVersionsModel.setMessageDigest(digest);
-        dbVersionsModel.setAlgorithm(DigestType.SHA512.getName());
-        dbVersionsModel.setSize(countingInputStream.getByteCount());
-
-        qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
-        dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            Map<String, JsonNode> action = new HashMap<>();
-            action.put(QUALIFIERS.exactToken(), toJsonNode(dbObjectGroupModel.getQualifiers()));
-            SetAction setQualifier = new SetAction(action);
-            UpdateMultiQuery query = new UpdateMultiQuery();
-            query.addHintFilter(OBJECTGROUPS.exactToken());
-            query.addActions(setQualifier);
-            client.updateObjectGroupById(query.getFinalUpdate(), dbObjectGroupModel.getId());
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("Error when updating existing qualifier: {}", e);
-            throw new CollectException("Error when updating existing qualifier: " + e);
-        }
-    }
-
-    public String pushStreamToWorkspace(String containerName, InputStream uploadedInputStream, String fileName)
-        throws CollectException {
-        LOGGER.debug("Try to push stream to workspace...");
-        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-            if (!workspaceClient.isExistingContainer(containerName)) {
-                workspaceClient.createContainer(containerName);
-                workspaceClient.createFolder(containerName, CONTENT_FOLDER);
-            }
-            Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-            InputStream digestInputStream = digest.getDigestInputStream(uploadedInputStream);
-            workspaceClient.putObject(containerName, CONTENT_FOLDER.concat("/").concat(fileName), digestInputStream);
-            LOGGER.debug("Push stream to workspace finished");
-            return digest.digestHex();
-        } catch (ContentAddressableStorageException e) {
-            LOGGER.error("Error when trying to push stream to workspace: {} ", e);
-            throw new CollectException("Error when trying to push stream to workspace: " + e);
-        }
-    }
-
-    public JsonNode saveArchiveUnitInMetaData(JsonNode unitJsonDto) throws CollectException {
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            ObjectNode unitJson = JsonHandler.createObjectNode();
-            this.collectVarNameAdapter.setVarsValue(unitJson, unitJsonDto);
-            List<BulkUnitInsertEntry> units = CollectHelper.fetchBulkUnitInsertEntries(unitJson);
-            return client.insertUnitBulk(new BulkUnitInsertRequest(units));
-        } catch (final MetaDataException | InvalidParseOperationException e) {
-            LOGGER.error("Error when saving unit in metadata: {}", e);
-            throw new CollectException("Error when saving unit in metadata: " + e);
-        }
-    }
-
-    public DbFormatIdentificationModel getFormatIdentification(String transactionId, String objectName)
-        throws CollectException {
-        FormatIdentifier formatIdentifier;
-        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-            formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-            if (!workspaceClient.isExistingContainer(transactionId)) {
-                return null;
-            }
-            InputStream is =
-                workspaceClient.getObject(transactionId, CONTENT_FOLDER + "/" + objectName)
-                    .readEntity(InputStream.class);
-            Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), objectName);
-            Files.copy(is, path);
-            File tmpFile = path.toFile();
-            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-            final FormatIdentifierResponse format = CollectHelper.getFirstPronomFormat(formats);
-            if (format == null) {
-                LOGGER.error("Can't not found format !");
-                throw new CollectException("Can't not found format !");
-            }
-            DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
-            formatIdentificationModel.setFormatId(format.getPuid());
-            formatIdentificationModel.setMimeType(format.getMimetype());
-            formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
-            Files.delete(path);
-            return formatIdentificationModel;
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException
-            | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException
-            | FormatIdentifierNotFoundException | FormatIdentifierFactoryException | FormatIdentifierTechnicalException e) {
-            LOGGER.error("Can't detect format for the object : {}", e);
-            throw new CollectException("Can't detect format for the object : " + e);
-        }
+    public boolean checkStatus(TransactionModel transactionModel, TransactionStatus... transactionStatus) {
+        return Arrays.stream(transactionStatus).anyMatch(tr -> transactionModel.getStatus().equals(tr));
     }
 
 }

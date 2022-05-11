@@ -44,11 +44,10 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
  */
 public class CollectMain {
 
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.collect.port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectMain.class);
     private static final String CONF_FILE_NAME = "collect.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.collect.port";
-
     private final VitamStarter vitamStarter;
 
     public CollectMain(String configurationFile) {

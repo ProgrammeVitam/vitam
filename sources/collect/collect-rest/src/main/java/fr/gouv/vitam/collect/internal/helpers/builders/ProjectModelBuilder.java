@@ -24,95 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
+package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.collect.internal.model.CollectType;
+import fr.gouv.vitam.collect.internal.model.ManifestContext;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 
-import java.util.Objects;
-
-/**
- * Transaction model
- */
-public class TransactionModel {
-
-    @JsonProperty("_id")
+public class ProjectModelBuilder {
     private String id;
-
-    @JsonProperty("context")
     private ManifestContext manifestContext;
-
-    private TransactionStatus status;
-
-    private String projectId;
-
-    @JsonProperty("_tenant")
+    private CollectType collectType;
     private Integer tenant;
 
-    public TransactionModel() {
-    }
-
-    public TransactionModel(String id, ManifestContext manifestContext, TransactionStatus status, String projectId,
-        Integer tenant) {
+    public ProjectModelBuilder withId(String id) {
         this.id = id;
+        return this;
+    }
+
+    public ProjectModelBuilder withManifestContext(ManifestContext manifestContext) {
         this.manifestContext = manifestContext;
-        this.status = status;
-        this.projectId = projectId;
+        return this;
+    }
+
+    public ProjectModelBuilder withCollectType(CollectType collectType) {
+        this.collectType = collectType;
+        return this;
+    }
+
+    public ProjectModelBuilder withTenant(Integer tenant) {
         this.tenant = tenant;
+        return this;
     }
 
-    public String getId() {
-        return id;
+    public ProjectModel build() {
+        return new ProjectModel(id, manifestContext, tenant);
     }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public ManifestContext getManifestContext() {
-        return manifestContext;
-    }
-
-    public void setManifestContext(ManifestContext manifestContext) {
-        this.manifestContext = manifestContext;
-    }
-
-    public TransactionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public Integer getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Integer tenant) {
-        this.tenant = tenant;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        TransactionModel that = (TransactionModel) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
 }

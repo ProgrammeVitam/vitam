@@ -30,9 +30,12 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.collect.internal.service.FluxService;
+import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -59,9 +62,8 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
  * module declaring business resource
  */
 public class BusinessApplication extends ConfigurationApplication {
-    private final Set<Object> singletons;
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BusinessApplication.class);
+    private final Set<Object> singletons;
 
     /**
      * Constructor
@@ -79,16 +81,21 @@ public class BusinessApplication extends ConfigurationApplication {
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
-            CollectService collectService = new CollectService(transactionRepository);
+            TransactionService transactionService = new TransactionService(transactionRepository);
+            ProjectRepository projectRepository = new ProjectRepository(mongoDbAccess);
+            ProjectService projectService = new ProjectService(projectRepository);
             SipService sipService = new SipService(configuration);
-            TransactionService transactionService = new TransactionService(collectService, configuration);
+            CollectService collectService = new CollectService(transactionService, configuration);
+            FluxService fluxService =
+                new FluxService(transactionService, projectService, collectService, configuration);
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
-            singletons.add(new TransactionResource(collectService, transactionService, sipService));
+            singletons.add(
+                new TransactionResource(transactionService, collectService, sipService, projectService, fluxService));
         } catch (IOException e) {
             LOGGER.debug("Error when starting BusinessApplication : {}", e);
             throw new CollectException(e);
