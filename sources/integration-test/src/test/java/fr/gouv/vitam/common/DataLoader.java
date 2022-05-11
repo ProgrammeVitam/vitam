@@ -114,18 +114,16 @@ public class DataLoader {
             int initialTenant = VitamThreadUtils.getVitamSession().getTenantId();
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
-            List<OntologyModel> ontology = JsonHandler
-                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+            List<OntologyModel> ontology =
+                JsonHandler.getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                     new TypeReference<>() {
                     });
             try (InputStream externalOntologyStream = PropertiesUtils
                 .getResourceAsStream(dataFodler + "/addition_ext_ontology.json")) {
-                if (externalOntologyStream != null) {
-                    List<OntologyModel> externalOntology = JsonHandler.getFromInputStreamAsTypeReference(
-                        externalOntologyStream, new TypeReference<>() {
-                        });
-                    ontology.addAll(externalOntology);
-                }
+                List<OntologyModel> externalOntology = JsonHandler.getFromInputStreamAsTypeReference(
+                    externalOntologyStream, new TypeReference<>() {
+                    });
+                ontology.addAll(externalOntology);
             } catch (FileNotFoundException e) {
                 LOGGER.info("No addition_ext_ontology.json defined in dataFolder");
             }
