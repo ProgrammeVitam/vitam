@@ -24,75 +24,104 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers.builders;
+package fr.gouv.vitam.collect.internal.model;
 
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+public class ManifestContext {
 
-public class TransactionDtoBuilder {
-    private String id;
     private String archivalAgreement;
+
     private String messageIdentifier;
+
     private String archivalAgencyIdentifier;
+
     private String transferingAgencyIdentifier;
+
     private String originatingAgencyIdentifier;
+
     private String submissionAgencyIdentifier;
+
     private String archivalProfile;
+
     private String comment;
-    private Integer tenant;
 
-    public TransactionDtoBuilder withId(String id) {
-        this.id = id;
-        return this;
+
+    public ManifestContext() {
     }
 
-    public TransactionDtoBuilder withArchivalAgreement(String archivalAgreement) {
+    public ManifestContext(String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
+        String archivalProfile, String comment) {
         this.archivalAgreement = archivalAgreement;
-        return this;
-    }
-
-    public TransactionDtoBuilder withMessageIdentifier(String messageIdentifier) {
         this.messageIdentifier = messageIdentifier;
-        return this;
-    }
-
-    public TransactionDtoBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        return this;
-    }
-
-    public TransactionDtoBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
-        return this;
-    }
-
-    public TransactionDtoBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-        return this;
-    }
-
-    public TransactionDtoBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
-        return this;
-    }
-
-    public TransactionDtoBuilder withArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
-        return this;
-    }
-
-    public TransactionDtoBuilder withComment(String comment) {
         this.comment = comment;
-        return this;
     }
 
-    public TransactionDtoBuilder withTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
+    public String getArchivalAgreement() {
+        return archivalAgreement;
     }
 
-    public TransactionDto build() {
-        return new TransactionDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
-            transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
-            comment, tenant);
+    public void setArchivalAgreement(String archivalAgreement) {
+        this.archivalAgreement = archivalAgreement;
+    }
+
+    public String getMessageIdentifier() {
+        return messageIdentifier;
+    }
+
+    public void setMessageIdentifier(String messageIdentifier) {
+        this.messageIdentifier = messageIdentifier;
+    }
+
+    public String getArchivalAgencyIdentifier() {
+        return archivalAgencyIdentifier;
+    }
+
+    public void setArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+    }
+
+    public String getTransferingAgencyIdentifier() {
+        return transferingAgencyIdentifier;
+    }
+
+    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    }
+
+    public String getOriginatingAgencyIdentifier() {
+        return originatingAgencyIdentifier;
+    }
+
+    public void setOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+    }
+
+    public String getSubmissionAgencyIdentifier() {
+        return submissionAgencyIdentifier;
+    }
+
+    public void setSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
+    }
+
+    public String getArchivalProfile() {
+        return archivalProfile;
+    }
+
+    public void setArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

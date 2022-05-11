@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
@@ -44,6 +45,42 @@ import java.util.UUID;
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
     ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public RequestResponse<JsonNode> initProject(ProjectDto projectDto) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> updateProject(ProjectDto projectDto) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getProjectById(String projectId) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getProjects() throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> getUnitById(String unitId) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getUnitsByTransaction(String transactionId) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> getObjectById(String gotId) throws VitamClientException {
+        return null;
+    }
+
     @Override
     public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws VitamClientException {
         transactionDto.setId(UUID.randomUUID().toString());
@@ -77,6 +114,11 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
 
     @Override
     public RequestResponseOK<JsonNode> ingest(String transactionId) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public Response uploadProjectZip(String projectId, InputStream inputStreamUploaded) throws VitamClientException {
         return null;
     }
 }

@@ -26,10 +26,11 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.gouv.vitam.collect.internal.model.ManifestContext;
 
-public class TransactionDtoBuilder {
-    private String id;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ManifestContextBuilder {
     private String archivalAgreement;
     private String messageIdentifier;
     private String archivalAgencyIdentifier;
@@ -38,61 +39,50 @@ public class TransactionDtoBuilder {
     private String submissionAgencyIdentifier;
     private String archivalProfile;
     private String comment;
-    private Integer tenant;
 
-    public TransactionDtoBuilder withId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public TransactionDtoBuilder withArchivalAgreement(String archivalAgreement) {
+    public ManifestContextBuilder withArchivalAgreement(String archivalAgreement) {
         this.archivalAgreement = archivalAgreement;
         return this;
     }
 
-    public TransactionDtoBuilder withMessageIdentifier(String messageIdentifier) {
+    public ManifestContextBuilder withMessageIdentifier(String messageIdentifier) {
         this.messageIdentifier = messageIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
+    public ManifestContextBuilder withArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
+    public ManifestContextBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
         this.transferingAgencyIdentifier = transferingAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
+    public ManifestContextBuilder withOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
+    public ManifestContextBuilder withSubmissionAgencyIdentifier(String submissionAgencyIdentifier) {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         return this;
     }
 
-    public TransactionDtoBuilder withArchivalProfile(String archivalProfile) {
+    public ManifestContextBuilder withArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
         return this;
     }
 
-    public TransactionDtoBuilder withComment(String comment) {
+    public ManifestContextBuilder withComment(String comment) {
         this.comment = comment;
         return this;
     }
 
-    public TransactionDtoBuilder withTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-    public TransactionDto build() {
-        return new TransactionDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
+    public ManifestContext build() {
+        return new ManifestContext(archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
-            comment, tenant);
+            comment);
     }
 }

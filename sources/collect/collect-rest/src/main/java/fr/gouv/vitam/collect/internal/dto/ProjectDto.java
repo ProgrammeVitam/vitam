@@ -29,12 +29,13 @@ package fr.gouv.vitam.collect.internal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TransactionDto implements Serializable {
+public class ProjectDto implements Serializable {
 
     @JsonProperty(value = "id")
     private String id;
@@ -66,15 +67,17 @@ public class TransactionDto implements Serializable {
     @JsonProperty("tenant")
     private Integer tenant;
 
-    public TransactionDto() {
+    private String transactionId;
+
+    public ProjectDto() {
         //Empty constructor for serialization
     }
 
-    public TransactionDto(String id) {
+    public ProjectDto(String id) {
         this.id = id;
     }
 
-    public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
+    public ProjectDto(String id, String archivalAgreement, String messageIdentifier,
         String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment, Integer tenant) {
@@ -88,6 +91,19 @@ public class TransactionDto implements Serializable {
         this.archivalProfile = archivalProfile;
         this.comment = comment;
         this.tenant = tenant;
+    }
+
+    public ProjectDto(ProjectModel projectModel) {
+        this.id = projectModel.getId();
+        this.archivalAgreement = projectModel.getManifestContext().getArchivalAgreement();
+        this.messageIdentifier = projectModel.getManifestContext().getMessageIdentifier();
+        this.archivalAgencyIdentifier = projectModel.getManifestContext().getArchivalAgencyIdentifier();
+        this.transferingAgencyIdentifier = projectModel.getManifestContext().getTransferingAgencyIdentifier();
+        this.originatingAgencyIdentifier = projectModel.getManifestContext().getOriginatingAgencyIdentifier();
+        this.submissionAgencyIdentifier = projectModel.getManifestContext().getSubmissionAgencyIdentifier();
+        this.archivalProfile = projectModel.getManifestContext().getArchivalProfile();
+        this.comment = projectModel.getManifestContext().getComment();
+        this.tenant = projectModel.getTenant();
     }
 
     public String getId() {
@@ -170,13 +186,21 @@ public class TransactionDto implements Serializable {
         this.tenant = tenant;
     }
 
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        TransactionDto that = (TransactionDto) o;
+        ProjectDto that = (ProjectDto) o;
         return Objects.equals(id, that.id);
     }
 

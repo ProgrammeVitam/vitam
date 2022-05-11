@@ -160,7 +160,12 @@ public enum SecurityProfilePermissions {
     TRANSACTION_SEND("transaction:send"),
     TRANSACTION_UNIT_CREATE("transaction:unit:create"),
     TRANSACTION_OBJECT_UPSERT("transaction:object:upsert"),
-    TRANSACTION_BINARY_UPSERT("transaction:binary:upsert");
+    TRANSACTION_BINARY_UPSERT("transaction:binary:upsert"),
+    PROJECT_CREATE("project:create"),
+    PROJECT_READ("project:read"),
+    TRANSACTION_UNIT_READ("transaction:unit:read"),
+    TRANSACTION_OBJECT_READ("transaction:object:read"),
+    TRANSACTION_BINARY_READ("transaction:binary:read");
 
 
     private final String permission;

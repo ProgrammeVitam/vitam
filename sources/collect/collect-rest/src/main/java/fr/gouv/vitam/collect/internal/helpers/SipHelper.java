@@ -50,11 +50,13 @@ public class SipHelper {
     public static ExportRequestParameters buildExportRequestParameters(TransactionModel transactionModel) {
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
-        exportRequestParameters.setArchivalAgencyIdentifier(transactionModel.getArchivalAgencyIdentifier());
+        exportRequestParameters
+            .setArchivalAgencyIdentifier(transactionModel.getManifestContext().getArchivalAgencyIdentifier());
         exportRequestParameters.setRequesterIdentifier(COLLECT_REQUESTER_IDENTIFIER);
-        exportRequestParameters.setComment(transactionModel.getComment());
-        exportRequestParameters.setArchivalAgreement(transactionModel.getArchivalAgreement());
-        exportRequestParameters.setTransferringAgency(transactionModel.getTransferingAgencyIdentifier());
+        exportRequestParameters.setComment(transactionModel.getManifestContext().getComment());
+        exportRequestParameters.setArchivalAgreement((transactionModel.getManifestContext() != null ?  transactionModel.getManifestContext().getArchivalAgreement() : null));
+        exportRequestParameters
+            .setTransferringAgency(transactionModel.getManifestContext().getTransferingAgencyIdentifier());
         return exportRequestParameters;
     }
 

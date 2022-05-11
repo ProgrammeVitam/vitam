@@ -58,22 +58,6 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
         return COLLECT_CLIENT_FACTORY;
     }
 
-    @Override
-    public CollectClient getClient() {
-        CollectClient client;
-        switch (getVitamClientType()) {
-            case MOCK:
-                client = new CollectClientMock();
-                break;
-            case PRODUCTION:
-                client = new CollectClientRest(this);
-                break;
-            default:
-                throw new IllegalArgumentException("Collect client type unknown");
-        }
-        return client;
-    }
-
     /**
      * Change client configuration from a Yaml files
      *
@@ -100,9 +84,24 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
-
     public static void changeMode(String configurationFile) {
         SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    @Override
+    public CollectClient getClient() {
+        CollectClient client;
+        switch (getVitamClientType()) {
+            case MOCK:
+                client = new CollectClientMock();
+                break;
+            case PRODUCTION:
+                client = new CollectClientRest(this);
+                break;
+            default:
+                throw new IllegalArgumentException("Collect client type unknown");
+        }
+        return client;
     }
 }

@@ -31,9 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 /**
- * Transaction model
+ * project model
  */
-public class TransactionModel {
+public class ProjectModel {
 
     @JsonProperty("_id")
     private String id;
@@ -41,22 +41,15 @@ public class TransactionModel {
     @JsonProperty("context")
     private ManifestContext manifestContext;
 
-    private TransactionStatus status;
-
-    private String projectId;
-
     @JsonProperty("_tenant")
     private Integer tenant;
 
-    public TransactionModel() {
+    public ProjectModel() {
     }
 
-    public TransactionModel(String id, ManifestContext manifestContext, TransactionStatus status, String projectId,
-        Integer tenant) {
+    public ProjectModel(String id, ManifestContext manifestContext, Integer tenant) {
         this.id = id;
         this.manifestContext = manifestContext;
-        this.status = status;
-        this.projectId = projectId;
         this.tenant = tenant;
     }
 
@@ -76,22 +69,6 @@ public class TransactionModel {
         this.manifestContext = manifestContext;
     }
 
-    public TransactionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
     public Integer getTenant() {
         return tenant;
     }
@@ -106,7 +83,7 @@ public class TransactionModel {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        TransactionModel that = (TransactionModel) o;
+        ProjectModel that = (ProjectModel) o;
         return Objects.equals(id, that.id);
     }
 

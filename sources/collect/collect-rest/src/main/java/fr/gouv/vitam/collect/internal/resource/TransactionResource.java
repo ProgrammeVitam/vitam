@@ -30,15 +30,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.internal.dto.IngestDto;
 import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.internal.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.collect.internal.service.FluxService;
+import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,26 +52,37 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -78,19 +94,126 @@ public class TransactionResource extends ApplicationStatusResource {
     public static final String SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID =
         "SIP ingest operation can't provide a null operationGuiid";
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
-    private final CollectService collectService;
-    private final TransactionService transactionService;
-    private final SipService sipService;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
     private static final String OPI = "#opi";
     private static final String ID = "#id";
+    private final TransactionService transactionService;
+    private final ProjectService projectService;
+    private final CollectService collectService;
+    private final SipService sipService;
+    private final FluxService fluxService;
 
-    public TransactionResource(CollectService collectService, TransactionService transactionService,
-        SipService sipService) {
-        this.collectService = collectService;
+    public TransactionResource(TransactionService transactionService, CollectService collectService,
+        SipService sipService, ProjectService projectService, FluxService fluxService) {
         this.transactionService = transactionService;
+        this.collectService = collectService;
         this.sipService = sipService;
+        this.projectService = projectService;
+        this.fluxService = fluxService;
+    }
+
+    @Path("/projects")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_CREATE, description = "Créer un projet avec une transaction")
+    public Response initProject(ProjectDto projectDto) {
+        try {
+            ParametersChecker.checkParameter("You must supply projects datas!", projectDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(projectDto));
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            projectDto.setId(CollectService.createRequestId());
+            projectDto.setTenant(tenantId);
+            projectService.createProject(projectDto);
+            String transactionId = CollectService.createRequestId();
+            transactionService.createTransactionFromProjectDto(projectDto, transactionId);
+            projectDto.setTransactionId(transactionId);
+            return CollectRequestResponse.toResponseOK(projectDto);
+        } catch (CollectException e) {
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/projects")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_CREATE, description = "Mise a jour d'un projet")
+    public Response updateProject(ProjectDto projectDto) {
+        try {
+            ParametersChecker.checkParameter("You must supply projects datas!", projectDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(projectDto));
+            Optional<ProjectModel> projectModel = projectService.findProject(projectDto.getId());
+            if (projectModel.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            projectDto.setTenant(tenantId);
+            projectService.replaceProject(projectDto);
+
+            return CollectRequestResponse.toResponseOK(projectDto);
+        } catch (CollectException e) {
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/projects/{projectId}")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_READ, description = "récupérer le projet")
+    public Response getProjectById(@PathParam("projectId") String projectId) {
+        try {
+            SanityChecker.checkParameter(projectId);
+            Optional<ProjectModel> projectModel = projectService.findProject(projectId);
+
+            if (projectModel.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+
+            return CollectRequestResponse.toResponseOK(new ProjectDto(projectModel.get()));
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching project by Id : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching project by Id : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+
+    @Path("/projects")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_READ, description = "récupérer liste de projet par tenant")
+    public Response getProjects() {
+        try {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            List<ProjectModel> listProjects = projectService.findProjectsByTenant(tenantId);
+            if (listProjects.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+
+            return CollectRequestResponse.toResponseOK(listProjects);
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching projects by tenant Id : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Error when fetching projects by tenant Id : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
     }
 
     @Path("/transactions")
@@ -102,10 +225,11 @@ public class TransactionResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(transactionDto));
-
-            String requestId = collectService.createRequestId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            String requestId = CollectService.createRequestId();
             transactionDto.setId(requestId);
-            collectService.createCollect(transactionDto);
+            transactionDto.setTenant(tenantId);
+            transactionService.createTransaction(transactionDto);
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -126,17 +250,18 @@ public class TransactionResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(unitJsonNode);
 
-            Optional<TransactionModel> collectModel = collectService.findTransaction(transactionId);
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
 
-            if (collectModel.isEmpty() || !collectService.checkStatus(collectModel.get(), TransactionStatus.OPEN)) {
+            if (transactionModel.isEmpty() ||
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
 
             ObjectNode unitObjectNode = JsonHandler.getFromJsonNode(unitJsonNode, ObjectNode.class);
-            unitObjectNode.put(ID, collectService.createRequestId());
+            unitObjectNode.put(ID, CollectService.createRequestId());
             unitObjectNode.put(OPI, transactionId);
-            JsonNode savedUnitJsonNode = transactionService.saveArchiveUnitInMetaData(unitObjectNode);
+            JsonNode savedUnitJsonNode = collectService.saveArchiveUnitInMetaData(unitObjectNode);
 
             if (savedUnitJsonNode == null) {
                 LOGGER.error(ERROR_WHILE_TRYING_TO_SAVE_UNITS);
@@ -147,6 +272,45 @@ public class TransactionResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
+
+    @Path("/units/{unitId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
+    public Response getUnitById(@PathParam("unitId") String unitId) {
+
+        try {
+            SanityChecker.checkParameter(unitId);
+            JsonNode response = collectService.getUnitByIdInMetaData(unitId);
+            return Response.status(OK).entity(response).build();
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching unit in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching unit in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/transactions/{transactionId}/units")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
+    public Response getUnitsByTransaction(@PathParam("transactionId") String transactionId) {
+
+        try {
+            SanityChecker.checkParameter(transactionId);
+            JsonNode response = collectService.getUnitsByTransactionIdInMetaData(transactionId);
+            return CollectRequestResponse.toResponseOK(response);
+        } catch (CollectException e) {
+            LOGGER.error("Error when getting units in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when getting units in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
 
     @Path("/units/{unitId}/objects/{usage}/{version}")
     @POST
@@ -164,10 +328,10 @@ public class TransactionResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupDto));
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            transactionService.checkParameters(unitId, usage, version);
-            ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitModel(unitId);
+            collectService.checkParameters(unitId, usage, version);
+            ArchiveUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
             ObjectGroupDto savedObjectGroupDto =
-                transactionService.saveObjectGroupInMetaData(archiveUnitModel, usage, version, objectGroupDto);
+                collectService.saveObjectGroupInMetaData(archiveUnitModel, usage, version, objectGroupDto);
 
             return CollectRequestResponse.toResponseOK(savedObjectGroupDto);
         } catch (CollectException e) {
@@ -175,6 +339,25 @@ public class TransactionResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Error while trying to save objects : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/objects/{gotId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_OBJECT_READ, description = "récupérer un groupe d'objet")
+    public Response getObjectById(@PathParam("gotId") String gotId) {
+
+        try {
+            SanityChecker.checkParameter(gotId);
+            JsonNode response = collectService.getObjectGroupByIdInMetaData(gotId);
+            return Response.status(OK).entity(response).build();
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching object in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching object in metadata : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
@@ -195,10 +378,10 @@ public class TransactionResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("You must supply a file!", uploadedInputStream);
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            transactionService.checkParameters(unitId, usage, version);
-            ArchiveUnitModel archiveUnitModel = transactionService.getArchiveUnitModel(unitId);
-            DbObjectGroupModel dbObjectGroupModel = transactionService.getDbObjectGroup(archiveUnitModel);
-            transactionService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream);
+            collectService.checkParameters(unitId, usage, version);
+            ArchiveUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
+            DbObjectGroupModel dbObjectGroupModel = collectService.getDbObjectGroup(archiveUnitModel);
+            collectService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream, "");
 
             return Response.status(OK).build();
         } catch (CollectException e) {
@@ -212,6 +395,36 @@ public class TransactionResource extends ApplicationStatusResource {
 
     }
 
+    @Path("/units/{unitId}/objects/{usage}/{version}/binary")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = TRANSACTION_BINARY_READ, description = "télécharger un binaire")
+    public Response download(@PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version) throws CollectException {
+        try {
+            SanityChecker.checkParameter(unitId);
+            SanityChecker.checkParameter(usageString);
+            SanityChecker.checkParameter(String.valueOf(version.intValue()));
+
+            DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
+            collectService.checkParameters(unitId, usage, version);
+            ArchiveUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
+            collectService.getDbObjectGroup(archiveUnitModel);
+            return collectService.getBinaryByUsageAndVersion(archiveUnitModel, usage, version);
+        } catch (CollectException e) {
+            LOGGER.debug("An error occurs when try to fetch binary from database : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("n error occurs when try to fetch binary from database : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (StorageNotFoundException e) {
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+
+    }
+
+
     @Path("/transactions/{transactionId}/close")
     @POST
     @Consumes(APPLICATION_JSON)
@@ -220,7 +433,7 @@ public class TransactionResource extends ApplicationStatusResource {
     public Response closeTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
-            collectService.closeTransaction(transactionId);
+            transactionService.closeTransaction(transactionId);
             return Response.status(OK).build();
         } catch (CollectException e) {
             LOGGER.error("An error occurs when try to close transaction : {}", e);
@@ -241,28 +454,29 @@ public class TransactionResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkParameter(transactionId);
 
-            Optional<TransactionModel> collectModel = collectService.findTransaction(transactionId);
-            if (collectModel.isEmpty() || !collectService.checkStatus(collectModel.get(), TransactionStatus.CLOSE)) {
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+            if (transactionModel.isEmpty() ||
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.CLOSE)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
 
-            String digest = sipService.generateSip(collectModel.get());
+            String digest = sipService.generateSip(transactionModel.get());
             if (digest == null) {
                 LOGGER.error(SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
             }
 
-            final String operationGuiid = sipService.ingest(collectModel.get(), digest);
+            final String operationGuiid = sipService.ingest(transactionModel.get(), digest);
             if (operationGuiid == null) {
                 LOGGER.error(SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR,
                     SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
             }
 
-            TransactionModel currentTransactionModel = collectModel.get();
+            TransactionModel currentTransactionModel = transactionModel.get();
             currentTransactionModel.setStatus(TransactionStatus.SENT);
-            collectService.replaceTransaction(currentTransactionModel);
+            transactionService.replaceTransaction(currentTransactionModel);
 
             return CollectRequestResponse.toResponseOK(new IngestDto(operationGuiid));
         } catch (CollectException e) {
@@ -274,5 +488,46 @@ public class TransactionResource extends ApplicationStatusResource {
         }
     }
 
+    @Path("/projects/{projectId}/binary")
+    @POST
+    @Consumes({CommonMediaType.ZIP})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "ajouter un zip contenant une arborescence")
+    public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
+        try {
+            ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
+            if (inputStreamObject == null) {
+                LOGGER.error(ErrorMessage.STREAM_IS_NULL.getMessage());
+                return Response.status(BAD_REQUEST).build();
+            }
+            Optional<ProjectModel> projectModel = projectService.findProject(projectId);
 
+            if (projectModel.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+            ProjectDto projectDto = new ProjectDto(projectModel.get());
+
+            Optional<TransactionModel> transactionModel =
+                transactionService.findTransactionByProjectId(projectDto.getId());
+
+            if (transactionModel.isEmpty() ||
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+            projectDto.setTransactionId(transactionModel.get().getId());
+
+            fluxService.process(ParameterHelper.getTenantParameter(), inputStreamObject, projectDto);
+
+            return Response.status(OK).build();
+        } catch (CollectException e) {
+            LOGGER.debug("An error occurs when try to upload the ZIP: {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+
+    }
 }
