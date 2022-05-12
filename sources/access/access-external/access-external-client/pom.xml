@@ -56,7 +56,6 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
