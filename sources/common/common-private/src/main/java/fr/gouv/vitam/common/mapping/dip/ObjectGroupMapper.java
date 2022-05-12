@@ -167,7 +167,7 @@ public class ObjectGroupMapper {
             Map<String, Object> otherMetadataMap = version.getOtherMetadata();
             if (otherMetadataMap != null && !otherMetadataMap.isEmpty()) {
                 otherMetadata.getAny()
-                    .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(otherMetadataMap)));
+                    .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(otherMetadataMap));
                 binaryDataObjectType.setOtherMetadata(otherMetadata);
             }
         }
@@ -183,7 +183,7 @@ public class ObjectGroupMapper {
         identifierType.setValue(version.getPhysicalId());
         physicalDataObjectType.setPhysicalId(identifierType);
         physicalDataObjectType.getAny()
-            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(version.getAny())));
+            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(version.getAny()));
 
         return physicalDataObjectType;
     }

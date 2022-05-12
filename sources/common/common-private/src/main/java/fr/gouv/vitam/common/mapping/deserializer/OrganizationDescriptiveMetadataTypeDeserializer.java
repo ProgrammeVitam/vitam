@@ -58,7 +58,7 @@ public class OrganizationDescriptiveMetadataTypeDeserializer
         JsonNode node = jp.getCodec().readTree(jp);
 
         Map<String, Object> map = objectMapper.convertValue(node, REFERENCE);
-        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(map);
         OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
             new OrganizationDescriptiveMetadataType();
         organizationDescriptiveMetadataType.getAny().addAll(elements);

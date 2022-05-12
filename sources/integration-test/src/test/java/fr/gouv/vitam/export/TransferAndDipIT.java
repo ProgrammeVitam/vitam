@@ -139,6 +139,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
     private static final String UNIT_WITHOUT_OBJECT_TRANSFER =
         "integration-ingest-internal/unit_without_object_transfer.zip";
+    private static final String SIP_EXTENDED =
+        "integration-ingest-internal/SIP_EXTENDED.zip";
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -231,6 +233,49 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(manifest)
             .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_DIP_with_custom_metadata() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, SIP_EXTENDED);
+        verifyOperation(ingestOpId, StatusCode.OK);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            false
+        );
+
+        exportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters();
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+
+        // When ArchiveDeliveryRequestReply
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, StatusCode.OK);
+
+        JsonNode logbook = VitamTestHelper.findLogbook(exportOperationId);
+        assertNotNull(logbook);
+        RequestResponseOK<JsonNode> response = RequestResponseOK.getFromJsonNode(logbook);
+        assertThat(response.getResults()).isNotEmpty();
+        assertThat(response.getResults().get(0).get(EV_TYPE).asText()).isEqualTo(Contexts.EXPORT_DIP.getEventType());
+
+        String manifest = getManifestString(getDip(exportOperationId));
+        assertThat(manifest).contains("<MyEnum>Purple</MyEnum>");
+        assertThat(manifest).contains("<MyDate>2022-04-07</MyDate>");
+        assertThat(manifest).contains("<MyDouble>18.24</MyDouble>");
+        assertThat(manifest).contains("<MyGeoPoint>48.89389174727097, 2.3590351652328923</MyGeoPoint>");
+        assertThat(manifest).contains("<MyLong>17</MyLong>");
+        assertThat(manifest).contains("<MyBoolean>false</MyBoolean>");
+        assertThat(manifest).contains("<MyKeyword>VitamKeyword</MyKeyword>");
+        assertThat(manifest).contains("<MyText>Here is my text</MyText>");
     }
 
     @Test

@@ -72,6 +72,6 @@ public class LogbookMapper {
         extensions.put(OBJECT_IDENTIFIER,
             Collections.singletonList(eventData.getString(LOGBOOK_EVENT_OBJECT_IDENTIFIER)));
         event.getAny()
-            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(extensions)));
+            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extensions));
     }
 }
