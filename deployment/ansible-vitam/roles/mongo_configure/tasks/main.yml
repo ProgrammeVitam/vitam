@@ -90,6 +90,7 @@
         - "mongo-data/users-masterdata.js.j2"
         - "mongo-data/users-metadata.js.j2"
         - "mongo-data/users-report.js.j2"
+        - "mongo-data/users-scheduler.js.j2"
       when:
         - "mongo_cluster_name == 'mongo-data'"
       tags:
@@ -144,6 +145,7 @@
         - metadata
         - identity
         - report
+        - scheduler
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"
       tags:

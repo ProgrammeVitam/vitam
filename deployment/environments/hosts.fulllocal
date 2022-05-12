@@ -69,6 +69,7 @@ hosts_worker
 hosts_access_internal
 hosts_metadata
 hosts_functional_administration
+hosts_scheduler
 hosts_logbook
 hosts_workspace
 hosts_storage_engine
@@ -96,6 +97,9 @@ localhost
 localhost
 
 [hosts_functional_administration]
+localhost
+
+[hosts_scheduler]
 localhost
 
 [hosts_processing]

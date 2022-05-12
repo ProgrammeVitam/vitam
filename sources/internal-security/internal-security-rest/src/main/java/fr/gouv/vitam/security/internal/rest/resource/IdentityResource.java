@@ -27,6 +27,8 @@
 package fr.gouv.vitam.security.internal.rest.resource;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,10 +42,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.security.cert.CertificateException;
+import java.text.ParseException;
 
 @Path("/v1/api/identity")
 @Tag(name = "Security")
 public class IdentityResource {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityResource.class);
+
 
     private final IdentityService identityService;
 
@@ -77,5 +83,18 @@ public class IdentityResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response contextIsUsed(@PathParam("contextId") String contextId) {
         return Response.ok().entity(identityService.contextIsUsed(contextId)).build();
+    }
+
+    @GET
+    @Path("/check-expiration")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkCertificatesExpiration() {
+        try {
+            identityService.checkCertificates();
+        } catch (ParseException | InvalidParseOperationException e) {
+            LOGGER.error("cannot check certificate expiration date", e);
+            return Response.serverError().build();
+        }
+        return Response.accepted().build();
     }
 }

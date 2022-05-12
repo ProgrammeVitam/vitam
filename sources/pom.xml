@@ -54,6 +54,7 @@
         <module>batch-report</module>
         <module>hello-world-plugin</module>
         <module>collect</module>
+        <module>scheduler</module>
     </modules>
 
 
@@ -232,6 +233,9 @@
         <jaxb2-basics.version>0.6.5</jaxb2-basics.version>
         <swagger-maven-plugin.version>2.1.0</swagger-maven-plugin.version>
         <javax.ws.rs-api.version>2.1</javax.ws.rs-api.version>
+        <quartz.version>2.3.2</quartz.version>
+        <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
+        <jta.version>1.1</jta.version>
     </properties>
 
 
@@ -1560,6 +1564,32 @@
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
                 <version>${io.reactivex.rxjava2.version}</version>
+            </dependency>
+
+            <!-- ####################### Quartz Scheduler ####################### -->
+
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>${quartz.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz-jobs</artifactId>
+                <version>${quartz.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fluidsonic.mirror</groupId>
+                <artifactId>quartz-mongodb</artifactId>
+                <version>${quartz-mongodb.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.transaction</groupId>
+                <artifactId>jta</artifactId>
+                <version>${jta.version}</version>
             </dependency>
 
             <!-- ####################### Tests ####################### -->

@@ -1,0 +1,9 @@
+Package: vitam-${unix.name}
+Version: [[version]]
+Section: Application/Archiving
+Priority: low
+Architecture: all
+Depends: ${jdk.version.debian}, systemd, vitam-user-${unix.user}
+Build-Depends: dh-systemd
+Maintainer: Vitam Package Team
+Description: [[description]]

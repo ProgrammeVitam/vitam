@@ -42,6 +42,7 @@ import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMappe
 import fr.gouv.vitam.security.internal.rest.mapper.PersonalCertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
+import fr.gouv.vitam.security.internal.rest.resource.CertificateResource;
 import fr.gouv.vitam.security.internal.rest.resource.IdentityResource;
 import fr.gouv.vitam.security.internal.rest.resource.PersonalCertificateResource;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
@@ -99,6 +100,7 @@ public class BusinessApplication extends ConfigurationApplication {
 
             singletons.add(new IdentityResource(identityService));
             singletons.add(new PersonalCertificateResource(permissionService, personalCertificateService));
+            singletons.add(new CertificateResource(identityService, personalCertificateService));
 
             singletons.add(new CertificateExceptionMapper());
             singletons.add(new IllegalArgumentExceptionMapper());

@@ -222,6 +222,15 @@ vitam:
         accessionRegisterSymbolicThreadPoolSize: 16
         # Number of rule audit threads that can be run in parallel.
         ruleAuditThreadPoolSize: 16
+    scheduler:
+        vitam_component: scheduler
+        host: "scheduler.service.{{ consul_domain }}"
+        port_service: 8799
+        port_admin: 28799
+        baseuri: "scheduler"
+        https_enabled: false
+        secret_platform: "true"
+        schedulerThreadSize: 8
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"

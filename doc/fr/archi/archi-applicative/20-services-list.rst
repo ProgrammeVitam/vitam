@@ -269,6 +269,28 @@ Données gérées :
 
 * Aucune
 
+Scheduler
+=========
+
+Rôle :
+
+* Exécution des tâches périodiquement
+
+Fonctions :
+
+* Planifier une tâche
+* Supervision de l’état d’exécution de chaque « job »
+* Reprise sur incident
+
+Contraintes techniques :
+
+* Toutes les horloges des instances doivent être synchronisés
+
+Données gérées :
+
+* Aucune
+
+
 Connecteur générique
 ====================
 

@@ -193,4 +193,9 @@
   <logger name="fr.gouv.vitam.metadata.core.migration" level="INFO"/>
 {% endif %}
 
+{% if vitam_struct.vitam_component == 'scheduler' %}
+  <logger name="org.quartz" level="INFO"/>
+  <logger name="fr.gouv.vitam.scheduler" level="INFO"/>
+{% endif %}
+
 </configuration>

@@ -4,7 +4,7 @@
 #   0. Confirm playbook launch
 #   1. Infrastructure checks (optional)
 #   2. Network check
-#   3. Stop Vitam timers
+#   3. Stop Scheduler and Vitam timers
 #   4. Normalize
 #   5. Check ontology (when upgrade)
 #   6. Consul
@@ -16,7 +16,7 @@
 #  12. Kibana Data
 #  13. Mongo
 #  14. Vitam applications
-#  15. Start Vitam timers
+#  15. Start Scheduler and Vitam timers
 #  16. IHM Demo
 
 ### CONFIRM PLAYBOOK LAUNCH ###
@@ -46,6 +46,18 @@
     - checks
 
 ### STOP VITAM TIMERS ###
+- hosts: hosts_scheduler
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - service
+  vars:
+    state: stopped
+    name: vitam-scheduler
+    hote: "{{ ip_service }}"
+    port_check: "{{ vitam.scheduler.port_service }}"
+    timeout: "{{ vitam_defaults.services.stop_timeout }}"
+
 - name: Stop Vitam timers
   import_playbook: internal_stop_vitam_timers.yml
 
@@ -387,6 +399,14 @@
     vitam_certificate_client_type: "external"
 
 ### START VITAM TIMERS ###
+- hosts: hosts_scheduler
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.scheduler }}"
+
 - name: Start Vitam timers
   import_playbook: internal_start_vitam_timers.yml
 

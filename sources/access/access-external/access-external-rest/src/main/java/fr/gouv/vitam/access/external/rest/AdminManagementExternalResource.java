@@ -188,6 +188,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_CRE
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_ID_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTCONTRACTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.JOB_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKOPERATIONS_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_CREATE_JSON;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.MANAGEMENTCONTRACTS_ID_READ;
@@ -3122,6 +3123,23 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .toVitamError(VitamCode.LOGBOOK_EXTERNAL_BAD_REQUEST,
                     e.getLocalizedMessage())
                 .setHttpCode(BAD_REQUEST.getStatusCode()).toResponse();
+        }
+    }
+
+    @GET
+    @Path("jobs")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = JOB_READ, description = "récuperer la liste des jobs") 
+    public Response findJobs() {
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            final RequestResponse<JsonNode> jobs = client.findJobs();
+            return Response.ok(jobs).build();
+        } catch (AdminManagementClientServerException e) {
+            LOGGER.error("Cannot retrieve all jobs ", e);
+            return VitamCodeHelper
+                .toVitamError(VitamCode.LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         }
     }
 

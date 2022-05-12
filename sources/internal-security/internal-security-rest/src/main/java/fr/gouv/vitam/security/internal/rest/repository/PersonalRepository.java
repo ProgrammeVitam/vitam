@@ -30,6 +30,7 @@ package fr.gouv.vitam.security.internal.rest.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -38,9 +39,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +53,7 @@ import static com.mongodb.client.model.Filters.eq;
 /**
  * store Personal certificate in mongo.
  */
-public class PersonalRepository implements CertificateCRLCheckStateUpdater<PersonalCertificateModel> {
+public class PersonalRepository implements CertificateRepository, CertificateCRLCheckStateUpdater<PersonalCertificateModel> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalRepository.class);
 
@@ -108,6 +111,15 @@ public class PersonalRepository implements CertificateCRLCheckStateUpdater<Perso
         return Optional.of(BsonHelper.fromDocumentToObject(first, PersonalCertificateModel.class));
     }
 
+    public List<PersonalCertificateModel> findAll() throws InvalidParseOperationException {
+        List<PersonalCertificateModel> result = new ArrayList<>();
+        FindIterable<Document> models = personnalCollection.find().projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
+        for (Document model : models) {
+            result.add(BsonHelper.fromDocumentToObject(model, PersonalCertificateModel.class));
+        }
+        return result;
+    }
+
     /**
      * return certificate by hash
      *
@@ -144,5 +156,4 @@ public class PersonalRepository implements CertificateCRLCheckStateUpdater<Perso
     public Class<PersonalCertificateModel> getEntityModelType() {
         return PersonalCertificateModel.class;
     }
-
 }

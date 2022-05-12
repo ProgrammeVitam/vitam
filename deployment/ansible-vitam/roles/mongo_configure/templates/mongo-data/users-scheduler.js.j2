@@ -1,0 +1,54 @@
+// Switch to scheduler database
+db = db.getSiblingDB('scheduler')
+
+// Create scheduler user
+
+if (! db.getUser("{{ mongodb[mongo_cluster_name].scheduler.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb[mongo_cluster_name].scheduler.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].scheduler.password }}",
+            roles: [
+                { role: "readWrite", db: "scheduler" }
+            ]
+        }
+    )
+}
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name].scheduler.user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name].scheduler.password }}",
+            roles: [
+                { role: "readWrite", db: "scheduler" }
+            ]
+        }
+    )
+}
+
+// Create scheduler admin user
+
+if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb[mongo_cluster_name].admin.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
+            roles: [
+                { role: "readWrite", db: "scheduler" },
+                { role: "dbAdmin", db: "scheduler" }
+            ]
+        }
+    )
+}
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name].admin.user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
+            roles: [
+                { role: "readWrite", db: "scheduler" },
+                { role: "dbAdmin", db: "scheduler" }
+            ]
+        }
+    )
+}

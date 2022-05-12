@@ -29,6 +29,7 @@ package fr.gouv.vitam.security.internal.rest.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Projections;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +51,7 @@ import static com.mongodb.client.model.Updates.set;
 /**
  * repository for identity certificate entities  management in mongo.
  */
-public class IdentityRepository implements CertificateCRLCheckStateUpdater<IdentityModel> {
+public class IdentityRepository implements CertificateRepository, CertificateCRLCheckStateUpdater<IdentityModel> {
 
     public static final String CERTIFICATE_COLLECTION = "Certificate";
 
@@ -95,6 +97,15 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
             return Optional.empty();
         }
         return Optional.of(BsonHelper.fromDocumentToObject(first, IdentityModel.class));
+    }
+
+    public List<IdentityModel> findAll() throws InvalidParseOperationException {
+        List<IdentityModel> result = new ArrayList<>();
+        FindIterable<Document> models = identityCollection.find().projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
+        for (Document model : models) {
+            result.add(BsonHelper.fromDocumentToObject(model, IdentityModel.class));
+        }
+        return result;
     }
 
     /**

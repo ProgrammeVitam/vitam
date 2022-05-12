@@ -36,6 +36,9 @@ mongodb:
     securityInternal:
       user: security-internal
       password: change_it_m39XvRQWixyDX566
+    scheduler:
+      user: scheduler
+      password: change_it_Q8WEdxhXXOe2NEhp
     collect:
       user: collect
       password: change_it_m39XvRQWixyDX566

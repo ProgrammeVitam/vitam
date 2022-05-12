@@ -28,6 +28,8 @@ package fr.gouv.vitam.security.internal.rest.resource;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -44,10 +46,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.text.ParseException;
 
 @Path("/v1/api/personalCertificate")
 @Tag(name = "Security")
 public class PersonalCertificateResource {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateResource.class);
+
 
     private final PermissionService permissionService;
 
@@ -102,5 +109,18 @@ public class PersonalCertificateResource {
         ParametersChecker.checkParameter("Permission cannot be null", permission);
 
         return permissionService.isPersonalCertificateRequiredForPermission(permission);
+    }
+
+    @GET
+    @Path("/check-expiration")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkCertificatesExpiration() {
+        try {
+            personalCertificateService.checkCertificates();
+        } catch (ParseException | InvalidParseOperationException e) {
+            LOGGER.error("cannot check certificate expiration date", e);
+            return Response.serverError().build();
+        }
+        return Response.accepted().build();
     }
 }
