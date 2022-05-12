@@ -68,7 +68,7 @@ import static fr.gouv.vitam.functional.administration.common.server.FunctionalAd
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     /**
      * Constructor

@@ -116,7 +116,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<FileFormatModel> getFormats(JsonNode query)
-        throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException,
+        throws FileFormatException, InvalidParseOperationException,
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document format request:");
@@ -186,7 +186,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
-        JsonGenerationException, JsonMappingException, IOException {
+        IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
         return ClientMockResultHelper.getRule().toJsonNode();
@@ -649,6 +649,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws AdminManagementClientServerException, BadRequestException, LogbookClientAlreadyExistsException {
         LOGGER.debug("create Operation request ");
         return Status.CREATED;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> findJobs() {
+        throw new IllegalStateException("Cannot be used");
     }
 
 }

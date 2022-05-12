@@ -92,7 +92,7 @@ public class AdminIdentityResource {
     public IdentityModel linkContextToIdentity(IdentityInsertModel identityInsertModel, @Context UriInfo uri)
         throws InvalidParseOperationException, CertificateException {
         ParametersChecker.checkParameter("ContextId cannot be null", identityInsertModel.getContextId());
-        ParametersChecker.checkParameter("Certificate cannot be null", (Object) identityInsertModel.getCertificate());
+        ParametersChecker.checkParameter("Certificate cannot be null", identityInsertModel.getCertificate());
         return identityService.linkContextToIdentity(identityInsertModel).orElseThrow(NotFoundException::new);
     }
 

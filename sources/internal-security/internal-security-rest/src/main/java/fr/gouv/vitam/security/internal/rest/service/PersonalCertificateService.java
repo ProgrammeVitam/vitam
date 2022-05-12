@@ -50,15 +50,17 @@ import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateExcep
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
+import fr.gouv.vitam.security.internal.rest.repository.CertificateRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Manages personal certificates
  */
-public class PersonalCertificateService {
+public class PersonalCertificateService extends SecurityService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateService.class);
 
@@ -182,6 +184,15 @@ public class PersonalCertificateService {
 
     }
 
+
+    /**
+     * @return list of identity models
+     * @throws InvalidParseOperationException thrown retrieving certificates fail
+     */
+    public List<PersonalCertificateModel> findAllPersonalCertificates() throws InvalidParseOperationException {
+        return personalRepository.findAll();
+    }
+
     private void createNoPersonalCertificateLogbook(String permission)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidParseOperationException {
@@ -241,4 +252,8 @@ public class PersonalCertificateService {
                 StatusCode.KO, VitamLogbookMessages.getCodeOp(PERSONAL_LOGBOOK_EVENT, StatusCode.KO), eip);
     }
 
+    @Override
+    public CertificateRepository getRepository() {
+        return personalRepository;
+    }
 }

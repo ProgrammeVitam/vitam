@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class AdminApplication extends ConfigurationApplication {
 
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     /**
      * Constructor adding GenericExceptionMapper and AdminStatusResource

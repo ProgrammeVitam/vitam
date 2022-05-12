@@ -864,5 +864,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     Status createExternalOperation(LogbookOperationParameters logbookOperationparams)
         throws AdminManagementClientServerException, BadRequestException, LogbookClientAlreadyExistsException;
 
+
+    RequestResponse<JsonNode> findJobs() throws AdminManagementClientServerException;
 }
 

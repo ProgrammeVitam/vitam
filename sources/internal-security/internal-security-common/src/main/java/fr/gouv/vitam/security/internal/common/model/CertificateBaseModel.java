@@ -33,6 +33,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class CertificateBaseModel {
 
+    public static final String SUBJECT_DN = "SubjectDN";
+
+    public static final String SERIAL_NUMBER = "SerialNumber";
+
+    public static final String CERTIFICATE_TAG = "Certificate";
+
     public static final String ISSUER_DN_TAG = "IssuerDN";
 
     public static final String STATUS_TAG = "Status";
@@ -44,15 +50,16 @@ public class CertificateBaseModel {
     @JsonProperty("_id")
     private String id;
 
+    @JsonProperty(SUBJECT_DN)
     private String subjectDN;
 
-    private String contextId;
-
+    @JsonProperty(SERIAL_NUMBER)
     private String serialNumber;
 
     @JsonProperty(ISSUER_DN_TAG)
     private String issuerDN;
 
+    @JsonProperty(CERTIFICATE_TAG)
     private byte[] certificate;
 
     @JsonProperty(STATUS_TAG)
@@ -81,14 +88,6 @@ public class CertificateBaseModel {
 
     public void setSubjectDN(String subjectDN) {
         this.subjectDN = subjectDN;
-    }
-
-    public String getContextId() {
-        return contextId;
-    }
-
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
     }
 
     public String getSerialNumber() {

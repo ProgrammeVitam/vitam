@@ -33,16 +33,18 @@ import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
+import fr.gouv.vitam.security.internal.rest.repository.CertificateRepository;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * manage certificate.
  */
-public class IdentityService {
+public class IdentityService extends SecurityService {
 
     private final IdentityRepository identityRepository;
 
@@ -121,6 +123,15 @@ public class IdentityService {
     }
 
     /**
+     * @return list of identity models
+     * @throws InvalidParseOperationException thrown retrieving certificates fail
+     */
+    public List<IdentityModel> findAllIdentities()
+        throws InvalidParseOperationException {
+        return identityRepository.findAll();
+    }
+
+    /**
      * @param contextId the context Id
      * @return true if the context is used by an identity
      */
@@ -128,4 +139,8 @@ public class IdentityService {
         return identityRepository.contextIsUsed(contextId);
     }
 
+    @Override
+    public CertificateRepository getRepository() {
+        return identityRepository;
+    }
 }

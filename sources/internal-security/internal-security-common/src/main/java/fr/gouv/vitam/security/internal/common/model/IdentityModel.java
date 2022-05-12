@@ -26,11 +26,18 @@
  */
 package fr.gouv.vitam.security.internal.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
+
 /**
  * model for identity
  */
 public class IdentityModel extends CertificateBaseModel {
 
+    public static final String CONTEXT_ID = "ContextId";
+
+    @JsonProperty(CONTEXT_ID)
     private String contextId;
 
     public IdentityModel() {

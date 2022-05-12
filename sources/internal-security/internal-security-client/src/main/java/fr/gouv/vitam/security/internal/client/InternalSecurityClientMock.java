@@ -75,6 +75,16 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     }
 
     @Override
+    public void checkIdentityExpiration() throws VitamClientInternalException, InternalSecurityException {
+
+    }
+
+    @Override
+    public void checkPersonalCertificateExpiration() throws VitamClientInternalException, InternalSecurityException {
+
+    }
+
+    @Override
     public boolean contextIsUsed(String contextId) {
         return false;
     }

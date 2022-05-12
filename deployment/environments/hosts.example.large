@@ -73,6 +73,7 @@ hosts_worker
 hosts_access_internal
 hosts_metadata
 hosts_functional_administration
+hosts_scheduler
 hosts_logbook
 hosts_workspace
 hosts_storage_engine
@@ -104,6 +105,10 @@ large-app-vm-4
 [hosts_functional_administration]
 large-app-vm-1
 large-app-vm-2
+
+[hosts_scheduler]
+large-app-vm-3
+large-app-vm-4
 
 [hosts_processing]
 large-app-vm-8

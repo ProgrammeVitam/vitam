@@ -72,6 +72,22 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     }
 
     @Override
+    public void checkIdentityExpiration() throws VitamClientInternalException, InternalSecurityException {
+        try (Response response = make(
+            VitamRequestBuilder.get().withPath("/identity/check-expiration").withJsonAccept())) {
+            check(response);
+        }
+    }
+
+    @Override
+    public void checkPersonalCertificateExpiration() throws VitamClientInternalException, InternalSecurityException {
+        try (Response response = make(
+            VitamRequestBuilder.get().withPath("/personalCertificate/check-expiration").withJsonAccept())) {
+            check(response);
+        }
+    }
+
+    @Override
     public boolean contextIsUsed(String contextId) throws VitamClientInternalException, InternalSecurityException {
         try (Response response = make(
             VitamRequestBuilder.get().withPath("/identity/context/" + contextId).withJsonAccept())) {

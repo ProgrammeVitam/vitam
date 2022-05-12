@@ -123,6 +123,10 @@
     ProxyPass /{{ vitam.functional_administration.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/admin/v1 {{ reverse_connection_params }}
     ProxyPassReverse  /{{ vitam.functional_administration.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/admin/v1
     {% endfor %}
+    {% for host in groups['hosts_scheduler'] %}
+    ProxyPass /{{ vitam.scheduler.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.scheduler.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.scheduler.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.scheduler.port_admin }}/admin/v1
+    {% endfor %}
 
     # IHM Demo
     {% for host in groups['hosts_ihm_demo'] %}

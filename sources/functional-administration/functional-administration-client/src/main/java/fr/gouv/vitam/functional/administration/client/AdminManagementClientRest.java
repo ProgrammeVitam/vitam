@@ -1521,6 +1521,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
+    @Override
+    public RequestResponse<JsonNode> findJobs() throws AdminManagementClientServerException {
+        VitamRequestBuilder request = get().withPath("/jobs").withJson();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+    }
+
     private void check(Response response) throws VitamClientInternalException {
         final Status status = fromStatusCode(response.getStatus());
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
