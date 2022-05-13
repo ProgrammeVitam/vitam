@@ -178,7 +178,7 @@ public class DescriptiveMetadataModel {
     private GpsType gps;
 
     @JsonProperty("TextContent")
-    private String textContent;
+    private List<String> textContent;
 
 
     @JsonProperty("OriginatingSystemIdReplyTo")
@@ -824,7 +824,7 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public String getTextContent() {
+    public List<String> getTextContent() {
         return textContent;
     }
 
@@ -832,7 +832,7 @@ public class DescriptiveMetadataModel {
     /**
      * @param textContent
      */
-    public void setTextContent(String textContent) {
+    public void setTextContent(List<String> textContent) {
         this.textContent = textContent;
     }
 

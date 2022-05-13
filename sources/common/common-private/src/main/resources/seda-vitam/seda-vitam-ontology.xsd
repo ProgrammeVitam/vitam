@@ -1051,7 +1051,7 @@
     </xsd:group>
     <xsd:group name="TextContentGroup">
         <xsd:sequence>
-            <xsd:element name="TextContent" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="TextContent" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Contenu du message électronique.</xsd:documentation>
                 </xsd:annotation>
