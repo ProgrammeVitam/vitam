@@ -17,7 +17,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
-        type: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessMultipleQueryWithPrecisionForUnit
         example: !include examples/accessUnitRequestWithFacet.json
     responses:
       200:
@@ -142,7 +142,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
-        type: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessMultipleQueryWithPrecisionForGot
         example: !include examples/accessGotRequest.json
     responses:
       200:
