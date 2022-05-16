@@ -1,0 +1,18 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$exists": "#id"
+    }
+  ],
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100,
+    "$track_total_hits": true
+  },
+  "$projection": {
+    "$fields": {
+      "#id": 1
+    }
+  }
+}

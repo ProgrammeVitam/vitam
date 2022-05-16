@@ -95,6 +95,28 @@ types:
         type: object
         required: false
 
+  FilterForMetadata:
+      description: Filtrer pour une requête DSL sur les métadonnées
+      type: object
+      properties:
+        $offset:
+          type: integer
+          required: false
+          minimum: 1
+          maximum: 100000
+        $limit:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          required: false
+        $orderby:
+          type: object
+          required: false
+        $track_total_hits:
+          type: boolean
+          required: false
+          description : Devrait être setté à "true", au niveau de la configuration, pour avoir une précision sur les résultats de recherche dépassant 10k données (par défaut "false").
+
   DslSingleQuery:
       displayName: Requête DSL simple (SELECT SINGLE)
       description: Requête DSL Vitam externe mono-requête pour la recherche de ressources
@@ -140,6 +162,50 @@ types:
         $filter?:
           description: Contient les filtres à appliquer
           type: Filter
+        $projection:
+          description: Contient la projection à appliquer
+          type: Projection
+        $facet?:
+         description: Contains facet if requested
+         type: array
+         items:
+          type: Facet
+
+      example: {
+        "$roots": ["guid1","guid2"],
+        "$query": [
+          {
+            "$eq": { "myField1": "myValue" },
+            "$depth": 4
+          }
+        ],
+        "$filter": {
+          "$limit": 100,
+          "$offset": 50
+        },
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
+      }
+
+  DslMultipleQueryForMetadata:
+      displayName: Requête DSL multiple (SELECT MULTIPLE)
+      description: Requête DSL Vitam externe multi-requête pour la recherche de ressources
+      type: object
+      properties:
+        $roots:
+          description: Contient les racines de la recherche
+          type: array
+          items:
+            type: string
+        $query:
+          description: Contient plusieurs requêtes
+          type: array
+          items:
+            type: object
+        $filter?:
+          description: Contient les filtres à appliquer
+          type: FilterForMetadata
         $projection:
           description: Contient la projection à appliquer
           type: Projection

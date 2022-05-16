@@ -54,7 +54,6 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives.
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
-      Afin d'avoir une précision exacte sur le nombre de résultats de retournés, il faut utiliser la propriété "$track_total_hits : true" qui devrait être pré-autorisée en amont au niveau de la configuration.
 
       Permissions requises:
         - units:read
@@ -181,21 +180,6 @@ documentation:
           Endpoint d'API pour la création de Demandes d'Accès depuis une offre froide à des Objets d'archives.
         post:
           is: [AccessTraits.ObjectAccessRequestCreation]
-
-  /objects:
-        get:
-          displayName: Objects of different Archive Units
-          description: |
-             API qui définit les requêtes pour accéder aux objets d'archives.
-             La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne l'objet d'archives selon le DSL Vitam en cas de succès.
-             Afin d'avoir une précision exacte sur le nombre de résultats de retournés, il faut utiliser la propriété "$track_total_hits : true" qui devrait être pré-autorisée en amont au niveau de la configuration.
-            Permissions requises:
-              - objects:read
-          is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
-          headers:
-            Accept:
-              required: true
-              enum: [ "application/json" ]
 
   /bulk:
     post:
