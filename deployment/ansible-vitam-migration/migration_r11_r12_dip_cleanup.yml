@@ -13,10 +13,10 @@
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
 
-- import_playbook: stop_external.yml
+- import_playbook: ../ansible-vitam-exploitation/stop_external.yml
 
 - hosts: hosts_metadata
   roles:
     - cleanup_dip_from_offers
 
-- import_playbook: start_external.yml
+- import_playbook: ../ansible-vitam-exploitation/start_external.yml
