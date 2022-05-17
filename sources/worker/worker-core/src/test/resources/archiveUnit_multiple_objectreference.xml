@@ -1,6 +1,6 @@
 <ArchiveUnit xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
-			 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" id="ID3">
+			 xmlns="fr:gouv:culture:archivesdefrance:seda:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2 seda-2.1-main.xsd" id="ID3">
 	<Content>
 		<DescriptionLevel>Item</DescriptionLevel>
 		<Title>Annuaire_projet</Title>

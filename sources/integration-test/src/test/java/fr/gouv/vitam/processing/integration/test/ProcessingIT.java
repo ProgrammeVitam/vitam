@@ -334,7 +334,7 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
     private static final String ADD_OBJET_TO_GOT = "integration-processing/ADD_OBJET_TO_GOT";
 
-    private static final String SIP_FULL_SEDA_2_1 = "integration-processing/OK_SIP_FULL_SEDA2.1.zip";
+    private static final String SIP_SEDA_2_2 = "integration-processing/OK_SIP_FULL_SEDA2.2.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -3230,10 +3230,10 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowSipSeda2_1_full() throws Exception {
+    public void testWorkflowSipSeda2_2_full() throws Exception {
         prepareVitamSession();
 
-        ingestSIP(SIP_FULL_SEDA_2_1, DEFAULT_WORKFLOW.name(), WARNING);
+        ingestSIP(SIP_SEDA_2_2, DEFAULT_WORKFLOW.name(), WARNING);
 
         MongoIterable<Document> resultUnits =
             MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));

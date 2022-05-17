@@ -26,37 +26,56 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  *
  */
 public final class SedaIngestParams {
 
+    static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaIngestParams.class);
+
     public String version;
-    public String nameSpaceUri;
-    public String xsdValidator;
+    public String namespaceURI;
+    public String sedaValidatorXSD;
+    public String vitamValidatorXSD;
 
     public SedaIngestParams() {
     }
 
-    public SedaIngestParams(String version, String nameSpaceUri) {
+    public SedaIngestParams(String version, String namespaceURI) throws ProcessingException {
         this.version = version;
-        this.nameSpaceUri = nameSpaceUri;
-        if (SupportedSedaVersions.SEDA_2_1.getVersion().equals(version)) {
-            this.xsdValidator = SupportedSedaVersions.SEDA_2_1.getXsdValidator();
+        this.namespaceURI = namespaceURI;
+        Optional<SupportedSedaVersions> sedaSupportedVersionModel =
+            Arrays.stream(SupportedSedaVersions.values())
+                .filter(elmt -> elmt.getVersion().equals(version))
+                .findFirst();
+        if (sedaSupportedVersionModel.isEmpty()) {
+            throw new ProcessingException(SedaUtils.CheckSedaValidationStatus.UNSUPPORTED_SEDA_VERSION.name());
         }
+        this.sedaValidatorXSD = sedaSupportedVersionModel.get().getSedaValidatorXSD();
+        this.vitamValidatorXSD = sedaSupportedVersionModel.get().getVitamValidatorXSD();
     }
 
     public String getVersion() {
         return version;
     }
 
-    public String getNameSpaceUri() {
-        return nameSpaceUri;
+    public String getNamespaceURI() {
+        return namespaceURI;
     }
 
-    public String getXsdValidator() {
-        return xsdValidator;
+    public String getSedaValidatorXSD() {
+        return sedaValidatorXSD;
+    }
+
+    public String getVitamValidatorXSD() {
+        return vitamValidatorXSD;
     }
 }

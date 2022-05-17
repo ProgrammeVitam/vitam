@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2 seda-vitam/seda-vitam-main.xsd">
+    <Date>2022-05-05T13:41:20.172+02:00</Date>
+    <MessageIdentifier>aecaaaaaaceaaaababtjoamasqdcquqaaaaq</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <DataObjectGroup id="aebaaaaaaaeaaaababtjoamasqc7ghyaaaaq">
+            <PhysicalDataObject id="aeaaaaaaaaeaaaababtjoamasqc7giqaaaaq">
+                <DataObjectSystemId>aeaaaaaaaaeaaaababtjoamasqdcx3iaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaaeaaaababtjoamasqdcx3yaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
+            </PhysicalDataObject>
+            <BinaryDataObject id="aeaaaaaaaaeaaaababtjoamasqc7ggyaaaaq">
+                <DataObjectSystemId>aeaaaaaaaaeaaaababtjoamasqdcx4aaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaaeaaaababtjoamasqdcx3yaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="aebaaaaaaaeaaaababtjoamasqc7gkaaaaaq">
+            <BinaryDataObject id="aeaaaaaaaaeaaaababtjoamasqc7gjqaaaaq">
+                <DataObjectSystemId>aeaaaaaaaaeaaaababtjoamasqdcxyqaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaaeaaaababtjoamasqdcxzaaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="aebaaaaaaaeaaaababtjoamasqc7gkyaaaaq">
+            <BinaryDataObject id="aeaaaaaaaaeaaaababtjoamasqc7gkiaaaaq">
+                <DataObjectSystemId>aeaaaaaaaaeaaaababtjoamasqdcx2iaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaaeaaaababtjoamasqdcx3aaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hmaaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqdc3oyaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hjqaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddlcqaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hmyaaabq">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddbliaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hmqaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddi4aaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hlyaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddggqaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7g3yaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqdc6oyaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hlaaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddd2yaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="aeaqaaaaaaeaaaababtjoamasqc7hlqaaaba">
+                <Content>
+                    <SystemId>aeaqaaaaaaeaaaababtjoamasqddnqiaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata/>
+    </DataObjectPackage>
+    <ReplyCode>OK</ReplyCode>
+    <MessageRequestIdentifier>aeaaaaaaaaeaaaababtjoamasqdatiyaaaaq</MessageRequestIdentifier>
+    <GrantDate>2022-05-05T13:41:20.173+02:00</GrantDate>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>VITAM</Identifier>
+    </TransferringAgency>
+</ArchiveTransferReply>

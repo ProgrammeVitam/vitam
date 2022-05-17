@@ -233,6 +233,7 @@
         <jaxb2-basics.version>0.6.5</jaxb2-basics.version>
         <swagger-maven-plugin.version>2.1.0</swagger-maven-plugin.version>
         <javax.ws.rs-api.version>2.1</javax.ws.rs-api.version>
+        <Saxon-HE.version>11.3</Saxon-HE.version>
         <quartz.version>2.3.2</quartz.version>
         <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
         <jta.version>1.1</jta.version>
@@ -1166,6 +1167,12 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.saxon</groupId>
+                <artifactId>Saxon-HE</artifactId>
+                <version>${Saxon-HE.version}</version>
             </dependency>
 
             <dependency>

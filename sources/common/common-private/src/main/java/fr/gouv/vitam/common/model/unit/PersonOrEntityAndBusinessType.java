@@ -35,7 +35,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
+
 
 /**
  * Model for PersonOrEntityAndBusiness defined in seda.xsd
@@ -63,72 +64,72 @@ public class PersonOrEntityAndBusinessType {
     private static final String MANDATE = "Mandate";
 
     @JsonProperty(FIRST_NAME)
-    @XmlElement(name = FIRST_NAME, namespace = NAMESPACE_URI)
+    @XmlElement(name = FIRST_NAME, namespace = UNIFIED_NAMESPACE)
     private String firstName;
 
     @JsonProperty(BIRTH_NAME)
-    @XmlElement(name = BIRTH_NAME, namespace = NAMESPACE_URI)
+    @XmlElement(name = BIRTH_NAME, namespace = UNIFIED_NAMESPACE)
     private String birthName;
 
     @JsonProperty(FULLNAME)
-    @XmlElement(name = FULLNAME, namespace = NAMESPACE_URI)
+    @XmlElement(name = FULLNAME, namespace = UNIFIED_NAMESPACE)
     private String fullName;
 
     @JsonProperty(GIVEN_NAME)
-    @XmlElement(name = GIVEN_NAME, namespace = NAMESPACE_URI)
+    @XmlElement(name = GIVEN_NAME, namespace = UNIFIED_NAMESPACE)
     private String givenName;
 
     @JsonProperty(TAG_GENDER)
-    @XmlElement(name = TAG_GENDER, namespace = NAMESPACE_URI)
+    @XmlElement(name = TAG_GENDER, namespace = UNIFIED_NAMESPACE)
     private String gender;
 
     @JsonProperty(BIRTH_DATE)
-    @XmlElement(name = BIRTH_DATE, namespace = NAMESPACE_URI)
+    @XmlElement(name = BIRTH_DATE, namespace = UNIFIED_NAMESPACE)
     private String birthDate;
 
     @JsonProperty(BIRTH_PLACE)
-    @XmlElement(name = BIRTH_PLACE, namespace = NAMESPACE_URI)
+    @XmlElement(name = BIRTH_PLACE, namespace = UNIFIED_NAMESPACE)
     private LocationGroupModel birthPlace;
 
     @JsonProperty(DEATH_DATE)
-    @XmlElement(name = DEATH_DATE, namespace = NAMESPACE_URI)
+    @XmlElement(name = DEATH_DATE, namespace = UNIFIED_NAMESPACE)
     private String deathDate;
 
     @JsonProperty(DEATH_PLACE)
-    @XmlElement(name = DEATH_PLACE, namespace = NAMESPACE_URI)
+    @XmlElement(name = DEATH_PLACE, namespace = UNIFIED_NAMESPACE)
     private LocationGroupModel deathPlace;
 
     @JsonProperty(NATIONALITY)
-    @XmlElement(name = NATIONALITY, namespace = NAMESPACE_URI)
+    @XmlElement(name = NATIONALITY, namespace = UNIFIED_NAMESPACE)
     private List<String> nationalities;
 
     @JsonProperty(TAG_CORPNAME)
-    @XmlElement(name = TAG_CORPNAME, namespace = NAMESPACE_URI)
+    @XmlElement(name = TAG_CORPNAME, namespace = UNIFIED_NAMESPACE)
     private String corpname;
 
     @JsonProperty(IDENTIFIER)
-    @XmlElement(name = IDENTIFIER, namespace = NAMESPACE_URI)
+    @XmlElement(name = IDENTIFIER, namespace = UNIFIED_NAMESPACE)
     private List<String> identifiers;
 
     //BusinessGroup element's properties
     @JsonProperty(FUNCTION)
-    @XmlElement(name = FUNCTION, namespace = NAMESPACE_URI)
+    @XmlElement(name = FUNCTION, namespace = UNIFIED_NAMESPACE)
     private List<String> function;
 
     @JsonProperty(ACTIVITY)
-    @XmlElement(name = ACTIVITY, namespace = NAMESPACE_URI)
+    @XmlElement(name = ACTIVITY, namespace = UNIFIED_NAMESPACE)
     private List<String> activity;
 
     @JsonProperty(POSITION)
-    @XmlElement(name = POSITION, namespace = NAMESPACE_URI)
+    @XmlElement(name = POSITION, namespace = UNIFIED_NAMESPACE)
     private List<String> position;
 
     @JsonProperty(ROLE)
-    @XmlElement(name = ROLE, namespace = NAMESPACE_URI)
+    @XmlElement(name = ROLE, namespace = UNIFIED_NAMESPACE)
     private List<String> role;
 
     @JsonProperty(MANDATE)
-    @XmlElement(name = MANDATE, namespace = NAMESPACE_URI)
+    @XmlElement(name = MANDATE, namespace = UNIFIED_NAMESPACE)
     private List<String> mandate;
 
 

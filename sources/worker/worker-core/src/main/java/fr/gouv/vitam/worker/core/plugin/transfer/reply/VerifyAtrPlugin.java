@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -62,8 +62,17 @@ import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.ErrorListener;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -74,6 +83,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.GENERIC_VITAM_VALIDATOR;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE_TRANSFER;
@@ -82,12 +92,19 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class VerifyAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(
-        SupportedSedaVersions.SEDA_2_1.getXsdValidator()));
-    private static final URL CATALOG_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
+    private static final URL SEDA_XSD_URL =
+        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(
+            GENERIC_VITAM_VALIDATOR));
+    private static final URL CATALOG_URL =
+        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
+    public static final String ATR_FOR_TRANSFER_REPLY = "ATR-for-transfer-reply-in-workspace.xml";
+    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
+
 
     private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    private final TransformerFactory transformerFactory;
 
     public VerifyAtrPlugin() throws Exception {
         this(
@@ -100,12 +117,13 @@ public class VerifyAtrPlugin extends ActionHandler {
     public VerifyAtrPlugin(JAXBContext jaxbContext, LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.jaxbContext = jaxbContext;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.transformerFactory = TransformerFactory.newInstance();
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         XMLStreamReader xmlStreamReader = null;
-        try (InputStream atr = handler.getInputStreamFromWorkspace("ATR-for-transfer-reply-in-workspace.xml")) {
+        try (InputStream atr = getTransformedXmlAsInputStream(handler)) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
             Unmarshaller unmarshaller = createUnmarshaller();
             ArchiveTransferReplyType transferReply =
@@ -124,12 +142,44 @@ public class VerifyAtrPlugin extends ActionHandler {
         } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
-        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException | SAXException e) {
+        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException |
+                 LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException |
+                 SAXException | TransformerException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         } finally {
             closeXmlReader(xmlStreamReader);
         }
+    }
+
+    private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO)
+        throws TransformerException, IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+
+        File originalATR = handlerIO.getFileFromWorkspace(ATR_FOR_TRANSFER_REPLY);
+        File transformedATR = handlerIO.getNewLocalFile("transformed-" + ATR_FOR_TRANSFER_REPLY);
+        Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
+        Transformer transformer = transformerFactory.newTransformer(xsl);
+        transformer.setErrorListener(new ErrorListener() {
+            @Override
+            public void warning(TransformerException exception) {
+                LOGGER.warn("An error occurred while processing ATR transformation", exception);
+            }
+
+            @Override
+            public void error(TransformerException exception) throws TransformerException {
+                throw exception;
+            }
+
+            @Override
+            public void fatalError(TransformerException exception) throws TransformerException {
+                throw exception;
+            }
+        });
+
+        transformer.transform(new StreamSource(originalATR), new StreamResult(transformedATR));
+
+        return new FileInputStream(transformedATR);
     }
 
     private boolean hasReplyCode(String replyCode) {

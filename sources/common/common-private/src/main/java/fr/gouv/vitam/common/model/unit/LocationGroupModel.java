@@ -33,37 +33,38 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
+
 
 /**
  * Model for  LocationGroup defined in sead.xsd
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "LocationGroup", namespace = NAMESPACE_URI)
+@XmlType(name = "LocationGroup", namespace = UNIFIED_NAMESPACE)
 public class LocationGroupModel {
 
     @JsonProperty("Geogname")
-    @XmlElement(name = "Geogname", namespace = NAMESPACE_URI)
+    @XmlElement(name = "Geogname", namespace = UNIFIED_NAMESPACE)
     private String geogname;
 
     @JsonProperty("Address")
-    @XmlElement(name = "Address", namespace = NAMESPACE_URI)
+    @XmlElement(name = "Address", namespace = UNIFIED_NAMESPACE)
     private String address;
 
     @JsonProperty("PostalCode")
-    @XmlElement(name = "PostalCode", namespace = NAMESPACE_URI)
+    @XmlElement(name = "PostalCode", namespace = UNIFIED_NAMESPACE)
     private String postalCode;
 
     @JsonProperty("City")
-    @XmlElement(name = "City", namespace = NAMESPACE_URI)
+    @XmlElement(name = "City", namespace = UNIFIED_NAMESPACE)
     private String city;
 
     @JsonProperty("Region")
-    @XmlElement(name = "Region", namespace = NAMESPACE_URI)
+    @XmlElement(name = "Region", namespace = UNIFIED_NAMESPACE)
     private String region;
 
     @JsonProperty("Country")
-    @XmlElement(name = "Country", namespace = NAMESPACE_URI)
+    @XmlElement(name = "Country", namespace = UNIFIED_NAMESPACE)
     private String country;
 
     public LocationGroupModel() {

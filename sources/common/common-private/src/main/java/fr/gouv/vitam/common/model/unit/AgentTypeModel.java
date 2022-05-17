@@ -30,13 +30,13 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
 /**
  * Model for AgentType defined in seda.xsd
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "AgentType", namespace = NAMESPACE_URI)
+@XmlType(name = "AgentType", namespace = UNIFIED_NAMESPACE)
 public class AgentTypeModel extends PersonOrEntityAndBusinessType {
 
 }

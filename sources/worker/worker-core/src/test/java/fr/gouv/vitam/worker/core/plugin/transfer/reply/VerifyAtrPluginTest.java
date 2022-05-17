@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -36,16 +37,22 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -54,25 +61,37 @@ import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE_TRANSFER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
-@RunWith(MockitoJUnitRunner.class)
 public class VerifyAtrPluginTest {
-    @Mock
-    private LogbookOperationsClient logbookOperationsClient;
 
+    private static final String ATR_WITH_CARDINALITY_ERROR_XML = "atr-with-cardinality-error.xml";
+    private static final String ATR_WITH_UNIFIED_SEDA_XML = "atr-with-unified_seda.xml";
+    private static final String ATR_WITH_SEDA_2_1_XML = "atr-with-seda-2.1.xml";
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
 
     @Mock
     private Unmarshaller unmarshaller;
@@ -83,6 +102,14 @@ public class VerifyAtrPluginTest {
     @InjectMocks
     private VerifyAtrPlugin verifyAtrPlugin;
 
+    @Mock
+    private HandlerIO handlerIO;
+
+    private static final String messageRequestIdentifier = "AWESOME-ID";
+    private static final String ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML = "ATR-for-transfer-reply-in-workspace.xml";
+    private static final String TRANSFORMED_ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML =
+        "transformed-ATR-for-transfer-reply-in-workspace.xml";
+
     @Before
     public void setup() throws Exception {
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
@@ -92,38 +119,27 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_verify_plugin_return_OK() throws Exception {
         // Given
-        String messageRequestIdentifier = "AWESOME-ID";
-        String replyCode = "OK";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-            getJaxbAtr(messageRequestIdentifier, replyCode));
+        mockTransformOperations(OK.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
             getLogbookOperation(OK));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(OK);
     }
 
+
     @Test
     public void should_verify_plugin_with_transfer_operation_warning_return_OK() throws Exception {
         // Given
-        String messageRequestIdentifier = "AWESOME-ID";
-        String replyCode = "WARNING";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-            getJaxbAtr(messageRequestIdentifier, replyCode));
+        mockTransformOperations(WARNING.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
             getLogbookOperation(StatusCode.WARNING));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(OK);
@@ -132,18 +148,12 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_return_KO_when_ATR_has_ReplyCode_other_than_ko_or_warning() throws Exception {
         // Given
-        String messageRequestIdentifier = "AWESOME-ID";
-        String replyCode = "KO";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-            getJaxbAtr(messageRequestIdentifier, replyCode));
+        mockTransformOperations(KO.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
             getLogbookOperation(StatusCode.KO));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
@@ -152,14 +162,12 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_return_FATAL_when_unexpected_error() throws Exception {
         // Given
+        mockTransformOperations(KO.name(), false);
         given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
             new JAXBException("Error"));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(FATAL);
@@ -168,14 +176,12 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_return_KO_when_ATR_not_valid() throws Exception {
         // Given
+        mockTransformOperations(KO.name(), false);
         given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
             new UnmarshalException("Error"));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
@@ -185,11 +191,13 @@ public class VerifyAtrPluginTest {
     public void should_return_KO_when_ATR_not_valid_no_MOCK() throws Exception {
         // Given
         VerifyAtrPlugin verifyAtrPlugin = new VerifyAtrPlugin();
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(getClass().getResourceAsStream("/atr-with-cardinality-error.xml"));
+        given(handlerIO.getFileFromWorkspace(eq(ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
+            PropertiesUtils.getResourceFile(ATR_WITH_CARDINALITY_ERROR_XML));
+        given(handlerIO.getNewLocalFile(eq(TRANSFORMED_ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
+            tempFolder.newFile());
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
@@ -198,18 +206,12 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_return_KO_unknown_transfer_operation() throws Exception {
         // Given
-        String messageRequestIdentifier = "AWESOME-ID";
-        String replyCode = "OK";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-            getJaxbAtr(messageRequestIdentifier, replyCode));
+        mockTransformOperations(OK.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willThrow(
             new LogbookClientNotFoundException(""));
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.setInputStreamFromWorkspace(
-            new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
         // When
-        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+        ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
@@ -218,7 +220,7 @@ public class VerifyAtrPluginTest {
                 "{\"Event\":\"Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation.\"}");
     }
 
-    private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String messageRequestIdentifier, String replyCode) {
+    private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String replyCode) {
         ArchiveTransferReplyType archiveTransferReplyType = new ArchiveTransferReplyType();
         IdentifierType identifier = new IdentifierType();
         identifier.setValue(messageRequestIdentifier);
@@ -240,5 +242,19 @@ public class VerifyAtrPluginTest {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         responseOK.addResult(JsonHandler.toJsonNode(logbookOperation));
         return JsonHandler.toJsonNode(responseOK);
+    }
+
+    private void mockTransformOperations(String replyCode, boolean shouldMockUnmarshallStream)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException,
+        JAXBException {
+        given(handlerIO.getFileFromWorkspace(eq(ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
+            PropertiesUtils.getResourceFile(ATR_WITH_SEDA_2_1_XML));
+        given(handlerIO.getNewLocalFile(eq(TRANSFORMED_ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
+            PropertiesUtils.getResourceFile(ATR_WITH_UNIFIED_SEDA_XML));
+
+        if (shouldMockUnmarshallStream) {
+            given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
+                getJaxbAtr(replyCode));
+        }
     }
 }

@@ -145,7 +145,7 @@ public class ValidationXsdUtils {
         return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
     }
 
-    private Schema getSchema(File file) throws SAXException {
+    public static Schema getSchema(File file) throws SAXException {
         SchemaFactory factory;
         if (file.getName().endsWith(RNG_SUFFIX)) {
             System.setProperty(RNG_PROPERTY_KEY,

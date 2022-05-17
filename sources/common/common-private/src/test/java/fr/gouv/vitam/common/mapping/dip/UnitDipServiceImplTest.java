@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.xmlunit.builder.Input.fromString;
@@ -54,7 +55,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
@@ -88,7 +89,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
@@ -114,7 +115,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
@@ -141,7 +142,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
@@ -172,7 +173,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
@@ -203,7 +204,7 @@ public class UnitDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", UNIFIED_NAMESPACE);
 
         // When
         Response response = unitDipService.jsonToXml(jsonNode, "");
