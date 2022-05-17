@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
     <xsd:include schemaLocation="seda-vitam-types.xsd"/>
     <xsd:include schemaLocation="seda-vitam-ontology.xsd"/>

@@ -73,10 +73,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,8 +94,6 @@ import static fr.gouv.vitam.common.model.VitamConstants.URL_ENCODED_SEPARATOR;
 public class SedaUtils {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-
-    public static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
@@ -121,11 +121,11 @@ public class SedaUtils {
     private final Map<String, String> unitIdToGroupId;
     private final HandlerIO handlerIO;
 
-    private SedaIngestParams sedaIngestParams;
-
-    public static final String SEDA_2_1_VITAM_XSD_FILE = "seda-vitam/seda-vitam-main.xsd";
-    private static final String NAMESPACE_FIELD_REGEX = "fr:gouv:culture:archivesdefrance:seda:v(\\w+.\\w)$";
+    private static final Pattern namespacePattern =
+        Pattern.compile("^fr:gouv:culture:archivesdefrance:seda:v([0-9]\\.[0-9]+)$");
     private static final String SEDA_PARAMS_ARE_NOT_VALID = "Seda params are not valid!";
+
+    private SedaIngestParams sedaIngestParams;
 
     protected SedaUtils(HandlerIO handlerIO) {
         binaryDataObjectIdToGuid = new HashMap<>();
@@ -231,11 +231,11 @@ public class SedaUtils {
             final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile);
             if (xmlStreamReader.hasNext() && xmlStreamReader.getEventType() == XMLStreamConstants.START_DOCUMENT) {
                 xmlStreamReader.next();
-                String nameSpaceUri = xmlStreamReader.getNamespaceURI();
-                if (nameSpaceUri == null) {
-                    throw new ProcessingException("The nameSpace URI could not be readed from Manifest!");
+                String namespaceURI = xmlStreamReader.getNamespaceURI();
+                if (namespaceURI == null) {
+                    throw new ProcessingException("The namespace URI could not be readed from Manifest!");
                 }
-                extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, nameSpaceUri);
+                extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
             }
         } catch (XMLStreamException e) {
             throw new ProcessingException(CheckSedaValidationStatus.NOT_XML_FILE.name(), e);
@@ -249,7 +249,7 @@ public class SedaUtils {
             return this.handlerIO.getInputStreamFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+                 IOException e) {
             LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
@@ -258,29 +258,29 @@ public class SedaUtils {
     private void manageMandatoryFields(Map<String, String> madatoryValueMap, XMLEventReader reader,
         StringBuilder sedaComment,
         StartElement element) throws XMLStreamException {
-        final QName contractName = new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+        final QName contractName = new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ARCHIVAL_AGREEMENT);
         if (element.getName().equals(contractName)) {
             madatoryValueMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, reader.getElementText());
         }
 
         final QName messageObjectName =
-            new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_MESSAGE_IDENTIFIER);
+            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_MESSAGE_IDENTIFIER);
         if (element.getName().equals(messageObjectName)) {
             madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
         }
 
-        final QName profilName = new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_ARCHIVE_PROFILE);
+        final QName profilName = new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ARCHIVE_PROFILE);
         if (element.getName().equals(profilName)) {
             madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
         }
 
         final QName submissionAgencyName =
-            new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
         if (element.getName().equals(submissionAgencyName)) {
             madatoryValueMap.put(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER, reader.getElementText());
         }
 
-        final QName commentName = new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_COMMENT);
+        final QName commentName = new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_COMMENT);
         if (element.getName().equals(commentName)) {
             if (!"".equals(sedaComment.toString())) {
                 sedaComment.append("_");
@@ -289,18 +289,18 @@ public class SedaUtils {
         }
 
         final QName originatingAgencyName =
-            new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         if (element.getName().equals(originatingAgencyName)) {
             madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
         }
 
         final QName acquisitionInformationName =
-            new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_ACQUISITIONINFORMATION);
+            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ACQUISITIONINFORMATION);
         if (element.getName().equals(acquisitionInformationName)) {
             madatoryValueMap.put(SedaConstants.TAG_ACQUISITIONINFORMATION, reader.getElementText());
         }
 
-        final QName legalStatusName = new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_LEGALSTATUS);
+        final QName legalStatusName = new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_LEGALSTATUS);
         if (element.getName().equals(legalStatusName)) {
             madatoryValueMap.put(SedaConstants.TAG_LEGALSTATUS, reader.getElementText());
         }
@@ -324,21 +324,17 @@ public class SedaUtils {
     /**
      * Returns PAIR of NameSpace and SedaVersion !
      *
-     * @param nameSpaceFromManifest
+     * @param namespaceFromManifest
      * @return
      * @throws ProcessingException
      */
-    private Pair<String, String> validateNameSpaceAndSedaVersion(String nameSpaceFromManifest)
+    private Pair<String, String> validateNameSpaceAndSedaVersion(String namespaceFromManifest)
         throws ProcessingException {
-        if (!nameSpaceFromManifest.matches(NAMESPACE_FIELD_REGEX)) {
-            throw new ProcessingException("Invalid NameSpace pattern in Manifest !");
+        Matcher namespaceMatcher = namespacePattern.matcher(namespaceFromManifest);
+        if (namespaceMatcher.find()) {
+            return Pair.of(namespaceFromManifest, namespaceMatcher.group(1));
         }
-        Pattern nameSpacePattern = Pattern.compile(NAMESPACE_FIELD_REGEX);
-        Matcher nameSpaceMatcher = nameSpacePattern.matcher(nameSpaceFromManifest);
-        if (nameSpaceMatcher.find()) {
-            return Pair.of(nameSpaceFromManifest, nameSpaceMatcher.group(1));
-        }
-        throw new ProcessingException("Could not extract NameSpace from manifest!");
+        throw new ProcessingException("Invalid NameSpace pattern in Manifest !");
     }
 
     /**
@@ -354,13 +350,14 @@ public class SedaUtils {
             if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
-            // Implement version check for every Seda version
-            if (SupportedSedaVersions.SEDA_2_1.getVersion().equals(sedaIngestParams.getVersion())) {
-                ValidationXsdUtils.getInstance().checkWithXSD(input, SEDA_2_1_VITAM_XSD_FILE);
-            } else {
+            // Implement version check for every supported Seda version
+            Optional<SupportedSedaVersions> sedaSupportedVersionModel =
+                getSupportedSedaModelByVersion(sedaIngestParams.getVersion());
+            if (sedaSupportedVersionModel.isEmpty()) {
                 LOGGER.warn(sedaIngestParams.getVersion() + " is not supported by Vitam!");
                 return CheckSedaValidationStatus.UNSUPPORTED_SEDA_VERSION;
             }
+            ValidationXsdUtils.getInstance().checkWithXSD(input, sedaSupportedVersionModel.get().getVitamValidatorXSD());
 
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
@@ -379,6 +376,14 @@ public class SedaUtils {
             }
             return CheckSedaValidationStatus.NOT_XML_FILE;
         }
+    }
+
+    private Optional<SupportedSedaVersions> getSupportedSedaModelByVersion(String sedaVersion) {
+        Optional<SupportedSedaVersions> sedaSupportedVersionModel =
+            Arrays.stream(SupportedSedaVersions.values())
+                .filter(elmt -> elmt.getVersion().equals(sedaVersion))
+                .findFirst();
+        return sedaSupportedVersionModel;
     }
 
     /**
@@ -492,14 +497,14 @@ public class SedaUtils {
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
         final QName binaryDataObject =
-            new QName(sedaIngestParams.getNameSpaceUri(), SedaConstants.TAG_BINARY_DATA_OBJECT);
+            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_BINARY_DATA_OBJECT);
         XMLEventReader eventReader = null;
         try {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                IOException e1) {
+                     IOException e1) {
                 LOGGER.error("Workspace error: Can not get file", e1);
                 throw new ProcessingException(e1);
             }
@@ -595,7 +600,7 @@ public class SedaUtils {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                IOException e) {
+                     IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -854,7 +859,7 @@ public class SedaUtils {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+                 IOException e) {
             LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         } finally {

@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -326,6 +327,7 @@ public class CreateManifestTest {
         assertThat(fromFile).hasSize(1).extracting(JsonNode::asText)
             .containsExactlyInAnyOrder("aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq");
 
+
         assertThat(Input.fromFile(manifestFile), hasXPath(
             "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
             equalTo("Content/aeaaaaaaaaerxz5cbmt2yal5tkullgiaaaaq.jpeg"))
@@ -404,7 +406,8 @@ public class CreateManifestTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
-                Charset.defaultCharset()).get(0), "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"),
+                    Charset.defaultCharset()).get(0),
+                "<ns4:DataObjectGroup xmlns:ns4=\"fr:gouv:culture:archivesdefrance:seda:v2.1\" id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\"><"),
             equalTo(1));
 
     }

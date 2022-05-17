@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,18 +55,20 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -82,6 +83,8 @@ public class SedaUtilsTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final String SIP = "sip1.xml";
+    private static final String SIP_2_2 = "sip2_2.xml";
+    private static final String UNSUPPORTED_SEDA_VERSION_MANIFEST = "sip10_5.xml";
     private static final String SIP_PDO = "sip-physical-archive.xml";
     private static final String SEDA_PARAMS_JSON = "Maps/sedaParams.json";
 
@@ -113,7 +116,8 @@ public class SedaUtilsTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(handlerIO.isExistingFileInWorkspace(SEDA_PARAMS_JSON)).thenReturn(true);
         when(handlerIO.getJsonFromWorkspace(any())).thenReturn(JsonHandler.toJsonNode(
-            new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNameSpaceUri())));
+            new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+                SupportedSedaVersions.SEDA_2_1.getNamespaceURI())));
         utils = SedaUtilsFactory.getInstance().createSedaUtilsWithSedaIngestParams(handlerIO);
     }
 
@@ -122,8 +126,8 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
-        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(new ItemStatus()
-        )));
+        assertEquals(CheckSedaValidationStatus.VALID, utils.checkSedaValidation(new ItemStatus()
+        ));
     }
 
     @Test
@@ -135,7 +139,7 @@ public class SedaUtilsTest {
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
         );
-        assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
+        assertEquals(CheckSedaValidationStatus.NOT_XML_FILE, status);
     }
 
     @Test
@@ -147,7 +151,7 @@ public class SedaUtilsTest {
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
         );
-        assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
+        assertEquals(CheckSedaValidationStatus.NOT_XSD_VALID, status);
     }
 
     @Test
@@ -158,7 +162,7 @@ public class SedaUtilsTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
         );
-        assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
+        assertEquals(CheckSedaValidationStatus.NO_FILE, status);
     }
 
     @Test
@@ -169,7 +173,7 @@ public class SedaUtilsTest {
         when(handlerIO.getNewLocalFile(any())).thenReturn(tempFolder.newFile());
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
         utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
-            SupportedSedaVersions.SEDA_2_1.getNameSpaceUri()));
+            SupportedSedaVersions.SEDA_2_1.getNamespaceURI()));
         assertEquals(3, utils.getMandatoryValues(params).size());
     }
 
@@ -185,10 +189,10 @@ public class SedaUtilsTest {
         assertEquals(2, versionList.size());
         assertEquals(4, versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).size());
         assertEquals(1, versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).size());
-        List<String> versionsToBeChecked = new ArrayList<>();
-        assertTrue(
-            versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).get(0).getVersion().equals("PhysicalMaster_1"));
-        versionsToBeChecked.addAll(Arrays.asList("BinaryMaster", "Dissemination_1", "Thumbnail", "TextContent_1"));
+        assertEquals(
+            versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).get(0).getVersion(), "PhysicalMaster_1");
+        List<String> versionsToBeChecked =
+            new ArrayList<>(Arrays.asList("BinaryMaster", "Dissemination_1", "Thumbnail", "TextContent_1"));
         versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).forEach(key -> {
             assertTrue(versionsToBeChecked.contains(key.getVersion()));
             versionsToBeChecked.remove(key.getVersion());
@@ -266,7 +270,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenSIPWithTwoManifestThenReturnKOMultiManifest() throws Exception {
-        List<URI> listUri = new ArrayList<URI>();
+        List<URI> listUri = new ArrayList<>();
         listUri.add(new URI("content/file.pdf"));
         listUri.add(new URI("content/file2.pdf"));
         listUri.add(new URI("manifest.xml"));
@@ -274,29 +278,101 @@ public class SedaUtilsTest {
         when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
         );
-        assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
+        assertEquals(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST, status);
     }
 
     @Test
     public void givenSIPWithTwoFolderThenReturnKOMultiFolderContent() throws Exception {
-        List<URI> listUri = new ArrayList<URI>();
-        listUri.add(new URI(URLEncoder.encode("content/file.pdf", CharsetUtils.UTF_8)));
-        listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
+        List<URI> listUri = new ArrayList<>();
+        listUri.add(new URI(URLEncoder.encode("content/file.pdf", StandardCharsets.UTF_8)));
+        listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", StandardCharsets.UTF_8)));
         listUri.add(new URI("manifest.xml"));
         when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus()
         );
-        assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
+        assertEquals(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT, status);
     }
 
 
-    @Test(expected = SedaUtilsException.class)
-    public void givenWrongAlgorithThenReturnInvalidAlgo() throws Exception {
+    @Test
+    public void givenWrongAlgorithmThenReturnInvalidAlgo() throws Exception {
 
         final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
         XMLEventReader evenReader =
             factory.createXMLEventReader(new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml"));
-        Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
+
+        assertThrows(SedaUtilsException.class, () -> utils.compareVersionList(evenReader));
     }
 
+    @Test
+    public void givenSip_2_1_SedaVersionThenReturnResponseOK() throws Exception {
+        // GIVEN
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+            SupportedSedaVersions.SEDA_2_1.getNamespaceURI()));
+
+        // WHEN
+        when(workspaceClient.getObject(any(), any()))
+            .thenReturn(Response.status(Status.OK).entity(seda).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
+
+        // THEN
+        assertEquals(CheckSedaValidationStatus.VALID, status);
+    }
+
+    @Test
+    public void givenSip_2_2_SedaVersionThenReturnResponseOK() throws Exception {
+        // GIVEN
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_2.getVersion(),
+            SupportedSedaVersions.SEDA_2_2.getNamespaceURI()));
+        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(SIP_2_2);
+        // WHEN
+        when(workspaceClient.getObject(any(), any()))
+            .thenReturn(Response.status(Status.OK).entity(seda2_2).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
+
+        // THEN
+        assertEquals(CheckSedaValidationStatus.VALID, status);
+    }
+
+    @Test
+    public void givenSip_2_2And2_1SedaVersionAndXsdValidatorThenReturnResponseKO() throws Exception {
+        // GIVEN
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+            SupportedSedaVersions.SEDA_2_1.getNamespaceURI()));
+
+        // WHEN
+        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(SIP_2_2);
+        when(workspaceClient.getObject(any(), any()))
+            .thenReturn(Response.status(Status.OK).entity(seda2_2).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
+
+        // THEN
+        assertEquals(CheckSedaValidationStatus.NOT_XSD_VALID, status);
+    }
+
+    @Test
+    public void givenSipUnsupportedSedaVersionAnd2_1SedaVersionAndXsdValidatorThenReturnResponseKO() throws Exception {
+        // GIVEN
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(),
+            SupportedSedaVersions.SEDA_2_1.getNamespaceURI()));
+
+        // WHEN
+        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(UNSUPPORTED_SEDA_VERSION_MANIFEST);
+        when(workspaceClient.getObject(any(), any()))
+            .thenReturn(Response.status(Status.OK).entity(seda2_2).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
+
+        // THEN
+        assertEquals(CheckSedaValidationStatus.NOT_XSD_VALID, status);
+    }
+
+    @Test
+    public void givenSip_UnsupportedSedaVersion_ThenReturnResponseKO() {
+        assertThrows(ProcessingException.class, () -> utils.setSedaIngestParams(
+            new SedaIngestParams("18.18", "I am a namespace from unsupported seda version"))).getVitamError();
+    }
 }

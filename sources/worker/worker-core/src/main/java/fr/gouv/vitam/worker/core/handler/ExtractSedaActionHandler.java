@@ -199,6 +199,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.agentIdentifier;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDateTime;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifier;
@@ -497,7 +498,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 adminManagementClientFactory, sedaUtils.getSedaIngestParams().getVersion());
             unmarshaller.setListener(listener);
 
-            ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
+            ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType,
+                UNIFIED_NAMESPACE);
 
             if (!existingUnitGuids.isEmpty()) {
                 evDetData.set(ATTACHMENT_IDS, JsonHandler.toJsonNode(existingUnitGuids));
@@ -799,21 +801,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param params parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @param workflowUnitType
+     * @param namespaceURI
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
      */
     public ObjectNode extractSEDA(LogbookLifeCyclesClient logbookLifeCycleClient, WorkerParameters params,
-        ItemStatus globalCompositeItemStatus, UnitType workflowUnitType)
+        ItemStatus globalCompositeItemStatus, UnitType workflowUnitType, String namespaceURI)
         throws ProcessingException, CycleFoundException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus,
-            logbookLifeCycleClient, params.getLogbookTypeProcess(), workflowUnitType);
+            logbookLifeCycleClient, params.getLogbookTypeProcess(), workflowUnitType, namespaceURI);
     }
 
     private ObjectNode extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
         LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess,
-        UnitType workflowUnitType)
+        UnitType workflowUnitType, String namespaceURI)
         throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
@@ -825,10 +828,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         XMLEventReader reader = null;
 
-        final QName dataObjectGroupName = new QName(SedaConstants.NAMESPACE_URI, DATA_OBJECT_GROUP);
-        final QName dataObjectName = new QName(SedaConstants.NAMESPACE_URI, BINARY_DATA_OBJECT);
-        final QName physicalDataObjectName = new QName(SedaConstants.NAMESPACE_URI, PHYSICAL_DATA_OBJECT);
-        final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
+        final QName dataObjectGroupName = new QName(namespaceURI, DATA_OBJECT_GROUP);
+        final QName dataObjectName = new QName(namespaceURI, BINARY_DATA_OBJECT);
+        final QName physicalDataObjectName = new QName(namespaceURI, PHYSICAL_DATA_OBJECT);
+        final QName unitName = new QName(namespaceURI, ARCHIVE_UNIT);
         final QName idQName = new QName(SedaConstants.ATTRIBUTE_ID);
 
         try (InputStream xmlFile = getTransformedXmlAsInputStream(handlerIO)) {
@@ -929,20 +932,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
                     String ingestContractIdentifier = reader.getElementText();
                     ingestContract = listener.loadIngestContract(ingestContractIdentifier);
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_ARCHIVAL_AGREEMENT));
                     writer.add(eventFactory.createCharacters(ingestContractIdentifier));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_ARCHIVAL_AGREEMENT));
                     continue;
                 }
 
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_ARCHIVE_PROFILE)) {
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_ARCHIVE_PROFILE));
                     writer.add(eventFactory.createCharacters(reader.getElementText()));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_ARCHIVE_PROFILE));
                     continue;
                 }
@@ -953,24 +956,24 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (!UnitType.HOLDING_UNIT.equals(workflowUnitType)) {
                         originatingAgency = reader.getElementText();
                         originatingAgencies.add(originatingAgency);
-                        writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        writer.add(eventFactory.createStartElement("", namespaceURI,
                             SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                         writer.add(eventFactory.createCharacters(originatingAgency));
-                        writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        writer.add(eventFactory.createEndElement("", namespaceURI,
                             SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                         for (String currentAgency : originatingAgencies) {
-                            writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                            writer.add(eventFactory.createStartElement("", namespaceURI,
                                 SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
                             writer.add(eventFactory.createCharacters(currentAgency));
-                            writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                            writer.add(eventFactory.createEndElement("", namespaceURI,
                                 SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
                         }
                     }
                     writer.add(
-                        eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+                        eventFactory.createStartElement("", namespaceURI, SedaUtils.NB_AU_EXISTING));
                     writer.add(eventFactory.createCharacters(String.valueOf(nbAUExisting)));
                     writer
-                        .add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+                        .add(eventFactory.createEndElement("", namespaceURI, SedaUtils.NB_AU_EXISTING));
 
                     globalMetadata = false;
                 }
@@ -979,10 +982,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_SERVICE_LEVEL)) {
                     final String serviceLevel = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_SERVICE_LEVEL));
                     writer.add(eventFactory.createCharacters(serviceLevel));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_SERVICE_LEVEL));
                     globalMetadata = false;
                 }
@@ -990,10 +993,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_ACQUISITIONINFORMATION)) {
                     final String acquisitionInformation = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_ACQUISITIONINFORMATION));
                     writer.add(eventFactory.createCharacters(acquisitionInformation));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_ACQUISITIONINFORMATION));
                     globalMetadata = false;
                 }
@@ -1001,10 +1004,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_LEGALSTATUS)) {
                     final String legalStatus = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_LEGALSTATUS));
                     writer.add(eventFactory.createCharacters(legalStatus));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_LEGALSTATUS));
                     globalMetadata = false;
                 }
@@ -1013,10 +1016,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
 
                     submissionAgencyIdentifier = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createStartElement("", namespaceURI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(submissionAgencyIdentifier));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                    writer.add(eventFactory.createEndElement("", namespaceURI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
@@ -3019,7 +3022,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             return true;
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
+                 InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
         }
     }

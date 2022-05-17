@@ -33,13 +33,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
+
 
 /**
  * Class representing a Signer or a Validator
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(namespace = NAMESPACE_URI, propOrder = {
+@XmlType(namespace = UNIFIED_NAMESPACE, propOrder = {
     "firstName",
     "birthName",
     "fullName",
@@ -63,11 +64,11 @@ import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
 public class ValidatorOrSignerModel extends PersonOrEntityAndBusinessType {
 
     @JsonProperty("SigningTime")
-    @XmlElement(name = "SigningTime", namespace = NAMESPACE_URI)
+    @XmlElement(name = "SigningTime", namespace = UNIFIED_NAMESPACE)
     private String signingTime;
 
     @JsonProperty("ValidationTime")
-    @XmlElement(name = "ValidationTime", namespace = NAMESPACE_URI)
+    @XmlElement(name = "ValidationTime", namespace = UNIFIED_NAMESPACE)
     private String validationTime;
 
     /**

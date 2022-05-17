@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
+
 /**
  * Transform Json Tree To Xml list of xml Element
  */
@@ -96,14 +98,14 @@ public class TransformJsonTreeToListOfXmlElement {
         } else if (value instanceof List) {
             mapList(consumer, document, key, value);
         } else if (value instanceof Map) {
-            Element childElement = document.createElementNS(SedaConstants.NAMESPACE_URI, key);
+            Element childElement = document.createElementNS(UNIFIED_NAMESPACE, key);
             transformMapToElement(childElement::appendChild, document, (Map<String, ?>) value);
             consumer.accept(childElement);
         }
     }
 
     private static void mapObject(Consumer<Element> consumer, Document document, String key, String value) {
-        Element childElement = document.createElementNS(SedaConstants.NAMESPACE_URI, key);
+        Element childElement = document.createElementNS(UNIFIED_NAMESPACE, key);
         childElement.appendChild(document.createTextNode(value));
         consumer.accept(childElement);
     }

@@ -27,7 +27,6 @@
   -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
-    <xsl:mode streamable="yes"/>
     <xsl:output indent="no" encoding="UTF-8" method="xml"/>
     <xsl:strip-space elements="*"/>
     <xsl:template match="node()|@*">
@@ -36,4 +35,10 @@
         </xsl:copy>
     </xsl:template>
     <xsl:template match="comment()"/>
+    <!-- transform different namespace to an unified one to extract data -->
+    <xsl:template match="*">
+        <xsl:element name="{local-name()}" namespace="fr:gouv:culture:archivesdefrance:seda:v2">
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:element>
+    </xsl:template>
 </xsl:stylesheet>

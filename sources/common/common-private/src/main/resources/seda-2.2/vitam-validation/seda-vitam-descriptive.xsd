@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.2" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.2"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+    <xsd:include schemaLocation="seda-vitam-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-ontology.xsd"/>
+    
+    <!-- Hierarchy and recursivity -->
+    <xsd:complexType name="ArchiveUnitType">
+        <xsd:annotation>
+            <xsd:documentation>Unité de base des métadonnées de description contenant la gestion de l'arborescence.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de faire une référence à d'autres ArchiveUnit dans la même transaction.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:sequence>
+                <xsd:element name="ArchiveUnitProfile" type="IdentifierType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un ArchiveUnit en particulier. Permet par exemple de faire référence à une typologie documentaire dans un profil d'archivage.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="Management" type="ManagementType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses héritiers.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>Métadonnées de description associées à un ArchiveUnit.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <!-- Hierarchy -->
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="ArchiveUnit" type="ArchiveUnitType">
+                            <xsd:annotation>
+                                <xsd:documentation>Gestion de la récursivité. Une ArchiveUnit peut être contenu dans une ature ArchiveUnit.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <!--xsd:element ref="ArchiveUnitReferenceAbstract">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à une sous unité d'archives, pouvant être déjà présente dans le système d'archivage provenant d'une transaction précédente.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element-->
+                        <xsd:element name="DataObjectReference" type="DataObjectRefType">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <!-- Redefined by VITAM -->
+                        <xsd:element name="DataObjectGroup" type="ObjectGroupRefType">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà existant.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any processContents="lax" minOccurs="0"/>
+                    </xsd:choice>
+            </xsd:sequence>
+        </xsd:choice>
+        <xsd:attribute name="id" type="ArchiveUnitIdType" use="required">
+            <xsd:annotation>
+                <xsd:documentation>Identifiant de l'unité d'archives utilisé par exemple dans le cas de multiples héritages, pour savoir quel noeud contient une erreur.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="ManagementType">
+        <xsd:group ref="ManagementGroup"/>
+    </xsd:complexType>
+    <!-- Extension VITAM : Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans le SAE -->
+    <xsd:complexType name="ObjectGroupRefType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="DataObjectReference" type="DataObjectRefType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà existant.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DataObjectGroupExistingReferenceId" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à un groupe d'objets-données déjà existants.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- In ArchiveUnitType fseda-vitam-descriptive.xsd.xsd: Descriptive Metadata Content -->
+    <xsd:complexType name="DescriptiveMetadataContentType">
+        <xsd:annotation>
+            <xsd:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:group ref="ObjectGroup"/>
+            <!-- Extension VITAM pour la gestion de l'historisation des règles de gestion (et d'autre données éventuellement dans l'avenir)  -->
+            <xsd:group ref="ManagementHistoryGroup"  minOccurs="0" />
+        </xsd:sequence>
+
+    </xsd:complexType>
+
+    <xsd:group name="ManagementHistoryGroup">
+        <xsd:sequence>
+            <xsd:element name="History" type="ManagementHistoryType" minOccurs="0"  maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses
+                        héritiers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:complexType name="ManagementHistoryType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="UpdateDate" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>Date d'historisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Data" type="ManagementHistoryDataType">
+                <xsd:annotation>
+                    <xsd:documentation>Data</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ManagementHistoryDataType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.
+            </xsd:documentation>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="Version" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Version d'historisation</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Management" type="ManagementType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées de gestion historisées (08/2018 : seulement, ClassificationRule).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+</xsd:schema>

@@ -108,8 +108,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
         Map<String, String> mandatoryValueMap;
         ObjectNode infoNode = JsonHandler.createObjectNode();
         final boolean shouldCheckOriginatingAgency =
-            Boolean.parseBoolean((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK_INPUT));
-        final boolean shouldCheckProfile = Boolean.parseBoolean((String) handlerIO.getInput(CHECK_PROFILE_RANK_INPUT));
+            Boolean.parseBoolean(handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK_INPUT, String.class));
+        final boolean shouldCheckProfile =
+            Boolean.parseBoolean(handlerIO.getInput(CHECK_PROFILE_RANK_INPUT, String.class));
 
         try {
             final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);

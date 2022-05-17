@@ -117,7 +117,7 @@ public class IngestExternalIT extends VitamRuleRunner {
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
         "integration-ingest-external/expected-logbook.json";
     private static final String SIP_UNSUPPORTED_SEDA_VERSION =
-        "integration-processing/KO_SIP_INSUPPORTED_SEDA_VERSION_2.2.zip";
+        "integration-processing/KO_SIP_INSUPPORTED_SEDA_VERSION.zip";
     private static final String NOT_XML_MANIFEST_SIP = "integration-processing/KO_manifest_mauvais_format.zip";
 
     @ClassRule
@@ -754,7 +754,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                     .get();
             assertEquals("CHECK_SEDA.UNSUPPORTED_SEDA_VERSION.KO", checkSedaEvent.getOutDetail());
             assertThat(checkSedaEvent.getOutMessg()).contains(
-                "Échec de la vérification globale du SIP : La version SEDA renseignée n'est pas supportée.");
+                "Échec de la vérification globale du SIP : La version SEDA utilisée n'est pas supportée.");
         }
     }
 

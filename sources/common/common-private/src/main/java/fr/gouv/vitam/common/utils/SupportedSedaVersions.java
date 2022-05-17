@@ -27,31 +27,41 @@
 package fr.gouv.vitam.common.utils;
 
 /**
- * Here we declare all SEDA versiosn supported by Vitam with their XSD Validator to use later for Generating ATR, DIP and TRANSFER.
+ * Here we declare all SEDA versions supported by Vitam with their XSD Validators to use later for Generating ATR, DIP and TRANSFER.
  */
 public enum SupportedSedaVersions {
+    SEDA_2_1("2.1", "fr:gouv:culture:archivesdefrance:seda:v2.1", "seda-2.1/seda-2.1-main.xsd",
+        "seda-2.1/vitam-validation/seda-vitam-main.xsd"),
+    SEDA_2_2("2.2", "fr:gouv:culture:archivesdefrance:seda:v2.2", "seda-2.2/seda-2.2-main.xsd",
+        "seda-2.2/vitam-validation/seda-vitam-main.xsd");
 
-    SEDA_2_1("2.1", "fr:gouv:culture:archivesdefrance:seda:v2.1", "seda/seda-2.1-main.xsd");
-
+    public static final String UNIFIED_NAMESPACE = "fr:gouv:culture:archivesdefrance:seda:v2";
+    public static final String GENERIC_VITAM_VALIDATOR = "seda-vitam/seda-vitam-main.xsd";
     private final String version;
-    private final String nameSpaceUri;
-    private final String xsdValidator;
+    private final String namespaceURI;
+    private final String sedaValidatorXSD;
+    private final String vitamValidatorXSD;
 
-    SupportedSedaVersions(String version, String nameSpaceUri, String xsdValidator) {
+    SupportedSedaVersions(String version, String namespaceURI, String xsdValidator, String vitamValidatorXSD) {
         this.version = version;
-        this.nameSpaceUri = nameSpaceUri;
-        this.xsdValidator = xsdValidator;
+        this.namespaceURI = namespaceURI;
+        this.sedaValidatorXSD = xsdValidator;
+        this.vitamValidatorXSD = vitamValidatorXSD;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public String getXsdValidator() {
-        return xsdValidator;
+    public String getSedaValidatorXSD() {
+        return sedaValidatorXSD;
     }
 
-    public String getNameSpaceUri() {
-        return nameSpaceUri;
+    public String getNamespaceURI() {
+        return namespaceURI;
+    }
+
+    public String getVitamValidatorXSD() {
+        return vitamValidatorXSD;
     }
 }
