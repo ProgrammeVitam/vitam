@@ -63,6 +63,11 @@ public class VitamMongoCursor<T> implements MongoCursor<T> {
     }
 
     @Override
+    public int available() {
+        return cursor.available();
+    }
+
+    @Override
     public T tryNext() {
         return cursor.tryNext();
     }

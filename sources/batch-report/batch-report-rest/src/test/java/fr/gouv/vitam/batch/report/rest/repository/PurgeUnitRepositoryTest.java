@@ -57,7 +57,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_UNITS;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -72,7 +71,7 @@ public class PurgeUnitRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), PURGE_UNIT);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PURGE_UNIT);
 
     private PurgeUnitRepository repository;
 

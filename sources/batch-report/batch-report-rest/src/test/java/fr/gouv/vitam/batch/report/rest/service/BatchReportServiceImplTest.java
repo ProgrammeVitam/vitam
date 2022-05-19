@@ -182,8 +182,6 @@ public class BatchReportServiceImplTest {
     @Mock
     private StorageClient storageClient;
     @Mock
-    private EmptyMongoCursor emptyMongoCursor;
-    @Mock
     private ExtractedMetadataRepository extractedMetadataRepository;
     @Mock
     private DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
@@ -565,10 +563,10 @@ public class BatchReportServiceImplTest {
         File folder = this.folder.newFolder();
         Path report = Paths.get(folder.getAbsolutePath(), "distinct_objectgroup.json");
         initialiseMockWhenPutAtomicObjectInWorkspace(report);
-        when(emptyMongoCursor.next()).thenReturn(objectGroupId);
-        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
+
+        FakeMongoCursor<String> mongoCursor = new FakeMongoCursor<>(List.of(objectGroupId));
         when(purgeUnitRepository.distinctObjectGroupOfDeletedUnits(PROCESS_ID, TENANT_ID))
-            .thenReturn(emptyMongoCursor);
+            .thenReturn(mongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
 
         // When
@@ -682,10 +680,9 @@ public class BatchReportServiceImplTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         Path report = initialisePathWithFileName(PROCESS_ID + ".jsonl");
         initialiseMockWhenPutAtomicObjectInWorkspace(report);
-        when(emptyMongoCursor.next()).thenReturn(extractedMetadata);
-        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
+        FakeMongoCursor<ExtractedMetadata> mongoCursor = new FakeMongoCursor<>(List.of(extractedMetadata));
         given(extractedMetadataRepository.getExtractedMetadataByProcessId(PROCESS_ID, TENANT_ID))
-            .willReturn(emptyMongoCursor);
+            .willReturn(mongoCursor);
 
         // When
         batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(PROCESS_ID, TENANT_ID);
@@ -731,7 +728,7 @@ public class BatchReportServiceImplTest {
         // Given
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         given(extractedMetadataRepository.getExtractedMetadataByProcessId(PROCESS_ID, TENANT_ID))
-            .willReturn(emptyMongoCursor);
+            .willReturn(new EmptyMongoCursor<>());
 
         // When
         batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(PROCESS_ID, TENANT_ID);

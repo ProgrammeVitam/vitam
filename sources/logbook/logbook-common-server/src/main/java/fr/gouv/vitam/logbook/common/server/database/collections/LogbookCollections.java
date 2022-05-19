@@ -110,7 +110,7 @@ public enum LogbookCollections {
      */
 
     protected void initialize(final LogbookElasticsearchAccess esClient) {
-        vitamCollection.initialize(esClient, true);
+        vitamCollection.initialize(esClient);
     }
 
     /**

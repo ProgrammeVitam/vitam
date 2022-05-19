@@ -36,11 +36,11 @@ import fr.gouv.vitam.common.database.builder.query.action.AddAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -99,19 +99,15 @@ public class SecurityProfileServiceTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions());
+    @ClassRule public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+    @ClassRule public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+    @Rule public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String BACKUP_SECURITY_PROFILE = "STP_BACKUP_SECURITY_PROFILE";
 
@@ -133,8 +129,7 @@ public class SecurityProfileServiceTest {
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
-                indexManager),
-            Collections.singletonList(FunctionalAdminCollections.SECURITY_PROFILE));
+                indexManager), Collections.singletonList(FunctionalAdminCollections.SECURITY_PROFILE));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
@@ -163,11 +158,10 @@ public class SecurityProfileServiceTest {
         functionalBackupService = mock(FunctionalBackupService.class);
         adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
-        securityProfileService =
-            new SecurityProfileService(
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
-                    Collections::emptyList, indexManager),
-                vitamCounterService, functionalBackupService, adminManagementClient);
+        securityProfileService = new SecurityProfileService(
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList, indexManager), vitamCounterService, functionalBackupService,
+            adminManagementClient);
     }
 
     @AfterClass
@@ -200,8 +194,8 @@ public class SecurityProfileServiceTest {
         assertThat(responseCast.getResults().get(0).getPermissions().size()).isEqualTo(3);
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("SEC_PROFILE-000");
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(BACKUP_SECURITY_PROFILE), eq(
-            FunctionalAdminCollections.SECURITY_PROFILE), any());
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(BACKUP_SECURITY_PROFILE),
+            eq(FunctionalAdminCollections.SECURITY_PROFILE), any());
     }
 
     @Test
@@ -243,8 +237,8 @@ public class SecurityProfileServiceTest {
     @RunWithCustomExecutor
     public void givenSecurityProfilesTestDuplicateNamesAccepted() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File securityProfileFiles = PropertiesUtils.getResourceFile(
-            "security_profile_ok_duplicate_names_accepted.json");
+        final File securityProfileFiles =
+            PropertiesUtils.getResourceFile("security_profile_ok_duplicate_names_accepted.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
             });
@@ -274,8 +268,7 @@ public class SecurityProfileServiceTest {
     @RunWithCustomExecutor
     public void givenSecurityProfilesTestExternalIdentifierIgnored() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File securityProfileFiles =
-            PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
+        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
@@ -293,8 +286,7 @@ public class SecurityProfileServiceTest {
     @RunWithCustomExecutor
     public void givenSecurityProfilesTestIdentifierAllowedInCreation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-        final File securityProfileFiles =
-            PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
+        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
@@ -456,8 +448,7 @@ public class SecurityProfileServiceTest {
         String identifier = createResponseCast.getResults().get(0).getIdentifier();
 
         // Find one profile by identifier
-        final Optional<SecurityProfileModel> findResponse =
-            securityProfileService.findOneByIdentifier(identifier);
+        final Optional<SecurityProfileModel> findResponse = securityProfileService.findOneByIdentifier(identifier);
 
         assertThat(findResponse.isPresent()).isTrue();
         assertThat(findResponse.get().getId()).isNotEmpty();

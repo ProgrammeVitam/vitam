@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
@@ -276,7 +277,8 @@ public class DbRequestTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
     private static final MongoDbVarNameAdapter mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
     private static final MappingLoader mappingLoader;
 

@@ -32,11 +32,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.ErrorCategory;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
@@ -149,7 +149,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * Quick projection for ID Only
      */
     private static final BasicDBObject ID_PROJECTION = new BasicDBObject(LogbookDocument.ID, 1);
-    private static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
     private static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
     private static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
@@ -157,7 +156,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final int TWO_LAST_EVENTS_SLICE = -2;
 
     static {
-        DEFAULT_SLICE.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             DEFAULT_ALLKEYS.put(name.getDbname(), 1);
         }
@@ -184,7 +182,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
         LogbookElasticsearchAccess esClient, LogbookTransformData logbookTransformData,
         OntologyLoader ontologyLoader) {
-        super(mongoClient, dbname, recreate);
+        super(mongoClient, dbname);
         this.esClient = esClient;
         this.logbookTransformData = logbookTransformData;
         this.ontologyLoader = ontologyLoader;
@@ -208,7 +206,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * Close database access
      */
     @Override
-    public final void close() {
+    public void close() {
         getMongoClient().close();
     }
 
@@ -320,10 +318,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         // last
         // Logbook operation event . Must be removed when the processing will be reworked
         if (sliced) {
+            // FIXME : #9847 Fix logbook projections - Only use user-provided projection.
             final ObjectNode operationSlice = JsonHandler.createObjectNode();
             operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
             return select(LogbookCollections.OPERATION, select, operationSlice, crossTenant);
         } else {
+            // FIXME : #9847 Fix logbook projections - Only use user-provided projection.
             return select(LogbookCollections.OPERATION, select, DEFAULT_SLICE_WITH_ALL_EVENTS, crossTenant);
         }
     }
@@ -474,8 +474,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 final ObjectNode operationSlice = JsonHandler.createObjectNode();
                 operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
                 parser.addProjection(operationSlice, DEFAULT_ALLKEYS);
-            } else {
-                parser.addProjection(DEFAULT_SLICE_WITH_ALL_EVENTS, DEFAULT_ALLKEYS);
             }
 
             final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
@@ -565,7 +563,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
-        parser.addProjection(DEFAULT_SLICE_WITH_ALL_EVENTS, DEFAULT_ALLKEYS);
         return findLifecyleLogbooksFromMongo(collection.getCollection(), parser);
     }
 

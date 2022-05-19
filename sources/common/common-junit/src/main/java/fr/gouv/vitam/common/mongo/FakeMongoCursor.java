@@ -33,8 +33,8 @@ import com.mongodb.client.MongoCursor;
 import java.util.Iterator;
 import java.util.List;
 
-public class FakeMongoCursor<T> implements MongoCursor {
-    private Iterator<T> iterator;
+public class FakeMongoCursor<T> implements MongoCursor<T> {
+    private final Iterator<T> iterator;
 
     public FakeMongoCursor(List<T> iterator) {
         this.iterator = iterator.iterator();
@@ -50,12 +50,12 @@ public class FakeMongoCursor<T> implements MongoCursor {
     }
 
     @Override
-    public Object next() {
+    public T next() {
         return iterator.next();
     }
 
     @Override
-    public Object tryNext() {
+    public T tryNext() {
         throw new RuntimeException("Not implemented");
     }
 
@@ -66,6 +66,11 @@ public class FakeMongoCursor<T> implements MongoCursor {
 
     @Override
     public ServerAddress getServerAddress() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public int available() {
         throw new RuntimeException("Not implemented");
     }
 }

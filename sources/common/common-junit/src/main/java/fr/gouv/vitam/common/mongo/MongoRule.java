@@ -27,9 +27,10 @@
 package fr.gouv.vitam.common.mongo;
 
 import com.google.common.collect.Sets;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -39,6 +40,7 @@ import org.junit.rules.ExternalResource;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -51,23 +53,20 @@ public class MongoRule extends ExternalResource {
     public static final String COUNTER = "Counter";
     public static final String ID = "_id";
 
-    private static int dataBasePort = 27017;
+    private static final int dataBasePort = 27017;
 
     private final MongoClient mongoClient;
     private final String dbName;
-    private Set<String> collectionsToBePurged;
+    private final Set<String> collectionsToBePurged;
 
     private boolean clientClosed = false;
 
-    /**
-     * @param clientOptions
-     * @param collectionsToBePurged
-     */
-    public MongoRule(MongoClientOptions clientOptions, String... collectionsToBePurged) {
-        this(VITAM_DB, clientOptions, collectionsToBePurged);
+    public MongoRule(MongoClientSettings.Builder mongoClientSettingsBuilder, String... collectionsToBePurged) {
+        this(VITAM_DB, mongoClientSettingsBuilder, collectionsToBePurged);
     }
 
-    public MongoRule(String dbName, MongoClientOptions clientOptions, String... collectionsToBePurged) {
+    public MongoRule(String dbName, MongoClientSettings.Builder mongoClientSettingsBuilder,
+        String... collectionsToBePurged) {
 
         if (null != collectionsToBePurged) {
             this.collectionsToBePurged = Sets.newHashSet(collectionsToBePurged);
@@ -75,7 +74,10 @@ public class MongoRule extends ExternalResource {
             this.collectionsToBePurged = new HashSet<>();
         }
 
-        mongoClient = new MongoClient(new ServerAddress(MONGO_HOST, dataBasePort), clientOptions);
+        mongoClientSettingsBuilder.applyToClusterSettings(
+            builder -> builder.hosts(List.of(new ServerAddress(MONGO_HOST, dataBasePort))));
+
+        this.mongoClient = MongoClients.create(mongoClientSettingsBuilder.build());
         this.dbName = dbName;
     }
 

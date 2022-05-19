@@ -27,15 +27,14 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -49,7 +48,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
@@ -81,7 +79,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl.FILE_FORMAT_REPORT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,7 +102,7 @@ public class ReferentialFormatFileImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)));
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FileFormat.class));
 
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
@@ -357,10 +354,9 @@ public class ReferentialFormatFileImplTest {
     }
 
     private void checkFormatsInDb(int expected) {
-        final MongoClient client = new MongoClient(new ServerAddress("localhost", mongoRule.getDataBasePort()));
+        final MongoClient client = mongoRule.getMongoClient();
         final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName())
             .getCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(expected, collection.countDocuments());
-        client.close();
     }
 }

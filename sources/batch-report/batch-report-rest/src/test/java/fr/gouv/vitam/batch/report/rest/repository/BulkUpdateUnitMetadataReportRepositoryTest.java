@@ -48,7 +48,6 @@ import java.util.List;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BulkUpdateUnitMetadataReportRepositoryTest {
@@ -57,7 +56,7 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     public static final String COLLECTION_NAME = "BulkUpdateUnitMetadataReport" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), COLLECTION_NAME);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), COLLECTION_NAME);
 
     private BulkUpdateUnitMetadataReportRepository repository;
 

@@ -52,7 +52,6 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TraceabilityReportRepositoryTest {
@@ -61,7 +60,7 @@ public class TraceabilityReportRepositoryTest {
     public static final String TRACEABILITY_REPORT = "TraceabilityReport" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TRACEABILITY_REPORT);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TRACEABILITY_REPORT);
 
     private TraceabilityReportRepository repository;
 

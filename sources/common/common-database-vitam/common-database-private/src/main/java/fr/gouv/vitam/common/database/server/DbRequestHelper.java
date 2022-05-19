@@ -250,6 +250,11 @@ public class DbRequestHelper {
             }
 
             @Override
+            public int available() {
+                return 0;
+            }
+
+            @Override
             public T tryNext() {
                 if (rank >= max) {
                     return null;

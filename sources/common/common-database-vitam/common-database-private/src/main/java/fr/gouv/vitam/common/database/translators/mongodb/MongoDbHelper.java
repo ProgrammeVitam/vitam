@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import com.mongodb.MongoClient;
-import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -55,11 +53,9 @@ public class MongoDbHelper {
             return "";
         }
         if (indent) {
-            return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson(jwsIndented);
+            return bson.toBsonDocument().toJson(jwsIndented);
         } else {
-            return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson(jws);
+            return bson.toBsonDocument().toJson(jws);
         }
     }
 }

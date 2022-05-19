@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchiveCacheEvictionControllerTest {
@@ -67,7 +66,7 @@ public class ArchiveCacheEvictionControllerTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(),
             ACCESS_REQUEST_REFERENTIAL_COLLECTION, TAPE_OBJECT_REFERENTIAL_COLLECTION);
 
     @Rule

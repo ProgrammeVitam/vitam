@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -174,10 +174,10 @@ public class StorageTwoOffersIT {
 
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, MongoDbAccess.getMongoClientSettingsBuilder());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
     private static OfferDiffAdminResource offerDiffAdminResource;

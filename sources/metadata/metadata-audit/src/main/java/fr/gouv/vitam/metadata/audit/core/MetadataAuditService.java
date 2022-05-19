@@ -31,10 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
@@ -42,6 +39,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.OplogReader;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -58,6 +56,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.configuration.DataConsistencyAuditConfig;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbShard;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbShardConf;
@@ -477,15 +477,11 @@ public class MetadataAuditService {
     private OplogReader createOplogReaderInstance(String dbUserName, String dbUserPassword, MongoDbNode dbNode,
         Boolean dbAuthentication, Integer dataConsistencyAuditOplogMaxSize) {
         LOGGER.info("Connecting to MongoDB Shard Node");
-        MongoClient mongoClient = new MongoClient();
-        if (dbAuthentication) {
-            MongoCredential credential =
-                MongoCredential.createCredential(dbUserName, DB_NAME, dbUserPassword.toCharArray());
-            MongoClientOptions options = MongoClientOptions.builder().build();
-            mongoClient =
-                new MongoClient(Collections.singletonList(new ServerAddress(dbNode.getDbHost(), dbNode.getDbPort())),
-                    credential, options);
-        }
+
+        DbConfiguration dbConfiguration =
+            new DbConfigurationImpl(List.of(dbNode), DB_NAME, dbAuthentication, dbUserName, dbUserPassword);
+        MongoClient mongoClient = MongoDbAccess.createMongoClient(dbConfiguration);
+
         return new OplogReader(mongoClient, dataConsistencyAuditOplogMaxSize);
     }
 

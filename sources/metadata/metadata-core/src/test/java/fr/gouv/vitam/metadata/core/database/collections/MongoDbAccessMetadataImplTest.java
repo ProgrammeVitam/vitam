@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -120,26 +121,20 @@ public class MongoDbAccessMetadataImplTest {
     private static final String DEFAULT_MONGO3 = PREFIX + "Unit";
     private static final String DEFAULT_MONGO4 = PREFIX + "ObjectGroup";
     private static final String DEFAULT_MONGO5 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." + PREFIX +
-            "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_";
     private static final String DEFAULT_MONGO6 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB + "." +
-            PREFIX + "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed";
     private static final String DEFAULT_MONGO7 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." +
-            PREFIX +
-            "ObjectGroup}}";
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_";
     private static final String DEFAULT_MONGO8 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB +
-            "." + PREFIX +
-            "ObjectGroup}}";
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

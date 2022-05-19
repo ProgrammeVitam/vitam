@@ -39,15 +39,14 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffsetRepositoryTest {
 
-    private final static String COLLECTIONNAME = "Offset" + GUIDFactory.newGUID().getId();
+    private final static String COLLECTION_NAME = "Offset" + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), COLLECTIONNAME);
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), COLLECTION_NAME);
 
     private OffsetRepository offsetRepository;
 
@@ -61,8 +60,8 @@ public class OffsetRepositoryTest {
     @Before
     public void setUp() throws Exception {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        offsetRepository = new OffsetRepository(mongoDbAccess, COLLECTIONNAME);
-        mongoCollection = mongoRule.getMongoCollection(COLLECTIONNAME);
+        offsetRepository = new OffsetRepository(mongoDbAccess, COLLECTION_NAME);
+        mongoCollection = mongoRule.getMongoCollection(COLLECTION_NAME);
     }
 
     @After

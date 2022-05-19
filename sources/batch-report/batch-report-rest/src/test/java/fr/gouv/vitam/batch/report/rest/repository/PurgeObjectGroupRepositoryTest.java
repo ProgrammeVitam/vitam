@@ -61,7 +61,6 @@ import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGI
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -71,12 +70,12 @@ public class PurgeObjectGroupRepositoryTest {
 
     private static final String Purge_OBJECT_GROUP = "PurgeObjectGroup" + GUIDFactory.newGUID().getId();
     private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>>
-        TYPE_REFERENCE = new TypeReference<ReportBody<PurgeObjectGroupReportEntry>>() {
+        TYPE_REFERENCE = new TypeReference<>() {
     };
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), Purge_OBJECT_GROUP);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), Purge_OBJECT_GROUP);
 
     private PurgeObjectGroupRepository repository;
 

@@ -56,7 +56,6 @@ import java.util.Map;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvidenceAuditReportRepositoryTest {
@@ -64,7 +63,7 @@ public class EvidenceAuditReportRepositoryTest {
     public static final String EVIDENCE_AUDIT_REPORT = "EvidenceAuditReport" + GUIDFactory.newGUID().getId();
     private static final int TENANT_ID = 0;
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), EVIDENCE_AUDIT_REPORT);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), EVIDENCE_AUDIT_REPORT);
 
     private EvidenceAuditReportRepository evidenceAuditRepository;
 

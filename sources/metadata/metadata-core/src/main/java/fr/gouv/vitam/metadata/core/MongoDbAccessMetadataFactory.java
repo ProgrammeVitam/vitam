@@ -26,9 +26,8 @@
  */
 package fr.gouv.vitam.metadata.core;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
@@ -77,8 +76,8 @@ public class MongoDbAccessMetadataFactory {
 
         classList.add(MetadataSnapshot.class);
 
-        final MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient(configuration, classList);
 
         MetadataCollections unitCollection = MetadataCollections.UNIT;
         MetadataCollections objectCollection = MetadataCollections.OBJECTGROUP;

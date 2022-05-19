@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.common.server;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.OntologyLoader;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
@@ -64,8 +63,8 @@ public final class MongoDbAccessAdminFactory {
         }
         FunctionalAdminCollections.class.getEnumConstants();
 
-        final MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient(configuration, classList);
 
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false, indexManager, ontologyLoader);
     }

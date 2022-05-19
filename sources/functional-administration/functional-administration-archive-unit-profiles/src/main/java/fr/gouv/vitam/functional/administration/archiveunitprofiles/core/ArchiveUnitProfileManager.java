@@ -383,7 +383,8 @@ public class ArchiveUnitProfileManager {
                 int tenant = ParameterHelper.getTenantParameter();
                 Bson clause = and(eq(VitamDocument.TENANT_ID, tenant),
                     eq(ArchiveUnitProfile.IDENTIFIER, profile.getIdentifier()));
-                boolean exist = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().count(clause) > 0;
+                boolean exist =
+                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().countDocuments(clause) > 0;
                 if (exist) {
                     return Optional.of(RejectionCause.rejectDuplicateIdentifierInDatabase(profile.getIdentifier()));
                 }

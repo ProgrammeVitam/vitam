@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Updates;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -61,7 +61,7 @@ public class MongoDbMetadataRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class)),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class),
             PREFIX + UNIT.getName());
 
     @Rule

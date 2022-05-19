@@ -117,8 +117,6 @@ public class ReportIT extends VitamRuleRunner {
     private static final String CONTRACT_ID = "AC-000001";
     private static final String STP_MASS_UPDATE_UNIT = "STP_MASS_UPDATE_UNIT";
     private static final String TITLE = "Title";
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
     private static final String QUERY = "query.json";
     private static final String ACTION = "actions.json";
 

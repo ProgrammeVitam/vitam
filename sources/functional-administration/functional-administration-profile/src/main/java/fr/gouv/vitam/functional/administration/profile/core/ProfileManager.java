@@ -489,7 +489,7 @@ public class ProfileManager {
             if (ParametersChecker.isNotEmpty(profile.getIdentifier())) {
                 int tenant = ParameterHelper.getTenantParameter();
                 Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
-                boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
+                boolean exist = FunctionalAdminCollections.PROFILE.getCollection().countDocuments(clause) > 0;
                 if (exist) {
                     return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getIdentifier()));
                 }

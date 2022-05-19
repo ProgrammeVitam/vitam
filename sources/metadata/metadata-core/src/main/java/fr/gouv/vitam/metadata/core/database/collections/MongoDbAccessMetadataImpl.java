@@ -27,19 +27,15 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -62,7 +58,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
         ElasticsearchAccessMetadata esClient, MetadataCollections unitCollection,
         MetadataCollections objectCollection) {
-        super(mongoClient, dbname, recreate);
+        super(mongoClient, dbname);
         this.esClient = esClient;
 
         unitCollection.initialize(getMongoDatabase(), recreate);
@@ -75,18 +71,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         objectCollection.initialize(this.esClient);
 
         esClient.createIndexesAndAliases(objectCollection, unitCollection);
-    }
-
-    /**
-     * @return The MongoCLientOptions to apply to MongoClient
-     */
-    public static MongoClientOptions getMongoClientOptions() {
-        final VitamDocumentCodec<Unit> unitCodec = new VitamDocumentCodec<>(Unit.class);
-        final VitamDocumentCodec<ObjectGroup> objectGroupCodec = new VitamDocumentCodec<>(ObjectGroup.class);
-        final CodecRegistry codecRegistry = CodecRegistries
-            .fromRegistries(CodecRegistries.fromCodecs(unitCodec, objectGroupCodec),
-                MongoClient.getDefaultCodecRegistry());
-        return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
     }
 
     @Override

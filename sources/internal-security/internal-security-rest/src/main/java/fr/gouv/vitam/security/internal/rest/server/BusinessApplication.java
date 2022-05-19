@@ -27,10 +27,8 @@
 package fr.gouv.vitam.security.internal.rest.server;
 
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -83,8 +81,7 @@ public class BusinessApplication extends ConfigurationApplication {
                 PersonalCertificatePermissionConfigLoader.loadPersonalCertificatePermissionConfig(
                     configuration.getPersonalCertificatePermissionConfig());
 
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
             IdentityRepository identityRepository = new IdentityRepository(mongoDbAccess);

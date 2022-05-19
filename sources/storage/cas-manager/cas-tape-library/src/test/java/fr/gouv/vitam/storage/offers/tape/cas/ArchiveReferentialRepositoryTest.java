@@ -47,7 +47,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +58,8 @@ public class ArchiveReferentialRepositoryTest {
     private static final int BULK_SIZE = 10;
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_TAR_REFERENTIAL_COLLECTION);
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TAPE_TAR_REFERENTIAL_COLLECTION);
 
     private static ArchiveReferentialRepository archiveReferentialRepository;
 

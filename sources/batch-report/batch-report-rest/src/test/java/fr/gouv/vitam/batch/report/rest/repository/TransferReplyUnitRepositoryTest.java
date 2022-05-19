@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransferReplyUnitRepositoryTest {
@@ -70,7 +69,7 @@ public class TransferReplyUnitRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), TRANSFER_REPLY_UNIT);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TRANSFER_REPLY_UNIT);
 
     private TransferReplyUnitRepository repository;
 

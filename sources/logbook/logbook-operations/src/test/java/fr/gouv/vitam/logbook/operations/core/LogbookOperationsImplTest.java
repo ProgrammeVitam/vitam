@@ -27,8 +27,6 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.ServerAddress;
-import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -42,6 +40,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -302,46 +301,9 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 
-    private VitamMongoCursor createFakeMongoCursor() {
-        return new VitamMongoCursor(new MongoCursor() {
-            boolean f = true;
-
-            @Override
-            public void close() {
-
-            }
-
-            @Override
-            public boolean hasNext() {
-                return f;
-            }
-
-            @Override
-            public Object next() {
-                if (f) {
-                    GUID guid = GUIDFactory.newEventGUID(0);
-                    ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
-                    f = false;
-                    return new LogbookOperation(data);
-                }
-                return null;
-            }
-
-            @Override
-            public Object tryNext() {
-                return null;
-            }
-
-            @Override
-            public ServerCursor getServerCursor() {
-                return null;
-            }
-
-            @Override
-            public ServerAddress getServerAddress() {
-                return null;
-            }
-        }, 1, null);
+    private VitamMongoCursor<LogbookOperation> createFakeMongoCursor() {
+        GUID guid = GUIDFactory.newEventGUID(0);
+        ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
+        return new VitamMongoCursor<>(new FakeMongoCursor<>(List.of(new LogbookOperation(data))));
     }
-
 }

@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.common.counter;
 
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -54,7 +54,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -72,7 +71,7 @@ public class VitamCounterServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(VitamSequence.class)));
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(VitamSequence.class));
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 

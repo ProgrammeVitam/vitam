@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.translators.mongodb;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -37,15 +38,14 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.bson.BSON;
+import org.bson.BsonType;
 import org.bson.conversions.Bson;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -68,8 +68,6 @@ import static com.mongodb.client.model.Filters.size;
 public class QueryToMongodb {
     private static final String INVALID_RANGE_REQUEST_COMMAND = "Invalid Range request command: ";
     private static final String COMMAND_NOT_ALLOWED_WITH_MONGO_DB = "Command not allowed with MongoDB: ";
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(QueryToMongodb.class);
 
     private QueryToMongodb() {
         // Empty constructor
@@ -172,8 +170,7 @@ public class QueryToMongodb {
      * @return the IsNull Command
      */
     private static Bson isNullCommand(final JsonNode content) {
-        return new BasicDBObject().append(content.asText(),
-            new BasicDBObject("$type", BSON.NULL));
+        return Filters.type(content.asText(), BsonType.NULL);
     }
 
     /**
@@ -353,30 +350,14 @@ public class QueryToMongodb {
     }
 
     protected static Iterable<Bson> getCommands(final List<Query> queries) {
-        return new Iterable<Bson>() {
-            @Override
-            public Iterator<Bson> iterator() {
-                return new Iterator<Bson>() {
-                    private int rank = 0;
-
-                    @Override
-                    public Bson next() {
-                        try {
-                            return getCommand(queries.get(rank++));
-                        } catch (final InvalidParseOperationException e) {
-                            // error but ignore ?
-                            LOGGER.error("Bad request", e);
-                            return null;
-                        }
-                    }
-
-                    @Override
-                    public boolean hasNext() {
-                        return rank < queries.size();
-                    }
-                };
-            }
-        };
+        return queries.stream()
+            .map(query -> {
+                try {
+                    return getCommand(query);
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException("Invalid query", e);
+                }
+            })
+            .collect(Collectors.toList());
     }
-
 }

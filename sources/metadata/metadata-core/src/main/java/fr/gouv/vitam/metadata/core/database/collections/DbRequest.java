@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
@@ -491,7 +490,6 @@ public class DbRequest {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final FILTERARGS collectionType = requestToMongodb.model();
         if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
-            VitamCollection.setMatch(false);
             sorts =
                 QueryToElasticsearch.getSorts(requestParser,
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
@@ -499,7 +497,6 @@ public class DbRequest {
             if (FILTERARGS.UNITS.equals(collectionType) || FILTERARGS.OBJECTGROUPS.equals(collectionType)) {
                 facets = QueryToElasticsearch.getFacets(requestParser, parserTokens);
             }
-            VitamCollection.setMatch(false);
             limit = requestToMongodb.getFinalLimit();
             offset = requestToMongodb.getFinalOffset();
         }

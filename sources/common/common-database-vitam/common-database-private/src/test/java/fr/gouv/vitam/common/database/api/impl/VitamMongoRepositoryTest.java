@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.database.api.impl;
 
-import com.google.common.collect.Lists;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -37,9 +36,9 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -82,7 +81,7 @@ public class VitamMongoRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
             TEST_COLLECTION);
 
     @Before
@@ -123,7 +122,7 @@ public class VitamMongoRepositoryTest {
         Document document = Document.parse(Strings.toString(builder));
         VitamRepositoryStatus result = repository.saveOrUpdate(document);
 
-        assertThat(VitamRepositoryStatus.CREATED.equals(result));
+        assertThat(VitamRepositoryStatus.CREATED.equals(result)).isTrue();
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
@@ -138,7 +137,7 @@ public class VitamMongoRepositoryTest {
         document = Document.parse(Strings.toString(builder));
         result = repository.saveOrUpdate(document);
 
-        assertThat(VitamRepositoryStatus.UPDATED.equals(result));
+        assertThat(VitamRepositoryStatus.UPDATED.equals(result)).isTrue();
         response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting(TITLE).contains("Test othersave");

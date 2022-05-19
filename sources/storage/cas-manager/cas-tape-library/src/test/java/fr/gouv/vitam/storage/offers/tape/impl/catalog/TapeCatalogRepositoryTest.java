@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -62,7 +61,8 @@ public class TapeCatalogRepositoryTest {
         OfferCollections.TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TAPE_CATALOG_COLLECTION);
 
     private static TapeCatalogRepository tapeCatalogRepository;
 

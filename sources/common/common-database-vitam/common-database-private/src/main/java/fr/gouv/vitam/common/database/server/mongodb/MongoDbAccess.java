@@ -27,21 +27,30 @@
 package fr.gouv.vitam.common.database.server.mongodb;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
+import com.mongodb.ReadConcern;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import org.apache.commons.collections4.CollectionUtils;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * MongoDbAccess interface
@@ -57,10 +66,9 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     /**
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
-     * @param recreate True to recreate the index
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
-    public MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
+    public MongoDbAccess(MongoClient mongoClient, final String dbname) {
         ParametersChecker.checkParameter("Parameter of MongoDbAccess", mongoClient, dbname);
         this.mongoClient = mongoClient;
         mongoDatabase = mongoClient.getDatabase(dbname);
@@ -144,27 +152,67 @@ public abstract class MongoDbAccess implements DatabaseConnection {
      * sub-systems (ex: metadata,logbook)
      *
      * @param configuration the configuration of mongo client (host/port to connect)
-     * @param options the option mongo client
      * @return the MongoClient
      */
-    public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
-        final List<MongoDbNode> nodes = configuration.getMongoDbNodes();
-        final List<ServerAddress> serverAddress = new ArrayList<>();
-        for (final MongoDbNode node : nodes) {
-            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
-        }
 
+    public static MongoClient createMongoClient(DbConfiguration configuration) {
+        return createMongoClient(configuration, Collections.emptyList());
+    }
+
+    public static MongoClient createMongoClient(DbConfiguration configuration, List<Class<?>> classList) {
+
+        MongoClientSettings.Builder settingsBuilder = getMongoClientSettingsBuilder(classList);
+
+        // Hosts
+        final List<ServerAddress> serverAddress = configuration.getMongoDbNodes().stream()
+            .map(node -> new ServerAddress(node.getDbHost(), node.getDbPort()))
+            .collect(Collectors.toList());
+        settingsBuilder.applyToClusterSettings(builder -> builder.hosts(serverAddress));
+
+        // Db authentication
         if (configuration.isDbAuthentication()) {
-
-            // create user with username, password and specify the database name
-            final MongoCredential credential = MongoCredential.createCredential(
+            // As of mongo 5.0, SCRAM-SHA-256 is the strongest authentication schema to date.
+            final MongoCredential credential = MongoCredential.createScramSha256Credential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
-
-            // create an instance of mongoclient
-            return new MongoClient(serverAddress, Arrays.asList(credential), options);
-        } else {
-            return new MongoClient(serverAddress, options);
+            settingsBuilder.credential(credential);
         }
+
+        return MongoClients.create(settingsBuilder.build());
+    }
+
+    public static MongoClientSettings.Builder getMongoClientSettingsBuilder(Class<?>... classes) {
+        return getMongoClientSettingsBuilder(Arrays.asList(classes));
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static MongoClientSettings.Builder getMongoClientSettingsBuilder(List<Class<?>> classList) {
+        MongoClientSettings.Builder settingsBuilder = MongoClientSettings.builder()
+            .writeConcern(WriteConcern.MAJORITY)
+            .readConcern(ReadConcern.MAJORITY)
+            .applyToSocketSettings(builder -> builder
+                .connectTimeout(VitamConfiguration.getConnectTimeout(), TimeUnit.MILLISECONDS)
+                .readTimeout(VitamConfiguration.getReadTimeout(), TimeUnit.MILLISECONDS)
+            )
+            .applyToConnectionPoolSettings(builder -> builder
+                .minSize(1)
+                .maxConnecting(10)
+                .maxSize(VitamConfiguration.getNumberDbClientThread())
+                .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS)
+            );
+
+        // Codecs
+        if (CollectionUtils.isNotEmpty(classList)) {
+            List<CodecRegistry> codecs =
+                classList.stream()
+                    .map(clasz -> CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)))
+                    .collect(Collectors.toList());
+
+            final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
+            final CodecRegistry codecRegistry =
+                CodecRegistries.fromRegistries(vitamCodecRegistry, MongoClientSettings.getDefaultCodecRegistry());
+            settingsBuilder.codecRegistry(codecRegistry);
+        }
+        return settingsBuilder;
     }
 
     /**

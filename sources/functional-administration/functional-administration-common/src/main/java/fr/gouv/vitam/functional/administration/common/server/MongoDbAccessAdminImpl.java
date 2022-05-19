@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoBulkWriteException;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoWriteException;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -84,7 +84,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate,
         ElasticsearchFunctionalAdminIndexManager indexManager,
         OntologyLoader ontologyLoader) {
-        super(mongoClient, dbname, recreate);
+        super(mongoClient, dbname);
         this.indexManager = indexManager;
         for (final FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             collection.initialize(super.getMongoDatabase(), recreate);

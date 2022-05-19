@@ -52,7 +52,6 @@ import static fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntr
 import static fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry.TENANT;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DeleteGotVersionsReportRepositoryTest {
@@ -65,7 +64,7 @@ public class DeleteGotVersionsReportRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), DELETE_GOT_VERSIONS_REPORT);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), DELETE_GOT_VERSIONS_REPORT);
 
     private DeleteGotVersionsReportRepository repository;
 

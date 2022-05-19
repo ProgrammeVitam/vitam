@@ -36,6 +36,7 @@ import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
@@ -889,7 +890,7 @@ public class ReconstructionService {
         }
 
         // No need for "_av" (ATOMIC_VERSION) update in secondary site
-        return new ReplaceOneModel<>(filter, document, new UpdateOptions().upsert(true));
+        return new ReplaceOneModel<>(filter, document, new ReplaceOptions().upsert(true));
     }
 
     /**

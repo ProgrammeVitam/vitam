@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -120,7 +120,7 @@ public class DriverToOfferTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(DATABASE_NAME, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(DATABASE_NAME, MongoDbAccess.getMongoClientSettingsBuilder());
 
     @After
     public void after() throws Exception {

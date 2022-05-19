@@ -134,7 +134,7 @@ public class VitamConfiguration {
     /**
      * Default Connection timeout
      */
-    private static final Integer CONNECT_TIMEOUT = 2000;
+    private static final Integer CONNECT_TIMEOUT = 10_000;
     /**
      * swift file limit to upload
      */
@@ -149,7 +149,6 @@ public class VitamConfiguration {
      * Default strategy id
      */
     private final static String DEFAULT_STRATEGY = "default";
-
 
     /**
      * OTHERS ATTRIBUTES
@@ -284,11 +283,6 @@ public class VitamConfiguration {
      * request time alert throttling Delay
      */
     private static int requestTimeAlertThrottlingDelay = 60;
-    /**
-     * MongoDB client configuration
-     */
-    private static Integer threadsAllowedToBlockForConnectionMultipliers = 1500;
-
     private static int httpClientRetry = 3;
     private static int httpClientFirstAttemptWaitingTime = 10;
     private static int httpClientWaitingTime = 20;
@@ -965,10 +959,6 @@ public class VitamConfiguration {
         if (null != parameters.getRequestTimeAlertThrottlingDelay()) {
             setRequestTimeAlertThrottlingDelay(parameters.getRequestTimeAlertThrottlingDelay());
         }
-        if (null != parameters.getThreadsAllowedToBlockForConnectionMultipliers()) {
-            setThreadsAllowedToBlockForConnectionMultipliers(
-                parameters.getThreadsAllowedToBlockForConnectionMultipliers());
-        }
         if (null != parameters.getRetryNumber()) {
             setRetryNumber(parameters.getRetryNumber());
         }
@@ -1438,14 +1428,6 @@ public class VitamConfiguration {
         return defaultTimestampDigestType;
     }
 
-
-    /**
-     * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
-     */
-    public static Integer getThreadsAllowedToBlockForConnectionMultipliers() {
-        return threadsAllowedToBlockForConnectionMultipliers;
-    }
-
     /**
      * @return the retryNumber
      */
@@ -1855,17 +1837,6 @@ public class VitamConfiguration {
 
     public static void setRequestTimeAlertThrottlingDelay(int requestTimeAlertThrottlingDelay) {
         VitamConfiguration.requestTimeAlertThrottlingDelay = requestTimeAlertThrottlingDelay;
-    }
-
-    /**
-     * setter for threadsAllowedToBlockForConnectionMultipliers
-     *
-     * @param threadsAllowedToBlockForConnectionMultipliers
-     */
-    private static void setThreadsAllowedToBlockForConnectionMultipliers(
-        Integer threadsAllowedToBlockForConnectionMultipliers) {
-        VitamConfiguration.threadsAllowedToBlockForConnectionMultipliers =
-            threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**

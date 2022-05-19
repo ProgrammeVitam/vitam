@@ -91,7 +91,7 @@ public enum MetadataCollections {
      */
 
     protected void initialize(ElasticsearchAccessMetadata esClient) {
-        vitamCollection.initialize(esClient, true);
+        vitamCollection.initialize(esClient);
     }
 
     /**

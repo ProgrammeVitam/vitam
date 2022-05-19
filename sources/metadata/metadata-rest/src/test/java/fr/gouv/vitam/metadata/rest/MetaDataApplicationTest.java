@@ -27,16 +27,18 @@
 package fr.gouv.vitam.metadata.rest;
 
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -54,11 +56,7 @@ import static org.junit.Assert.fail;
 public class MetaDataApplicationTest {
 
     static final int tenantId = 0;
-    static final List tenantList = new ArrayList() {
-        {
-            add(tenantId);
-        }
-    };
+    static final List<Integer> tenantList = List.of(tenantId);
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -70,7 +68,7 @@ public class MetaDataApplicationTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -88,7 +86,7 @@ public class MetaDataApplicationTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
+        mongo_nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
             new MappingLoader(
                 Collections.emptyList()));

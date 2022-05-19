@@ -27,8 +27,7 @@
 package fr.gouv.vitam.batch.report.rest.server;
 
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportRepository;
@@ -45,7 +44,6 @@ import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.batch.report.rest.resource.BatchReportResource;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
@@ -78,8 +76,7 @@ public class BusinessApplication extends ConfigurationApplication {
             final BatchReportConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, BatchReportConfiguration.class);
 
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
             EliminationActionUnitRepository eliminationActionUnitRepository =

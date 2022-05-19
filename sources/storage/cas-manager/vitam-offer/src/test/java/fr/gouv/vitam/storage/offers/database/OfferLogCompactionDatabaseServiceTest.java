@@ -27,7 +27,7 @@
 package fr.gouv.vitam.storage.offers.database;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -57,7 +57,7 @@ public class OfferLogCompactionDatabaseServiceTest {
     private OfferLogCompactionDatabaseService service;
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
