@@ -769,11 +769,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAnalysis(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
+            .isInstanceOf(AccessInternalClientServerException.class);
     }
 
     @Test
@@ -788,11 +786,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAnalysis(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
+            .hasCauseInstanceOf(AccessInternalClientNotFoundException.class);
     }
 
     @Test
@@ -807,11 +803,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAnalysis(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
+            .isInstanceOf(AccessInternalClientServerException.class);
     }
 
     /*
@@ -849,11 +843,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAction(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
+            .isInstanceOf(AccessInternalClientServerException.class);
     }
 
     @Test
@@ -868,11 +860,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAction(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
+            .hasCauseInstanceOf(AccessInternalClientNotFoundException.class);
     }
 
     @Test
@@ -887,11 +877,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02", JsonHandler.getFromString(queryDsl));
 
-        // When
-        RequestResponse<JsonNode> requestResponse = client.startEliminationAction(eliminationRequestBody);
-
-        // Then
-        assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        // When / Then
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
+            .hasCauseInstanceOf(BadRequestException.class);
     }
 
     @Test

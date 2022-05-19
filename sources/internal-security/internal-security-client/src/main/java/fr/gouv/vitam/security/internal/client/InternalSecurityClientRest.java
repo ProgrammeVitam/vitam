@@ -127,15 +127,9 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
             return;
         }
         String message = response.readEntity(String.class);
-        LOGGER.error("http status is: {}, content is: {}", status, message);
-        switch (status) {
-            case NOT_FOUND:
-                LOGGER.error("http status is: {}, content is: {}", status, message);
-                throw new IdentityNotFoundException(message);
-            case UNAUTHORIZED:
-            default:
-                LOGGER.error("http status is: {}, content is: {}", status, message);
-                throw new InternalSecurityException(message);
+        if (status == Status.NOT_FOUND) {
+            throw new IdentityNotFoundException(status + "-" + message);
         }
+        throw new InternalSecurityException(status + "-" + message);
     }
 }

@@ -387,7 +387,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void selectUnitTest() {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
             .isInstanceOf(InvalidParseOperationException.class);
     }
@@ -396,7 +396,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectUnitByIdTest()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }
 
@@ -404,7 +404,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectOGByIdTest()
         throws MetaDataClientServerException, MetaDataDocumentSizeException, MetaDataExecutionException,
         InvalidParseOperationException, MetaDataNotFoundException {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }
 
@@ -655,7 +655,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void selectObjectsTest() {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
             .isInstanceOf(InvalidParseOperationException.class);
     }
@@ -697,7 +697,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void selectUnitsWithoutInheritedRulesTest() {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
             .isInstanceOf(InvalidParseOperationException.class);
     }
@@ -708,7 +708,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         List<RequestResponseOK<JsonNode>> response =
             Collections.singletonList(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()));
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(response).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(response).build());
         assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
     }
 
@@ -722,7 +722,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             .setState("CODE_VITAM")
             .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
             .setDescription("Horror exception just because");
-        when(mock.get()).thenReturn(Response.status(Status.USE_PROXY).entity(vitamResponse).build());
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamResponse).build());
         assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataExecutionException.class);
     }
 
@@ -730,14 +730,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectUnitBulkTest_WrongResponseFormat() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("wrong format").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("wrong format").build());
         assertThatThrownBy(() -> client.selectUnitsBulk(queries))
             .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void selectUnitBulkTest_NullParam() throws InvalidParseOperationException {
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<JsonNode>()).build());
         assertThatThrownBy(() -> client.selectUnitsBulk(null))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -815,14 +815,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void atomicUpdateBulkTest_WrongResponseFormat() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        when(mock.post()).thenReturn(Response.status(Status.FOUND).entity("wrong format").build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("wrong format").build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
             .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void atomicUpdateBulkTest_NullParam() throws InvalidParseOperationException {
-        when(mock.post()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<JsonNode>()).build());
         assertThatThrownBy(() -> client.atomicUpdateBulk(null))
             .isInstanceOf(IllegalArgumentException.class);
     }

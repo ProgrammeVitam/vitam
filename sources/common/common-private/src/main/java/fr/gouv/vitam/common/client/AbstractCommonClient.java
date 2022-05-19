@@ -65,7 +65,6 @@ import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT_ENCODING;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 abstract class AbstractCommonClient implements BasicClient {
@@ -158,10 +157,9 @@ abstract class AbstractCommonClient implements BasicClient {
         }
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            if (SUCCESSFUL.equals(status.getFamily())) {
                 return;
             }
-            LOGGER.error(status.getReasonPhrase());
             throw new VitamApplicationServerException(status.getReasonPhrase());
         } catch (VitamClientInternalException e) {
             throw new VitamApplicationServerDisconnectException(e);

@@ -88,7 +88,7 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
 
         private void check(Response response) throws VitamClientInternalException {
             Response.Status status = response.getStatusInfo().toEnum();
-            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            if (SUCCESSFUL.equals(status.getFamily())) {
                 return;
             }
             throw new VitamClientInternalException(
