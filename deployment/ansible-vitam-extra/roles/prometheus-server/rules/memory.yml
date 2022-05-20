@@ -1,20 +1,19 @@
 groups:
-  - name: system_disk
+  - name: memory
     rules:
-      - alert: MemoryUsage
-        expr: (100 - ((node_memory_MemAvailable_bytes * 100) / node_memory_MemTotal_bytes)) > 85
+      - alert: HighMemoryUsage
+        expr: (100 - ((node_memory_MemAvailable_bytes * 100) / node_memory_MemTotal_bytes)) > 75
         for: 10m
         labels:
           severity: warning
         annotations:
-          description: RAM of {{$labels.instance}} has been too used for more than 10 minutes
-          summary: Instance {{$labels.instance}} start to use too many memory
-
-      - alert: MemoryUsage
+          summary: "Instance {{ $labels.hostname }} has high memory usage"
+          description: "Instance {{ $labels.hostname }} has been using at least 75% of its RAM for more than 10 minutes"
+      - alert: HighMemoryUsage
         expr: (100 - ((node_memory_MemAvailable_bytes * 100) / node_memory_MemTotal_bytes)) > 90
         for: 10m
         labels:
           severity: critical
         annotations:
-          description: RAM of {{$labels.instance}} has been too used for more than 10 minutes
-          summary: Instance {{$labels.instance}} is in danger
+          summary: "Instance {{ $labels.hostname }} has critically high memory usage"
+          description: "Instance {{ $labels.hostname }} has been using at least 90% of its RAM for more than 10 minutes"
