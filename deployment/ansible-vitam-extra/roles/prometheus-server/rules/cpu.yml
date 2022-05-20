@@ -1,0 +1,19 @@
+groups:
+  - name: cpu
+    rules:
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{job="vitam-node-exporter",mode="idle"}[1m])) * 100)) > 75
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Instance {{ $labels.hostname }} has high CPU usage"
+          description: "Instance {{ $labels.hostname }} has been using at least 75% of its CPU for more than 10 minutes"
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{job="vitam-node-exporter",mode="idle"}[1m])) * 100)) > 90
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.hostname }} has critically high CPU usage"
+          description: "Instance {{ $labels.hostname }} has been using at least 90% of its CPU for more than 10 minutes"
