@@ -27,8 +27,8 @@
 package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.collect.internal.dto.FileInfoDto;
-import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.FileInfoDto;
+import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbQualifiersModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;

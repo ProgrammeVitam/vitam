@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.adapters.CollectVarNameAdapter;
@@ -46,6 +46,9 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -70,6 +73,7 @@ import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -504,6 +508,25 @@ public class CollectService {
             LOGGER.error("Cannot found got with id ");
             throw new CollectException("Cannot found got with id");
         }
+    }
 
+    public JsonNode selectUnits(JsonNode jsonQuery) throws CollectException {
+        JsonNode jsonNode = null;
+        LOGGER.debug("DEBUG: start selectUnits {}", jsonQuery);
+
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(jsonQuery);
+            // Check correctness of request
+            LOGGER.debug("{}", jsonNode);
+            final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+            if (!(parser instanceof SelectParserMultiple)) {
+                throw new InvalidParseOperationException("NOT_A_SELECT_OPERATION");
+            }
+            jsonNode = metaDataClient.selectUnits(jsonQuery);
+            LOGGER.debug("DEBUG {}", jsonNode);
+        } catch (final Exception e) {
+            throw new CollectException(e);
+        }
+        return jsonNode;
     }
 }

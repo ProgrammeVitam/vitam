@@ -19,6 +19,7 @@
     <modules>
         <module>collect-rest</module>
         <module>collect-client</module>
+        <module>collect-api</module>
     </modules>
 
     <properties>

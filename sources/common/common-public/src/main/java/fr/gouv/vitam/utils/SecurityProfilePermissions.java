@@ -166,6 +166,7 @@ public enum SecurityProfilePermissions {
     TRANSACTION_UNIT_READ("transaction:unit:read"),
     TRANSACTION_OBJECT_READ("transaction:object:read"),
     TRANSACTION_BINARY_READ("transaction:binary:read"),
+    TRANSACTION_UNIT_ID_READ("transaction:unit:id:read"),
     JOB_READ("job:read");
 
 

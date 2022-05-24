@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,21 +21,20 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.dto;
+package fr.gouv.vitam.collect.external.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.collect.internal.model.ProjectModel;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProjectDto implements Serializable {
+public class TransactionDto implements Serializable {
 
     @JsonProperty(value = "id")
     private String id;
@@ -67,17 +66,15 @@ public class ProjectDto implements Serializable {
     @JsonProperty("tenant")
     private Integer tenant;
 
-    private String transactionId;
-
-    public ProjectDto() {
+    public TransactionDto() {
         //Empty constructor for serialization
     }
 
-    public ProjectDto(String id) {
+    public TransactionDto(String id) {
         this.id = id;
     }
 
-    public ProjectDto(String id, String archivalAgreement, String messageIdentifier,
+    public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
         String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment, Integer tenant) {
@@ -91,19 +88,6 @@ public class ProjectDto implements Serializable {
         this.archivalProfile = archivalProfile;
         this.comment = comment;
         this.tenant = tenant;
-    }
-
-    public ProjectDto(ProjectModel projectModel) {
-        this.id = projectModel.getId();
-        this.archivalAgreement = projectModel.getManifestContext().getArchivalAgreement();
-        this.messageIdentifier = projectModel.getManifestContext().getMessageIdentifier();
-        this.archivalAgencyIdentifier = projectModel.getManifestContext().getArchivalAgencyIdentifier();
-        this.transferingAgencyIdentifier = projectModel.getManifestContext().getTransferingAgencyIdentifier();
-        this.originatingAgencyIdentifier = projectModel.getManifestContext().getOriginatingAgencyIdentifier();
-        this.submissionAgencyIdentifier = projectModel.getManifestContext().getSubmissionAgencyIdentifier();
-        this.archivalProfile = projectModel.getManifestContext().getArchivalProfile();
-        this.comment = projectModel.getManifestContext().getComment();
-        this.tenant = projectModel.getTenant();
     }
 
     public String getId() {
@@ -186,21 +170,13 @@ public class ProjectDto implements Serializable {
         this.tenant = tenant;
     }
 
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        ProjectDto that = (ProjectDto) o;
+        TransactionDto that = (TransactionDto) o;
         return Objects.equals(id, that.id);
     }
 

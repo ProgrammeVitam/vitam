@@ -30,7 +30,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -147,5 +149,20 @@ public class CollectHelper {
             units = Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
         }
         return units;
+    }
+
+    public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel){
+        ProjectDto projectDto = new ProjectDto();
+        projectDto.setId(projectModel.getId());
+        projectDto.setArchivalAgreement(projectModel.getManifestContext().getArchivalAgreement());
+        projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
+        projectDto.setArchivalAgencyIdentifier(projectModel.getManifestContext().getArchivalAgencyIdentifier());
+        projectDto.setTransferingAgencyIdentifier(projectModel.getManifestContext().getTransferingAgencyIdentifier());
+        projectDto.setOriginatingAgencyIdentifier(projectModel.getManifestContext().getOriginatingAgencyIdentifier());
+        projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
+        projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
+        projectDto.setComment(projectModel.getManifestContext().getComment());
+        projectDto.setTenant(projectModel.getTenant());
+        return projectDto;
     }
 }

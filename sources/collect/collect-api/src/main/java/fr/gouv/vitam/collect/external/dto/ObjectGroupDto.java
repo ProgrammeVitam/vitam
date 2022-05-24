@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,37 +21,72 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.dto;
+package fr.gouv.vitam.collect.external.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class IngestDto implements Serializable {
+public class ObjectGroupDto implements Serializable {
 
-    @JsonProperty(value = "id")
-    private String idIngest;
+    @JsonProperty("id")
+    private String id;
 
-    public IngestDto() {
+    @JsonProperty("fileInfo")
+    private FileInfoDto fileInfo;
+
+    public ObjectGroupDto() {
         //Empty constructor for serialization
     }
 
-    public IngestDto(String id) {
-        this.idIngest = id;
+    public ObjectGroupDto(String id, FileInfoDto fileInfo) {
+        this.id = id;
+        this.fileInfo = fileInfo;
     }
 
-    public String getIdIngest() {
-        return idIngest;
+    public String getId() {
+        return id;
     }
 
-    public void setIdIngest(String id) {
-        this.idIngest = id;
+    public void setId(String id) {
+        this.id = id;
     }
 
+    public FileInfoDto getFileInfo() {
+        return fileInfo;
+    }
+
+    public void setFileInfo(FileInfoDto fileInfo) {
+        this.fileInfo = fileInfo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ObjectGroupDto that = (ObjectGroupDto) o;
+        return Objects.equals(id, that.id) && Objects.equals(fileInfo, that.fileInfo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, fileInfo);
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectGroupDto{" +
+            "id='" + id + '\'' +
+            ", fileInfo=" + fileInfo +
+            '}';
+    }
 }

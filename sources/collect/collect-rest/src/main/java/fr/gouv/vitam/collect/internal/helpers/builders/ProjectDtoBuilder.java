@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 
 public class ProjectDtoBuilder {
     private String id;

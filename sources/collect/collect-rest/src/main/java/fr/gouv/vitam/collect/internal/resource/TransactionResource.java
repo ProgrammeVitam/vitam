@@ -28,10 +28,10 @@ package fr.gouv.vitam.collect.internal.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.internal.dto.IngestDto;
-import fr.gouv.vitam.collect.internal.dto.ObjectGroupDto;
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.IngestDto;
+import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
@@ -45,6 +45,8 @@ import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.dsl.schema.Dsl;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -82,6 +84,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -181,7 +184,8 @@ public class TransactionResource extends ApplicationStatusResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
 
-            return CollectRequestResponse.toResponseOK(new ProjectDto(projectModel.get()));
+            return CollectRequestResponse
+                .toResponseOK(CollectHelper.convertProjectModeltoProjectDto(projectModel.get()));
         } catch (CollectException e) {
             LOGGER.error("Error when fetching project by Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -276,7 +280,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/units/{unitId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "récupérer une unité archivistique")
     public Response getUnitById(@PathParam("unitId") String unitId) {
 
         try {
@@ -292,10 +296,30 @@ public class TransactionResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * select Unit
+     *
+     * @param jsonQuery as String { $query : query}
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws CollectException Throw if error occurs when send Unit to database
+     */
+    @Path("/units")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
+    public Response selectUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery) {
+        try {
+            return CollectRequestResponse.toResponseOK(collectService.selectUnits(jsonQuery));
+        } catch (CollectException e) {
+            LOGGER.error("Error when getting units in metadata : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+    }
+
     @Path("/transactions/{transactionId}/units")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
     public Response getUnitsByTransaction(@PathParam("transactionId") String transactionId) {
 
         try {
@@ -506,7 +530,7 @@ public class TransactionResource extends ApplicationStatusResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-            ProjectDto projectDto = new ProjectDto(projectModel.get());
+            ProjectDto projectDto = CollectHelper.convertProjectModeltoProjectDto(projectModel.get());
 
             Optional<TransactionModel> transactionModel =
                 transactionService.findTransactionByProjectId(projectDto.getId());
