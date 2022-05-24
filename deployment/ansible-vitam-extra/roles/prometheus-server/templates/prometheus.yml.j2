@@ -188,7 +188,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin | default(29900) }}
       labels:
-        hostname: "{{ host.host }}"
+        hostname: "{{ host }}"
 {% endfor %}
 {% endif %}
 
