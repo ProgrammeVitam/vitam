@@ -642,7 +642,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             workflow.setStepByStep(processWorkflow.isStepByStep());
             workflow.setGlobalState(processWorkflow.getState().name());
             workflow.setStepStatus(processWorkflow.getStatus().name());
-            workflow.setProcessDate(LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
+            workflow.setProcessDate(processWorkflow.getProcessDate());
             results.add(workflow);
         }
         return results;
@@ -656,8 +656,8 @@ public class ProcessManagementImpl implements ProcessManagement {
     private boolean isStartDateIn(String startDateMin, String startDateMax, ProcessWorkflow processWorkflow) {
         // ugly ! can we have time here (on javascript date picker) ?
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        Date date = processWorkflow.getProcessDate();
-        LocalDate ldt = LocalDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).toLocalDate();
+        String date = processWorkflow.getProcessDate();
+        LocalDate ldt = LocalDateTime.parse(date).toLocalDate();
         LocalDate startDateTimeMin = LocalDate.parse(startDateMin, formatter);
         LocalDate startDateTimeMax = LocalDate.parse(startDateMax, formatter);
         return ((ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) &&

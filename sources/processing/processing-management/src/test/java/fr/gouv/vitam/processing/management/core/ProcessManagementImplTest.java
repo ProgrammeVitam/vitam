@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -337,7 +338,7 @@ public class ProcessManagementImplTest {
                     .add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
             }
             date = date.plusDays(j == 0 ? 0 : 1);
-            processWorkflow.setProcessDate(Date.from(date.atStartOfDay(ZoneOffset.UTC).toInstant()));
+            processWorkflow.setProcessDate(LocalDateUtil.getFormattedDateForMongo(date.atStartOfDay()));
             list.add(processWorkflow);
         }
         return list;
