@@ -8,3 +8,4 @@ prometheus_server_bin_path:    "{{ vitam_defaults.folder.root_path | default('/v
 prometheus_server_log_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/log/prometheus"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
+
