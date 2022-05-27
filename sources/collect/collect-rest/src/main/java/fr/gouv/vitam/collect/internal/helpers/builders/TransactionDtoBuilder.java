@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 
 public class TransactionDtoBuilder {
     private String id;

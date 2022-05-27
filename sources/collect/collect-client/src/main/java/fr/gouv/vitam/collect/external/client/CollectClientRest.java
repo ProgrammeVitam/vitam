@@ -27,26 +27,23 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
-import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 import static org.apache.http.HttpHeaders.EXPECT;
@@ -56,8 +53,6 @@ import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
  * Collect Client implementation for production environment
  */
 public class CollectClientRest extends DefaultClient implements CollectClient {
-    private static final String TENANT_ID = "0";
-    private static final String X_ACCESS_CONTRACT_ID = "ContratTNR";
     private static final String TRANSACTION_PATH = "/transactions";
     private static final String PROJECT_PATH = "/projects";
     private static final String UNITS_PATH = "/units";
@@ -67,14 +62,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> initProject(ProjectDto projectDto) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponse<JsonNode> initProject(VitamContext vitamContext,
+        ProjectDto projectDto) throws VitamClientException {
 
         VitamRequestBuilder request = post()
             .withPath(PROJECT_PATH)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(projectDto)
             .withJsonContentType()
@@ -87,14 +80,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> updateProject(ProjectDto projectDto) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponse<JsonNode> updateProject(VitamContext vitamContext,
+        ProjectDto projectDto) throws VitamClientException {
 
         VitamRequestBuilder request = put()
             .withPath(PROJECT_PATH)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(projectDto)
             .withJsonContentType()
@@ -107,14 +98,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> getProjectById(String projectId) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponse<JsonNode> getProjectById(VitamContext vitamContext,
+        String projectId) throws VitamClientException {
 
         VitamRequestBuilder request = get()
             .withPath(PROJECT_PATH + "/" + projectId)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withJsonAccept();
 
@@ -125,14 +114,11 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> getProjects() throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException {
 
         VitamRequestBuilder request = get()
             .withPath(PROJECT_PATH)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withJsonAccept();
 
@@ -143,14 +129,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getUnitById(String unitId) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId)
+        throws VitamClientException {
 
         VitamRequestBuilder request = get()
             .withPath(UNITS_PATH + "/" + unitId)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withJsonAccept();
 
@@ -162,14 +146,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> getUnitsByTransaction(String transactionId) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+        String transactionId) throws VitamClientException {
 
         VitamRequestBuilder request = post()
             .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withJsonAccept();
 
@@ -180,14 +162,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getObjectById(String gotId) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponseOK<JsonNode> getObjectById(VitamContext vitamContext,
+        String gotId) throws VitamClientException {
 
         VitamRequestBuilder request = get()
             .withPath("/objects/" + gotId)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withJsonAccept();
 
@@ -199,15 +179,13 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
+    public RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
+        TransactionDto transactionDto)
         throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
 
         VitamRequestBuilder request = post()
             .withPath(TRANSACTION_PATH)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(transactionDto)
             .withJsonContentType()
@@ -220,13 +198,11 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+    public RequestResponseOK<JsonNode> uploadArchiveUnit(VitamContext vitamContext,
+        JsonNode unitJsonNode, String transactionId)
         throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(
-            post().withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH).withHeaders(headers)
+            post().withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH).withHeaders(vitamContext.getHeaders())
                 .withBody(unitJsonNode)
                 .withJson())) {
             check(response);
@@ -236,13 +212,11 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
-        JsonNode objectJsonNode) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public RequestResponseOK<JsonNode> addObjectGroup(VitamContext vitamContext,
+        String unitId, Integer version, JsonNode objectJsonNode, String usage) throws VitamClientException {
         try (Response response = make(
-            post().withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version).withHeaders(headers)
+            post().withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version)
+                .withHeaders(vitamContext.getHeaders())
                 .withBody(objectJsonNode)
                 .withJson())) {
             check(response);
@@ -252,14 +226,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+    public Response addBinary(VitamContext vitamContext, String unitId, Integer version,
+        InputStream inputStreamUploaded, String usage)
         throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
             .withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version + "/binary")
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withBody(inputStreamUploaded)
             .withOctetContentType())) {
             check(response);
@@ -268,13 +240,10 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public Response closeTransaction(String transactionId) throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
+    public Response closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
         try (Response response = make(post()
             .withPath(TRANSACTION_PATH + "/" + transactionId + "/close")
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withJsonAccept())) {
             check(response);
             return response;
@@ -282,14 +251,12 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> ingest(String transactionId)
+    public RequestResponseOK<JsonNode> ingest(VitamContext vitamContext,
+        String transactionId)
         throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
             .withPath(TRANSACTION_PATH + "/" + transactionId + "/send")
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withJson())) {
             check(response);
             RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
@@ -298,18 +265,29 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public Response uploadProjectZip(String projectId, InputStream inputStreamUploaded)
+    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
         throws VitamClientException {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, TENANT_ID);
-        headers.add(X_ACCESS_CONTRAT_ID, X_ACCESS_CONTRACT_ID);
         try (Response response = make(post()
             .withPath(PROJECT_PATH + "/" + projectId + "/binary")
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
             .withBody(inputStreamUploaded)
             .withContentType(CommonMediaType.ZIP_TYPE))) {
             check(response);
             return response;
+        }
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery)
+        throws VitamClientException {
+        try (Response response = make(
+            get().withPath(UNITS_PATH)
+                .withHeaders(vitamContext.getHeaders())
+                .withBody(jsonQuery)
+                .withJson())) {
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
         }
     }
 

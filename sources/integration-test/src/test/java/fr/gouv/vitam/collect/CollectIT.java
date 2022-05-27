@@ -39,14 +39,14 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.ProjectDtoBuilder;
-import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -69,7 +69,6 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -83,6 +82,10 @@ public class CollectIT extends VitamRuleRunner {
     private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
     private static final String JSON_NODE_OBJECT = "collect/upload_got_collect.json";
     private static final String BINARY_FILE = "collect/Plan-Barbusse.txt";
+
+    private static final Integer tenantId = 0;
+    private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
+    private static final String ACCESS_CONTRACT = "ContratTNR";
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
@@ -109,7 +112,9 @@ public class CollectIT extends VitamRuleRunner {
     private static AdminExternalClient adminExternalClient;
     private static AccessExternalClient accessExternalClient;
     private ObjectMapper mapper = new ObjectMapper();
-    private TransactionRepository transactionRepository;
+    private VitamContext vitamContext = new VitamContext(tenantId)
+        .setApplicationSessionId(APPLICATION_SESSION_ID)
+        .setAccessContract(ACCESS_CONTRACT);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -117,7 +122,6 @@ public class CollectIT extends VitamRuleRunner {
         collectClient = CollectClientFactory.getInstance().getClient();
         adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
         accessExternalClient = AccessExternalClientFactory.getInstance().getClient();
-
         new DataLoader("integration-ingest-internal").prepareData();
     }
 
@@ -134,7 +138,6 @@ public class CollectIT extends VitamRuleRunner {
     @Test
     public void should_perform_collect_operation() throws Exception {
 
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         ProjectDto projectDto = new ProjectDtoBuilder()
             .withArchivalAgencyIdentifier("Vitam")
             .withTransferingAgencyIdentifier("AN")
@@ -146,7 +149,7 @@ public class CollectIT extends VitamRuleRunner {
             .withComment("Versement du service producteur : Cabinet de Michel Mercier")
             .build();
 
-        RequestResponse<JsonNode> response = collectClient.initProject(projectDto);
+        RequestResponse<JsonNode> response = collectClient.initProject(vitamContext, projectDto);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         ProjectDto projectDtoResult =
@@ -157,6 +160,7 @@ public class CollectIT extends VitamRuleRunner {
         //uploadProjectZip();
         uploadUnit();
         getUnitById(unitGuuid);
+        getUnitByDslQuery();
         uploadGot();
         getObjectById(objectGroupGuuid);
         uploadBinary();
@@ -167,7 +171,8 @@ public class CollectIT extends VitamRuleRunner {
 
     public void uploadUnit() throws Exception {
         JsonNode archiveUnitJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_UNIT));
-        RequestResponseOK<JsonNode> response = collectClient.uploadArchiveUnit(transactionGuuid, archiveUnitJson);
+        RequestResponseOK<JsonNode> response =
+            collectClient.uploadArchiveUnit(vitamContext, archiveUnitJson, transactionGuuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
@@ -177,7 +182,8 @@ public class CollectIT extends VitamRuleRunner {
 
     public void uploadGot() throws Exception {
         JsonNode gotJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_OBJECT));
-        RequestResponseOK<JsonNode> response = collectClient.addObjectGroup(unitGuuid, usage, version, gotJson);
+        RequestResponseOK<JsonNode> response =
+            collectClient.addObjectGroup(vitamContext, unitGuuid, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
@@ -187,19 +193,19 @@ public class CollectIT extends VitamRuleRunner {
     public void uploadBinary() throws Exception {
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
-            Response response = collectClient.addBinary(unitGuuid, usage, version, inputStream);
+            Response response = collectClient.addBinary(vitamContext, unitGuuid, version, inputStream, usage);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
     }
 
     public void closeTransaction() throws Exception {
-        Response response = collectClient.closeTransaction(transactionGuuid);
+        Response response = collectClient.closeTransaction(vitamContext, transactionGuuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
 
 
     public void ingest() throws Exception {
-        RequestResponseOK<JsonNode> response = collectClient.ingest(transactionGuuid);
+        RequestResponseOK<JsonNode> response = collectClient.ingest(vitamContext, transactionGuuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
@@ -209,7 +215,7 @@ public class CollectIT extends VitamRuleRunner {
 
 
     public void getProjectById() throws Exception {
-        RequestResponse<JsonNode> response = collectClient.getProjectById(projectGuuid);
+        RequestResponse<JsonNode> response = collectClient.getProjectById(vitamContext, projectGuuid);
         assertThat(response.isOk()).isTrue();
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         ProjectDto projectDtoResult =
@@ -219,8 +225,18 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
     }
 
+    public void getUnitByDslQuery() throws Exception {
+        String unitDsl = "{\"$roots\": [],\"$query\": [{\"$eq\": {\"#opi\": \"" + transactionGuuid +
+            "\"} }],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
+        RequestResponseOK<JsonNode> response =
+            collectClient.selectUnits(vitamContext, JsonHandler.getFromString(unitDsl));
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(response.getFirstResult()).isNotNull();
+        assertThat(response.getHits().getTotal()).isEqualTo(1);
+    }
+
     public void getUnitById(String unitId) throws Exception {
-        RequestResponseOK<JsonNode> response = collectClient.getUnitById(unitId);
+        RequestResponseOK<JsonNode> response = collectClient.getUnitById(vitamContext, unitId);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
@@ -229,7 +245,7 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void getObjectById(String objectId) throws Exception {
-        RequestResponseOK<JsonNode> response = collectClient.getObjectById(objectId);
+        RequestResponseOK<JsonNode> response = collectClient.getObjectById(vitamContext, objectId);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("_id")).isNotNull();
@@ -249,8 +265,8 @@ public class CollectIT extends VitamRuleRunner {
             .withComment("New Comment")
             .build();
 
-        collectClient.updateProject(projectDto);
-        RequestResponse<JsonNode> response = collectClient.getProjectById(projectGuuid);
+        collectClient.updateProject(vitamContext, projectDto);
+        RequestResponse<JsonNode> response = collectClient.getProjectById(vitamContext, projectGuuid);
         assertThat(response.isOk()).isTrue();
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         ProjectDto projectDtoResult =

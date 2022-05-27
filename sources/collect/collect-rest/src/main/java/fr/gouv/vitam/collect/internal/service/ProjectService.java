@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.ProjectModelBuilder;

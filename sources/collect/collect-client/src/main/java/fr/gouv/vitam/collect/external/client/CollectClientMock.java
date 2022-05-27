@@ -28,8 +28,9 @@ package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -47,42 +48,48 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public RequestResponse<JsonNode> initProject(ProjectDto projectDto) throws VitamClientException {
+    public RequestResponse<JsonNode> initProject(VitamContext vitamContext,
+        ProjectDto projectDto) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponse<JsonNode> updateProject(ProjectDto projectDto) throws VitamClientException {
+    public RequestResponse<JsonNode> updateProject(VitamContext vitamContext,
+        ProjectDto projectDto) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponse<JsonNode> getProjectById(String projectId) throws VitamClientException {
+    public RequestResponse<JsonNode> getProjectById(VitamContext vitamContext,
+        String projectId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponse<JsonNode> getProjects() throws VitamClientException {
+    public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getUnitById(String unitId) throws VitamClientException {
+    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponse<JsonNode> getUnitsByTransaction(String transactionId) throws VitamClientException {
+    public RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+        String transactionId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getObjectById(String gotId) throws VitamClientException {
+    public RequestResponseOK<JsonNode> getObjectById(VitamContext vitamContext,
+        String gotId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto) throws VitamClientException {
+    public RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
+        TransactionDto transactionDto) throws VitamClientException {
         transactionDto.setId(UUID.randomUUID().toString());
         return new RequestResponseOK<JsonNode>()
             .setHttpCode(Response.Status.OK.getStatusCode())
@@ -90,35 +97,43 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+    public RequestResponseOK<JsonNode> uploadArchiveUnit(VitamContext vitamContext,
+        JsonNode unitJsonNode, String transactionId)
         throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version,
-        JsonNode objectJsonNode) throws VitamClientException {
+    public RequestResponseOK<JsonNode> addObjectGroup(VitamContext vitamContext,
+        String unitId, Integer version, JsonNode objectJsonNode, String usage) throws VitamClientException {
         return null;
     }
 
     @Override
-    public Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+    public Response addBinary(VitamContext vitamContext, String unitId, Integer version,
+        InputStream inputStreamUploaded, String usage)
         throws VitamClientException {
         return null;
     }
 
     @Override
-    public Response closeTransaction(String transactionId) throws VitamClientException {
+    public Response closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> ingest(String transactionId) throws VitamClientException {
+    public RequestResponseOK<JsonNode> ingest(VitamContext vitamContext,
+        String transactionId) throws VitamClientException {
         return null;
     }
 
     @Override
-    public Response uploadProjectZip(String projectId, InputStream inputStreamUploaded) throws VitamClientException {
+    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded) throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery) throws VitamClientException {
         return null;
     }
 }

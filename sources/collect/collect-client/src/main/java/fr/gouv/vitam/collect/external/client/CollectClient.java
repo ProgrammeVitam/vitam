@@ -27,9 +27,10 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.collect.internal.dto.ProjectDto;
-import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -50,7 +51,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> initProject(ProjectDto projectDto) throws VitamClientException;
+    RequestResponse<JsonNode> initProject(VitamContext vitamContext, ProjectDto projectDto) throws VitamClientException;
 
 
     /**
@@ -61,7 +62,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> updateProject(ProjectDto projectDto) throws VitamClientException;
+    RequestResponse<JsonNode> updateProject(VitamContext vitamContext,
+        ProjectDto projectDto) throws VitamClientException;
 
     /**
      * get a collect project
@@ -71,7 +73,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> getProjectById(String projectId) throws VitamClientException;
+    RequestResponse<JsonNode> getProjectById(VitamContext vitamContext, String projectId) throws VitamClientException;
 
     /**
      * get all collect project by tenant
@@ -80,8 +82,9 @@ public interface CollectClient extends MockOrRestClient {
      *
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
+     * @param vitamContext
      */
-    RequestResponse<JsonNode> getProjects() throws VitamClientException;
+    RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException;
 
 
 
@@ -93,7 +96,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponseOK<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> getUnitById(String unitId) throws VitamClientException;
+    RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId) throws VitamClientException;
 
 
 
@@ -105,7 +108,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> getUnitsByTransaction(String transactionId) throws VitamClientException;
+    RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+        String transactionId) throws VitamClientException;
 
 
 
@@ -117,7 +121,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponseOK<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> getObjectById(String gotId) throws VitamClientException;
+    RequestResponseOK<JsonNode> getObjectById(VitamContext vitamContext, String gotId) throws VitamClientException;
 
 
 
@@ -129,7 +133,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode> guid created for the transaction
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> initTransaction(TransactionDto transactionDto)
+    RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
+        TransactionDto transactionDto)
         throws VitamClientException;
 
     /**
@@ -140,7 +145,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode> Archive Unit saved
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> uploadArchiveUnit(String transactionId, JsonNode unitJsonNode)
+    RequestResponseOK<JsonNode> uploadArchiveUnit(VitamContext vitamContext,
+        JsonNode unitJsonNode, String transactionId)
         throws VitamClientException;
 
     /**
@@ -151,7 +157,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode> objectgroup saved
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode)
+    RequestResponseOK<JsonNode> addObjectGroup(VitamContext vitamContext, String unitId,
+        Integer version, JsonNode objectJsonNode, String usage)
         throws VitamClientException;
 
     /**
@@ -162,7 +169,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded)
+    Response addBinary(VitamContext vitamContext, String unitId, Integer version, InputStream inputStreamUploaded,
+        String usage)
         throws VitamClientException;
 
     /**
@@ -173,7 +181,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response closeTransaction(String transactionId) throws VitamClientException;
+    Response closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException;
 
 
     /**
@@ -184,7 +192,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponseOK<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponseOK<JsonNode> ingest(String transactionId) throws
+    RequestResponseOK<JsonNode> ingest(VitamContext vitamContext, String transactionId) throws
         VitamClientException;
 
     /**
@@ -195,6 +203,18 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response uploadProjectZip(String projectId, InputStream inputStreamUploaded) throws VitamClientException;
+    Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded) throws VitamClientException;
+
+
+    /**
+     * get archive unit by Dsl query
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery) throws VitamClientException;
+
 
 }
