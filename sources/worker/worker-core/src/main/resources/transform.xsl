@@ -36,7 +36,7 @@
     </xsl:template>
     <xsl:template match="comment()"/>
     <!-- transform different namespace to an unified one to extract data -->
-    <xsl:template match="*">
+    <xsl:template match="*[namespace-uri()]">
         <xsl:element name="{local-name()}" namespace="fr:gouv:culture:archivesdefrance:seda:v2">
             <xsl:apply-templates select="@*|node()"/>
         </xsl:element>

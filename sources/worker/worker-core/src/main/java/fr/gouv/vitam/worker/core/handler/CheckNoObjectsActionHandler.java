@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -62,8 +64,10 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
      */
     private static final String HANDLER_ID = "CHECK_NO_OBJECT";
 
+    private final SedaUtilsFactory sedaUtilsFactory;
+
     public CheckNoObjectsActionHandler() {
-        // Nothing
+        this.sedaUtilsFactory = SedaUtilsFactory.getInstance();
     }
 
     /**
@@ -97,14 +101,16 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
 
     private boolean checkNoObjectInManifest(HandlerIO handlerIO) throws ProcessingException {
 
+        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
+
         InputStream xmlFile = null;
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
 
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
-        final QName binaryDataObject = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_BINARY_DATA_OBJECT);
-        final QName physicalDataObject = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_PHYSICAL_DATA_OBJECT);
+        final QName binaryDataObject = new QName(sedaUtils.getSedaIngestParams().getNamespaceURI(), SedaConstants.TAG_BINARY_DATA_OBJECT);
+        final QName physicalDataObject = new QName(sedaUtils.getSedaIngestParams().getNamespaceURI(), SedaConstants.TAG_PHYSICAL_DATA_OBJECT);
         XMLEventReader eventReader = null;
         try {
             try {

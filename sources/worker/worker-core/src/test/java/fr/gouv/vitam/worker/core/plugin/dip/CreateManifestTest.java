@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -111,7 +112,7 @@ public class CreateManifestTest {
     private static final Map<String, String> prefix2Uri = new HashMap<>();
 
     static {
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.2");
     }
 
     @Before
@@ -407,7 +408,7 @@ public class CreateManifestTest {
 
         assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
                     Charset.defaultCharset()).get(0),
-                "<ns4:DataObjectGroup xmlns:ns4=\"fr:gouv:culture:archivesdefrance:seda:v2.1\" id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\"><"),
+                "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\"><"),
             equalTo(1));
 
     }
@@ -669,6 +670,7 @@ public class CreateManifestTest {
         exportRequest.setExportWithLogBookLFC(true);
         exportRequest.setDslRequest(queryUnit);
         exportRequest.setExportType(ArchiveTransfer);
+        exportRequest.setSedaVersion(SupportedSedaVersions.SEDA_2_2.getVersion());
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement");
         exportRequestParameters.setOriginatingAgencyIdentifier("OriginatingAgencyIdentifier");

@@ -146,9 +146,10 @@ public class SipService {
             ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
             ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
+
             manifestBuilder
                 .startDocument(transactionModel.getManifestContext().getMessageIdentifier(), ExportType.ArchiveTransfer,
-                    exportRequestParameters);
+                    exportRequestParameters, null);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();

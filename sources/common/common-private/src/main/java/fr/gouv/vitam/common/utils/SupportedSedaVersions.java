@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.utils;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * Here we declare all SEDA versions supported by Vitam with their XSD Validators to use later for Generating ATR, DIP and TRANSFER.
  */
@@ -63,5 +66,25 @@ public enum SupportedSedaVersions {
 
     public String getVitamValidatorXSD() {
         return vitamValidatorXSD;
+    }
+
+    public static boolean isSedaVersionValid(String sedaVersion) {
+        return Arrays.stream(SupportedSedaVersions.values()).map(SupportedSedaVersions::getVersion)
+            .anyMatch(supportedSedaVersion -> sedaVersion.equals(supportedSedaVersion));
+    }
+
+    public static Optional<SupportedSedaVersions> getSupportedSedaVersionByVersion(String sedaVersion) {
+        return Arrays.stream(SupportedSedaVersions.values())
+            .filter(supportedSedaVersion -> sedaVersion.equals(supportedSedaVersion.getVersion())).findFirst();
+    }
+
+    public static boolean isSedaVersionsCompatible(String metadataSedaVersion, String sedaVersionToExport) {
+        if (metadataSedaVersion != null && sedaVersionToExport != null &&
+            (metadataSedaVersion.equals(sedaVersionToExport) ||
+                (sedaVersionToExport.equals(SEDA_2_2.getVersion()) &&
+                    metadataSedaVersion.equals(SEDA_2_1.getVersion())))) {
+            return true;
+        }
+        return false;
     }
 }

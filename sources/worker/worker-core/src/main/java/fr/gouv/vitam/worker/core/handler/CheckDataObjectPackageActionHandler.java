@@ -83,7 +83,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler(
                         sedaUtilsFactory);
                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler(
-                        metaDataClientFactory, adminManagementClientFactory, sedaUtilsFactory)) {
+                        metaDataClientFactory, adminManagementClientFactory)) {
 
                     Stopwatch checkNoObject = Stopwatch.createStarted();
 
@@ -125,7 +125,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler(
                         sedaUtilsFactory);
                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler(
-                        metaDataClientFactory, adminManagementClientFactory, sedaUtilsFactory);
+                        metaDataClientFactory, adminManagementClientFactory);
                     CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler = new CheckObjectUnitConsistencyActionHandler()) {
 
                     Stopwatch checkVersion = Stopwatch.createStarted();

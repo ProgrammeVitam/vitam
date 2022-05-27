@@ -44,5 +44,6 @@
       }
     }
   },
-  "maxSizeThreshold": 1024
+  "maxSizeThreshold": 1024,
+  "sedaVersion": "2.2"
 }

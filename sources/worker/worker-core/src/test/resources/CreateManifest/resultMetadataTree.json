@@ -17,7 +17,8 @@
       "#allunitups": [
         "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
       ],
-      "#originating_agency": "FRAN_NP_005568"
+      "#originating_agency": "FRAN_NP_005568",
+      "#sedaVersion": "2.2"
     },
     {
       "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
@@ -25,12 +26,14 @@
       "#unitups": [
         "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
       ],
-      "#originating_agency": "FRAN_NP_005568"
+      "#originating_agency": "FRAN_NP_005568",
+      "#sedaVersion": "2.2"
     },
     {
       "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca",
       "#unitups": [],
-      "#originating_agency": "FRAN_NP_005568"
+      "#originating_agency": "FRAN_NP_005568",
+      "#sedaVersion": "2.2"
     },
     {
       "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba",
@@ -38,7 +41,8 @@
       "#unitups": [
         "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
       ],
-      "#originating_agency": "FRAN_NP_005568"
+      "#originating_agency": "FRAN_NP_005568",
+      "#sedaVersion": "2.2"
     }
   ],
   "$context": {

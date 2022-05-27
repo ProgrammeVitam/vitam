@@ -86,6 +86,7 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -400,8 +401,14 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response transfer(TransferRequest transferRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(transferRequest.getDslRequest());
+            // Validate DSL query & seda Version
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(transferRequest.getDslRequest());
+            if (transferRequest.getSedaVersion() != null &&
+                !SupportedSedaVersions.isSedaVersionValid(transferRequest.getSedaVersion())) {
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, "The Seda version is invalid!")).build();
+            }
 
             RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(transferRequest));
             if (response.isOk()) {
@@ -769,7 +776,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
             return Response.status(st).entity(selectedObjectGroupsByUnit).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-            BadRequestException | InvalidCreateOperationException e) {
+                       BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)

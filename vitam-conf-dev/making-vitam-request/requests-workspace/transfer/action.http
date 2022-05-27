@@ -33,7 +33,8 @@ X-Access-Contract-Id: {{access-contract}}
       }
     ],
     "$projection": {}
-  }
+  },
+  "sedaVersion": "2.2"
 }
 
 ### Vérification de la complétude de l'opération de transfert en cours grâce au 'X-Request-Id' de la réponse du transfert

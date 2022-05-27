@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
@@ -122,8 +123,14 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     public Response exportDIP(DipRequest dipRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(dipRequest.getDslRequest());
+            // Validate DSL query & seda Version
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(dipRequest.getDslRequest());
+            if (dipRequest.getSedaVersion() != null && !SupportedSedaVersions.isSedaVersionValid(dipRequest.getSedaVersion())) {
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, "The Seda version is invalid!")).build();
+            }
+
             RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
