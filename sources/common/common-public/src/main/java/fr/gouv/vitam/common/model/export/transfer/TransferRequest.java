@@ -46,6 +46,9 @@ public class TransferRequest {
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
+    @JsonProperty("sedaVersion")
+    private String sedaVersion;
+
 
     public TransferRequest() {
     }
@@ -99,5 +102,13 @@ public class TransferRequest {
 
     public void setMaxSizeThreshold(Long maxSizeThreshold) {
         this.maxSizeThreshold = maxSizeThreshold;
+    }
+
+    public String getSedaVersion() {
+        return sedaVersion;
+    }
+
+    public void setSedaVersion(String sedaVersion) {
+        this.sedaVersion = sedaVersion;
     }
 }

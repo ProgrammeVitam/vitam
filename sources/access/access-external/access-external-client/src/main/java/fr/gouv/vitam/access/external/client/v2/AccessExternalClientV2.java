@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 
 /**
@@ -47,16 +46,4 @@ public interface AccessExternalClientV2 extends BasicClient {
      */
     RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
         DipRequest dipRequest) throws VitamClientException;
-
-    /**
-     * Instead of this method, use the method with DipRequest dipRequest parameter
-     *
-     * @param vitamContext
-     * @param dipExportRequest
-     * @return
-     * @throws VitamClientException
-     */
-    @Deprecated
-    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        DipExportRequest dipExportRequest) throws VitamClientException;
 }

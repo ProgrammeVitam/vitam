@@ -402,7 +402,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * get Archive Unit list by query based on identifier
      *
-     * @param exportRequest as DipExportRequest
+     * @param exportRequest as DipExportRequest / TransferRequest
      * @return an archive unit result list
      */
     @Override

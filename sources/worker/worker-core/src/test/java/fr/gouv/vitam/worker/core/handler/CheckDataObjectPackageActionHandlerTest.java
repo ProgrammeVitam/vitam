@@ -79,6 +79,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.worker.common.utils.SedaUtilsFactory.SEDA_INGEST_PARAMS_FILE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -224,11 +225,17 @@ public class CheckDataObjectPackageActionHandlerTest {
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         final InputStream ingestContract =
-                PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
-        SedaIngestParams sedaIngestParams = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS), SedaIngestParams.class);
+            PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
+        SedaIngestParams sedaIngestParams =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS),
+                SedaIngestParams.class);
         when(sedaUtils.getSedaIngestParams()).thenReturn(sedaIngestParams);
         when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
+
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_INGEST_PARAMS_FILE))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_INGEST_PARAMS_FILE))).thenReturn(
+            Response.status(Status.OK).entity(sedaIngestParams).build());
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
@@ -238,9 +245,10 @@ public class CheckDataObjectPackageActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(workspaceClient.getObject(any(), eq("Maps/sedaParams.json")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
+            .thenReturn(
+                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
         when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());

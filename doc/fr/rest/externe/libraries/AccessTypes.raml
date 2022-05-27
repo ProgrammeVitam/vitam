@@ -308,6 +308,10 @@ types:
           description: Le seuil du poids binaire max autorisé pour un DIP ou un SIP de transfert
           type: integer
           required: false
+        sedaVersion:
+          description: La version SEDA d'export de DIP ou d'un SIP de transfert ( 2.2 par défaut )
+          type: string
+          required: false
       example: !include examples/dipRequest.json
 
   TransferRequest:
@@ -380,6 +384,10 @@ types:
               required: false
               items:
                 type: string
+        sedaVersion:
+          description: La version SEDA d'export de DIP ou d'un SIP de transfert ( 2.2 par défaut )
+          type: string
+          required: false
       example: !include examples/transferRequest.json
 
   DeleteGotVersionsRequest:

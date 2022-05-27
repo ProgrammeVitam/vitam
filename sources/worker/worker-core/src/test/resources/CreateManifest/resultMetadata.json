@@ -48,7 +48,8 @@
           "fakeOfferId"
         ]
       },
-      "#version": 1
+      "#version": 1,
+      "#sedaVersion": "2.2"
     },
     {
       "DescriptionLevel": "Item",
@@ -90,7 +91,8 @@
           "fakeOfferId"
         ]
       },
-      "#version": 1
+      "#version": 1,
+      "#sedaVersion": "2.2"
     },
     {
       "DescriptionLevel": "File",
@@ -126,7 +128,8 @@
           "fakeOfferId"
         ]
       },
-      "#version": 1
+      "#version": 1,
+      "#sedaVersion": "2.2"
     },
     {
       "DescriptionLevel": "Item",
@@ -168,7 +171,8 @@
           "fakeOfferId"
         ]
       },
-      "#version": 1
+      "#version": 1,
+      "#sedaVersion": "2.2"
     }
   ],
   "$context": {

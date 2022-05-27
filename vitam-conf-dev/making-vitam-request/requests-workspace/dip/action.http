@@ -98,5 +98,6 @@ X-Access-Contract-Id: {{access-contract}}
         ],
         "$filter": {},
         "$projection": {}
-    }
+    },
+    "sedaVersion": "2.2"
 }

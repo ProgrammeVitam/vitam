@@ -18,7 +18,8 @@
       "#unitups": 1,
       "#id": 1,
       "#originating_agency": 1,
-      "#object": 1
+      "#object": 1,
+      "#sedaVersion": 1
     }
   },
   "$facets": []

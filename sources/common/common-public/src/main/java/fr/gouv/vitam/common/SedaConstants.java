@@ -35,11 +35,6 @@ import java.util.List;
 public class SedaConstants {
 
     /**
-     * SEDA Namespace
-     */
-    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
-
-    /**
      * versions element
      */
     public static final String TAG_VERSIONS = "versions";
@@ -367,13 +362,13 @@ public class SedaConstants {
      */
     public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
     /**
-     * tag of FileFormatCodeListVersion
-     */
-    public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
-    /**
      * tag of CompressionAlgorithmCodeListVersion
      */
     public static final String TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION = "CompressionAlgorithmCodeListVersion";
+    /**
+     * tag of FileFormatCodeListVersion
+     */
+    public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     /**
      * tag of DataObjectVersionCodeListVersion
      */

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 
 public class ExportRequest {
     public static final String EXPORT_QUERY_FILE_NAME = "export_query.json";
@@ -54,6 +55,9 @@ public class ExportRequest {
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
+    @JsonProperty("sedaVersion")
+    private String sedaVersion =  SupportedSedaVersions.SEDA_2_2.getVersion();
+
 
     public ExportRequest() {
     }
@@ -64,15 +68,22 @@ public class ExportRequest {
     }
 
     public ExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC,
-        Long maxSizeThreshold) {
+        Long maxSizeThreshold, String sedaVersion) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
         this.maxSizeThreshold = maxSizeThreshold;
+        this.sedaVersion = sedaVersion;
     }
 
+    /**
+     * Seda version to export is setted to default value "2.2"
+     * @param dataObjectVersionToExport
+     * @param dslRequest
+     * @param withLogBookLFC
+     */
     public ExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
-        this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null);
+        this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null, SupportedSedaVersions.SEDA_2_2.getVersion());
     }
 
     public static ExportRequest from(DipRequest dipRequest) {
@@ -82,6 +93,8 @@ public class ExportRequest {
         exportRequest.setExportType(ExportType.get(dipRequest.getDipExportType()));
         exportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
         exportRequest.setMaxSizeThreshold(dipRequest.getMaxSizeThreshold());
+        exportRequest.setSedaVersion(dipRequest.getSedaVersion() != null ? dipRequest.getSedaVersion() :
+            SupportedSedaVersions.SEDA_2_2.getVersion());
 
         return exportRequest;
     }
@@ -144,5 +157,13 @@ public class ExportRequest {
 
     public void setMaxSizeThreshold(Long maxSizeThreshold) {
         this.maxSizeThreshold = maxSizeThreshold;
+    }
+
+    public String getSedaVersion() {
+        return sedaVersion;
+    }
+
+    public void setSedaVersion(String sedaVersion) {
+        this.sedaVersion = sedaVersion;
     }
 }

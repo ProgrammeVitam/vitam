@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.export.dip;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 
 public class DipRequest {
     @JsonProperty("dataObjectVersionToExport")
@@ -51,6 +50,8 @@ public class DipRequest {
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
+    @JsonProperty("sedaVersion")
+    private String sedaVersion;
 
     public DipRequest() {
     }
@@ -61,21 +62,16 @@ public class DipRequest {
     }
 
     public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC,
-        Long maxSizeThreshold) {
+        Long maxSizeThreshold, String sedaVersion) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
         this.maxSizeThreshold = maxSizeThreshold;
+        this.sedaVersion = sedaVersion;
     }
 
-    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
-        this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null);
-    }
-
-    public DipRequest(DipExportRequest dipExportRequest) {
-        this(dipExportRequest.getDataObjectVersionToExport(), dipExportRequest.getDslRequest(),
-            dipExportRequest.isExportWithLogBookLFC());
-        this.dipExportType = DipExportType.MINIMAL;
+    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC, String sedaVersion) {
+        this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null, sedaVersion);
     }
 
     public DataObjectVersions getDataObjectVersionToExport() {
@@ -124,5 +120,13 @@ public class DipRequest {
 
     public void setMaxSizeThreshold(Long maxSizeThreshold) {
         this.maxSizeThreshold = maxSizeThreshold;
+    }
+
+    public String getSedaVersion() {
+        return sedaVersion;
+    }
+
+    public void setSedaVersion(String sedaVersion) {
+        this.sedaVersion = sedaVersion;
     }
 }

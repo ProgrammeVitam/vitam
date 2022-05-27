@@ -92,7 +92,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.SedaConstants.ATTRIBUTE_SCHEMA_LOCATION;
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_PR;
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_XLINK;
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_XSI;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ACCESS_RULE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_APPRAISAL_RULE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGENCY;
@@ -129,6 +132,7 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
 /**
  * build a SEDA manifest with JAXB.
@@ -169,42 +173,20 @@ public class ManifestBuilder implements AutoCloseable {
 
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
         writer = xmlOutputFactory.createXMLStreamWriter(outputStream);
-        writer.setNamespaceContext(new NamespaceContext() {
-            public Iterator<String> getPrefixes(String namespaceURI) {
-                return null;
-            }
-
-            public String getPrefix(String namespaceURI) {
-                return "";
-            }
-
-            public String getNamespaceURI(String prefix) {
-                return NAMESPACE_URI;
-            }
-        });
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
     }
 
     public void startDocument(String operationId, ExportType exportType,
-        ExportRequestParameters exportRequestParameters)
+        ExportRequestParameters exportRequestParameters, SupportedSedaVersions supportedSedaVersion)
         throws XMLStreamException, JAXBException {
-        writer.writeStartDocument();
-        switch (exportType) {
-            case ArchiveTransfer:
-                writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVE_TRANSFER);
-                break;
-            case ArchiveDeliveryRequestReply:
-            case MinimalArchiveDeliveryRequestReply:
-                writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
-                break;
+        
+        if (supportedSedaVersion == null) {
+            LOGGER.debug("Seda version was not filled, defualt one will be setted !");
+            supportedSedaVersion = SupportedSedaVersions.SEDA_2_2;
         }
-        writer.writeNamespace("xlink", "http://www.w3.org/1999/xlink");
-        writer.writeNamespace("pr", "info:lc/xmlns/premis-v2");
-        writer.writeDefaultNamespace(NAMESPACE_URI);
-        writer.writeNamespace("xsi", XSI_URI);
-        writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " " +
-            SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD());
+        
+        initWriter(exportType, supportedSedaVersion);
 
         switch (exportType) {
             case ArchiveTransfer:
@@ -218,6 +200,40 @@ public class ManifestBuilder implements AutoCloseable {
             default:
                 // Old DIP
         }
+    }
+
+    private void initWriter(ExportType exportType, SupportedSedaVersions supportedSedaVersion)
+        throws XMLStreamException {
+        final String namespaceForExport = supportedSedaVersion.getNamespaceURI();
+        writer.writeStartDocument();
+        writer.setNamespaceContext(new NamespaceContext() {
+            public Iterator<String> getPrefixes(String namespaceURI) {
+                return null;
+            }
+
+            public String getPrefix(String namespaceURI) {
+                return "";
+            }
+
+            public String getNamespaceURI(String prefix) {
+                return namespaceForExport;
+            }
+        });
+        switch (exportType) {
+            case ArchiveTransfer:
+                writer.writeStartElement(namespaceForExport, TAG_ARCHIVE_TRANSFER);
+                break;
+            case ArchiveDeliveryRequestReply:
+            case MinimalArchiveDeliveryRequestReply:
+                writer.writeStartElement(namespaceForExport, TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
+                break;
+        }
+        writer.writeNamespace(NAMESPACE_XLINK, "http://www.w3.org/1999/xlink");
+        writer.writeNamespace(NAMESPACE_PR, "info:lc/xmlns/premis-v2");
+        writer.writeDefaultNamespace(namespaceForExport);
+        writer.writeNamespace(NAMESPACE_XSI, XSI_URI);
+        writer.writeAttribute(NAMESPACE_XSI, XSI_URI, ATTRIBUTE_SCHEMA_LOCATION, namespaceForExport + " " +
+            supportedSedaVersion.getSedaValidatorXSD());
     }
 
     public Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU,
@@ -300,8 +316,9 @@ public class ManifestBuilder implements AutoCloseable {
         // Hack from https://docs.oracle.com/javase/7/docs/api/javax/xml/bind/Marshaller.html
         // Marshalling content tree rooted by a JAXB element
         // Using the dataObjectGroup.getClass() in order to have no namespace or type issue
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_GROUP), DataObjectGroupType.class,
-            dataObjectGroup), writer);
+        marshaller.marshal(
+            new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_DATA_OBJECT_GROUP), DataObjectGroupType.class,
+                dataObjectGroup), writer);
     }
 
     public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
@@ -372,11 +389,11 @@ public class ManifestBuilder implements AutoCloseable {
     }
 
     public void startDescriptiveMetadata() throws XMLStreamException {
-        writer.writeStartElement(NAMESPACE_URI, TAG_DESCRIPTIVE_METADATA);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_DESCRIPTIVE_METADATA);
     }
 
     public void startDataObjectPackage() throws XMLStreamException {
-        writer.writeStartElement(NAMESPACE_URI, TAG_DATA_OBJECT_PACKAGE);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_DATA_OBJECT_PACKAGE);
     }
 
     public void endDescriptiveMetadata() throws XMLStreamException {
@@ -392,8 +409,7 @@ public class ManifestBuilder implements AutoCloseable {
         if (null == comment) {
             return;
         }
-
-        writer.writeStartElement(NAMESPACE_URI, TAG_COMMENT);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_COMMENT);
         writer.writeCharacters(comment);
         writer.writeEndElement();
     }
@@ -402,8 +418,7 @@ public class ManifestBuilder implements AutoCloseable {
         if (null == date) {
             return;
         }
-
-        writer.writeStartElement(NAMESPACE_URI, TAG_DATE);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_DATE);
         writer.writeCharacters(date);
         writer.writeEndElement();
     }
@@ -412,8 +427,7 @@ public class ManifestBuilder implements AutoCloseable {
         if (null == operationId) {
             return;
         }
-
-        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_IDENTIFIER);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_MESSAGE_IDENTIFIER);
         writer.writeCharacters(operationId);
         writer.writeEndElement();
     }
@@ -422,7 +436,7 @@ public class ManifestBuilder implements AutoCloseable {
         if (Strings.isNullOrEmpty(archivalAgreement)) {
             return;
         }
-        writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVAL_AGREEMENT);
+        writer.writeStartElement(UNIFIED_NAMESPACE, TAG_ARCHIVAL_AGREEMENT);
         writer.writeCharacters(archivalAgreement);
         writer.writeEndElement();
     }
@@ -446,7 +460,7 @@ public class ManifestBuilder implements AutoCloseable {
         }
 
         marshaller.marshal(
-            new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MANAGEMENT_METADATA), ManagementMetadataType.class,
+            new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_MANAGEMENT_METADATA), ManagementMetadataType.class,
                 managementMetadataType), writer);
 
     }
@@ -534,7 +548,7 @@ public class ManifestBuilder implements AutoCloseable {
         codeListVersionsType.setRelationshipCodeListVersion(value);
 
         marshaller
-            .marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_CODE_LIST_VERSIONS), CodeListVersionsType.class,
+            .marshal(new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_CODE_LIST_VERSIONS), CodeListVersionsType.class,
                 codeListVersionsType), writer);
     }
 
@@ -550,7 +564,7 @@ public class ManifestBuilder implements AutoCloseable {
                         identifierType.setValue(elem);
 
                         marshaller.marshal(
-                            new JAXBElement<>(new QName(NAMESPACE_URI, TAG_RELATED_TRANSFER_REFERENCE),
+                            new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_RELATED_TRANSFER_REFERENCE),
                                 IdentifierType.class, identifierType), writer);
                     }
                 }
@@ -559,7 +573,7 @@ public class ManifestBuilder implements AutoCloseable {
                     identifierType = new IdentifierType();
                     identifierType.setValue(parameters.getTransferRequestReplyIdentifier());
                     marshaller.marshal(
-                        new JAXBElement<>(new QName(NAMESPACE_URI, TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER),
+                        new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER),
                             IdentifierType.class,
                             identifierType), writer);
                 }
@@ -569,7 +583,7 @@ public class ManifestBuilder implements AutoCloseable {
                 identifierType.setValue(parameters.getArchivalAgencyIdentifier());
                 organizationWithIdType.setIdentifier(identifierType);
                 marshaller.marshal(
-                    new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY), OrganizationWithIdType.class,
+                    new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_ARCHIVAL_AGENCY), OrganizationWithIdType.class,
                         organizationWithIdType), writer);
 
                 organizationWithIdType = new OrganizationWithIdType();
@@ -577,42 +591,44 @@ public class ManifestBuilder implements AutoCloseable {
                 identifierType.setValue(parameters.getTransferringAgency());
                 organizationWithIdType.setIdentifier(identifierType);
                 marshaller.marshal(
-                    new JAXBElement<>(new QName(NAMESPACE_URI, TAG_TRANSFERRING_AGENCY), OrganizationWithIdType.class,
+                    new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_TRANSFERRING_AGENCY),
+                        OrganizationWithIdType.class,
                         organizationWithIdType), writer);
 
                 break;
             case ArchiveDeliveryRequestReply:
                 identifierType = new IdentifierType();
                 identifierType.setValue(parameters.getMessageRequestIdentifier());
-                marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER),
+                marshaller.marshal(new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_MESSAGE_REQUEST_IDENTIFIER),
                     IdentifierType.class, identifierType), writer);
 
                 if (!Strings.isNullOrEmpty(parameters.getAuthorizationRequestReplyIdentifier())) {
                     identifierType = new IdentifierType();
                     identifierType.setValue(parameters.getAuthorizationRequestReplyIdentifier());
                     marshaller
-                        .marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER),
-                            IdentifierType.class, identifierType), writer);
+                        .marshal(
+                            new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER),
+                                IdentifierType.class, identifierType), writer);
                 }
 
                 identifierType = new IdentifierType();
                 identifierType.setValue("Not Implemented");
                 marshaller
-                    .marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_UNIT_IDENTIFIER),
+                    .marshal(new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_UNIT_IDENTIFIER),
                         IdentifierType.class, identifierType), writer);
 
                 organizationWithIdType = new OrganizationWithIdType();
                 identifierType = new IdentifierType();
                 identifierType.setValue(parameters.getArchivalAgencyIdentifier());
                 organizationWithIdType.setIdentifier(identifierType);
-                marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY),
+                marshaller.marshal(new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_ARCHIVAL_AGENCY),
                     OrganizationWithIdType.class, organizationWithIdType), writer);
 
                 organizationWithIdType = new OrganizationWithIdType();
                 identifierType = new IdentifierType();
                 identifierType.setValue(parameters.getRequesterIdentifier());
                 organizationWithIdType.setIdentifier(identifierType);
-                marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_REQUESTER),
+                marshaller.marshal(new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_REQUESTER),
                     OrganizationWithIdType.class, organizationWithIdType), writer);
                 break;
         }

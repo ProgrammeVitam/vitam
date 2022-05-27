@@ -38,11 +38,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
@@ -53,9 +55,11 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -66,77 +70,55 @@ import static org.assertj.core.api.Assertions.fail;
 
 public class DipStep extends CommonStep {
 
+    private static final String EXPECTED_MANIFEST_START_WITH_SEDA_VERSION =
+        "<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:pr=\"info:lc/xmlns/premis-v2\" xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
+
     public DipStep(World world) {
         super(world);
     }
 
     @When("^j'exporte le dip$")
     public void exportDip() throws VitamException {
-
         cleanTempDipFile();
-
-        VitamContext vitamContext = new VitamContext(world.getTenantId());
-        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        vitamContext.setAccessContract(world.getContractId());
-
+        VitamContext vitamContext = initContext();
         String query = world.getQuery();
         JsonNode jsonNode = JsonHandler.getFromString(query);
 
         DipRequest dipExportRequest = new DipRequest(jsonNode);
         RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
-        assertThat(response.isOk()).isTrue();
+        checkExportDipResponse(response);
+    }
 
-        final String operationId = response.getHeaderString(X_REQUEST_ID);
-        world.setOperationId(operationId);
+    @When("^j'exporte le dip avec la version SEDA \"([^\"]*)\"")
+    public void exportDipBySedaVersion(String sedaVersion) throws VitamException {
+        cleanTempDipFile();
+        VitamContext vitamContext = initContext();
+        String query = world.getQuery();
+        JsonNode jsonNode = JsonHandler.getFromString(query);
 
-        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        DipRequest dipExportRequest = new DipRequest(jsonNode);
+        dipExportRequest.setSedaVersion(sedaVersion);
+        RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
-        if (!processTimeout) {
-            fail("dip processing not finished. Timeout exceeded.");
-        }
-
-        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        checkExportDipResponse(response);
     }
 
     @When("^j'exporte le DIP$")
     public void exportDIP() throws VitamException {
-
         cleanTempDipFile();
-
-        VitamContext vitamContext = new VitamContext(world.getTenantId());
-        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        vitamContext.setAccessContract(world.getContractId());
+        VitamContext vitamContext = initContext();
 
         String query = world.getQuery();
         DipRequest dipExportRequest = JsonHandler.getFromString(query, DipRequest.class);
 
         RequestResponse<JsonNode> response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
-
-        assertThat(response.isOk()).isTrue();
-
-        final String operationId = response.getHeaderString(X_REQUEST_ID);
-        world.setOperationId(operationId);
-
-        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
-
-        if (!processTimeout) {
-            fail("dip processing not finished. Timeout exceeded.");
-        }
-
-        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        checkExportDipResponse(response);
     }
 
     @When("^je télécharge le dip$")
     public void downloadDip() throws Exception {
-
-        VitamContext vitamContext = new VitamContext(world.getTenantId());
-        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        vitamContext.setAccessContract(world.getContractId());
+        VitamContext vitamContext = initContext();
 
         Response response = world.getAccessClient().getDIPById(vitamContext, world.getOperationId());
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
@@ -152,7 +134,6 @@ public class DipStep extends CommonStep {
 
     @Then("^le dip contient (\\d+) unités archivistiques$")
     public void checkDipUnitCount(int nbUnits) throws Exception {
-
         ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
         // Check manifest
         ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
@@ -165,7 +146,6 @@ public class DipStep extends CommonStep {
 
     @Then("^le dip contient (\\d+) groupes d'objets$")
     public void checkDipObjectGroupCount(int nbObjectGroups) throws Exception {
-
         ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
         // Check manifest
         ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
@@ -193,6 +173,29 @@ public class DipStep extends CommonStep {
             .count();
 
         assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
+    }
+
+    @Then("^le dip utilise la version SEDA \"([^\"]*)\"$")
+    public void checkDipSedaVerion(String sedaVersion) throws Exception {
+
+        // Get manifest from DIP
+        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        String manifest;
+        ZipArchiveEntry manifestEntry = zipFile.getEntry("manifest.xml");
+        try (InputStream is = zipFile.getInputStream(manifestEntry)) {
+            manifest = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+        }
+
+        // Get selected Seda version
+        Optional<SupportedSedaVersions> supportedSedaVersion =
+            SupportedSedaVersions.getSupportedSedaVersionByVersion(sedaVersion);
+
+        // Then
+        assertThat(supportedSedaVersion.isPresent()).isTrue();
+        assertThat(manifest).contains(
+            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, supportedSedaVersion.get().getNamespaceURI(),
+                supportedSedaVersion.get().getNamespaceURI(),
+                supportedSedaVersion.get().getSedaValidatorXSD()));
     }
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
@@ -232,5 +235,29 @@ public class DipStep extends CommonStep {
             FileUtils.deleteQuietly(world.getDipFile().toFile());
             world.setDipFile(null);
         }
+    }
+
+    private VitamContext initContext() {
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+        return vitamContext;
+    }
+
+    private void checkExportDipResponse(RequestResponse response) throws VitamException {
+        assertThat(response.isOk()).isTrue();
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 }

@@ -29,14 +29,18 @@ package fr.gouv.vitam.worker.core.handler;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +49,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
+import static fr.gouv.vitam.worker.common.utils.SedaUtilsFactory.SEDA_INGEST_PARAMS_FILE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,15 +66,15 @@ public class CheckNoObjectsActionHandlerTest {
         "CheckNoObjectsActionHandler/manifestKO.xml";
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
-    private GUID guid;
     private WorkerParameters params;
 
     private InputStream sedaOK;
     private InputStream sedaKO;
 
+    private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
     @Before
     public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
-        guid = GUIDFactory.newGUID();
+        final GUID guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
                 .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
@@ -83,6 +88,9 @@ public class CheckNoObjectsActionHandlerTest {
         throws Exception {
         final CheckNoObjectsActionHandler handler = new CheckNoObjectsActionHandler();
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaOK);
+        when(handlerIO.isExistingFileInWorkspace(SEDA_INGEST_PARAMS_FILE)).thenReturn(true);
+        when(handlerIO.getJsonFromWorkspace(SEDA_INGEST_PARAMS_FILE)).thenReturn(JsonHandler.toJsonNode(new SedaIngestParams(
+            SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNamespaceURI())));
         WorkerParameters parameters =
             params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
                 .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())

@@ -389,8 +389,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public ExtractSedaActionHandler() {
-        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
-            SedaUtilsFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -420,8 +419,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     @VisibleForTesting
     ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory,
-        SedaUtilsFactory sedaUtilsFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -448,7 +446,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.transformerFactory = TransformerFactory.newInstance();
-        this.sedaUtilsFactory = sedaUtilsFactory;
+        this.sedaUtilsFactory = SedaUtilsFactory.getInstance();
         fileWithParmsFromFolder = new HashMap<>();
     }
 
