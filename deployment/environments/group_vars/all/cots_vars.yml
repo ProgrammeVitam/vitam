@@ -167,8 +167,8 @@ prometheus:
     prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
     server:
         port: 9090
-        tsdb_retention_time: 7d
-        tsdb_retention_size: 5GB
+        tsdb_retention_time: "7d"
+        tsdb_retention_size: "5GB"
     node_exporter:
         enabled: true
         port: 9101
