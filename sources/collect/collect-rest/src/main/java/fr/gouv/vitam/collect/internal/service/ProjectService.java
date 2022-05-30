@@ -30,7 +30,6 @@ import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.ProjectModelBuilder;
-import fr.gouv.vitam.collect.internal.model.CollectType;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
@@ -63,11 +62,11 @@ public class ProjectService {
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
             .withArchivalProfile(projectDto.getArchivalProfile())
             .withComment(projectDto.getComment())
+            .withUnitUp(projectDto.getUnitUp())
             .build();
         ProjectModel projectModel = new ProjectModelBuilder()
             .withId(projectDto.getId())
             .withManifestContext(manifestContext)
-            .withCollectType(CollectType.OPEN)
             .withTenant(projectDto.getTenant())
             .build();
         projectRepository.createProject(projectModel);

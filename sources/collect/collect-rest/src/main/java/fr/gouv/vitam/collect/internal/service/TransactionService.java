@@ -90,6 +90,7 @@ public class TransactionService {
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
             .withArchivalProfile(projectDto.getArchivalProfile())
             .withComment(projectDto.getComment())
+            .withUnitUp(projectDto.getUnitUp())
             .build();
         TransactionModel transactionModel = new TransactionModelBuilder()
             .withId(transactionId)

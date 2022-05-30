@@ -39,6 +39,7 @@ public class ManifestContextBuilder {
     private String submissionAgencyIdentifier;
     private String archivalProfile;
     private String comment;
+    private String unitUp;
 
     public ManifestContextBuilder withArchivalAgreement(String archivalAgreement) {
         this.archivalAgreement = archivalAgreement;
@@ -80,9 +81,14 @@ public class ManifestContextBuilder {
         return this;
     }
 
+    public ManifestContextBuilder withUnitUp(String unitUp) {
+        this.unitUp = unitUp;
+        return this;
+    }
+
     public ManifestContext build() {
         return new ManifestContext(archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
-            comment);
+            comment, unitUp);
     }
 }

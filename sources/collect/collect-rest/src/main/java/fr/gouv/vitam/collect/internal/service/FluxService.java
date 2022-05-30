@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.collect.external.dto.FileInfoDto;
 import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
@@ -38,16 +39,17 @@ import fr.gouv.vitam.collect.internal.helpers.builders.ObjectMapperBuilder;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceType;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -75,55 +77,38 @@ public class FluxService {
     private static final String DESCRIPTION_LEVEL = "DescriptionLevel";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
     private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
-    private final TransactionService transactionService;
-    private final ProjectService projectService;
+    private static final String ATTACHEMENT_AU = "AttachementAu";
     private final CollectService collectService;
 
-    public FluxService(TransactionService transactionService, ProjectService projectService,
-        CollectService collectService, CollectConfiguration collectConfiguration) {
-        this.transactionService = transactionService;
-        this.projectService = projectService;
+    public FluxService(CollectService collectService, CollectConfiguration collectConfiguration) {
         this.collectService = collectService;
         WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl(), WorkspaceType.COLLECT);
     }
 
     @VisibleForTesting
-    public FluxService(TransactionService transactionService, ProjectService projectService,
-        CollectService collectService, MetaDataClientFactory metaDataClientFactory) {
-        this.transactionService = transactionService;
-        this.projectService = projectService;
+    public FluxService(CollectService collectService) {
         this.collectService = collectService;
     }
 
-    public void process(int tenantId, InputStream inputStreamObject, ProjectDto projectDto) throws CollectException {
+    public void processStream(InputStream inputStreamObject, ProjectDto projectDto) throws CollectException {
         try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
             final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
                 .createArchiveInputStream(CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
+            boolean isAttachmentAuExist = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
-            JsonNode unitRecord = null;
             HashMap<String, String> savedGuuidUnits = new HashMap<>();
+            if (projectDto.getUnitUp() != null) {
+                addRattachementArchiveUnit(projectDto, savedGuuidUnits);
+                isAttachmentAuExist = true;
+            }
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
                     String fileName = Paths.get(entry.getName()).getFileName().toString();
-                    AbstractMap.SimpleEntry<String, String> unitParentEntry;
-                    if (entry.isDirectory()) {
-                        unitParentEntry = getUnitParentByPath(savedGuuidUnits, StringUtils
-                            .chop(entry.getName()));
-                        unitRecord = uploadArchiveUnit(projectDto.getTransactionId(),
-                            "RecordGrp", fileName,
-                            unitParentEntry != null ? unitParentEntry.getValue() : null);
-                        savedGuuidUnits.put(StringUtils
-                            .chop(entry.getName()), unitRecord.get(ID).asText());
-                    } else {
-                        unitParentEntry = getUnitParentByPath(savedGuuidUnits, entry.getName());
-                        JsonNode unitItem = uploadArchiveUnit(projectDto.getTransactionId(), "Item", fileName,
-                            unitParentEntry.getValue());
-                        uploadObjectGroup(unitItem.get(ID).asText(), fileName);
-                        uploadBinary(unitItem.get(ID).asText(), unitParentEntry.getKey(), entryInputStream);
-                    }
+                    convertEntryToAu(projectDto, entry, isAttachmentAuExist, entryInputStream, savedGuuidUnits,
+                        fileName);
                     isEmpty = false;
 
                 }
@@ -139,12 +124,57 @@ public class FluxService {
         }
     }
 
-    public ObjectNode uploadArchiveUnit(String transactionId, String descriptionLevel, String title, String unitParent)
+    private void convertEntryToAu(ProjectDto projectDto, ArchiveEntry entry, boolean isAttachmentAuExist,
+        ArchiveEntryInputStream entryInputStream, HashMap<String, String> savedGuuidUnits, String fileName)
         throws CollectException {
+        AbstractMap.SimpleEntry<String, String> unitParentEntry;
+        JsonNode unitRecord;
+        if (entry.isDirectory()) {
+            unitParentEntry = getUnitParentByPath(savedGuuidUnits, StringUtils
+                .chop(entry.getName()), isAttachmentAuExist);
+            unitRecord = uploadArchiveUnit(projectDto.getTransactionId(),
+                "RecordGrp", fileName,
+                unitParentEntry != null ? unitParentEntry.getValue() : null, null);
+            savedGuuidUnits.put(StringUtils
+                .chop(entry.getName()), unitRecord.get(ID).asText());
+        } else {
+            unitParentEntry = getUnitParentByPath(savedGuuidUnits, entry.getName(), isAttachmentAuExist);
+            JsonNode unitItem = uploadArchiveUnit(projectDto.getTransactionId(), "Item", fileName,
+                unitParentEntry != null ? unitParentEntry.getValue() : null, null);
+            uploadObjectGroup(unitItem.get(ID).asText(), fileName);
+            uploadBinary(unitItem.get(ID).asText(), unitParentEntry != null ? unitParentEntry.getKey() : null,
+                entryInputStream);
+        }
+    }
+
+    private void addRattachementArchiveUnit(ProjectDto projectDto,
+        HashMap<String, String> savedGuuidUnits) throws CollectException {
+        JsonNode savedUnit = uploadArchiveUnit(projectDto.getTransactionId(),
+            "Series", "AU de Rattachement", null, projectDto.getUnitUp());
+        savedGuuidUnits.put(ATTACHEMENT_AU, savedUnit.get(ID).asText());
+
+    }
+
+    public ObjectNode uploadArchiveUnit(String transactionId, String descriptionLevel, String title, String unitParent,
+        String attachementUnitId)
+        throws CollectException {
+
         ObjectNode unitObjectNode = JsonHandler.createObjectNode();
         unitObjectNode.put(ID, CollectService.createRequestId());
         unitObjectNode.put(OPI, transactionId);
-        unitObjectNode.replace(MGT, JsonHandler.createObjectNode());
+        if (null != attachementUnitId) {
+            ManagementModel managementModel = new ManagementModel();
+            UpdateOperationType updateOperationType = new UpdateOperationType();
+            updateOperationType.setSystemId(attachementUnitId);
+            managementModel.setUpdateOperationType(updateOperationType);
+            try {
+                unitObjectNode.replace(MGT, JsonHandler.toJsonNode(managementModel));
+            } catch (InvalidParseOperationException e) {
+                throw new CollectException("Error while trying to add management to unit");
+            }
+        } else {
+            unitObjectNode.replace(MGT, JsonHandler.createObjectNode());
+        }
         unitObjectNode.put(TITLE, title);
         unitObjectNode.put(DESCRIPTION_LEVEL, descriptionLevel);
         if (unitParent != null) {
@@ -158,10 +188,14 @@ public class FluxService {
     }
 
     public AbstractMap.SimpleEntry<String, String> getUnitParentByPath(Map<String, String> unitMap,
-        String entryName) {
+        String entryName, boolean isAttachmentAuExist) {
         int sepPos = entryName.lastIndexOf(LINUX_PATH_SEPARATOR);
         if (sepPos == -1) {
-            return null;
+            if (isAttachmentAuExist) {
+                return new AbstractMap.SimpleEntry<>(null, unitMap.get(ATTACHEMENT_AU));
+            } else {
+                return null;
+            }
         }
         return new AbstractMap.SimpleEntry<>(entryName.substring(0, sepPos),
             unitMap.get(entryName.substring(0, sepPos)));

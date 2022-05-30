@@ -30,6 +30,7 @@ package fr.gouv.vitam.collect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -73,6 +74,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -86,6 +88,7 @@ public class CollectIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
     private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
     private static final String ACCESS_CONTRACT = "ContratTNR";
+    private static final String ZIP_FILE = "collect/sampleStream.zip";
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
@@ -111,6 +114,7 @@ public class CollectIT extends VitamRuleRunner {
     private static CollectClient collectClient;
     private static AdminExternalClient adminExternalClient;
     private static AccessExternalClient accessExternalClient;
+    private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
     private ObjectMapper mapper = new ObjectMapper();
     private VitamContext vitamContext = new VitamContext(tenantId)
         .setApplicationSessionId(APPLICATION_SESSION_ID)
@@ -147,6 +151,7 @@ public class CollectIT extends VitamRuleRunner {
             .withArchivalAgreement("IC-000001")
             .withArchivalProfile("ArchiveProfile")
             .withComment("Versement du service producteur : Cabinet de Michel Mercier")
+            .withUnitUp(ATTACHEMENT_UNIT_ID)
             .build();
 
         RequestResponse<JsonNode> response = collectClient.initProject(vitamContext, projectDto);
@@ -157,10 +162,11 @@ public class CollectIT extends VitamRuleRunner {
         transactionGuuid = projectDtoResult.getTransactionId();
         projectGuuid = projectDtoResult.getId();
         getProjectById();
-        //uploadProjectZip();
+        uploadProjectZip();
         uploadUnit();
         getUnitById(unitGuuid);
         getUnitByDslQuery();
+        getAttachementUnit(transactionGuuid);
         uploadGot();
         getObjectById(objectGroupGuuid);
         uploadBinary();
@@ -244,6 +250,24 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult().get("#opi").textValue()).isEqualTo(transactionGuuid);
     }
 
+    public void getAttachementUnit(String transactionId) throws Exception {
+        RequestResponseOK<JsonNode> response = collectClient.getUnitsByTransaction(vitamContext, transactionId);
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getFirstResult()).isNotNull();
+        ArrayNode arrayNodeUnits = (ArrayNode) response.getFirstResult().get("$results");
+        JsonNode attachmentAu = StreamSupport.stream(arrayNodeUnits.spliterator(), false)
+            .filter(unit -> unit.get("DescriptionLevel").textValue().equals("Series")
+            ).findFirst().get();
+
+
+
+        assertThat(attachmentAu).isNotNull();
+        assertThat(attachmentAu.get("#id")).isNotNull();
+        assertThat(attachmentAu.get("DescriptionLevel").textValue()).isEqualTo("Series");
+        assertThat(attachmentAu.get("#management").get("UpdateOperation").get("SystemId").textValue())
+            .isEqualTo(ATTACHEMENT_UNIT_ID);
+    }
+
     public void getObjectById(String objectId) throws Exception {
         RequestResponseOK<JsonNode> response = collectClient.getObjectById(vitamContext, objectId);
         assertThat(response.isOk()).isTrue();
@@ -263,6 +287,7 @@ public class CollectIT extends VitamRuleRunner {
             .withArchivalAgreement("IC-000001")
             .withArchivalProfile("ArchiveProfile")
             .withComment("New Comment")
+            .withUnitUp(ATTACHEMENT_UNIT_ID)
             .build();
 
         collectClient.updateProject(vitamContext, projectDto);
@@ -274,7 +299,16 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(projectDtoResult).isNotNull();
         assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
         assertThat(projectDtoResult.getComment()).isEqualTo(projectDto.getComment());
-
     }
+
+    public void uploadProjectZip() throws Exception {
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
+            Response response = collectClient.uploadProjectZip(vitamContext, projectGuuid, inputStream);
+            Assertions.assertThat(response.getStatus()).isEqualTo(200);
+        }
+    }
+
+
 
 }

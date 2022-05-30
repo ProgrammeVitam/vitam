@@ -108,7 +108,7 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+    RequestResponseOK<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
         String transactionId) throws VitamClientException;
 
 

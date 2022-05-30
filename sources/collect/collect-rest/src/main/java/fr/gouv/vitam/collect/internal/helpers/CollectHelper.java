@@ -162,6 +162,7 @@ public class CollectHelper {
         projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
         projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
         projectDto.setComment(projectModel.getManifestContext().getComment());
+        projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
         projectDto.setTenant(projectModel.getTenant());
         return projectDto;
     }
