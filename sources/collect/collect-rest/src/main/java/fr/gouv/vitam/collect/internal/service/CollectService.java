@@ -352,7 +352,7 @@ public class CollectService {
 
         String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
         String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
-        String fileCompletePath = fileUri + "/" + fileName;
+        String fileCompletePath = fileUri != null ? fileUri + "/" + fileName : fileName;
         CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
         String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileCompletePath);
         DbFormatIdentificationModel formatIdentifierResponse =

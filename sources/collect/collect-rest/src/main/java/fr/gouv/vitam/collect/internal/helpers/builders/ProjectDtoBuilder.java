@@ -39,6 +39,7 @@ public class ProjectDtoBuilder {
     private String archivalProfile;
     private String comment;
     private Integer tenant;
+    private String unitUp;
 
     public ProjectDtoBuilder withId(String id) {
         this.id = id;
@@ -90,9 +91,14 @@ public class ProjectDtoBuilder {
         return this;
     }
 
+    public ProjectDtoBuilder withUnitUp(String unitUp) {
+        this.unitUp = unitUp;
+        return this;
+    }
+
     public ProjectDto build() {
         return new ProjectDto(id, archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
-            comment, tenant);
+            comment, tenant, unitUp);
     }
 }

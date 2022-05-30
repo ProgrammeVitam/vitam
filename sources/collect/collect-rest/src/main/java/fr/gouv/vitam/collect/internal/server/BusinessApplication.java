@@ -87,7 +87,7 @@ public class BusinessApplication extends ConfigurationApplication {
             SipService sipService = new SipService(configuration);
             CollectService collectService = new CollectService(transactionService, configuration);
             FluxService fluxService =
-                new FluxService(transactionService, projectService, collectService, configuration);
+                new FluxService(collectService, configuration);
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 
             singletons.addAll(commonBusinessApplication.getResources());

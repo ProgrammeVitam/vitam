@@ -68,6 +68,8 @@ public class ProjectDto implements Serializable {
 
     private String transactionId;
 
+    private String unitUp;
+
     public ProjectDto() {
         //Empty constructor for serialization
     }
@@ -79,7 +81,7 @@ public class ProjectDto implements Serializable {
     public ProjectDto(String id, String archivalAgreement, String messageIdentifier,
         String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment, Integer tenant) {
+        String archivalProfile, String comment, Integer tenant, String unitUp) {
         this.id = id;
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
@@ -90,6 +92,7 @@ public class ProjectDto implements Serializable {
         this.archivalProfile = archivalProfile;
         this.comment = comment;
         this.tenant = tenant;
+        this.unitUp = unitUp;
     }
 
     public String getId() {
@@ -178,6 +181,14 @@ public class ProjectDto implements Serializable {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public String getUnitUp() {
+        return unitUp;
+    }
+
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
     }
 
     @Override

@@ -44,13 +44,15 @@ public class ManifestContext {
 
     private String comment;
 
+    private String unitUp;
+
 
     public ManifestContext() {
     }
 
     public ManifestContext(String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment) {
+        String archivalProfile, String comment, String unitUp) {
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
@@ -59,6 +61,7 @@ public class ManifestContext {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
         this.comment = comment;
+        this.unitUp = unitUp;
     }
 
     public String getArchivalAgreement() {
@@ -123,5 +126,13 @@ public class ManifestContext {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getUnitUp() {
+        return unitUp;
+    }
+
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
     }
 }

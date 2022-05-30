@@ -76,7 +76,7 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+    public RequestResponseOK<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
         String transactionId) throws VitamClientException {
         return null;
     }

@@ -542,7 +542,7 @@ public class TransactionResource extends ApplicationStatusResource {
             }
             projectDto.setTransactionId(transactionModel.get().getId());
 
-            fluxService.process(ParameterHelper.getTenantParameter(), inputStreamObject, projectDto);
+            fluxService.processStream(inputStreamObject, projectDto);
 
             return Response.status(OK).build();
         } catch (CollectException e) {

@@ -146,10 +146,10 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
+    public RequestResponseOK<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
         String transactionId) throws VitamClientException {
 
-        VitamRequestBuilder request = post()
+        VitamRequestBuilder request = get()
             .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
             .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
@@ -157,7 +157,8 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
 
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result ;
         }
     }
 

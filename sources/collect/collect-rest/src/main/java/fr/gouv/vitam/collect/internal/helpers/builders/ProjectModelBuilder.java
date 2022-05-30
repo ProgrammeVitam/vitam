@@ -26,14 +26,12 @@
  */
 package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.model.CollectType;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 
 public class ProjectModelBuilder {
     private String id;
     private ManifestContext manifestContext;
-    private CollectType collectType;
     private Integer tenant;
 
     public ProjectModelBuilder withId(String id) {
@@ -43,11 +41,6 @@ public class ProjectModelBuilder {
 
     public ProjectModelBuilder withManifestContext(ManifestContext manifestContext) {
         this.manifestContext = manifestContext;
-        return this;
-    }
-
-    public ProjectModelBuilder withCollectType(CollectType collectType) {
-        this.collectType = collectType;
         return this;
     }
 
