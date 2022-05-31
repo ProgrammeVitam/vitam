@@ -1,4 +1,6 @@
 [hosts]
+vitam.dev ip_service=172.17.0.1 ip_admin=172.17.0.1
+localhost ip_service=172.17.0.2 ip_admin=172.17.0.2
 
 [hosts:children]
 vitam
