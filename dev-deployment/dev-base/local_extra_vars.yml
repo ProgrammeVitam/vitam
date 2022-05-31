@@ -1,5 +1,13 @@
-
+---
 # Specific conf for xsmall
+
+vitam:
+    ingestexternal:
+        antivirus: "dev"
+    ihm_demo:
+        secure_cookie: false
+    ihm_recette:
+        secure_cookie: false
 
 #ES
 elasticsearch:
