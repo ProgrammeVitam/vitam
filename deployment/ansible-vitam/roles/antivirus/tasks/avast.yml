@@ -115,7 +115,7 @@
     dest: /etc/avast/whitelist
     owner: avast
     group: avast
-    mode: 0640
+    mode: 0644
   notify: restart avast
 
 - meta: flush_handlers
