@@ -82,6 +82,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -1493,6 +1494,34 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public void getOfferLogsByReferentOffer() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "OfferId")
+            .body(new OfferLogRequest(0L, 10, Order.ASC))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/" + DataCategory.OBJECTGROUP.name() + "/logs")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getOfferLogsByFirstOfferInStrategy() {
+        RequestSpecification httpRequest = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .body(new OfferLogRequest(0L, 10, Order.ASC))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON);
+
+        httpRequest.when().get("/" + DataCategory.OBJECTGROUP.name() + "/logs")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
     public static class BusinessApplicationInner extends Application {
 
         private Set<Object> singletons;
@@ -1525,7 +1554,7 @@ public class StorageResourceTest {
                     timeStampSignature =
                         new TimeStampSignatureWithKeystore(file, "azerty8".toCharArray());
                 } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-                    NoSuchAlgorithmException e) {
+                         NoSuchAlgorithmException e) {
                     LOGGER.error("unable to instantiate TimeStampGenerator", e);
                     throw new RuntimeException(e);
                 }

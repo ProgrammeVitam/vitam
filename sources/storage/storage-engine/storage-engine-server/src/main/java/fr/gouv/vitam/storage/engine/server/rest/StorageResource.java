@@ -178,7 +178,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 timeStampSignature =
                     new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
             } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-                NoSuchAlgorithmException e) {
+                     NoSuchAlgorithmException e) {
                 LOGGER.error("unable to instantiate TimeStampGenerator", e);
                 throw new RuntimeException(e);
             }
@@ -451,8 +451,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         try {
             String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            RequestResponse<OfferLog> jsonNodeRequestResponse = distribution.getOfferLogs(strategyId, type,
-                offerLogRequest.getOffset(), offerLogRequest.getLimit(), offerLogRequest.getOrder());
+            List<String> offerIdHeaders =
+                Optional.of(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER))
+                    .orElse(Collections.emptyList());
+            RequestResponse<OfferLog> jsonNodeRequestResponse;
+            if (CollectionUtils.isNotEmpty(offerIdHeaders)) {
+                jsonNodeRequestResponse =
+                    distribution.getOfferLogsByOfferId(strategyId, offerIdHeaders.get(0), type,
+                        offerLogRequest.getOffset(), offerLogRequest.getLimit(), offerLogRequest.getOrder());
+            } else {
+                jsonNodeRequestResponse = distribution.getOfferLogs(strategyId, type,
+                    offerLogRequest.getOffset(), offerLogRequest.getLimit(), offerLogRequest.getOrder());
+            }
             return jsonNodeRequestResponse.toResponse();
         } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
