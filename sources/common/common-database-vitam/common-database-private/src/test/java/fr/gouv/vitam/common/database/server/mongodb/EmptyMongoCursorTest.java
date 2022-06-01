@@ -36,7 +36,7 @@ public class EmptyMongoCursorTest {
 
     @Test
     public void testEmptyMongoCursor() {
-        MongoCursor<Integer> cursor = new EmptyMongoCursor<Integer>();
+        MongoCursor<Integer> cursor = new EmptyMongoCursor<>();
         assertFalse(cursor.hasNext());
         assertNull(cursor.next());
         assertNull(cursor.getServerAddress());

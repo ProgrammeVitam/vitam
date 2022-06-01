@@ -217,12 +217,13 @@ class LogbookAgenciesImportManager {
             select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
             select.setQuery(and().add(eq(LogbookMongoDbName.eventType.getDbname(), AGENCIES_IMPORT_EVENT))
                 .add(ne(LogbookMongoDbName.eventIdentifier.getDbname(), eip.getId())));
-            select.addProjection(
-                JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-                    JsonHandler.createObjectNode()
-                        .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
-                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                            1)));
+            // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
+            // select.addProjection(
+            //     JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
+            //         JsonHandler.createObjectNode()
+            //             .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
+            //             .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
+            //                 1)));
             JsonNode logbookResult =
                 logbookClient.selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);

@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION_COLLECTION_NAME;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWithCustomExecutor
@@ -74,7 +73,7 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), TEST_COLLECTION_NAME);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TEST_COLLECTION_NAME);
 
     private UnitComputedInheritedRulesInvalidationRepository repository;
 

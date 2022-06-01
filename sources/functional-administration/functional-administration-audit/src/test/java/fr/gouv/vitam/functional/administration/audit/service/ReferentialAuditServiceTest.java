@@ -64,7 +64,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -88,7 +87,7 @@ public class ReferentialAuditServiceTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), FunctionalAdminCollections.PROFILE.getName());
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), FunctionalAdminCollections.PROFILE.getName());
 
     @Mock StorageClientFactory storageClientFactory;
     @Mock StorageClient storageClient;

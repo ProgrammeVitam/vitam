@@ -29,8 +29,8 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoIterable;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -72,7 +72,7 @@ public class OfferLogDatabaseServiceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -115,7 +115,7 @@ public class OfferLogDatabaseServiceTest {
     }
 
     @Test
-    public void should_throw_error_when_cannot_save_offer_log() throws Exception {
+    public void should_throw_error_when_cannot_save_offer_log() {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
         doThrow(MongoWriteException.class).when(collection).insertOne(any());
@@ -142,7 +142,7 @@ public class OfferLogDatabaseServiceTest {
     }
 
     @Test
-    public void should_throw_error_when_cannot_bulk_save_offer_log() throws Exception {
+    public void should_throw_error_when_cannot_bulk_save_offer_log() {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
         doThrow(MongoWriteException.class).when(collection).insertMany(anyList(), any());
@@ -259,8 +259,7 @@ public class OfferLogDatabaseServiceTest {
 
     @Test
     public void should_get_expired_offer_logs_return_empty_logs_when_saved_in_expiration_range()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException,
-        InterruptedException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Given
         OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, SECONDS, 10);
 

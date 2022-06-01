@@ -28,13 +28,14 @@ package fr.gouv.vitam.common.server.application.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
@@ -50,7 +51,6 @@ import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -60,8 +60,8 @@ import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -78,7 +78,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
             COLLECTION_NAME);
 
     private static final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
@@ -106,11 +106,8 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         ElasticsearchAccess databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
         fakePort = junitHelper.findAvailablePort();
-        MongoClient mongoClient = new MongoClient(new ServerAddress(
-            HOST_NAME, MongoRule.getDataBasePort()),
-            VitamCollection.getMongoClientOptions(new ArrayList<>()));
 
-        databaseMd = new MyMongoDbAccess(mongoClient, MongoRule.VITAM_DB, false);
+        databaseMd = new MyMongoDbAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
 
         serviceRegistry.register(databaseMd).register(databaseEs);
         serviceRegistry.register(factory);
@@ -132,8 +129,8 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
     private static class MyMongoDbAccess extends MongoDbAccess {
 
-        public MyMongoDbAccess(MongoClient mongoClient, String dbname, boolean recreate) {
-            super(mongoClient, dbname, recreate);
+        public MyMongoDbAccess(MongoClient mongoClient, String dbname) {
+            super(mongoClient, dbname);
         }
 
         @Override
@@ -269,9 +266,16 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
         // MongoDB
         LOGGER.warn("TEST MONGO KO");
-        databaseMd.setMongoClient(new MongoClient(new ServerAddress(
-            HOST_NAME, fakePort),
-            VitamCollection.getMongoClientOptions(new ArrayList<>())));
+        MongoClientSettings badMongoClientSettings =
+            MongoDbAccess.getMongoClientSettingsBuilder()
+                .applyToClusterSettings(builder -> builder
+                    .hosts(List.of(new ServerAddress(HOST_NAME, fakePort)))
+                    .serverSelectionTimeout(3, TimeUnit.SECONDS).build()
+                ).applyToSocketSettings(builder -> builder
+                    .connectTimeout(3, TimeUnit.SECONDS)
+                ).build();
+
+        databaseMd.setMongoClient(MongoClients.create(badMongoClientSettings));
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

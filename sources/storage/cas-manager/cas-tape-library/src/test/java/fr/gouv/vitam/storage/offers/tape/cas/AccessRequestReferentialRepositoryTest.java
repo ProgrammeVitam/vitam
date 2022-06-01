@@ -53,7 +53,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +65,7 @@ public class AccessRequestReferentialRepositoryTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), ACCESS_REQUEST_REFERENTIAL_COLLECTION);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), ACCESS_REQUEST_REFERENTIAL_COLLECTION);
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();

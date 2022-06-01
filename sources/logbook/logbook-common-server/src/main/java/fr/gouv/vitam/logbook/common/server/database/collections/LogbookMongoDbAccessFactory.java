@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.OntologyLoader;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
@@ -52,7 +51,7 @@ public final class LogbookMongoDbAccessFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final LogbookMongoDbAccessImpl create(LogbookConfiguration configuration,
+    public static LogbookMongoDbAccessImpl create(LogbookConfiguration configuration,
         OntologyLoader ontologyLoader,
         ElasticsearchLogbookIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration", configuration);
@@ -70,7 +69,7 @@ public final class LogbookMongoDbAccessFactory {
         }
 
         final MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+            MongoDbAccess.createMongoClient(configuration, classList);
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient,
             new LogbookTransformData(), ontologyLoader);
     }

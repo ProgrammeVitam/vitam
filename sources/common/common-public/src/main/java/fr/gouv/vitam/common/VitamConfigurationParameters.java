@@ -291,10 +291,6 @@ public class VitamConfigurationParameters {
      */
     private Integer requestTimeAlertThrottlingDelay;
     /**
-     * MongoDB client configuration
-     */
-    private Integer threadsAllowedToBlockForConnectionMultipliers;
-    /**
      * Retry repetition
      */
     private Integer retryNumber;
@@ -814,21 +810,6 @@ public class VitamConfigurationParameters {
         Integer requestTimeAlertThrottlingDelay) {
         this.requestTimeAlertThrottlingDelay = requestTimeAlertThrottlingDelay;
         return this;
-    }
-
-    /**
-     * Getter for threadsAllowedToBlockForConnectionMultipliers;
-     */
-    public Integer getThreadsAllowedToBlockForConnectionMultipliers() {
-        return threadsAllowedToBlockForConnectionMultipliers;
-    }
-
-    /**
-     * Setter for threadsAllowedToBlockForConnectionMultipliers;
-     */
-    public void setThreadsAllowedToBlockForConnectionMultipliers(
-        Integer threadsAllowedToBlockForConnectionMultipliers) {
-        this.threadsAllowedToBlockForConnectionMultipliers = threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**

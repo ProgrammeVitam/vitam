@@ -27,13 +27,11 @@
 package fr.gouv.vitam.storage.offers.rest;
 
 import com.google.common.base.Strings;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -75,8 +73,7 @@ public class OfferCommonApplication {
             }
             configuration.getOfferLogCompactionConfiguration().validateConf();
 
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
 
             MongoDatabase mongoDatabase = mongoClient.getDatabase(configuration.getDbName());
 

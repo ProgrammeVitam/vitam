@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 
 /**
  * simple implementation on MongoDbAccess
@@ -38,7 +38,7 @@ public class SimpleMongoDBAccess extends MongoDbAccess {
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public SimpleMongoDBAccess(MongoClient mongoClient, String dbname) {
-        super(mongoClient, dbname, false);
+        super(mongoClient, dbname);
     }
 
 }

@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -165,7 +164,6 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetCommands() {
         try {
-            VitamCollection.setMatch(false);
             final SelectParserMultiple parser = createSelect(example);
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
@@ -173,7 +171,6 @@ public class QueryToElasticsearchTest {
                 new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             final List<SortBuilder<?>> sortBuilders = QueryToElasticsearch.getSorts(parser, true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
-            VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
             assertEquals(2, facetBuilders.size());
 
@@ -195,7 +192,6 @@ public class QueryToElasticsearchTest {
     @Test
     public void checkNoUidAfterUpgradeToElastic7() {
         try {
-            VitamCollection.setMatch(false);
             final SelectParserMultiple parser;
             try {
                 parser = new SelectParserMultiple(new FakeMetadataVarNameAdapter());
@@ -240,7 +236,6 @@ public class QueryToElasticsearchTest {
                 new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             final List<SortBuilder<?>> sortBuilders = QueryToElasticsearch.getSorts(parser, true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
-            VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
             assertEquals(3, facetBuilders.size());
 
@@ -325,7 +320,6 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetNestedSearchCommand() {
         try {
-            VitamCollection.setMatch(false);
             final SelectParserMultiple parser = createSelect(nestedSearchQuery);
             final SelectMultiQuery select = parser.getRequest();
             assertEquals("#qualifiers.versions",
@@ -337,7 +331,6 @@ public class QueryToElasticsearchTest {
             assertTrue(facetBuilders.get(0) instanceof NestedAggregationBuilder);
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder<?>> sortBuilders = QueryToElasticsearch.getSorts(parser, true, parserTokens);
-            VitamCollection.setMatch(false);
             assertEquals(1, sortBuilders.size());
 
             final List<Query> list = select.getQueries();

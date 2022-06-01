@@ -254,25 +254,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
-     *
-     * @param additionalFields additional fields
-     * @throws InvalidParseOperationException when projection parse exception occurred
-     */
-    public void setProjectionSliceOnQualifier(String... additionalFields)
-        throws InvalidParseOperationException {
-        // FIXME P1 : it would be nice to be able to handle $slice in projection via builder
-        String projection =
-            "{\"$fields\":{\"#qualifiers.versions\":1,\"#id\":0," + "\"#qualifiers.versions._id\":1," +
-                "\"#qualifiers.qualifier\":1" + ",\"#qualifiers.versions.DataObjectVersion\":1";
-        for (final String field : additionalFields) {
-            projection += ",\"#qualifiers.versions." + field + "\":1";
-        }
-        projection += "}}";
-        parseProjection(projection);
-    }
-
-    /**
      * @param usage string
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid

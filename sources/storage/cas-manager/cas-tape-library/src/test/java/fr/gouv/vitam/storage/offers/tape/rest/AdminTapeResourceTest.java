@@ -56,7 +56,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.InputStream;
 import java.util.Optional;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AdminTapeResourceTest {
@@ -71,8 +70,8 @@ public class AdminTapeResourceTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), TAPE_TAR_REFERENTIAL_COLLECTION, TAPE_QUEUE_MESSAGE_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(),
+        TAPE_TAR_REFERENTIAL_COLLECTION, TAPE_QUEUE_MESSAGE_COLLECTION);
 
     private static ArchiveReferentialRepository archiveReferentialRepository;
     private static QueueRepository readWriteQueue;

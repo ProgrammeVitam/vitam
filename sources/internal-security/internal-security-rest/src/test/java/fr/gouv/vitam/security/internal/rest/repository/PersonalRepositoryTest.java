@@ -43,7 +43,6 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {
@@ -52,7 +51,7 @@ public class PersonalRepositoryTest {
     public static final String PERSONAL_COLLECTION = "PersonalCertificate" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), PERSONAL_COLLECTION);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PERSONAL_COLLECTION);
 
     private PersonalRepository personalRepository;
 

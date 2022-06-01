@@ -27,8 +27,7 @@
 package fr.gouv.vitam.collect.internal.server;
 
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -76,8 +74,7 @@ public class BusinessApplication extends ConfigurationApplication {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final CollectConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);

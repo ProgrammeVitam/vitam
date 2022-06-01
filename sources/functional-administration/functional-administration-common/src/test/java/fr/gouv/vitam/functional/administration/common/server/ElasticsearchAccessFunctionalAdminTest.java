@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -42,7 +43,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.VITAM_SEQUENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,7 +54,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     private static ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

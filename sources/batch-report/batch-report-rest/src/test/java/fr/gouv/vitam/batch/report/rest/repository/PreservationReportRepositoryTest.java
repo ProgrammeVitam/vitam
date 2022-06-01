@@ -46,7 +46,6 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,7 +56,7 @@ public class PreservationReportRepositoryTest {
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), PRESERVATION_REPORT);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PRESERVATION_REPORT);
 
     private PreservationReportRepository repository;
 

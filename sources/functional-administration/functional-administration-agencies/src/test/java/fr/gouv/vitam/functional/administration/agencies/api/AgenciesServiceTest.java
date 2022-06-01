@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
@@ -98,7 +99,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -122,7 +122,7 @@ public class AgenciesServiceTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class, AccessContract.class),
             PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

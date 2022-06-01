@@ -144,11 +144,9 @@ public enum FunctionalAdminCollections {
     private final VitamCollection<? extends VitamDocument<?>> vitamCollection;
 
     final private boolean multitenant;
-    final private boolean usingScore;
 
     FunctionalAdminCollections(final Class<? extends VitamDocument<?>> clasz, boolean multiTenant, boolean usingScore) {
         this.multitenant = multiTenant;
-        this.usingScore = usingScore;
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
         vitamCollection =
@@ -170,13 +168,6 @@ public enum FunctionalAdminCollections {
      */
     public boolean isMultitenant() {
         return multitenant;
-    }
-
-    /**
-     * @return the usingScore
-     */
-    public boolean isUsingScore() {
-        return usingScore;
     }
 
     /**

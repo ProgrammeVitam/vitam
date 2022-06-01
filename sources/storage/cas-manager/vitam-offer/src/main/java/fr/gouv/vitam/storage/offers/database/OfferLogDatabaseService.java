@@ -141,7 +141,7 @@ public class OfferLogDatabaseService {
 
         return toCloseableIterable(
             mongoCollection.find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
-                .sort(and(eq(CONTAINER, 1), eq(SEQUENCE, 1)))
+                .sort(Sorts.ascending(CONTAINER, SEQUENCE))
                 .map(d -> new OfferLog(
                         ((Number) d.get(SEQUENCE)).longValue(),
                         LocalDateUtil.parseMongoFormattedDate(LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))),

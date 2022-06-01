@@ -33,7 +33,7 @@ import com.mongodb.client.MongoCursor;
 /**
  * Empty mongo cursor implementation to use in place of a real MongoCursor
  *
- * @param <TResult> The type of documents the cursor is supposed to contains
+ * @param <TResult> The type of documents the cursor is supposed to contain
  */
 public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {
 
@@ -57,6 +57,11 @@ public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {
     @Override
     public TResult next() {
         return null;
+    }
+
+    @Override
+    public int available() {
+        return 0;
     }
 
     @Override

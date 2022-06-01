@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
@@ -76,13 +75,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID;
-import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID_PROC;
-import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
-import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
-import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
 
 public class CheckAttachementActionHandler extends ActionHandler {
 
@@ -185,12 +179,13 @@ public class CheckAttachementActionHandler extends ActionHandler {
         Select select = new Select();
         try {
             select.setQuery(in(EV_ID, operationsIdsArray));
-            ObjectNode objectNode = createObjectNode().put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, OUTCOME), 1)
-                .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_TYPE), 1)
-                .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_ID_PROC), 1);
-            JsonNode projection = createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(), objectNode);
-            select.setProjection(projection);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
+            // ObjectNode objectNode = createObjectNode().put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, OUTCOME), 1)
+            //   .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_TYPE), 1)
+            //   .put(String.format(ARRAY_PROJECTION_FORMAT, EVENTS, EV_ID_PROC), 1);
+            // JsonNode projection = createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(), objectNode);
+            // select.setProjection(projection);
+        } catch (InvalidCreateOperationException e) {
             LOGGER.error("Cannot create last event query", e);
             throw new ProcessingException("Cannot create last event query", e);
         }

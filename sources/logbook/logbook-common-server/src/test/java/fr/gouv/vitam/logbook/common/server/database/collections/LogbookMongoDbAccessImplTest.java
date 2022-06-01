@@ -28,7 +28,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -67,7 +67,7 @@ public class LogbookMongoDbAccessImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(classList));
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(classList));
 
     @Rule
     public RunWithCustomExecutorRule runInThread =

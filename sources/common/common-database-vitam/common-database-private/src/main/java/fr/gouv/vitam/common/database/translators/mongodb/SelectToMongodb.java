@@ -39,9 +39,12 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +55,8 @@ import java.util.Map.Entry;
  * Select to MongoDb
  */
 public class SelectToMongodb extends RequestToMongodb {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SelectToMongodb.class);
     private static final String UNSUPPORTED_PROJECTION = "Unsupported DSL projection node: '%s'";
     private static final String SLICE_KEYWORD = "$slice";
     private static final int REQUIRED_SLICE_ARRAY_SIZE = 2;
@@ -187,6 +192,10 @@ public class SelectToMongodb extends RequestToMongodb {
 
     private Bson computeBsonProjection(List<String> incl, List<String> excl, Map<String, ObjectNode> sliceProjections)
         throws InvalidParseOperationException {
+
+        tempFixProjectionPathCollision(incl);
+        tempFixProjectionPathCollision(excl);
+
         final List<Bson> projections = new ArrayList<>();
         if (!incl.isEmpty()) {
             projections.add(Projections.include(incl));
@@ -212,6 +221,33 @@ public class SelectToMongodb extends RequestToMongodb {
             sliceProjections.clear();
         }
         return Projections.fields(projections);
+    }
+
+    /**
+     * @deprecated Temporary path collision detection / prevention
+     * FIXME : #9847 Fix logbook projections
+     */
+    private void tempFixProjectionPathCollision(List<String> incl) {
+        List<String> allKeys = new ArrayList<>(incl);
+        allKeys.sort(Comparator.naturalOrder());
+        for (int i = 0; i < allKeys.size(); i++) {
+            String key = allKeys.get(i);
+            for (int j = i + 1; j < allKeys.size(); j++) {
+                String nextKey = allKeys.get(j);
+                if (key.length() > nextKey.length() || !nextKey.startsWith(key)) {
+                    continue;
+                }
+                if (nextKey.length() == key.length()) {
+                    LOGGER.warn("INVALID PROJECTION. IGNORING DUPLICATE KEY '" + key +
+                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES.");
+                    incl.remove(nextKey);
+                } else if (nextKey.charAt(key.length()) == '.') {
+                    LOGGER.warn("INVALID PROJECTION. IGNORING KEY PATH COLLISION '" + key + "' VS '" + nextKey +
+                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES.");
+                    incl.remove(nextKey);
+                }
+            }
+        }
     }
 
     private void checkSliceValue(ObjectNode sliceNode) throws InvalidParseOperationException {

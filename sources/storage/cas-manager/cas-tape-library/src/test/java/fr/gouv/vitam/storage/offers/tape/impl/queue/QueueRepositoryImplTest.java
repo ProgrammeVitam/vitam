@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl.queue;
 
 import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -47,7 +48,6 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.Optional;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueueRepositoryImplTest {
@@ -55,7 +55,7 @@ public class QueueRepositoryImplTest {
     public static final String QUEUE = OfferCollections.TAPE_QUEUE_MESSAGE.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), QUEUE);
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), QUEUE);
 
     private static QueueRepositoryImpl queueRepositoryImpl;
 

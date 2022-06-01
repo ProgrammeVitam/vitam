@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.database.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -47,6 +46,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -103,7 +103,7 @@ public class DbRequestSingleTest {
     private static final Integer ADMIN_TENANT_ID = 1;
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
             PREFIX + CollectionSample.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =

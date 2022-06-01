@@ -135,7 +135,6 @@ public class VitamConfigurationTest {
     public void testInitialConfiguration() {
         assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(1);
         assertThat(VitamConfiguration.getChunkSize()).isEqualTo(65536);
-        assertThat(VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers()).isEqualTo(1500);
         assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA512);
         assertThat(VitamConfiguration.getDefaultLang()).isEqualTo(Locale.FRENCH.toString());
     }

@@ -145,7 +145,7 @@
 
         <!-- database libraries -->
         <elasticsearch.version>7.16.3</elasticsearch.version>
-        <mongo.version>3.12.1</mongo.version>
+        <mongo.version>4.5.0</mongo.version>
 
         <!-- object storing-->
         <jclouds.version>2.2.1</jclouds.version>
@@ -1128,7 +1128,7 @@
             </dependency>
             <dependency>
                 <groupId>org.mongodb</groupId>
-                <artifactId>mongo-java-driver</artifactId>
+                <artifactId>mongodb-driver-sync</artifactId>
                 <version>${mongo.version}</version>
             </dependency>
             <dependency>

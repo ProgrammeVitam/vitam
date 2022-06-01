@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.digest.Digest;
@@ -242,10 +242,10 @@ public class TapeOfferStorageIT {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static TempFolderRule tempFolder = new TempFolderRule();

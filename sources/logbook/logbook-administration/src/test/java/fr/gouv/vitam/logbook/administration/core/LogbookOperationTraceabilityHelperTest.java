@@ -27,14 +27,13 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.ServerAddress;
-import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
@@ -56,7 +55,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -406,51 +404,7 @@ public class LogbookOperationTraceabilityHelperTest {
     }
 
     private MongoCursor<LogbookOperation> getMongoCursorFor(List<LogbookOperation> logbookList) {
-        return new MongoCursor<LogbookOperation>() {
-            int rank = 0;
-            int max = logbookList.size();
-            List<LogbookOperation> list = logbookList;
-
-            @Override
-            public void close() {
-                // Nothing to do
-            }
-
-            @Override
-            public boolean hasNext() {
-                return rank < max;
-            }
-
-            @Override
-            public LogbookOperation next() {
-                if (rank >= max) {
-                    throw new NoSuchElementException();
-                }
-                final LogbookOperation operation = list.get(rank);
-                rank++;
-                return operation;
-            }
-
-            @Override
-            public LogbookOperation tryNext() {
-                if (rank >= max) {
-                    return null;
-                }
-                final LogbookOperation operation = list.get(rank);
-                rank++;
-                return operation;
-            }
-
-            @Override
-            public ServerCursor getServerCursor() {
-                return null;
-            }
-
-            @Override
-            public ServerAddress getServerAddress() {
-                return null;
-            }
-        };
+        return new FakeMongoCursor<>(logbookList);
     }
 
 }

@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -583,7 +582,6 @@ public class QueryToElasticsearch {
         for (final Object object : set) {
             builder.should(QueryBuilders.matchQuery(key, object).operator(Operator.OR));
         }
-        VitamCollection.setMatch(true);
         query2 = builder;
 
         if (query == QUERY.NIN) {
@@ -770,7 +768,6 @@ public class QueryToElasticsearch {
                     query3 = QueryBuilders.termQuery(key, val);
                 } else {
                     query3 = QueryBuilders.matchQuery(key, val).operator(Operator.AND);
-                    VitamCollection.setMatch(true);
                 }
                 if (!multiple) {
                     return query3;
@@ -875,7 +872,6 @@ public class QueryToElasticsearch {
         logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
 
         final QueryBuilder query2 = QueryBuilders.matchQuery(key, getAsObject(node)).operator(Operator.AND);
-        VitamCollection.setMatch(true);
         if (query == QUERY.NE) {
             return QueryBuilders.boolQuery().mustNot(query2);
         }

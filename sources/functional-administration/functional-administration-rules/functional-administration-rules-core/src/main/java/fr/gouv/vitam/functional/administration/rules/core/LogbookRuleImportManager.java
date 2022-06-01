@@ -30,7 +30,6 @@ package fr.gouv.vitam.functional.administration.rules.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -232,12 +231,13 @@ public class LogbookRuleImportManager {
             select.setQuery(eq(
                 String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
                 STP_IMPORT_RULES));
-            select.addProjection(
-                JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-                    JsonHandler.createObjectNode()
-                        .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
-                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                            1)));
+            // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
+            // select.addProjection(
+            //    JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
+            //         JsonHandler.createObjectNode()
+            //             .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
+            //             .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
+            //                 1)));
             JsonNode logbookResult =
                 logbookOperationsClientFactory.getClient().selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);

@@ -750,7 +750,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier();
+            select.addUsedProjection("#id");
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText("#id");
@@ -2065,7 +2065,6 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            // select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText("#id");

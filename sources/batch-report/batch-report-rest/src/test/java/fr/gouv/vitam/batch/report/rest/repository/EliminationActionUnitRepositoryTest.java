@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EliminationActionUnitRepositoryTest {
@@ -65,12 +64,12 @@ public class EliminationActionUnitRepositoryTest {
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
     private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>>
-        TYPE_REFERENCE = new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {
+        TYPE_REFERENCE = new TypeReference<>() {
     };
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), ELIMINATION_ACTION_UNIT);
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), ELIMINATION_ACTION_UNIT);
 
     private EliminationActionUnitRepository repository;
 
