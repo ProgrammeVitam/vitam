@@ -7,7 +7,8 @@ org.quartz.scheduler.interruptJobsOnShutdown=true
 org.quartz.threadPool.threadCount={{ vitam_scheduler_thread_count }}
 
 org.quartz.jobStore.class=com.novemberain.quartz.mongodb.MongoDBJobStore
-org.quartz.jobStore.mongoUri=mongodb://{% for server in groups['hosts_mongos_data'] %}{{ mongodb['mongo-data'].scheduler.user }}:{{ mongodb['mongo-data'].scheduler.password }}@{{ hostvars[server]['ip_service'] }}:{{ mongodb.mongos_port }}{% if not loop.last %},{% endif %}{% endfor %}/scheduler
+org.quartz.jobStore.mongoUri=mongodb://{{ mongodb['mongo-data'].scheduler.user }}:{{ mongodb['mongo-data'].scheduler.password }}@{% for server in groups['hosts_mongos_data'] %}{{ hostvars[server]['ip_service'] }}:{{ mongodb.mongos_port }}{% if not loop.last %},{% endif %}{% endfor %}/scheduler
+
 org.quartz.jobStore.isClustered=true
 org.quartz.jobStore.dbName=scheduler
 org.quartz.jobStore.collectionPrefix=vitam
