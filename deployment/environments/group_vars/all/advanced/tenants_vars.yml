@@ -1,6 +1,4 @@
 ### tenants ###
-# List of active tenants
-vitam_tenant_ids: [0,1,2,3,4,5,6,7,8,9]
 # List of dead / removed tenants that should never be reused / present in vitam_tenant_ids
 vitam_removed_tenants: []
 # Administration tenant
@@ -14,6 +12,8 @@ vitam_tenant_admin: 1
 # - 'number_of_shards' : number of shards per index. Every ES shard is stored as a lucene index.
 # - 'number_of_replicas': number of additional copies of primary shards
 # The total number of shards : number_of_shards * (1 primary + M number_of_replicas)
+#
+# CAUTION : The total number of shards should be lower than or equal to the number of elasticsearch-data instances in the cluster
 #
 # Default settings should be okay for most use cases.
 # For more data-intensive workloads or deployments with high number of tenants, custom tenant and/or collection configuration might be specified.
@@ -55,24 +55,6 @@ vitam_tenant_admin: 1
 ###
 vitam_elasticsearch_tenant_indexation:
 
-  default_config:
-    # Default settings for masterdata collections (1 index per collection)
-    masterdata:
-      number_of_shards: 1
-      number_of_replicas: 2
-    # Default settings for unit indexes (1 index per tenant)
-    unit:
-      number_of_shards: 1
-      number_of_replicas: 2
-    # Default settings for object group indexes (1 index per tenant)
-    objectgroup:
-      number_of_shards: 1
-      number_of_replicas: 2
-    # Default settings for logbook operation indexes (1 index per tenant)
-    logbookoperation:
-      number_of_shards: 1
-      number_of_replicas: 2
-
   ###
   # Default masterdata collection indexation settings (default_config section) apply for all master data collections
   # Custom settings can be defined for the following masterdata collections:
@@ -106,14 +88,14 @@ vitam_elasticsearch_tenant_indexation:
   dedicated_tenants:
   #  - tenants: '1, 3, 11-20'
   #    unit:
-  #      number_of_shards: 10
-  #      number_of_replicas: 2
+  #      number_of_shards: 4
+  #      number_of_replicas: 0
   #    objectgroup:
-  #      number_of_shards: 10
-  #      number_of_replicas: 2
+  #      number_of_shards: 5
+  #      number_of_replicas: 0
   #    logbookoperation:
   #      number_of_shards: 3
-  #      number_of_replicas: 2
+  #      number_of_replicas: 0
   #  ...
 
 
@@ -130,14 +112,14 @@ vitam_elasticsearch_tenant_indexation:
   ###
   grouped_tenants:
   #  - name: 'grp1'
-  #    tenants: '100-199'
+  #    tenants: '5-10'
   #    unit:
-  #      number_of_shards: 10
-  #      number_of_replicas: 2
+  #      number_of_shards: 5
+  #      number_of_replicas: 0
   #    objectgroup:
-  #      number_of_shards: 10
-  #      number_of_replicas: 2
+  #      number_of_shards: 6
+  #      number_of_replicas: 0
   #    logbookoperation:
-  #      number_of_shards: 3
-  #      number_of_replicas: 2
+  #      number_of_shards: 7
+  #      number_of_replicas: 0
   #  ...

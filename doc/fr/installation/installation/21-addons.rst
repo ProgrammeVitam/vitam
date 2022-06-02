@@ -10,7 +10,7 @@ Paramétrages supplémentaires
 
 
 Un `tuning` fin des paramètres :term:`JVM` de chaque composant :term:`VITAM` est possible.
-Pour cela, il faut modifier le contenu du fichier ``deployment/environments/group_vars/all/jvm_opts.yml``
+Pour cela, il faut modifier le contenu du fichier ``deployment/environments/group_vars/all/main/jvm_opts.yml``
 
 Pour chaque composant, il est possible de modifier ces 3 variables:
 
@@ -25,7 +25,7 @@ Installation des *griffins* (greffons de préservation)
 
 .. caution:: Cette version de :term:`VITAM` ne mettant pas encore en oeuvre de mesure d'isolation particulière des *griffins*, il est recommandé de veiller à ce que l'usage de chaque *griffin* soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
 
-Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
+Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``deployment/environments/group_vars/all/main/main.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
 
 Exemple::
 
@@ -47,7 +47,7 @@ La solution logicielle :term:`VITAM` utilise logback pour la rotation des log, a
 
 Il est possible d'appliquer un paramétrage spécifique pour chaque composant VITAM.
 
-Éditer le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
+Éditer le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
 Pour chaque **APPENDER**, la valeur associée doit être exprimée en taille et unité (exemple : 14GB ; représente 14 gigabytes).
 
 .. note :: des *appenders* supplémentaires existent pour le composant storage-engine (appender offersync) et offer (offer_tape et offer_tape_backup).
@@ -58,7 +58,7 @@ Cas des accesslog
 
 Il est également possible d'appliquer un paramétrage différent par composant VITAM sur le logback *access*.
 
-Éditer le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
+Éditer le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
 
 .. _confantivirus:
 
@@ -67,7 +67,7 @@ Paramétrage de l'antivirus (ingest-external)
 
 L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Éditer la variable ``vitam.ingestexternal.antivirus`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
+* Éditer la variable ``vitam.ingestexternal.antivirus`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
 * Créer un script shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<vitam.ingestexternal.antivirus>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
 
     * Argument : chemin absolu du fichier à analyser
@@ -98,11 +98,11 @@ Extra: Avast Business Antivirus for Linux
 
 À la place de clamAV, il est possible de déployer l'antivirus **Avast Business Antivirus for Linux**.
 
-Pour se faire, il suffit d'éditer la variable ``vitam.ingestexternal.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``.
+Pour se faire, il suffit d'éditer la variable ``vitam.ingestexternal.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``.
 
 Il sera nécessaire de fournir le fichier de licence sous ``deployment/environments/antivirus/license.avastlic`` pour pouvoir déployer et utiliser l'antivirus Avast.
 
-De plus, il est possible de paramétrer l'accès aux repositories (Packages & Virus definitions database) dans le fichier ``deployment/environments/group_vars/all/cots_vars.yml``.
+De plus, il est possible de paramétrer l'accès aux repositories (Packages & Virus definitions database) dans le fichier ``deployment/environments/group_vars/all/advanced/cots_vars.yml``.
 
 Si les paramètres ne sont pas définis, les valeurs suivantes sont appliquées par défaut.
 
@@ -152,7 +152,7 @@ Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé 
 
    consul_disabled: true
 
-Il faut également modifier le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` en remplaçant :
+Il faut également modifier le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` en remplaçant :
 
 * dans le bloc ``accessexternal``, la directive ``host: "access-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de access-external>"`` (l'adresse IP peut être une :term:`FIP`)
 * dans le bloc ``ingestexternal``, la directive ``host: "ingest-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de ingest-external>"`` (l'adresse IP peut être une :term:`FIP`)
@@ -160,12 +160,12 @@ Il faut également modifier le fichier ``deployment/environments/group_vars/all/
 
 A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse :term:`IP` de service les composants "access-external" et "ingest-external".
 
-Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
+Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à ``false`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
 
 Paramétrer le ``secure_cookie`` pour ihm-demo
 =============================================
 
-Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option supplémentaire, par rapport aux autres composants VITAM, dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux :term:`IHM` contre certaines attaques assez répandues comme les CSRF (Cross-Site Request Forgery).
+Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option supplémentaire, par rapport aux autres composants VITAM, dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux :term:`IHM` contre certaines attaques assez répandues comme les CSRF (Cross-Site Request Forgery).
 
 Il faut savoir que si cette variable est à *true* (valeur par défaut), le client doit obligatoirement se connecter en https sur l':term:`IHM`, et ce même si un reverse proxy se trouve entre le serveur web et le client.
 
@@ -227,12 +227,12 @@ La liste des choix possibles, pour chaque tenant, est :
 
 Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
 
-Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml`` dans les sections ``vitam_tenants_usage_external`` (pour gérer, par tenant, les collections en mode esclave).
+Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/environments/group_vars/all/main/main.yml`` dans les sections ``vitam_tenants_usage_external`` (pour gérer, par tenant, les collections en mode esclave).
 
 Paramétrage du batch de calcul pour l'indexation des règles héritées
 ====================================================================
 
-La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``.
+La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``.
 
 La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréquence de passage du batch :
 
@@ -259,7 +259,7 @@ Durées minimales permettant de contrôler les valeurs saisies
 
 Afin de se prémunir contre une alimentation du référentiel des règles de gestion avec des durées trop courtes susceptibles de déclencher des actions indésirables sur la plate-forme (ex. éliminations) – que cette tentative soit intentionnelle ou non –, la solution logicielle :term:`VITAM` vérifie que l’association de la durée et de l’unité de mesure saisies pour chaque champ est supérieure ou égale à une durée minimale définie lors du paramétrage de la plate-forme, dans un fichier de configuration.
 
-Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``vitam_tenant_rule_duration`` dans le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml``.
+Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``vitam_tenant_rule_duration`` dans le fichier ansible ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``.
 
 Exemple:
 
@@ -340,9 +340,17 @@ Fichiers complémentaires
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées dans les fichiers suivants :
 
-* ``deployment/environments/group_vars/all/vitam_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/main/main.yml``, comme suit :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_vars.yml
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/main.yml
+     :language: yaml
+     :linenos:
+
+.. note:: Installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
+
+* ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``, comme suit :
+
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/vitam_vars.yml
      :language: yaml
      :linenos:
 
@@ -350,19 +358,17 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale, supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs.
 
-* ``deployment/environments/group_vars/all/cots_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/advanced/cots_vars.yml``, comme suit :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/cots_vars.yml
      :language: yaml
      :linenos:
 
-.. note:: Installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
-
 .. note:: Concernant Curator, en environnement de production, il est recommandé de procéder à la fermeture des index au bout d'une semaine pour les index de type "logstash" (3 jours pour les index "metrics"), qui sont le reflet des traces applicatives des composants de la solution logicielle :term:`VITAM`. Il est alors recommandé de lancer le *delete* de ces index au bout de la durée minimale de rétention : 1 an (il n'y a pas de durée de rétention minimale légale sur les index "metrics", qui ont plus une vocation technique et, éventuellement, d'investigations).
 
-* ``deployment/environments/group_vars/all/jvm_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/advanced/jvm_opts.yml``, comme suit :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/jvm_opts.yml
      :language: yaml
      :linenos:
 
@@ -686,7 +692,7 @@ Pour se faire, il suffit d'exécuter le playbook associée :
 Configuration
 -------------
 
-Les paramètres de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_vars.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+Les paramètres de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/advanced/cots_vars.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
 
 Configuration spécifique derrière un proxy
 ------------------------------------------
@@ -726,13 +732,14 @@ Pour se faire, il suffit d'exécuter le playbook associé :
 Configuration
 -------------
 
-Les paramères de configuration de ce composant se trouvent dans les fichiers ``environments/group_vars/all/cots_vars.yml`` et ``environments/group_vars/all/vault-cots.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
+Les paramères de configuration de ce composant se trouvent dans les fichiers ``environments/group_vars/all/advanced/cots_vars.yml`` et ``environments/group_vars/all/main/vault-cots.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
 
 Limitations actuelles
 ---------------------
-
+	
 restic est fourni en tant que fonctionnalité beta. À ce titre, il ne peut se substituer à des vérifications régulières de l'état des sauvegardes de vos bases.
 
 restic ne fonctionne pas avec les providers `openstack-swift`, `openstack-swift-v2` et `tape-library`.
+
 
 restic ne fonctionne pas avec un cluster mongo multi-shardé. Ainsi, mongo-data ne peut être sauvegardé via restic que dans de petites instances de Vitam.

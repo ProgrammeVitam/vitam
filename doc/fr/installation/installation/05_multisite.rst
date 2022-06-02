@@ -29,7 +29,7 @@ Certains timers systemd seront en revanche démarrés pour mettre en place la re
 consul_remote_sites
 -------------------
 
-Fichier: ``deployment/environments/group_vars/all/cots_vars.yml``
+Fichier: ``deployment/environments/group_vars/all/main/main.yml``
 
 Cette variable sert à référencer la liste des `Consul Server` des sites distants, à celui que l'on configure.
 
@@ -272,7 +272,7 @@ Exemple pour le site 3 (site secondaire):
 plateforme_secret
 -----------------
 
-Fichier: ``deployment/environments/group_vars/all/vault-vitam.yml``
+Fichier: ``deployment/environments/group_vars/all/main/vault-vitam.yml``
 
 Cette variable stocke le `secret de plateforme` qui doit être commun à tous les composants de la solution logicielle :term:`VITAM` de tous les sites.
 La valeur doit donc être identique pour chaque site.
@@ -280,7 +280,7 @@ La valeur doit donc être identique pour chaque site.
 consul_encrypt
 --------------
 
-Fichier: ``deployment/environments/group_vars/all/vault-vitam.yml``
+Fichier: ``deployment/environments/group_vars/all/main/vault-vitam.yml``
 
 Cette variable stocke le `secret de plateforme` qui doit être commun à tous les `Consul` de tous les sites.
 La valeur doit donc être identique pour chaque site.
@@ -300,7 +300,7 @@ Ensuite:
 Flux entre Storage et Offer
 ===========================
 
-Dans le cas **d'appel en https entre les composants Storage et Offer**, il faut modifier ``deployment/environments/group_vars/all/vitam_vars.yml`` et indiquer ``https_enabled: true`` dans ``storageofferdefault``.
+Dans le cas **d'appel en https entre les composants Storage et Offer**, il faut modifier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` et indiquer ``https_enabled: true`` dans ``storageofferdefault``.
 
 Il convient également également d'ajouter:
 

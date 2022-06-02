@@ -41,7 +41,7 @@ Ce qui donne pour le certificat serveur de access-external par exemple:
     X509v3 Subject Alternative Name:
         DNS:access-external.service.consul, DNS:localhost
 
-Il faudra alors mettre le même nom de domaine pour la configuration de Consul (fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, variable ``consul_domain`` )
+Il faudra alors mettre le même nom de domaine pour la configuration de Consul (fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``, variable ``consul_domain`` )
 
 Cas particulier pour ihm-demo et ihm-recette: il faut ajouter le nom :term:`DNS` qui sera utilisé pour requêter ces deux applications, si celles-ci sont appelées directement en frontal https.
 
@@ -109,9 +109,9 @@ Dans le cas d'ajout de certificats :term:`SIA` externes au déploiement de la so
 
     * Déposer le certificat (``.crt``) de l'application client dans ``environments/certs/client-external/clients/external/``
     * Déposer les :term:`CA` du certificat de l'application (``.crt``) dans ``environments/certs/client-external/ca/``
-    * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s) (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans la directive ``admin_context_certs`` pour que celles-ci soient associés aux contextes de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
+    * Editer le fichier ``environments/group_vars/all/advanced/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s) (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans la directive ``admin_context_certs`` pour que celles-ci soient associés aux contextes de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
 
-.. note:: Les certificats :term:`SIA` externes ajoutés par le mécanisme de déploiement sont, par défaut, rattachés au contexte applicatif d'administration ``admin_context_name`` lui même associé au profil de sécurité ``admin_security_profile`` et à la liste de tenants ``vitam_tenant_ids`` (voir le fichier ``environments/group_vars/all/vitam_security.yml``). Pour l'ajout de certificats applicatifs associés à des contextes applicatifs autres, se référer à la procédure du document d'exploitation (:term:`DEX`) décrivant l'intégration d’une application externe dans Vitam.
+.. note:: Les certificats :term:`SIA` externes ajoutés par le mécanisme de déploiement sont, par défaut, rattachés au contexte applicatif d'administration ``admin_context_name`` lui même associé au profil de sécurité ``admin_security_profile`` et à la liste de tenants ``vitam_tenant_ids`` (voir le fichier ``environments/group_vars/all/advanced/vitam_security.yml``). Pour l'ajout de certificats applicatifs associés à des contextes applicatifs autres, se référer à la procédure du document d'exploitation (:term:`DEX`) décrivant l'intégration d’une application externe dans Vitam.
 
 .. _personal_certs_integration:
 
@@ -121,7 +121,7 @@ Intégration d'un certificat personnel (*personae*)
 Dans le cas d'ajout de certificats personnels au déploiement de la solution logicielle :term:`VITAM` :
 
     * Déposer le certificat personnel (``.crt``) dans ``environments/certs/client-external/clients/external/``
-    * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s) (sous forme répertoire/fichier.crt, exemple: ``external/mon_personae.crt``) dans la directive ``admin_personal_certs`` pour que ceux-ci soient ajoutés à la base de donées du composant `security-internal` durant le déploiement de la solution logicielle :term:`VITAM`.
+    * Editer le fichier ``environments/group_vars/all/advanced/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s) (sous forme répertoire/fichier.crt, exemple: ``external/mon_personae.crt``) dans la directive ``admin_personal_certs`` pour que ceux-ci soient ajoutés à la base de donées du composant `security-internal` durant le déploiement de la solution logicielle :term:`VITAM`.
 
 Cas des offres objet
 -----------------------

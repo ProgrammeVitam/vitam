@@ -53,7 +53,7 @@ Tips: pour tous les cas d'appel de ansible-playbook, il est possible de remplace
 
 4.  Générer les keystores
     a.  Configurer le vault référençant les mots de passe des keystores
-        ``ansible-vault edit environments/group_vars/all/vault-keystores.yml --vault-password-file vault_pass.txt``
+        ``ansible-vault edit environments/group_vars/all/main/vault-keystores.yml --vault-password-file vault_pass.txt``
     a.  Générer les keystores
         ``./generate_stores.sh``
 

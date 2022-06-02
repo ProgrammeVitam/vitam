@@ -19,9 +19,9 @@
                 <exclude>environments/hosts.local</exclude>
                 <exclude>environments/hosts.fulllocal</exclude>
                 <exclude>environments/hosts.cots</exclude>
-                <exclude>environments/group_vars/all/vault-extra.example</exclude>
-                <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
-                <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
+                <exclude>environments/group_vars/all/main/vault-extra.yml.plain</exclude>
+                <exclude>environments/group_vars/all/main/vault-keystores.yml</exclude>
+                <exclude>environments/group_vars/all/main/vault-vitam.yml</exclude>
                 <exclude>vitam-conf-dev</exclude>
                 <exclude>environments/certs/vault-certs.yml</exclude>
                 <exclude>deployment/pki/ca/*</exclude>

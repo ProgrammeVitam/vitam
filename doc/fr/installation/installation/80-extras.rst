@@ -14,22 +14,22 @@
 Configuration des *extras*
 ==========================
 
-Le fichier |repertoire_inventory|``group_vars/all/extra_vars.yml`` contient la configuration des *extras* :
+Le fichier |repertoire_inventory|``group_vars/all/advanced/extra_vars.yml`` contient la configuration des *extras* :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/extra_vars.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/extra_vars.yml
      :language: yaml
      :linenos:
 
 .. bug #113
 
-.. warning:: À modifier selon le besoin avant de lancer le playbook ! Les composant ihm-recette et ihm-demo ont la variable ``secure_cookie`` paramétrée à ``true`` par défaut, ce qui impose de pouvoir se connecter dessus uniquement en https (même derrière un reverse proxy). Le paramétrage de cette variable se fait dans le fichier ``environments/group_vars/all/vitam_vars.yml``
+.. warning:: À modifier selon le besoin avant de lancer le playbook ! Les composant ihm-recette et ihm-demo ont la variable ``secure_cookie`` paramétrée à ``true`` par défaut, ce qui impose de pouvoir se connecter dessus uniquement en https (même derrière un reverse proxy). Le paramétrage de cette variable se fait dans le fichier ``environments/group_vars/all/advanced/vitam_vars.yml``
 
 .. note:: La section ``metricbeat`` permet de configurer la périodicité d'envoi des informations collectées. Selon l'espace disponible sur le `cluster` Elasticsearch de log et la taille de l'environnement :term:`VITAM` (en particulier, le nombre de machines), il peut être nécessaire d'allonger cette périodicité (en secondes).
 
 
-Le fichier |repertoire_inventory|``group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des *extras* ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration du déploiement, si le composant ihm-recette est déployé avec récupération des :term:`TNR`.
+Le fichier |repertoire_inventory|``group_vars/all/main/vault-extra.yml`` contient les secrets supplémentaires des *extras* ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration du déploiement, si le composant ihm-recette est déployé avec récupération des :term:`TNR`.
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.yml.example
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/main/vault-extra.yml.plain
    :language: ini
    :linenos:
 

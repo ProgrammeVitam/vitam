@@ -26,14 +26,14 @@ La montée de version va recréer ces indices avec les nouvelles configurations 
 Déplacement des paramètres relatif à la gestion des tenants
 -----------------------------------------------------------
 
-Dans le cadre de la fonctionnalité introduite en R15 permettant de regrouper les tenants, les paramètres suivants ont étés déplacés du fichier d'inventaire au fichier ``group_vars/all/tenants_vars.yml``
+Dans le cadre de la fonctionnalité introduite en R15 permettant de regrouper les tenants, les paramètres suivants ont étés déplacés du fichier d'inventaire au fichier ``group_vars/all/advanced/tenants_vars.yml``
 
   - ``vitam_tenant_ids``
   - ``vitam_tenant_admin``
 
 Si la montée de version s'effectue à partir d'une R13, il faut supprimer les valeurs précédentes de votre fichier d'inventaire et les reporter dans le fichier ``tenants_vars.yml`` en respectant la syntaxe YML adéquate.
 
-.. seealso:: Se référer à la documentation d'installation pour plus d'informations concernant le fichier ``environments/group_vars/all/tenants_vars.yml``
+.. seealso:: Se référer à la documentation d'installation pour plus d'informations concernant le fichier ``environments/group_vars/all/advanced/tenants_vars.yml``
 
 Gestion des régles de gestion
 -----------------------------

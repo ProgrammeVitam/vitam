@@ -1,0 +1,99 @@
+---
+
+# TENANTS
+# List of active tenants
+vitam_tenant_ids: [0,1,2,3,4,5,6,7,8,9]
+# For functional-administration, manage master/slave tenant configuration
+# http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#passage-des-identifiants-des-referentiels-en-mode-esclave
+vitam_tenants_usage_external:
+  - name: 0
+    identifiers:
+      - INGEST_CONTRACT
+      - ACCESS_CONTRACT
+      - MANAGEMENT_CONTRACT
+      - ARCHIVE_UNIT_PROFILE
+  - name: 1
+    identifiers:
+      - INGEST_CONTRACT
+      - ACCESS_CONTRACT
+      - MANAGEMENT_CONTRACT
+      - PROFILE
+      - SECURITY_PROFILE
+      - CONTEXT
+
+# GRIFFINS
+# Vitam griffins required to launch preservation scenario
+# Example:
+# vitam_griffins: ["vitam-imagemagick-griffin", "vitam-libreoffice-griffin", "vitam-jhove-griffin", "vitam-odfvalidator-griffin", "vitam-siegfried-griffin", "vitam-tesseract-griffin", "vitam-verapdf-griffin", "vitam-ffmpeg-griffin"]
+vitam_griffins: []
+
+# CONSUL
+consul:
+  network: "ip_admin" # Which network to use for consul communications ? ip_admin or ip_service ?
+consul_remote_sites:
+#  wan contains the wan addresses of the consul server instances of the external vitam sites
+#  Exemple, if our local dc is dc1, we will need to set dc2 & dc3 wan conf:
+#   - dc2:
+#     wan: ["10.10.10.10","1.1.1.1"]
+#   - dc3:
+#     wan: ["10.10.10.11","1.1.1.1"]
+
+# LOGGING
+# vitam_defaults:
+#   access_retention_days: 30 # Number of days for file retention
+#   access_total_size_cap: "10GB" # total acceptable size
+#   logback_max_file_size: "10MB"
+#   logback_total_size_cap:
+#     file:
+#       history_days: 30
+#       totalsize: "5GB"
+#     security:
+#       history_days: 30
+#       totalsize: "5GB"
+
+# ELASTICSEARCH
+# 'number_of_shards': number of shards per index, every ES shard is stored as a lucene index
+# 'number_of_replicas': number of additional copies of primary shards
+# Total number of shards: number_of_shards * (1 primary + M number_of_replicas)
+# CAUTION: The total number of shards should be lower than or equal to the number of elasticsearch-data instances in the cluster
+# More details in groups_vars/all/advanced/tenants_vars.yml file
+vitam_elasticsearch_tenant_indexation:
+  default_config:
+    # Default settings for masterdata collections (1 index per collection)
+    masterdata:
+      number_of_shards: 1
+      number_of_replicas: 2
+    # Default settings for unit indexes (1 index per tenant)
+    unit:
+      number_of_shards: 1
+      number_of_replicas: 2
+    # Default settings for object group indexes (1 index per tenant)
+    objectgroup:
+      number_of_shards: 1
+      number_of_replicas: 2
+    # Default settings for logbook operation indexes (1 index per tenant)
+    logbookoperation:
+      number_of_shards: 1
+      number_of_replicas: 2
+elasticsearch:
+  log:
+    index_templates:
+      default:
+        shards: 1
+        replica: 1
+  data:
+    index_templates:
+      default:
+        shards: 1
+        replica: 2
+curator:
+  log:
+    metrics:
+      close: 7
+      delete: 30
+    logstash:
+      close: 7
+      delete: 30
+
+# PACKAGES
+disable_internet_repositories_install: true # Disable EPEL or Debian backports repositories install
