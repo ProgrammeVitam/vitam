@@ -107,6 +107,8 @@ public class ExportRequest {
         exportRequest
             .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
         exportRequest.setMaxSizeThreshold(transferRequest.getMaxSizeThreshold());
+        exportRequest.setSedaVersion(transferRequest.getSedaVersion() != null ? transferRequest.getSedaVersion() :
+            SupportedSedaVersions.SEDA_2_2.getVersion());
 
         return exportRequest;
     }

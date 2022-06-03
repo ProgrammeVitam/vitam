@@ -70,7 +70,7 @@ public enum SupportedSedaVersions {
 
     public static boolean isSedaVersionValid(String sedaVersion) {
         return Arrays.stream(SupportedSedaVersions.values()).map(SupportedSedaVersions::getVersion)
-            .anyMatch(supportedSedaVersion -> sedaVersion.equals(supportedSedaVersion));
+            .anyMatch(sedaVersion::equals);
     }
 
     public static Optional<SupportedSedaVersions> getSupportedSedaVersionByVersion(String sedaVersion) {
@@ -79,12 +79,9 @@ public enum SupportedSedaVersions {
     }
 
     public static boolean isSedaVersionsCompatible(String metadataSedaVersion, String sedaVersionToExport) {
-        if (metadataSedaVersion != null && sedaVersionToExport != null &&
+        return (metadataSedaVersion != null && sedaVersionToExport != null &&
             (metadataSedaVersion.equals(sedaVersionToExport) ||
                 (sedaVersionToExport.equals(SEDA_2_2.getVersion()) &&
-                    metadataSedaVersion.equals(SEDA_2_1.getVersion())))) {
-            return true;
-        }
-        return false;
+                    metadataSedaVersion.equals(SEDA_2_1.getVersion()))));
     }
 }

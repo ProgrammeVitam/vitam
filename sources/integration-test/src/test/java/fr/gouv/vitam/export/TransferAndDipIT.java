@@ -160,6 +160,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final String EXPECTED_MANIFEST_START_WITH_SEDA_VERSION =
         "<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:pr=\"info:lc/xmlns/premis-v2\" xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
 
+    private static final String EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ArchiveTransferReply xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
+
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(TransferAndDipIT.class, mongoRule.getMongoDatabase().getName(),
@@ -728,7 +731,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         exportRequest.setExportType(ExportType.ArchiveTransfer);
         exportRequest.setExportRequestParameters(exportRequestParameters);
-
+        exportRequest.setSedaVersion(SupportedSedaVersions.SEDA_2_1.getVersion());
 
         String transferOpId = transfer(exportRequest);
         VitamTestHelper.verifyOperation(transferOpId, OK);
@@ -751,6 +754,62 @@ public class TransferAndDipIT extends VitamRuleRunner {
                 tuple(SaveAtrPlugin.PLUGIN_NAME, OK.name()),
                 tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
             );
+        assertThat(atr).contains(
+            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_ingest_then_transfer_with_SEDA_2_2_then_OK() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, SIP_OK_2_2);
+        verifyOperation(ingestOpId, WARNING);
+
+        GUID transferGuid = newOperationLogbookGUID(TENANT_ID);
+
+        VitamThreadUtils.getVitamSession().setRequestId(transferGuid);
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            false
+        );
+
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters(ingestOpId);
+
+        exportRequest.setExportType(ExportType.ArchiveTransfer);
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+        exportRequest.setSedaVersion(SupportedSedaVersions.SEDA_2_2.getVersion());
+
+        String transferOpId = transfer(exportRequest);
+        VitamTestHelper.verifyOperation(transferOpId, OK);
+        InputStream transferSip = getTransferSIP(transferOpId);
+
+
+        String transferredIngestedSipOpId =
+            VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
+        verifyOperation(transferredIngestedSipOpId, OK);
+        String atr = getAtrTransferredSip(transferredIngestedSipOpId);
+
+        // When
+        GUID transferReplyWorkflowGuid = makeTransferReplyWorkflow(atr);
+        List<LogbookEventOperation> logbookEvents = getLogbookEvents(transferReplyWorkflowGuid);
+
+        // Then
+        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
+            .contains(
+                tuple(VerifyAtrPlugin.PLUGIN_NAME, OK.name()),
+                tuple(SaveAtrPlugin.PLUGIN_NAME, OK.name()),
+                tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
+            );
+        assertThat(atr).contains(
+            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
     }
 
     @Test

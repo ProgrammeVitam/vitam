@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Bureau/BA/Sch%D0%92mas/seda-2.1-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.2" xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>Arbre des AN</Comment>
+    <Date>2017-03-27T08:19:17</Date>
+    <MessageIdentifier>Arbre des AN</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <DescriptiveMetadata>
+
+            <ArchiveUnit id="ID90">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Grand Parent</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                    <AgentGroup>
+                        <Agent>
+                            <!-- SEDA 2.2 -->
+                            <Function>Ajout SEDA 2.2</Function>
+                            <Role>Ajout SEDA 2.2</Role>
+                        </Agent>
+                    </AgentGroup>
+                </Content>
+                <ArchiveUnit id="ID91">
+                    <ArchiveUnitRefId>ID3</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Parent</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                    <!-- SEDA 2.2 -->
+                    <OriginatingSystemIdReplyTo>Système source</OriginatingSystemIdReplyTo>
+                    <TextContent>Contenu du message</TextContent>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID11">
+                    <ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Child A</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                </Content>
+            </ArchiveUnit>
+
+            <ArchiveUnit id="ID6">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Child B</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                    <!-- SEDA 2.2 -->
+                    <DateLitteral>XXème siècle</DateLitteral>
+                    <Event>
+                        <EventDateTime>2021-06-11</EventDateTime>
+                        <LinkingAgentIdentifier><!-- SEDA 2.2 -->
+                            <LinkingAgentIdentifierType>Preservation system</LinkingAgentIdentifierType>
+                            <LinkingAgentIdentifierValue>SAE</LinkingAgentIdentifierValue>
+                        </LinkingAgentIdentifier>
+                    </Event>
+                </Content>
+            </ArchiveUnit>
+
+            <ArchiveUnit id="ID8">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Child C</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                </Content>
+            </ArchiveUnit>
+
+            <ArchiveUnit id="ID10">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Child D</Title>
+                    <StartDate>2017-03-27T08:19:17</StartDate>
+                    <EndDate>2017-03-27T08:19:17</EndDate>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <HoldRule><!-- Ajout 2.2 -->
+                <Rule>HOL-00002</Rule>
+                <StartDate>2000-01-01</StartDate>
+                <HoldEndDate>2010-01-01</HoldEndDate>
+                <HoldOwner>Owner</HoldOwner>
+                <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                <HoldReason>Reason</HoldReason>
+                <PreventRearrangement>false</PreventRearrangement>
+            </HoldRule>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
