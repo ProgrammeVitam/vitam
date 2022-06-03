@@ -85,6 +85,7 @@ public class SedaUtilsTest {
     private static final String SIP = "sip1.xml";
     private static final String SIP_2_2 = "sip2_2.xml";
     private static final String UNSUPPORTED_SEDA_VERSION_MANIFEST = "sip10_5.xml";
+    private static final String HOLDING_MANIFEST = "holding_manifest.xml";
     private static final String SIP_PDO = "sip-physical-archive.xml";
     private static final String SEDA_PARAMS_JSON = "Maps/sedaParams.json";
 
@@ -368,6 +369,23 @@ public class SedaUtilsTest {
 
         // THEN
         assertEquals(CheckSedaValidationStatus.NOT_XSD_VALID, status);
+    }
+
+    @Test
+    public void givenManifestHoldingToValidateSeda2_2ThenOk() throws Exception {
+        // GIVEN
+        utils.setSedaIngestParams(new SedaIngestParams(SupportedSedaVersions.SEDA_2_2.getVersion(),
+            SupportedSedaVersions.SEDA_2_2.getNamespaceURI()));
+
+        // WHEN
+        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(HOLDING_MANIFEST);
+        when(workspaceClient.getObject(any(), any()))
+            .thenReturn(Response.status(Status.OK).entity(seda2_2).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
+
+        // THEN
+        assertEquals(CheckSedaValidationStatus.VALID, status);
     }
 
     @Test
