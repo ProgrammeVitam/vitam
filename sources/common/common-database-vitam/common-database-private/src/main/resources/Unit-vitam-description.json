@@ -2343,7 +2343,7 @@
     "path": "TextContent",
     "type": "text",
     "indexed": true,
-    "cardinality": "one"
+    "cardinality": "many"
   },
   {
     "path": "OriginatingSystemIdReplyTo",

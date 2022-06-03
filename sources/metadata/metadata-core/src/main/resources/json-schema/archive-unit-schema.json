@@ -1056,7 +1056,7 @@
       }
     },
     "TextContent": {
-      "type": "string"
+      "$ref": "#/definitions/string-array"
     },
     "OriginatingSystemIdReplyTo": {
       "type": "string"
