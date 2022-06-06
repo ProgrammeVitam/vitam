@@ -47,7 +47,7 @@ public class IhmDemoMain {
 
     private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     /**
      * Constructor  with configuration file name
@@ -58,7 +58,7 @@ public class IhmDemoMain {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
+            BusinessApplication.class, AdminApplication.class, Lists.newArrayList(), true);
     }
 
     public IhmDemoMain(String configurationFile,
@@ -74,7 +74,7 @@ public class IhmDemoMain {
             testAdminApplication = AdminApplication.class;
         }
         vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            testBusinessApplication, testAdminApplication, Lists.newArrayList());
+            testBusinessApplication, testAdminApplication, Lists.newArrayList(), true);
     }
 
 
@@ -111,10 +111,4 @@ public class IhmDemoMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-
-    public final VitamStarter getVitamServer() {
-        return vitamStarter;
-    }
-
-
 }

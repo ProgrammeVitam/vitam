@@ -72,19 +72,11 @@ public interface VitamApplicationConfigurationInterface {
         return null;
     }
 
-    default String getStaticContent() {
-        return null;
-    }
-
     default String getBaseUri() {
         return null;
     }
 
     default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) {
-        return this;
-    }
-
-    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) {
         return this;
     }
 

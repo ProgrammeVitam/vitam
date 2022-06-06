@@ -18,11 +18,34 @@
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- Include static resources (from technical-doc) -->
+            <resource>
+                <directory>target/doc</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
+                    <!-- Extract doc into target/doc/static folder -->
+                    <execution>
+                        <id>unpack-technical-doc</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/doc/static</outputDirectory>
+                            <includeGroupIds>fr.gouv.vitam.doc</includeGroupIds>
+                            <includeArtifactIds>technical-doc</includeArtifactIds>
+                            <includeTypes>zip</includeTypes>
+                        </configuration>
+                    </execution>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <execution>
                         <id>copy-dependencies</id>
@@ -32,29 +55,10 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                            <includeTypes>jar</includeTypes>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-technical-doc</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>fr.gouv.vitam.doc</groupId>
-                                    <artifactId>technical-doc</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}/app</outputDirectory>
-                                    <includes>**</includes>
-                                </artifactItem>
-                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -125,23 +129,37 @@
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
                     <disabled>false</disabled>
+                    <license>CeCILL 2.1</license>
+                    <distribution>Vitam Project</distribution>
+                    <group>Application/Archiving</group>
+                    <packager>Vitam Package Team</packager>
+                    <defineStatements/>
+                    <targetOS>linux</targetOS>
+                    <requires>
+                        <require>systemd</require>
+                        <require>${jdk.version.rpm}</require>
+                        <require>vitam-user-${unix.user}</require>
+                    </requires>
+                    <defaultDirmode>750</defaultDirmode>
+                    <defaultFilemode>640</defaultFilemode>
+                    <defaultUsername>${unix.user}</defaultUsername>
+                    <defaultGroupname>${unix.group}</defaultGroupname>
                     <mappings>
                         <mapping>
                             <!-- Caution : keep the artifact & dependency copy in the first mapping element ; or else they will be copied in every mapping before... -->
                             <directory>/vitam/lib/${unix.name}</directory>
-                            <artifact/>
-                            <dependency/>
-                        </mapping>
-
-                        <mapping>
-                            <directory>/vitam/app/${unix.name}</directory>
-                            <recurseDirectories>true</recurseDirectories>
-                            <sources>
-                                <source>
-                                    <location>${project.build.directory}/app</location>
-
-                                </source>
-                            </sources>
+                            <!-- Special marker to exclude non-default artefacts (we only need the jar to be packaged) -->
+                            <artifact>
+                                <classifiers>
+                                    <classifier/>
+                                </classifiers>
+                            </artifact>
+                            <!-- Exclude technical-doc zip artefact-->
+                            <dependency>
+                                <excludes>
+                                    <exclude>fr.gouv.vitam.doc:technical-doc:zip</exclude>
+                                </excludes>
+                            </dependency>
                         </mapping>
 
                         <mapping>
@@ -176,18 +194,6 @@
                                 <group>${unix.group}</group>
                                 <filemode>0644</filemode>
                                 <prefix>/vitam/lib/${unix.name}/</prefix>
-                            </mapper>
-                        </data>
-                        <data>
-                            <src>${project.build.directory}/app</src>
-                            <type>directory</type>
-                            <missingSrc>ignore</missingSrc>
-                            <mapper>
-                                <type>perm</type>
-                                <user>${unix.user}</user>
-                                <group>${unix.group}</group>
-                                <filemode>0644</filemode>
-                                <prefix>/vitam/app/${unix.name}</prefix>
                             </mapper>
                         </data>
                         <data>

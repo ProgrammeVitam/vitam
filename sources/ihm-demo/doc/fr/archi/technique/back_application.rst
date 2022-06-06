@@ -21,7 +21,6 @@ Ce module encapsule à la fois le serveur d'application et l'application Front (
         - port : port du serveur
         - serverHost : adresse du serveur
         - baseUrl : URL de base
-        - staticContent : emplacement des fichiers statiques
 - WebApplicationResource : cette classe définit les services REST assurés par l'application IHM:
     - POST /ihm-demo/v1/api/archivesearch/units
     - GET /ihm-demo/v1/api/archivesearch/unit/{id}

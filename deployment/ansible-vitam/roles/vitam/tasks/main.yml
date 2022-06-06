@@ -332,8 +332,6 @@
 
 - import_tasks: consul.yml
 
-- import_tasks: ihm_demo.yml
-
 - import_tasks: selinux_contexts.yml
 
 - name: flush_handlers

@@ -36,21 +36,9 @@ import java.util.List;
  */
 public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguration {
 
-    private String staticContent;
     private String baseUri;
     private List<MediaType> allowedMediaTypes;
     private List<String> secureMode;
-
-    @Override
-    public String getStaticContent() {
-        return staticContent;
-    }
-
-    @Override
-    public WebApplicationConfig setStaticContent(String staticContent) {
-        this.staticContent = staticContent;
-        return this;
-    }
 
     @Override
     public String getBaseUri() {

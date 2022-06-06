@@ -56,7 +56,6 @@ import static org.junit.Assert.assertTrue;
 public class WebApplicationResourceAuthTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
-    private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS = "{\"name\": \"myName\"}";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"admin\", \"credentials\": \"admin\"}}";
     private static final String DEFAULT_HOST = "localhost";
@@ -84,7 +83,7 @@ public class WebApplicationResourceAuthTest {
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
                 .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
-                .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2);
+                .setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2);
         VitamConfiguration.setTenants(tenants);
         webApplicationConfig.setSecureMode(Arrays.asList("File", "LDAP"));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);

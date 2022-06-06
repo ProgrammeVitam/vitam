@@ -119,7 +119,6 @@ public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
-    private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS =
         "{\"dslRequest\": {\"$query\": [{\"$eq\": {\"#id\": \"toto\"}}],\"$filter\": {},\"$projection\": {}},\"dataObjectVersionToExport\": { }}";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
@@ -172,7 +171,7 @@ public class WebApplicationResourceTest {
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
                 .setServerHost(DEFAULT_HOST)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
+                .setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setJettyConfig(JETTY_CONFIG);
         webApplicationConfig.setEnableSession(true);
         webApplicationConfig.setEnableXsrFilter(true);

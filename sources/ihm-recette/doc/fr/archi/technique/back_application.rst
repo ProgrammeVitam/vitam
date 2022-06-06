@@ -21,7 +21,6 @@ Ce module encapsule à la fois le serveur d'application.
         - port : port du serveur
         - serverHost : adresse du serveur
         - baseUrl : URL de base
-        - staticContent : emplacement des fichiers statiques
 
 **package fr.gouv.vitam.ihmdemo.appserver.performance.**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
