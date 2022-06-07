@@ -1,8 +1,98 @@
 ### Configuration
-@transaction-id = aeeaaaaaachbhdsaaa2zaal7jikjazyaaaaq
+@transaction-id = aeeaaaaaaceezldyaamscambcvdf6zyaaaaq
+@project-id = aeeaaaaaaceezldyaamscambcvdf6eyaaaaq
 @unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
 @tenant = 0
 @access-contract = ContratTNR
+
+### Création d'un nouveau projet
+POST {{url}}/collect/v1/projects
+accept: application/json
+content-type: application/json
+Content-Length: 401
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "ArchivalAgencyIdentifier": "Identifier0",
+  "TransferingAgencyIdentifier": "Identifier3",
+  "OriginatingAgencyIdentifier": "FRAN_NP_009915",
+  "SubmissionAgencyIdentifier": "FRAN_NP_005061",
+  "MessageIdentifier": "20220302-000005",
+  "ArchivalAgreement":"IC-000001",
+  "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
+  "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
+}
+
+### Mise à jour d'un projet
+PUT {{url}}/collect/v1/projects
+accept: application/json
+content-type: application/json
+Content-Length: 401
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "ArchivalAgencyIdentifier": "Identifier0",
+  "TransferingAgencyIdentifier": "Identifier3",
+  "OriginatingAgencyIdentifier": "FRAN_NP_009915",
+  "SubmissionAgencyIdentifier": "FRAN_NP_005061",
+  "MessageIdentifier": "20220302-000006",
+  "ArchivalAgreement":"IC-000001",
+  "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
+  "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
+}
+
+### Récuperation de tout les projets associé au tenant
+GET {{url}}/collect/v1/projects
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+
+### Récuperation d'un projet par id
+GET {{url}}/collect/v1/projects/{{project-id}}
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+### Récuperation d'une unité archivistique pas dsl query
+GET {{url}}/collect/v1/units
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+Content-Length: 143
+
+{
+    "$roots": [],
+    "$query": [
+        {
+            "$eq": {
+                "#opi": "aeeaaaaaaceezldyaamscambcvdf6zyaaaaq"
+            }
+        }
+    ],
+    "$filter": {
+        "$offset": 0,
+        "$limit": 100
+    },
+    "$projection": {}
+}
+
+
+### upload zip avec arborescence a traiter
+POST {{url}}/collect/v1/projects/{{project-id}}/binary
+Accept: application/json
+Content-Type: application/zip
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+< /path_tozip/stream.zip
+
+
 
 ### Création d'une nouvelle transaction
 POST  {{url}}/collect/v1/transactions
