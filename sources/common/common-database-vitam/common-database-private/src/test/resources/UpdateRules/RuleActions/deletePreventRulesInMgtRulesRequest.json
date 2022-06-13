@@ -1,0 +1,14 @@
+{
+  "add": [],
+  "update": [],
+  "delete": [
+    {
+      "HoldRule": {
+        "PreventRulesIdToRemove": [
+          "HOL-00002",
+          "HOL-00003"
+        ]
+      }
+    }
+  ]
+}

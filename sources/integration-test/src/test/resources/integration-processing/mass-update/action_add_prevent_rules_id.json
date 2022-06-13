@@ -1,0 +1,25 @@
+{
+  "add": [
+    {
+      "AppraisalRule": {
+        "PreventRulesIdToAdd": [
+          "APP-00002"
+        ]
+      },
+      "AccessRule": {
+        "PreventRulesIdToAdd": [
+          "ACC-00002",
+          "ACC-00003"
+        ]
+      }
+    }
+  ],
+  "update": [
+
+  ],
+  "delete": [
+
+  ],
+  "addOrUpdateMetadata": {},
+  "deleteMetadata": {}
+}

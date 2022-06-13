@@ -48,7 +48,11 @@ import org.mockito.junit.MockitoRule;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -67,9 +71,9 @@ public class MassUpdateRulesCheckTest {
 
     private MassUpdateRulesCheck massUpdateRulesCheck;
 
-    private TestWorkerParameter EMPTY_WORKER_PARAMETER = workerParameterBuilder().build();
+    private final TestWorkerParameter EMPTY_WORKER_PARAMETER = workerParameterBuilder().build();
 
-    private List<String> classificationLevels = Arrays.asList("Superman", "Joker");
+    private final List<String> classificationLevels = Arrays.asList("Superman", "Joker");
 
     public static Condition<String> massUpdateErrorWithMessage(String error) {
         return new Condition<>(s -> {
@@ -269,6 +273,111 @@ public class MassUpdateRulesCheckTest {
         RuleCategoryAction categoryAction = new RuleCategoryAction();
         addRules.put(TAG_RULE_APPRAISAL, categoryAction);
         ruleActions.setUpdate(Collections.singletonList(addRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void test_should_return_OK_when_only_preventRulesIdToRemove_is_present() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
+        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004")
+            .collect(Collectors.toCollection(HashSet::new));
+
+        RuleCategoryActionDeletion ruleCategoryActionDeletion = new RuleCategoryActionDeletion();
+        ruleCategoryActionDeletion.setPreventRulesIdToRemove(preventRulesIdToRemove);
+
+        deleteRules.put(TAG_RULE_APPRAISAL, ruleCategoryActionDeletion);
+        ruleActions.setUpdate(Collections.singletonList(new HashMap<>()));
+        ruleActions.setDelete(Collections.singletonList(deleteRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void test_should_return_KO_when_preventRulesId_and_preventRulesIdToAdd_are_present() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
+        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002")
+            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToAdd = Stream.of("APP-00003", "APP-00004")
+            .collect(Collectors.toCollection(HashSet::new));
+
+        RuleCategoryAction ruleCategoryAction = new RuleCategoryAction();
+        ruleCategoryAction.setPreventRulesIdToAdd(preventRulesIdToAdd);
+        ruleCategoryAction.setPreventRulesId(preventRulesId);
+
+        addRules.put(TAG_RULE_APPRAISAL, ruleCategoryAction);
+        ruleActions.setUpdate(Collections.singletonList(new HashMap<>()));
+        ruleActions.setAdd(Collections.singletonList(addRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+    }
+
+    @Test
+    public void test_should_return_KO_when_preventRulesId_and_preventRulesIdToRemove_are_present() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
+        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002")
+            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004")
+            .collect(Collectors.toCollection(HashSet::new));
+
+        RuleCategoryActionDeletion ruleCategoryActionDeletion = new RuleCategoryActionDeletion();
+        ruleCategoryActionDeletion.setPreventRulesIdToRemove(preventRulesIdToRemove);
+        ruleCategoryActionDeletion.setPreventRulesId(preventRulesId);
+
+        deleteRules.put(TAG_RULE_APPRAISAL, ruleCategoryActionDeletion);
+        ruleActions.setDelete(Collections.singletonList(deleteRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+    }
+
+    @Test
+    public void test_should_return_OK_when_only_preventRulesIdToAdd_is_present() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
+        Set<String> preventRulesIdToAdd = Stream.of("APP-00001", "APP-00002", "APP-00003", "APP-00004")
+            .collect(Collectors.toCollection(HashSet::new));
+
+        RuleCategoryAction categoryAction = new RuleCategoryAction();
+        categoryAction.setPreventRulesIdToAdd(preventRulesIdToAdd);
+
+        addRules.put(TAG_RULE_APPRAISAL, categoryAction);
+        ruleActions.setUpdate(Collections.singletonList(new HashMap<>()));
+        ruleActions.setAdd(Collections.singletonList(addRules));
 
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));

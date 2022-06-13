@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -85,7 +85,7 @@ public class PrepareUpdateUnits extends ActionHandler {
      * Constructor.
      */
     public PrepareUpdateUnits() {
-        this(MetaDataClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
+        this(MetaDataClientFactory.getInstance(), GlobalDatas.LIMIT_LOAD);
     }
 
     /**

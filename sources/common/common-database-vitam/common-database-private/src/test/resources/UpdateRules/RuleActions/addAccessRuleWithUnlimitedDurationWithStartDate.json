@@ -1,16 +1,20 @@
 {
-  "add": [
+  "add":[
     {
-      "AccessRule": {
-        "Rules": [
+      "AccessRule":{
+        "Rules":[
           {
-            "Rule": "ACC-00003",
-            "StartDate": "2000-01-01"
+            "Rule":"ACC-00003",
+            "StartDate":"2000-01-01"
           }
         ]
       }
     }
   ],
-  "update": [],
-  "delete": []
+  "update":[
+
+  ],
+  "delete":[
+
+  ]
 }

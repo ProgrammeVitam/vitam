@@ -83,6 +83,16 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
+    private static final String MESSAGE = "Message";
+    private static final String ERROR = "Error";
+    private static final String INFO = "Info ";
+    private static final String ARCHIVE_UNIT_PROFILE = "ArchiveUnitProfile ";
+    private static final String HOLD_REASON = "HoldReason";
+    private static final String HOLD_OWNER = "HoldOwner";
+    private static final String HOLD_END_DATE = "HoldEndDate";
+    private static final String HOLD_REASSESSING_DATE = "HoldReassessingDate";
+    private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND = "Error while get the ArchiveUnitProfile in Referential";
+
     /**
      * AdminManagementClientFactory
      */
@@ -194,20 +204,20 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             RequestResponse<ArchiveUnitProfileModel> aup =
                 adminManagementClientFactory.getClient().findArchiveUnitProfilesByID(aupId);
             if (!aup.isOk()) {
-                throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+                throw new IllegalStateException(ARCHIVE_UNIT_PROFILE_NOT_FOUND);
             }
 
             ArchiveUnitProfileModel archiveUnitProfile =
                 ((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult();
             if (archiveUnitProfile == null) {
-                throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+                throw new IllegalStateException(ARCHIVE_UNIT_PROFILE_NOT_FOUND);
             }
 
             if (!ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not ACTIVE");
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+                errorInfo.put(INFO, ARCHIVE_UNIT_PROFILE + aupId + " is not ACTIVE");
                 errorInfo.put("Code", "CHECK_UNIT_PROFILE_INACTIVE");
                 return Optional.of(errorInfo);
             }
@@ -215,22 +225,22 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             if (archiveUnitProfile.getControlSchema() == null ||
                 JsonHandler.isEmpty(archiveUnitProfile.getControlSchema())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " havn't a valid Control Schema");
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+                errorInfo.put(INFO,  ARCHIVE_UNIT_PROFILE + aupId + " havn't a valid Control Schema");
                 errorInfo.put("Code", "CHECK_UNIT_PROFILE_CONSISTENCY");
                 return Optional.of(errorInfo);
             }
 
         } catch (ReferentialNotFoundException e) {
             ObjectNode errorInfo = JsonHandler.createObjectNode();
-            errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
-            errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
-            errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not in database");
+            errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+            errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+            errorInfo.put(INFO, ARCHIVE_UNIT_PROFILE + aupId + " is not in database");
             errorInfo.put("Code", "CHECK_UNIT_PROFILE_UNKNOWN");
             return Optional.of(errorInfo);
         } catch (InvalidParseOperationException | AdminManagementClientServerException e) {
-            throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+            throw new IllegalStateException(ARCHIVE_UNIT_PROFILE_NOT_FOUND);
         }
 
         return Optional.empty();
@@ -244,17 +254,17 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             LocalDate parsedDate = LocalDate.parse(date, DATE_TIME_FORMATTER);
             if (checkUpperLimit && parsedDate.getYear() >= 9000) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "'" + fieldName + "' must be prior than year 9000 for category " + category);
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put(INFO, "'" + fieldName + "' must be prior than year 9000 for category " + category);
                 errorInfo.put("Code", "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED");
                 return Optional.of(errorInfo);
             }
         } catch (DateTimeParseException e) {
             ObjectNode errorInfo = JsonHandler.createObjectNode();
-            errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-            errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-            errorInfo.put("Info ", "'" + fieldName + "' must follow 'AAAA-MM-DD' format " + category);
+            errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+            errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+            errorInfo.put(INFO, "'" + fieldName + "' must follow 'AAAA-MM-DD' format " + category);
             errorInfo.put("Code", "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
             return Optional.of(errorInfo);
         }
@@ -386,23 +396,23 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         }
 
         Optional<JsonNode> checkHoldEndDateResponse =
-            checkDateFormat("HoldEndDate", ruleAction.getHoldEndDate(), entry.getKey(), false);
+            checkDateFormat(HOLD_END_DATE, ruleAction.getHoldEndDate(), entry.getKey(), false);
         if (checkHoldEndDateResponse.isPresent()) {
             return checkHoldEndDateResponse;
         }
 
         Optional<JsonNode> checkHoldReassessingDateResponse =
-            checkDateFormat("HoldReassessingDate", ruleAction.getHoldReassessingDate(), entry.getKey(), false);
+            checkDateFormat( HOLD_REASSESSING_DATE, ruleAction.getHoldReassessingDate(), entry.getKey(), false);
         if (checkHoldReassessingDateResponse.isPresent()) {
             return checkHoldReassessingDateResponse;
         }
 
         if (null != ruleAction.getHoldOwner() && ruleAction.getHoldOwner().isBlank()) {
-            return reportEmptyFieldFormat(entry, "HoldOwner");
+            return reportEmptyFieldFormat(entry, HOLD_OWNER);
         }
 
         if (null != ruleAction.getHoldReason() && ruleAction.getHoldReason().isBlank()) {
-            return reportEmptyFieldFormat(entry, "HoldReason");
+            return reportEmptyFieldFormat(entry, HOLD_REASON);
         }
         return Optional.empty();
     }
@@ -415,20 +425,20 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         }
 
         if (ruleAction.getHoldEndDate() != null && Boolean.TRUE.equals(ruleAction.getDeleteHoldEndDate())) {
-            return reportSetAndDeleteOfSameField(entry, "HoldEndDate");
+            return reportSetAndDeleteOfSameField(entry, HOLD_END_DATE);
         }
 
         if (ruleAction.getHoldReason() != null && Boolean.TRUE.equals(ruleAction.getDeleteHoldReason())) {
-            return reportSetAndDeleteOfSameField(entry, "HoldReason");
+            return reportSetAndDeleteOfSameField(entry, HOLD_REASON);
         }
 
         if (ruleAction.getHoldReassessingDate() != null &&
             Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate())) {
-            return reportSetAndDeleteOfSameField(entry, "HoldReassessingDate");
+            return reportSetAndDeleteOfSameField(entry, HOLD_REASSESSING_DATE);
         }
 
         if (ruleAction.getHoldOwner() != null && Boolean.TRUE.equals(ruleAction.getDeleteHoldOwner())) {
-            return reportSetAndDeleteOfSameField(entry, "HoldOwner");
+            return reportSetAndDeleteOfSameField(entry, HOLD_OWNER);
         }
 
         if (ruleAction.getPreventRearrangement() != null &&
@@ -446,25 +456,25 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         }
 
         if (null != ruleAction.getHoldEndDate()) {
-            return reportUnexpectedField(entry, "HoldEndDate");
+            return reportUnexpectedField(entry, HOLD_END_DATE);
         }
         if (null != ruleAction.getDeleteHoldEndDate()) {
             return reportUnexpectedField(entry, "DeleteHoldEndDate");
         }
         if (null != ruleAction.getHoldOwner()) {
-            return reportUnexpectedField(entry, "HoldOwner");
+            return reportUnexpectedField(entry, HOLD_OWNER);
         }
         if (null != ruleAction.getDeleteHoldOwner()) {
             return reportUnexpectedField(entry, "DeleteHoldOwner");
         }
         if (null != ruleAction.getHoldReassessingDate()) {
-            return reportUnexpectedField(entry, "HoldReassessingDate");
+            return reportUnexpectedField(entry, HOLD_REASSESSING_DATE);
         }
         if (null != ruleAction.getDeleteHoldReassessingDate()) {
             return reportUnexpectedField(entry, "DeleteHoldReassessingDate");
         }
         if (null != ruleAction.getHoldReason()) {
-            return reportUnexpectedField(entry, "HoldReason");
+            return reportUnexpectedField(entry, HOLD_REASON);
         }
         if (null != ruleAction.getDeleteHoldReason()) {
             return reportUnexpectedField(entry, "DeleteHoldReason");
@@ -482,9 +492,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         RuleAction ruleAction) {
         if (StringUtils.isEmpty(ruleAction.getOldRule())) {
             ObjectNode errorInfo = JsonHandler.createObjectNode();
-            errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-            errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-            errorInfo.put("Info ",
+            errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+            errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+            errorInfo.put(INFO,
                 "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
             errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
             return Optional.of(errorInfo);
@@ -495,9 +505,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     private Optional<JsonNode> checkRuleToAdd(Map.Entry<String, RuleCategoryAction> entry, RuleAction ruleAction) {
         if (StringUtils.isEmpty(ruleAction.getRule())) {
             ObjectNode errorInfo = JsonHandler.createObjectNode();
-            errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-            errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-            errorInfo.put("Info ", "New rule must at least define the field 'Rule' for category " + entry.getKey());
+            errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+            errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+            errorInfo.put(INFO, "New rule must at least define the field 'Rule' for category " + entry.getKey());
             errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
             return Optional.of(errorInfo);
         }
@@ -508,10 +518,10 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         RuleAction ruleAction) {
         if (isRuleActionEmpty(ruleAction)) {
             ObjectNode errorInfo = JsonHandler.createObjectNode();
-            errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-            errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+            errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+            errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
             errorInfo
-                .put("Info ", "Rule update should define at least 1 updated field for category " + entry.getKey());
+                .put(INFO, "Rule update should define at least 1 updated field for category " + entry.getKey());
             errorInfo.put("Code", "UNIT_RULES_NOT_EXPECTED_FIELD");
             return Optional.of(errorInfo);
         }
@@ -530,24 +540,24 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldEndDate()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldOwner()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldReason()) &&
-            !Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate()) &
+            !Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate()) &&
                 !Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement());
     }
 
     private Optional<JsonNode> reportUnexpectedField(Map.Entry<String, RuleCategoryAction> entry, String fieldName) {
         ObjectNode errorInfo = JsonHandler.createObjectNode();
-        errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-        errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-        errorInfo.put("Info ", "New rule must not define '" + fieldName + "' field for category " + entry.getKey());
+        errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+        errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+        errorInfo.put(INFO, "New rule must not define '" + fieldName + "' field for category " + entry.getKey());
         errorInfo.put("Code", "UNIT_RULES_UNEXPECTED_FIELD");
         return Optional.of(errorInfo);
     }
 
     private Optional<JsonNode> reportEmptyFieldFormat(Map.Entry<String, RuleCategoryAction> entry, String fieldName) {
         ObjectNode errorInfo = JsonHandler.createObjectNode();
-        errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-        errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-        errorInfo.put("Info ", "Empty string for '" + fieldName + "' field for category " + entry.getKey());
+        errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+        errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+        errorInfo.put(INFO, "Empty string for '" + fieldName + "' field for category " + entry.getKey());
         errorInfo.put("Code", "UNIT_RULES_EMPTY_FIELD");
         return Optional.of(errorInfo);
     }
@@ -555,10 +565,10 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     private Optional<JsonNode> reportSetAndDeleteOfSameField(Map.Entry<String, RuleCategoryAction> entry,
         String fieldName) {
         ObjectNode errorInfo = JsonHandler.createObjectNode();
-        errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-        errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+        errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+        errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
         errorInfo
-            .put("Info ", "Cannot set '" + fieldName + "' + field value when 'Delete" + "' is set for category " + entry
+            .put(INFO, "Cannot set '" + fieldName + "' + field value when 'Delete" + "' is set for category " + entry
                 .getKey());
         errorInfo.put("Code", "UNITS_RULES_INCONSISTENCY");
         return Optional.of(errorInfo);
@@ -577,9 +587,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             String classificationLevel = category.getClassificationLevel();
             if (classificationLevel != null && !ClassificationLevelUtil.checkClassificationLevel(classificationLevel)) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", classificationLevel + " is not a valid value for ClassificationLevel");
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.getMessage());
+                errorInfo.put(INFO, classificationLevel + " is not a valid value for ClassificationLevel");
                 errorInfo.put("Code", "CHECK_CLASSIFICATION_LEVEL");
                 return Optional.of(errorInfo);
             }
@@ -618,9 +628,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ruleResponseInReferential = adminManagementClientFactory.getClient().getRuleByID(ruleID);
             } catch (FileRulesException e) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Rule " + ruleID + " is not in database");
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
+                errorInfo.put(INFO, "Rule " + ruleID + " is not in database");
                 errorInfo.put("Code", "UNITS_RULES_UNKNOWN");
                 return errorInfo;
             } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
@@ -630,9 +640,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             JsonNode ruleInReferential = ruleResponseInReferential.get("$results").get(0);
             if (!categoryName.equals(ruleInReferential.get(FileRulesModel.RULE_TYPE).asText())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Rule " + ruleID + " is not in category " + categoryName + " but " +
+                errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
+                errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
+                errorInfo.put(INFO, "Rule " + ruleID + " is not in category " + categoryName + " but " +
                     ruleInReferential.get("RuleType").asText());
                 errorInfo.put("Code", "UNITS_RULES_INCONSISTENCY");
                 return errorInfo;

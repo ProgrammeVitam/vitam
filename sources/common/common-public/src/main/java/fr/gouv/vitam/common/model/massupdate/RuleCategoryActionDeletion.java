@@ -60,7 +60,10 @@ public class RuleCategoryActionDeletion {
     @JsonProperty("PreventInheritance")
     private Optional<Boolean> preventInheritance;
     @JsonProperty("PreventRulesId")
-    private Optional<Set<String>> preventRulesId;
+    private Set<String> preventRulesId;
+
+    @JsonProperty("PreventRulesIdToRemove")
+    private Set<String> preventRulesIdToRemove;
 
     @JsonIgnore
     public Optional<List<RuleAction>> getRules() {
@@ -135,8 +138,8 @@ public class RuleCategoryActionDeletion {
         return needReassessingAuthorization;
     }
 
-    public void setNeedReassessingAuthorization(Boolean unused) {
-        this.needReassessingAuthorization = Optional.empty();
+    public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
+        this.needReassessingAuthorization = Optional.ofNullable(needReassessingAuthorization);
     }
 
     @JsonGetter
@@ -165,12 +168,12 @@ public class RuleCategoryActionDeletion {
     }
 
     @JsonIgnore
-    public Optional<Set<String>> getPreventRulesId() {
+    public Set<String> getPreventRulesId() {
         return preventRulesId;
     }
 
-    public void setPreventRulesId(Set<String> unused) {
-        this.preventRulesId = Optional.empty();
+    public void setPreventRulesId(Set<String> preventRulesId) {
+        this.preventRulesId = preventRulesId;
     }
 
     @JsonGetter
@@ -189,6 +192,16 @@ public class RuleCategoryActionDeletion {
             && Objects.isNull(classificationReassessingDate)
             && Objects.isNull(needReassessingAuthorization)
             && Objects.isNull(preventInheritance)
+            && Objects.isNull(preventRulesIdToRemove)
             && Objects.isNull(preventRulesId);
+    }
+
+    @JsonIgnore
+    public Set<String> getPreventRulesIdToRemove() {
+        return preventRulesIdToRemove;
+    }
+
+    public void setPreventRulesIdToRemove(Set<String> preventRulesIdToRemove) {
+        this.preventRulesIdToRemove = preventRulesIdToRemove;
     }
 }

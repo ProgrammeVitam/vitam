@@ -1,55 +1,59 @@
 {
-  "add": [
+  "add":[
     {
-      "HoldRule": {
-        "Rules": [
+      "HoldRule":{
+        "Rules":[
           {
-            "Rule": "HOL-00001"
+            "Rule":"HOL-00001"
           },
           {
-            "Rule": "HOL-00002",
-            "StartDate": "2010-01-01",
-            "HoldEndDate": "2010-01-01",
-            "HoldOwner": "Owner",
-            "HoldReason": "Reason",
-            "HoldReassessingDate": "2015-01-01",
-            "PreventRearrangement": false
+            "Rule":"HOL-00002",
+            "StartDate":"2010-01-01",
+            "HoldEndDate":"2010-01-01",
+            "HoldOwner":"Owner",
+            "HoldReason":"Reason",
+            "HoldReassessingDate":"2015-01-01",
+            "PreventRearrangement":false
           }
         ],
-        "PreventRulesId": [
+        "PreventRulesId":[
           "HOL-00003"
         ]
       },
-      "ClassificationRule": {
-        "ClassificationOwner": "ClassificationOwner2",
-        "NeedReassessingAuthorization": true
+      "ClassificationRule":{
+        "ClassificationOwner":"ClassificationOwner2",
+        "NeedReassessingAuthorization":true
       }
     }
   ],
-  "update": [
+  "update":[
     {
-      "DisseminationRule": {
-        "Rules": [
+      "DisseminationRule":{
+        "Rules":[
           {
-            "OldRule": "DIS-00001",
-            "Rule": "DIS-00002",
-            "StartDate": "2005-01-01"
+            "OldRule":"DIS-00001",
+            "Rule":"DIS-00002",
+            "StartDate":"2005-01-01"
           }
         ]
       },
-      "StorageRule": {
-        "FinalAction": "Copy"
+      "StorageRule":{
+        "FinalAction":"Copy"
       }
     }
   ],
-  "delete": [
+  "delete":[
     {
-      "AppraisalRule": {
-        "PreventRulesId": null
+      "AppraisalRule":{
+        "PreventRulesId":null
       },
-      "ReuseRule": null
+      "ReuseRule":null
     }
   ],
-  "addOrUpdateMetadata": {},
-  "deleteMetadata": {}
+  "addOrUpdateMetadata":{
+
+  },
+  "deleteMetadata":{
+
+  }
 }

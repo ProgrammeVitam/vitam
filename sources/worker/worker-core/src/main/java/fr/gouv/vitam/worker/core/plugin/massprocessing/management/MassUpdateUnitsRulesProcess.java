@@ -303,10 +303,6 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 ruleId = rule.getOldRule();
             }
 
-            if (rule.getEndDate() != null) {
-                throw new IllegalStateException("Rule for update have a defined EndDate");
-            }
-
             JsonNode ruleResponseInReferential;
             try {
                 ruleResponseInReferential = adminManagementClientFactory.getClient().getRuleByID(ruleId);

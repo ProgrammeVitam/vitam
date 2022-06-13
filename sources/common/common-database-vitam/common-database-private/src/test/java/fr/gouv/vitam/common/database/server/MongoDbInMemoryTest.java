@@ -191,6 +191,41 @@ public class MongoDbInMemoryTest {
     private static final String requestNonExistingSubSubField =
         "{\"$action\": [{ \"$unset\": [ \"subItem.nonExisting.NonExistingSubField\" ] }]}";
 
+    private static final String UNIT7_DELETED_PREVENT_RULES_ID_FOR_APPRAISAL_RULE =
+        "UpdateRules/Units/unit7_deletedPreventRulesIdForAppraisalRule.json";
+    private static final String UNIT6 = "UpdateRules/Units/unit6.json";
+    private static final String UNIT7 = "UpdateRules/Units/unit7.json";
+    private static final String UNIT8 = "UpdateRules/Units/unit8.json";
+    private static final String UNIT9 = "UpdateRules/Units/unit9.json";
+    private static final String UNIT1 = "UpdateRules/Units/unit1.json";
+    private static final String UNIT2 = "UpdateRules/Units/unit2.json";
+    private static final String UNIT3 = "UpdateRules/Units/unit3.json";
+    private static final String DELETED_RULES_ID_FOR_APPRAISAL_CATEGORY = "UpdateRules/RuleActions/deleteRulesIdForAppraisalCategory.json";
+    private static final String BAD_UPDATE_MGT_RULE_REQUEST = "UpdateRules/RuleActions/badUpdateMgtRuleRequest.json";
+    private static final String UNIT7_DELETED_LIST_PREVENT_RULES_ID =
+        "UpdateRules/Units/unit7_deleted_ListOfPreventRulesId.json";
+    private static final String UNIT9_DELETED_LIST_PREVENT_RULES_ID_FOR_MULTIPLE_CATEGORY =
+        "UpdateRules/Units/unit9_deletedListOfPreventRulesForMultipleCategory.json";
+    private static final String BAD_ADD_MGT_RULE_REQUEST = "UpdateRules/RuleActions/badAddMgtRuleRequest.json";
+    private static final String DELETE_PREVENT_RULES_MGT_REQUEST = "UpdateRules/RuleActions/deletePreventRulesInMgtRulesRequest.json";
+    private static final String DELETE_PREVENT_RULES_FOR_MULTIPLE_CATEGORY = "UpdateRules/RuleActions/deletePreventRulesForMultipleRuleCategory.json";
+    private static final String UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST =
+        "UpdateRules/Units/unit8_expected-mgt_rules_after_bad_request.json";
+    private static final String UNIT7_ADD_PREVENT_RULES_TO_HOLD_CATEGORY =
+        "UpdateRules/Units/unit7_addedNewPreventRulesToHoldCategory.json";
+    private static final String ADD_NEW_PREVENT_RULES_TO_HOLD_CATEGORY =
+        "UpdateRules/RuleActions/addNewPreventRulesIdToHoldRuleCategory.json";
+    private static final String UNIT7_ADD_PREVENT_RULES_TO_APPRAISAL_CATEGORY =
+        "UpdateRules/Units/unit7_addedListofNewPreventRulesIdToAppraisalRule.json";
+    private static final String ADD_NEW_PREVENT_RULES_TO_APPRAISAL_CATEGORY =
+        "UpdateRules/RuleActions/addNewPreventRulesIdToAppraisalCategory.json";
+    private static final String ADD_NEW_PREVENT_RULES_TO_MULTIPLE_RULE_CATEGORY =
+        "UpdateRules/RuleActions/addNewPreventRulesIdToMultipleRuleCategory.json";
+    private static final String UNIT9_ADD_PREVENT_RULES_TO_MULTIPLE_RULE_CATEGORY =
+        "UpdateRules/Units/unit9_addedListOfNewPreventRulesToMultipleRuleCategory.json";
+
+
+
     @Before
     public void setUp() throws InvalidParseOperationException {
         // Init jsonDocument with values (from real document or only some json ?)
@@ -605,7 +640,7 @@ public class MongoDbInMemoryTest {
     @Test
     public void should_not_throw_npe_when_update_with_rule_without_start_date() throws Exception {
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
 
         DurationData duration = new DurationData();
         duration.setDurationUnit(ChronoUnit.FOREVER);
@@ -642,7 +677,7 @@ public class MongoDbInMemoryTest {
     public void addAccessRuleWithLimitedDurationWithStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addAccessRuleWithLimitedDurationWithStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -660,7 +695,7 @@ public class MongoDbInMemoryTest {
     public void addAccessRuleWithUnlimitedDurationWithStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addAccessRuleWithUnlimitedDurationWithStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -678,7 +713,7 @@ public class MongoDbInMemoryTest {
     public void addAccessRuleIgnoredWithExistingRule() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addAccessRuleIgnoredWithExistingRule.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -688,7 +723,7 @@ public class MongoDbInMemoryTest {
 
         // Then
         String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            "UpdateRules/Units/unit1.json");
+            UNIT1);
         JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
     }
 
@@ -696,7 +731,7 @@ public class MongoDbInMemoryTest {
     public void addAccessRuleWithoutStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addAccessRuleWithoutStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -714,7 +749,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithLimitedDurationAndNoStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithLimitedDurationAndNoStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -732,7 +767,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithLimitedDurationAndStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithLimitedDurationAndStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -750,7 +785,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithoutDurationWithHoldEndDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithoutDurationWithHoldEndDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -768,7 +803,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithoutDurationWithoutHoldEndDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithoutDurationWithoutHoldEndDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -786,7 +821,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithUnlimitedDurationAndNoStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithUnlimitedDurationAndNoStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -804,7 +839,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleWithUnlimitedDurationAndStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleWithUnlimitedDurationAndStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -822,7 +857,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleKoWhenEndDateBeforeStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleKoWhenEndDateBeforeStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -840,7 +875,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleKoWhenHoldEndDateForRuleWithLimitedDuration() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleKoWhenHoldEndDateForRuleWithLimitedDuration.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -859,7 +894,7 @@ public class MongoDbInMemoryTest {
     public void addHoldRuleKoWhenHoldEndDateForRuleWithUnlimitedDuration() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/addHoldRuleKoWhenHoldEndDateForRuleWithUnlimitedDuration.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -897,7 +932,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleIgnoredWithNoExistingRule() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit2.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT2);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleIgnoredWithNoExistingRule.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -907,7 +942,7 @@ public class MongoDbInMemoryTest {
 
         // Then
         String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            "UpdateRules/Units/unit2.json");
+            UNIT2);
         JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
     }
 
@@ -915,7 +950,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleUpdateRuleId() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit2.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT2);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleUpdateRuleId.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -933,7 +968,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleDeleteAllAttributes() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit3.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT3);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleDeleteAllAttributes.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -969,7 +1004,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleKoWhenEndDateBeforeStartDate() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit3.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT3);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleKoWhenEndDateBeforeStartDate.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -988,7 +1023,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleKoWhenHoldEndDateForRuleWithLimitedDuration() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit3.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT3);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleKoWhenHoldEndDateForRuleWithLimitedDuration.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1007,7 +1042,7 @@ public class MongoDbInMemoryTest {
     public void updateHoldRuleKoWhenHoldEndDateForRuleWithUnlimitedDuration() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit3.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT3);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/updateHoldRuleKoWhenHoldEndDateForRuleWithUnlimitedDuration.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1026,7 +1061,7 @@ public class MongoDbInMemoryTest {
     public void deleteHoldRuleIgnoredWhenRuleNotExists() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit2.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT2);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/deleteHoldRuleIgnoredWhenRuleNotExists.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1036,7 +1071,7 @@ public class MongoDbInMemoryTest {
 
         // Then
         String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            "UpdateRules/Units/unit2.json");
+            UNIT2);
         JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
     }
 
@@ -1044,7 +1079,7 @@ public class MongoDbInMemoryTest {
     public void deleteHoldRuleCategoryIgnoredWhenCategoryNotExists() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit1.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT1);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/deleteHoldRuleCategoryIgnoredWhenCategoryNotExists.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1054,7 +1089,7 @@ public class MongoDbInMemoryTest {
 
         // Then
         String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            "UpdateRules/Units/unit1.json");
+            UNIT1);
         JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
     }
 
@@ -1062,7 +1097,7 @@ public class MongoDbInMemoryTest {
     public void deleteHoldRule() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit2.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT2);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/deleteHoldRule.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1080,7 +1115,7 @@ public class MongoDbInMemoryTest {
     public void deleteHoldRuleCategory() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit2.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT2);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/deleteHoldRuleCategory.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1098,7 +1133,7 @@ public class MongoDbInMemoryTest {
     public void complexAddUpdateDeleteQuery() throws Exception {
 
         // Given
-        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory("UpdateRules/Units/unit6.json");
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT6);
         RuleActions ruleActions = getRuleActions(
             "UpdateRules/RuleActions/complexAddUpdateDeleteQuery.json");
         Map<String, DurationData> durations = getTestRuleDurations();
@@ -1112,6 +1147,152 @@ public class MongoDbInMemoryTest {
 
         JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
     }
+
+    @Test
+    public void testDeletePreventRuleIdForHoldRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT7);
+        RuleActions ruleActions = getRuleActions(
+            DELETE_PREVENT_RULES_MGT_REQUEST);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT7_DELETED_LIST_PREVENT_RULES_ID);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testDeletePreventRuleIdForMultipleRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT9);
+        RuleActions ruleActions = getRuleActions(
+            DELETE_PREVENT_RULES_FOR_MULTIPLE_CATEGORY);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT9_DELETED_LIST_PREVENT_RULES_ID_FOR_MULTIPLE_CATEGORY);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testDeletePreventRuleIdWithBadUpdateRequest() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT8);
+        RuleActions ruleActions = getRuleActions(
+            BAD_UPDATE_MGT_RULE_REQUEST);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testDeletePreventRuleIdForAppraisalRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT7);
+        RuleActions ruleActions = getRuleActions(
+            DELETED_RULES_ID_FOR_APPRAISAL_CATEGORY);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT7_DELETED_PREVENT_RULES_ID_FOR_APPRAISAL_RULE);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testAddNewPreventRuleIdForAppraisalRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT7);
+        RuleActions ruleActions = getRuleActions(
+            ADD_NEW_PREVENT_RULES_TO_APPRAISAL_CATEGORY);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT7_ADD_PREVENT_RULES_TO_APPRAISAL_CATEGORY);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testAddNewPreventRuleIdForMultipleRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT9);
+        RuleActions ruleActions = getRuleActions(
+            ADD_NEW_PREVENT_RULES_TO_MULTIPLE_RULE_CATEGORY);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT9_ADD_PREVENT_RULES_TO_MULTIPLE_RULE_CATEGORY);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+    @Test
+    public void testAddNewPreventRuleIdForHoldRuleCategory() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT7);
+        RuleActions ruleActions = getRuleActions(
+            ADD_NEW_PREVENT_RULES_TO_HOLD_CATEGORY);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT7_ADD_PREVENT_RULES_TO_HOLD_CATEGORY);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
+
+    @Test
+    public void testAddPreventRuleIdWithBadUpdateRequest() throws Exception {
+
+        // Given
+        MongoDbInMemory mongoDbInMemory = createMongoDbInMemory(UNIT8);
+        RuleActions ruleActions = getRuleActions(
+            BAD_ADD_MGT_RULE_REQUEST);
+        Map<String, DurationData> durations = getTestRuleDurations();
+
+        // When
+        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
+            UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST);
+        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+    }
+
 
     private MongoDbInMemory createMongoDbInMemory(String resourcesFile)
         throws InvalidParseOperationException, FileNotFoundException {

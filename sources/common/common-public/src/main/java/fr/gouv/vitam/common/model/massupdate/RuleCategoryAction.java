@@ -59,6 +59,9 @@ public class RuleCategoryAction {
     @JsonProperty("PreventRulesId")
     private Set<String> preventRulesId;
 
+    @JsonProperty("PreventRulesIdToAdd")
+    private Set<String> preventRulesIdToAdd;
+
     public List<RuleAction> getRules() {
         return rules == null ? new ArrayList<>() : rules;
     }
@@ -137,6 +140,15 @@ public class RuleCategoryAction {
 
     public RuleCategoryAction setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
         this.needReassessingAuthorization = needReassessingAuthorization;
+        return this;
+    }
+
+    public Set<String> getPreventRulesIdToAdd() {
+        return preventRulesIdToAdd;
+    }
+
+    public RuleCategoryAction setPreventRulesIdToAdd(Set<String> preventRulesIdToAdd) {
+        this.preventRulesIdToAdd = preventRulesIdToAdd;
         return this;
     }
 }

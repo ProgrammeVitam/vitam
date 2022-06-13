@@ -51,6 +51,7 @@ public class RuleCategoryActionDeletionTest {
         assertThat(actionDeletion.getNeedReassessingAuthorization()).isNull();
         assertThat(actionDeletion.getPreventInheritance()).isNull();
         assertThat(actionDeletion.getPreventRulesId()).isNull();
+        assertThat(actionDeletion.getPreventRulesIdToRemove()).isNull();
     }
 
     @Test

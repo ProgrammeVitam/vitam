@@ -82,6 +82,9 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     private UnitMetadataRulesUpdateCheckConsistency unitMetadataRulesUpdateCheckConsistency;
     private DefaultWorkerParameters workerParameters;
 
+    private static final String PREVENT_RULES_ID_TO_REMOVE = "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemove.json";
+    private static final String PREVENT_RULES_ID_TO_ADD = "UnitMetadataRulesUpdateCheckConsistency/addPreventRulesIdToDelete.json";
+
     @Before
     public void init() throws Exception {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
@@ -110,7 +113,7 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
         for (FileRulesModel rule : knownRules) {
             doReturn(new RequestResponseOK<FileRulesModel>().addResult(rule).toJsonNode())
-                .when(adminManagementClient).getRuleByID(eq(rule.getRuleId()));
+                .when(adminManagementClient).getRuleByID((rule.getRuleId()));
         }
     }
 
@@ -844,6 +847,34 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/deleteHoldRuleOk.json");
+
+        // When
+        ItemStatus itemStatus =
+            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    public void testAddPreventRulesIdOK() throws Exception {
+
+        // Given
+        givenRuleActions( PREVENT_RULES_ID_TO_ADD);
+
+        // When
+        ItemStatus itemStatus =
+            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    public void testDeletePreventRulesIdOK() throws Exception {
+
+        // Given
+        givenRuleActions(PREVENT_RULES_ID_TO_REMOVE);
 
         // When
         ItemStatus itemStatus =
