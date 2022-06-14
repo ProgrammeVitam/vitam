@@ -61,7 +61,7 @@ public class WorkerMain {
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.logbook.port";
 
 
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     public WorkerMain(String configurationFile)
         throws IOException {
@@ -81,7 +81,7 @@ public class WorkerMain {
         }
 
         vitamStarter = new VitamStarter(WorkerConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, listeners);
+            BusinessApplication.class, AdminApplication.class, listeners, false);
     }
 
     /**

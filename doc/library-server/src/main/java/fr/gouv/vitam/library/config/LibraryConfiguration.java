@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMAppl
  */
 public class LibraryConfiguration extends DefaultVitamIHMApplicationConfiguration {
 
-    private String staticContent;
     private String baseUri;
 
     /**
@@ -43,18 +42,6 @@ public class LibraryConfiguration extends DefaultVitamIHMApplicationConfiguratio
      */
     public LibraryConfiguration() {
         // Empty constructor
-    }
-
-
-    @Override
-    public String getStaticContent() {
-        return staticContent;
-    }
-
-    @Override
-    public LibraryConfiguration setStaticContent(String staticContent) {
-        this.staticContent = staticContent;
-        return this;
     }
 
     @Override

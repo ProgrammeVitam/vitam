@@ -53,7 +53,7 @@ public class SchedulerMain {
             configurationFile);
         final SchedulerListener schedulerListener = SchedulerListener.getInstance();
         vitamStarter = new VitamStarter(SchedulerConfiguration.class, configurationFile, BusinessApplication.class,
-            SchedulerAdminApplication.class, List.of(schedulerListener));
+            SchedulerAdminApplication.class, List.of(schedulerListener), false);
     }
 
 

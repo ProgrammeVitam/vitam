@@ -41,6 +41,16 @@
 			<artifactId>ihm-demo-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-demo-front</artifactId>
+			<version>${project.version}</version>
+			<classifier>bundle</classifier>
+			<type>zip</type>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ingest-external-client</artifactId>
@@ -104,6 +114,10 @@
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
+			<!-- Include static resources (from ihm-demo-front) -->
+			<resource>
+				<directory>target/front</directory>
+			</resource>
 		</resources>
 
 		<plugins>
@@ -111,6 +125,21 @@
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
+					<!-- Extract static ressources into target/front/static folder -->
+					<execution>
+						<id>unpack-static-resources</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/front/static</outputDirectory>
+							<includeGroupIds>fr.gouv.vitam</includeGroupIds>
+							<includeArtifactIds>ihm-demo-front</includeArtifactIds>
+							<classifier>bundle</classifier>
+							<includeTypes>zip</includeTypes>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-dependencies</id>
 						<phase>package</phase>
@@ -119,6 +148,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<includeTypes>jar</includeTypes>
 							<includeScope>compile</includeScope>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
@@ -203,9 +233,20 @@
 					<defaultGroupname>${unix.group}</defaultGroupname>
 					<mappings>
 						<mapping>
+							<!-- Caution : keep the artifact & dependency copy in the first mapping element ; or else they will be copied in every mapping before... -->
 							<directory>/vitam/lib/${unix.name}</directory>
-							<artifact/>
-							<dependency/>
+							<!-- Special marker to exclude non-default artefacts (we only need the jar to be packaged) -->
+							<artifact>
+								<classifiers>
+									<classifier/>
+								</classifiers>
+							</artifact>
+							<!-- Exclude ihm-demo-front zip artefact-->
+							<dependency>
+								<excludes>
+									<exclude>fr.gouv.vitam:ihm-demo-front:zip</exclude>
+								</excludes>
+							</dependency>
 						</mapping>
 						<mapping>
 							<directory>/vitam/conf/${unix.name}</directory>

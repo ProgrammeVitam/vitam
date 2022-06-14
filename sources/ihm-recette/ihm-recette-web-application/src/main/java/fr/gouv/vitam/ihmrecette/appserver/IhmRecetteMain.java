@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -37,8 +36,6 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 
-import javax.ws.rs.core.Application;
-
 /**
  * Ihm-recette web application
  */
@@ -48,39 +45,13 @@ public class IhmRecetteMain {
 
     private static final String CONF_FILE_NAME = "ihm-recette.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     public IhmRecetteMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
-    }
-
-    /**
-     * This constructor is used for test
-     * To customize BusinessApplication and AdminApplication
-     *
-     * @param configurationFile
-     * @param testBusinessApplication
-     * @param testAdminApplication
-     */
-    @VisibleForTesting
-    public IhmRecetteMain(String configurationFile,
-        Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        if (null == testBusinessApplication) {
-            testBusinessApplication = BusinessApplication.class;
-        }
-
-        if (null == testAdminApplication) {
-            testAdminApplication = AdminApplication.class;
-        }
-
-        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
+            BusinessApplication.class, AdminApplication.class, Lists.newArrayList(), true);
     }
 
     /**
@@ -116,10 +87,4 @@ public class IhmRecetteMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-
-    public final VitamStarter getVitamServer() {
-        return vitamStarter;
-    }
-
-
 }

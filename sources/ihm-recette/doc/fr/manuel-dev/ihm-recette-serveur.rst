@@ -68,7 +68,7 @@ Fichier ``ihm-recette.conf``
    :language: text
 
 * port, serverHost, jettyConfig, tenants, secureMode
-* baseUrl, staticContent, baseUri (qui configure jetty)
+* baseUrl, baseUri (qui configure jetty)
 * authentication (ajoute le filtre shiro si le booléen est à "true")
 * dbName, masterdataDbName, logbookDbName, metadataDbName, mongoDbNodes, clusterName, elasticsearchNodes
 * testSystemSipDirectory, testSystemReportDirectory

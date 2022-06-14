@@ -46,7 +46,7 @@ public class LibraryMain {
 
     private static final String CONF_FILE_NAME = "library.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    private VitamStarter vitamStarter;
+    private final VitamStarter vitamStarter;
 
     /**
      * Constructor  with configuration file name
@@ -57,7 +57,7 @@ public class LibraryMain {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(LibraryConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
+            BusinessApplication.class, AdminApplication.class, Lists.newArrayList(), true);
     }
 
     /**
@@ -75,7 +75,8 @@ public class LibraryMain {
             LibraryMain main = new LibraryMain(args[0]);
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
@@ -92,10 +93,10 @@ public class LibraryMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-    
+
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }
-    
-    
+
+
 }

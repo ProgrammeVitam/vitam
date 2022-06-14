@@ -196,6 +196,8 @@ Pré-requis
 
 .. tip:: Sur Centos 7, pour l'installation de sphinx, il faut installer les 2 packages ``python-sphinx`` et ``python-sphinx_rtd_theme`` puis créer le lien symbolique : ``ln -s /usr/lib/python2.7/site-packages/sphinx_rtd_theme /usr/lib/python2.7/site-packages/sphinx/themes/``.
 
+.. tip:: Un exemple d'image docker permettant le build de la documentation de Vitam se trouve dans ``vitam-conf-dev/build_doc``
+
 Instructions
 ************
 

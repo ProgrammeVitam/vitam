@@ -64,6 +64,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -83,10 +84,11 @@ public class VitamStarter {
 
     private VitamServer vitamServer;
 
-    private Class<? extends Application> businessApplication;
-    private Class<? extends Application> adminApplication;
-    private Class<? extends VitamApplicationConfiguration> configurationType;
-    private List<ServletContextListener> customListeners;
+    private final Class<? extends Application> businessApplication;
+    private final Class<? extends Application> adminApplication;
+    private final Class<? extends VitamApplicationConfiguration> configurationType;
+    private final List<ServletContextListener> customListeners;
+    private final boolean deployStaticResources;
 
     /**
      * Constructor
@@ -100,7 +102,7 @@ public class VitamStarter {
         String configurationFile,
         Class<? extends Application> businessApplication,
         Class<? extends Application> adminApplication) {
-        this(configurationType, configurationFile, businessApplication, adminApplication, null);
+        this(configurationType, configurationFile, businessApplication, adminApplication, null, false);
 
     }
 
@@ -117,12 +119,13 @@ public class VitamStarter {
         String configurationFile,
         Class<? extends Application> businessApplication,
         Class<? extends Application> adminApplication,
-        List<ServletContextListener> customListeners) {
+        List<ServletContextListener> customListeners, boolean deployStaticResources) {
 
         this.businessApplication = businessApplication;
         this.adminApplication = adminApplication;
         this.configurationType = configurationType;
         this.customListeners = customListeners;
+        this.deployStaticResources = deployStaticResources;
         configure(configurationFile);
     }
 
@@ -153,25 +156,31 @@ public class VitamStarter {
 
             final HandlerList handlerList = new HandlerList();
 
-            if (!Strings.isNullOrEmpty(configuration.getStaticContent())) {
-                final ResourceHandler staticContentHandler = new ResourceHandler();
-                staticContentHandler.setDirectoriesListed(true);
-                staticContentHandler.setDirAllowed(true);
-                staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-                staticContentHandler.setResourceBase(configuration.getStaticContent());
-                final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
-                staticContext.setHandler(staticContentHandler);
-                handlerList.addHandler(staticContext);
+            if (deployStaticResources) {
+                URL staticResourcesUrl = this.getClass().getClassLoader().getResource("static");
+                if (staticResourcesUrl != null) {
+                    final ResourceHandler staticContentHandler = new ResourceHandler();
+                    staticContentHandler.setDirectoriesListed(true);
+                    staticContentHandler.setDirAllowed(true);
+                    staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
+                    staticContentHandler.setResourceBase(staticResourcesUrl.toString());
+                    final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
+                    staticContext.setHandler(staticContentHandler);
+                    handlerList.addHandler(staticContext);
+                } else {
+                    // Static resources of ihm-demo & ihm-recette may be missing in development mode
+                    LOGGER.warn("Missing static resources");
+                }
             }
 
             handlerList.addHandler(buildApplicationHandler(configurationFile, configuration));
 
-            if (!Strings.isNullOrEmpty(configuration.getStaticContent())) {
+            if (deployStaticResources) {
                 handlerList.addHandler(new DefaultHandler());
             }
 
             applicationHandlers.addHandler(handlerList);
-            applicationHandlers.addHandler(buildAdminHandler(configurationFile, configuration));
+            applicationHandlers.addHandler(buildAdminHandler(configurationFile));
 
             final String jettyConfig = configuration.getJettyConfig();
 
@@ -254,7 +263,7 @@ public class VitamStarter {
         return stats;
     }
 
-    protected Handler buildAdminHandler(String configurationFile, VitamApplicationConfiguration configuration) {
+    protected Handler buildAdminHandler(String configurationFile) {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
         servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());
         servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);

@@ -48,7 +48,6 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     private String serverHost;
     private String baseUrl;
     private String baseUri;
-    private String staticContent;
     private boolean secure;
     private List<String> secureMode;
     private String sipDirectory;
@@ -118,21 +117,6 @@ public class WebApplicationConfig extends DbConfigurationImpl {
 
     public WebApplicationConfig setBaseUri(String baseUri) {
         this.baseUri = baseUri;
-        return this;
-    }
-
-    /**
-     * @return static content
-     */
-    public String getStaticContent() {
-        return staticContent;
-    }
-
-    /**
-     * @param staticContent static content from server
-     */
-    public WebApplicationConfig setStaticContent(String staticContent) {
-        this.staticContent = staticContent;
         return this;
     }
 

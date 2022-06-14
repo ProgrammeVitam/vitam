@@ -33,5 +33,5 @@ Configuration
 Le fichier de configuration se nomme ihm-demo.conf et contient les paramètres suivants :
 
 * port, serverHost, jettyConfig, tenants
-* baseUrl, staticContent, baseUri, staticContentV2, baseUriV2 (qui configure jetty pour l'IHM-V1 et l'IHM-V2)
+* baseUrl, baseUri, baseUriV2 (qui configure jetty pour l'IHM-V1 et l'IHM-V2)
 * authentication (ajoute le filtre shiro si le booléen est à "true")
