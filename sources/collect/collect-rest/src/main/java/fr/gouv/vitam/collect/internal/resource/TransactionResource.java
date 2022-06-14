@@ -73,6 +73,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
@@ -184,8 +185,17 @@ public class TransactionResource extends ApplicationStatusResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
 
-            return CollectRequestResponse
-                .toResponseOK(CollectHelper.convertProjectModeltoProjectDto(projectModel.get()));
+            Optional<TransactionModel> transactionModel = transactionService.findTransactionByProjectId(projectId);
+
+            if (transactionModel.isEmpty()) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+            ProjectDto projectDto = CollectHelper.convertProjectModeltoProjectDto(projectModel.get());
+            projectDto.setTransactionId(transactionModel.get().getId());
+
+
+            return CollectRequestResponse.toResponseOK(projectDto);
         } catch (CollectException e) {
             LOGGER.error("Error when fetching project by Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -205,12 +215,11 @@ public class TransactionResource extends ApplicationStatusResource {
         try {
             Integer tenantId = ParameterHelper.getTenantParameter();
             List<ProjectModel> listProjects = projectService.findProjectsByTenant(tenantId);
-            if (listProjects.isEmpty()) {
-                LOGGER.error(PROJECT_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
-            }
+            List<ProjectDto> projectDtoList =
+                listProjects.stream().map(projectModel -> CollectHelper.convertProjectModeltoProjectDto(projectModel))
+                    .collect(Collectors.toList());
 
-            return CollectRequestResponse.toResponseOK(listProjects);
+            return CollectRequestResponse.toResponseOK(projectDtoList);
         } catch (CollectException e) {
             LOGGER.error("Error when fetching projects by tenant Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
