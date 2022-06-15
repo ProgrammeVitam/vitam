@@ -9,6 +9,7 @@ appender.console.name = console
 appender.console.layout.type = PatternLayout
 appender.console.layout.pattern = [%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker %m%n
 
+{% if external_siem is defined or (groups['hosts_logstash']|length) > 0 %}
 appender.syslog.type = Syslog
 appender.syslog.name = syslog
 appender.syslog.appName = {{ composant.cluster_name }}
@@ -22,6 +23,9 @@ appender.syslog.layout.type = PatternLayout
 appender.syslog.layout.pattern = {{ composant.cluster_name }}: [%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker%m%n
 # appender.syslog.format = RFC5424
 # appender.syslog.mdcId = esdata
+
+rootLogger.appenderRef.syslog.ref = syslog
+{% endif %}
 
 appender.rolling.type = RollingFile
 appender.rolling.name = rolling
@@ -47,7 +51,6 @@ appender.rolling.strategy.action.condition.nested_condition.exceeds = {{ composa
 rootLogger.level = {{ composant.log_appenders.root.log_level }}
 rootLogger.appenderRef.console.ref = console
 rootLogger.appenderRef.rolling.ref = rolling
-rootLogger.appenderRef.syslog.ref = syslog
 
 appender.deprecation_rolling.type = RollingFile
 appender.deprecation_rolling.name = deprecation_rolling
@@ -201,3 +204,4 @@ logger.samlxml_decrypt.name = org.opensaml.xmlsec.encryption.support.Decrypter
 logger.samlxml_decrypt.level = fatal
 logger.saml2_decrypt.name = org.opensaml.saml.saml2.encryption.Decrypter
 logger.saml2_decrypt.level = fatal
+
