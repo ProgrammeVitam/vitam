@@ -1,5 +1,4 @@
 Notes et procédures spécifiques V6RC
-<<<<<<< HEAD
 ##################################
 
 .. caution:: Pour une montée de version depuis la V5RC de Vitam, veuillez appliquer les procédures spécifiques de la V5 en complément des procédures suivantes. Pour une montée de version depuis la V5, vous pouvez appliquer la procédure suivante directement.
@@ -31,7 +30,6 @@ Puis redémarrer les externals qui ont été coupés durant la migration :
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
 
-=======
 ####################################
 
 Montée de version vers mongo 4.4
@@ -66,4 +64,3 @@ Ce playbook change le "Read and write Concern" des replicaset par reconfiguratio
 "SetFeatureCompatibility" à 5.0.
 
 Une fois ces montées de version de Mongodb réalisées la montée de version Vitam classique peut être réalisée.
->>>>>>> 788aa0fdae (add documentation for mongodb update)
