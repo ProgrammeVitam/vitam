@@ -25,13 +25,13 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.logbook.administration.main;
+package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
@@ -41,20 +41,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeast;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class CallTraceabilityLFCTest {
+public class TraceabilityJobTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -65,8 +68,11 @@ public class CallTraceabilityLFCTest {
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
+    @Mock
+    JobExecutionContext context;
+
     @InjectMocks
-    private CallTraceabilityLFC callTraceabilityLFC;
+    private TraceabilityJob callTraceability;
 
     @Before
     public void setup() {
@@ -76,48 +82,36 @@ public class CallTraceabilityLFCTest {
     }
 
     @Test
-    public void testTraceabilityLFCOKThenSuccess() throws Exception {
-        // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
-            .traceabilityLfcUnit();
+    public void testStorageLogBackupOKThenSuccess() throws Exception {
 
-        doReturn(new LifecycleTraceabilityStatus(true, false, "", false))
-            .when(logbookOperationsClient).checkLifecycleTraceabilityWorkflowStatus(anyString());
+        // Given
+        AtomicInteger tenantId = new AtomicInteger();
+        doAnswer((args) -> {
+            assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
+            tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
+            return new RequestResponseOK<>();
+        }).when(logbookOperationsClient).traceability(any());
 
         // When
-        callTraceabilityLFC.run(CallTraceabilityLFC.TraceabilityType.Unit);
+        callTraceability.execute(context);
 
         // Then
-        verify(logbookOperationsClient, times(10)).traceabilityLfcUnit();
-        verify(logbookOperationsClient, times(10)).close();
-        verify(logbookOperationsClient, atLeast(10)).checkLifecycleTraceabilityWorkflowStatus(anyString());
+        verify(logbookOperationsClient).traceability(eq(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)));
+        verify(logbookOperationsClient).close();
         verifyNoMoreInteractions(logbookOperationsClient);
+        assertThat(tenantId).hasValue(1);
     }
 
     @Test
-    public void testTraceabilityLFCFatalThenOK() throws Exception {
+    public void testStorageLogBackupKOThenException() throws Exception {
+
         // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
-            .traceabilityLfcUnit();
+        doThrow(new LogbookClientServerException("prb"))
+            .when(logbookOperationsClient).traceability(any());
 
-        doAnswer(
-            (args) -> {
-                assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
-                Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-                if (tenantId == 2) {
-                    return new LifecycleTraceabilityStatus(false, true, "PAUSE.FATAL", false);
-                }
-                return new LifecycleTraceabilityStatus(true, false, "", false);
-            }
-        ).when(logbookOperationsClient).checkLifecycleTraceabilityWorkflowStatus(anyString());
-
-        // When
-        callTraceabilityLFC.run(CallTraceabilityLFC.TraceabilityType.Unit);
-
-        // Then
-        verify(logbookOperationsClient, times(10)).traceabilityLfcUnit();
-        verify(logbookOperationsClient, times(10)).close();
-        verify(logbookOperationsClient, atLeast(10)).checkLifecycleTraceabilityWorkflowStatus(anyString());
-        verifyNoMoreInteractions(logbookOperationsClient);
+        // When / Then
+        assertThatThrownBy(() -> callTraceability.execute(context))
+            .isInstanceOf(JobExecutionException.class);
+        verify(logbookOperationsClient).traceability(any());
     }
 }

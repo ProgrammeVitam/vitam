@@ -25,7 +25,19 @@
  * accept its terms.
  */
 
-/**
- * Povides command line (main) to control Traceability process for the Logbook Administration module
- */
-package fr.gouv.vitam.logbook.administration.main;
+package fr.gouv.vitam.scheduler.server.model;
+
+public enum TraceabilityType {
+    ObjectGroup("object group"),
+    Unit("unit");
+
+    private final String msg;
+
+    TraceabilityType(String msg) {
+        this.msg = msg;
+    }
+
+    public String getMessage() {
+        return msg;
+    }
+}

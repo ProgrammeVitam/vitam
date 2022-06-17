@@ -36,11 +36,3 @@
     list_timers: ["vitam-offer-log-compaction"]
     vitam_component: "{{ vitam.storageofferdefault.vitam_component }}"
 
-- hosts: hosts_logbook
-  any_errors_fatal: true
-  gather_facts: no
-  roles:
-    - stop_vitam_timers
-  vars:
-    list_timers: ["vitam-logbook-reconstruction","vitam-traceability-lfc-objectgroup","vitam-traceability-lfc-unit","vitam-traceability-operations","vitam-traceability-audit"]
-    vitam_component: "{{ vitam.logbook.vitam_component }}"

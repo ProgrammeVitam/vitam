@@ -25,13 +25,13 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.logbook.administration.main;
+
+package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
@@ -39,24 +39,24 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.quartz.JobExecutionContext;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class CallTraceabilityTest {
+public class ReconstructionOperationJobTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -67,18 +67,25 @@ public class CallTraceabilityTest {
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
+    @Mock
+    private JobExecutionContext context;
+
     @InjectMocks
-    private CallTraceability callTraceability;
+    private ReconstructionOperationJob callReconstructionOperation;
 
     @Before
     public void setup() {
+
         doReturn(logbookOperationsClient).when(logbookOperationsClientFactory).getClient();
         VitamConfiguration.setAdminTenant(1);
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
     }
 
+
+
     @Test
-    public void testStorageLogBackupOKThenSuccess() throws Exception {
+    public void testTraceabilityLFCOKThenSuccess() throws Exception {
+
 
         // Given
         AtomicInteger tenantId = new AtomicInteger();
@@ -86,28 +93,17 @@ public class CallTraceabilityTest {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
             return new RequestResponseOK<>();
-        }).when(logbookOperationsClient).traceability(any());
+        }).when(logbookOperationsClient).reconstructCollection(any());
+
 
         // When
-        callTraceability.run();
+        callReconstructionOperation.execute(context);
 
         // Then
-        verify(logbookOperationsClient).traceability(eq(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)));
+        verify(logbookOperationsClient, times(1)).reconstructCollection(anyList());
         verify(logbookOperationsClient).close();
         verifyNoMoreInteractions(logbookOperationsClient);
-        assertThat(tenantId).hasValue(1);
     }
 
-    @Test
-    public void testStorageLogBackupKOThenException() throws Exception {
 
-        // Given
-        doThrow(new LogbookClientServerException("prb"))
-            .when(logbookOperationsClient).traceability(any());
-
-        // When / Then
-        assertThatThrownBy(() -> callTraceability.run())
-            .isInstanceOf(ExecutionException.class);
-        verify(logbookOperationsClient).traceability(any());
-    }
 }

@@ -53,6 +53,10 @@ public class ReconstructionRequestItem {
         super();
     }
 
+    public ReconstructionRequestItem(Integer tenant) {
+        this.tenant = tenant;
+    }
+
     /**
      * Get tenant
      *

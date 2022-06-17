@@ -24,13 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.logbook.administration.main;
+
+
+package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.base.Stopwatch;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.configuration.SecureConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -41,87 +40,37 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.apache.commons.lang3.ArrayUtils;
+import fr.gouv.vitam.scheduler.server.model.TraceabilityType;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Utility to launch the Traceability through command line and external scheduler
- */
-public class CallTraceabilityLFC {
+public class TraceabilityLFCJob implements Job {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceabilityLFC.class);
-    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TraceabilityLFCJob.class);
+    private static final String ITEM = "item";
+
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public CallTraceabilityLFC(LogbookOperationsClientFactory logbookOperationsClientFactory) {
+
+    TraceabilityLFCJob() {
+        this(LogbookOperationsClientFactory.getInstance());
+    }
+
+    TraceabilityLFCJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-
-    enum TraceabilityType {
-        ObjectGroup,
-        Unit
-    }
-
-    /**
-     * @param args ignored
-     */
-    public static void main(String[] args) {
-        platformSecretConfiguration();
-
-        if (ArrayUtils.isEmpty(args) || args.length != 1) {
-            LOGGER.error("Expecting traceability type argument");
-            throw new IllegalStateException("Invalid command arguments");
-        }
-
-        TraceabilityType traceabilityType;
-        try {
-            traceabilityType = TraceabilityType.valueOf(args[0]);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Expecting traceability type argument. Valid values: {}",
-                StringUtils.join(TraceabilityType.values(), ", "));
-            throw new IllegalStateException("Invalid command arguments", e);
-        }
-
-        try {
-            CallTraceabilityLFC callTraceability =
-                new CallTraceabilityLFC(LogbookOperationsClientFactory.getInstance());
-            callTraceability.run(traceabilityType);
-        } catch (Exception e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Logbook LFC operation traceability failed", e);
-        }
-    }
-
-    void run(TraceabilityType traceabilityType) throws IOException {
-        File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-        final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
-        while (true) {
-            boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(traceabilityType, conf);
-
-            if (!atLeastOneTenantReachedMaxCapacity) {
-                LOGGER.info("Done !");
-                break;
-            }
-
-            LOGGER.warn("At least one traceability operation reached max capacity. Re-run traceability...");
-        }
-    }
-
-    private boolean secureAllTenants(TraceabilityType traceabilityType,
-        SecureConfiguration conf) {
-        List<Integer> tenants = new ArrayList<>();
-        conf.getTenants().forEach((v) -> tenants.add(Integer.parseInt(v)));
+    private boolean secureAllTenants(TraceabilityType traceabilityType) {
+        List<Integer> tenants = VitamConfiguration.getTenants();
 
         VitamThreadPoolExecutor defaultExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
 
@@ -150,8 +99,7 @@ public class CallTraceabilityLFC {
      * @param traceabilityType - Unit or ObjectGroup
      * @return true if the tenant need another run to be fully secured
      */
-    private boolean secureByTenantId(int tenantId,
-        TraceabilityType traceabilityType) {
+    private boolean secureByTenantId(int tenantId, TraceabilityType traceabilityType) {
         String operationId = null;
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -226,22 +174,37 @@ public class CallTraceabilityLFC {
         return operationId;
     }
 
-    private static void platformSecretConfiguration() {
-        // Load Platform secret from vitam.conf file
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
-
-            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
-            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
-
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
-        }
-    }
 
     private static String getOperationId(RequestResponseOK<String> response) {
         return response.getFirstResult();
     }
+
+
+
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        try {
+            JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+            TraceabilityType traceabilityType;
+            traceabilityType = TraceabilityType.valueOf(jobDataMap.get(ITEM).toString());
+            while (true) {
+                boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(traceabilityType);
+
+                if (!atLeastOneTenantReachedMaxCapacity) {
+                    LOGGER.info("Done !");
+                    break;
+                }
+
+                LOGGER.warn("At least one traceability operation reached max capacity. Re-run traceability...");
+            }
+            LOGGER.info("Traceability LFC for " + traceabilityType.getMessage() + " operation is finished");
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Expecting traceability type argument. Valid values: {}",
+                StringUtils.join(TraceabilityType.values(), ", "));
+            throw new IllegalStateException("Invalid command arguments", e);
+        } catch (Exception e) {
+            throw new JobExecutionException(e);
+        }
+    }
+
+
 }

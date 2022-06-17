@@ -51,6 +51,7 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
+import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -231,6 +232,12 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
 
     @Override
     public RequestResponse<JsonNode> getLastOperationByType(String operationType) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public void reconstructCollection(List<ReconstructionRequestItem> reconstructionItems)
+        throws LogbookClientServerException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
