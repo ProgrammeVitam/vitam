@@ -94,6 +94,7 @@ public class ProjectService {
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
             .withArchivalProfile(projectDto.getArchivalProfile())
             .withComment(projectDto.getComment())
+            .withUnitUp(projectDto.getUnitUp())
             .build();
         ProjectModel projectModel = new ProjectModelBuilder()
             .withId(projectDto.getId())

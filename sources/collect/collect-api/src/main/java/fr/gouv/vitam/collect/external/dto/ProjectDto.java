@@ -68,6 +68,7 @@ public class ProjectDto implements Serializable {
 
     private String transactionId;
 
+    @JsonProperty("unitUp")
     private String unitUp;
 
     public ProjectDto() {
