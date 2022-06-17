@@ -1786,7 +1786,7 @@
     "Origin": "INTERNAL",
     "ShortName": "_aud",
     "Collections": [
-      "Unit"
+      "Unit", "ObjectGroup"
     ]
   },
   {
@@ -1797,7 +1797,7 @@
     "Origin": "INTERNAL",
     "ShortName": "_acd",
     "Collections": [
-      "Unit"
+      "Unit", "ObjectGroup"
     ]
   },
   {

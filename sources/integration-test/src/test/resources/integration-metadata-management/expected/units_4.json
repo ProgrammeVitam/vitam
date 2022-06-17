@@ -1,28 +1,5 @@
 [
   {
-    "_id": "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq",
-    "_sps": [
-      "FOR_TEST"
-    ],
-    "_us": [
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq",
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca"
-    ],
-    "_graph": [
-      "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca",
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq"
-    ],
-    "_uds": {
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq": 2,
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca": 1
-    },
-    "_min": 1,
-    "_max": 3,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
-  },
-  {
     "_id": "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca",
     "_mgt": {},
     "DescriptionLevel": "RecordGrp",

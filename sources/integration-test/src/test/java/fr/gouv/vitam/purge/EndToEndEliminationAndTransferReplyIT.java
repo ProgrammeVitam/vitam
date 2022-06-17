@@ -2045,8 +2045,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<JsonNode> initialObjectGroups = normalize(ingestedGots.getResults(), initialIngestReplacements);
 
         Map<String, String> transferredIngestReplacements =
-            getReplacementsForNormalization(transferredSipIngestOperationId,
-                ingestedTransferredUnits.getResults(), ingestedTransferredObjectGroups.getResults());
+            getReplacementsForNormalization(transferredSipIngestOperationId, ingestedTransferredUnits.getResults(),
+                ingestedTransferredObjectGroups.getResults());
         List<JsonNode> transferredUnits =
             normalize(ingestedTransferredUnits.getResults(), transferredIngestReplacements);
         List<JsonNode> transferredObjectGroups =
@@ -2055,22 +2055,19 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(initialUnits).hasSameSizeAs(transferredUnits);
         for (int i = 0; i < initialUnits.size(); i++) {
             ObjectNode initialUnit = (ObjectNode) initialUnits.get(i);
-            ObjectNode transferedUnit = (ObjectNode) initialUnits.get(i);
+            ObjectNode transferedUnit = (ObjectNode) transferredUnits.get(i);
 
-            initialUnit.put(Unit.APPROXIMATE_CREATION_DATE, TIMESTAMP);
-            initialUnit.put(Unit.APPROXIMATE_UPDATE_DATE, TIMESTAMP);
-            transferedUnit.put(Unit.APPROXIMATE_CREATION_DATE, TIMESTAMP);
-            transferedUnit.put(Unit.APPROXIMATE_UPDATE_DATE, TIMESTAMP);
-
-            JsonAssert.assertJsonEquals(initialUnit, transferedUnit,
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            JsonAssert.assertJsonEquals(initialUnit, transferedUnit, JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+                .whenIgnoringPaths(
+                    List.of(VitamFieldsHelper.approximateCreationDate(), VitamFieldsHelper.approximateUpdateDate(),
+                        VitamFieldsHelper.sedaVersion())));
         }
 
         assertThat(initialObjectGroups).hasSameSizeAs(transferredObjectGroups);
         for (int i = 0; i < initialObjectGroups.size(); i++) {
-
             JsonAssert.assertJsonEquals(initialObjectGroups.get(i), transferredObjectGroups.get(i),
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                    List.of(VitamFieldsHelper.approximateCreationDate(), VitamFieldsHelper.approximateUpdateDate())));
         }
     }
 

@@ -87,6 +87,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.metadata.rest.MetadataManagementResource;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -669,10 +670,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         // Check Unit
         String expectedUnitJson = "integration-metadata-management/expected/units_1.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson, true);
         // Check Got
         String expectedGotJson = "integration-metadata-management/expected/gots_1.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson, true);
 
 
         assertThat(
@@ -800,10 +801,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         // Check Unit
         String expectedUnitJson = "integration-metadata-management/expected/units_2.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson, true);
         // Check Got
         String expectedGotJson = "integration-metadata-management/expected/gots_2.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson, true);
     }
 
 
@@ -874,10 +875,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         String expectedUnitJson = "integration-metadata-management/expected/units_3.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson, false);
         // Check Got
         String expectedGotJson = "integration-metadata-management/expected/gots_3.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson, false);
 
         storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
         storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
@@ -944,10 +945,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         expectedUnitJson = "integration-metadata-management/expected/units_4.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson, true);
         // Check Got
         expectedGotJson = "integration-metadata-management/expected/gots_4.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson, true);
     }
 
 
@@ -979,10 +980,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         // Check Unit
         String expectedUnitJson = "integration-metadata-management/expected/units_5.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson, false);
         // Check Got
         String expectedGotJson = "integration-metadata-management/expected/gots_5.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson, false);
 
         body = metaDataClient.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT_OBJECTGROUP,
             Sets.newHashSet("AU_3", "AU_6", "AU_7", "AU_10"));
@@ -1341,12 +1342,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
             //Check global Units
             String expectedJson = "integration-metadata-management/expected/units_6.json";
-            assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedJson);
+            assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedJson, true);
 
 
             //Check global Gots
             expectedJson = "integration-metadata-management/expected/gots_6.json";
-            assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedJson);
+            assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedJson, true);
 
         } finally {
             StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost",
@@ -1356,10 +1357,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
 
-    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
+    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile, boolean validateMetadata)
         throws InvalidParseOperationException, FileNotFoundException {
 
-        ArrayNode unitDataSet = dumpDataSet(mongoCollection);
+        ArrayNode unitDataSet = dumpDataSet(mongoCollection, validateMetadata);
 
         String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
         String expectedUnitDataSet =
@@ -1370,11 +1371,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
+    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean validateMetadata) throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
-        FindIterable<T> documents = mongoCollection.find()
-            .sort(orderBy(ascending(MetadataDocument.ID)));
+        FindIterable<T> documents = mongoCollection.find();
 
         for (T document : documents) {
             ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JsonHandler.unprettyPrint(document));
@@ -1382,11 +1382,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Replace _glpd, _acd and _aud with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
             jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
-            if (mongoCollection.equals(MetadataCollections.UNIT.getCollection())) {
-                jsonUnit.put(Unit.APPROXIMATE_CREATION_DATE, "#TIMESTAMP#");
-                jsonUnit.put(Unit.APPROXIMATE_UPDATE_DATE, "#TIMESTAMP#");
+            if(validateMetadata) {
+                assertThat(jsonUnit.get(MetadataDocument.APPROXIMATE_CREATION_DATE)).isNotNull();
+                assertThat(jsonUnit.get(MetadataDocument.APPROXIMATE_UPDATE_DATE)).isNotNull();
+                jsonUnit.put(MetadataDocument.APPROXIMATE_CREATION_DATE, "#TIMESTAMP#");
+                jsonUnit.put(MetadataDocument.APPROXIMATE_UPDATE_DATE, "#TIMESTAMP#");
             }
-
 
             dataSet.add(jsonUnit);
         }

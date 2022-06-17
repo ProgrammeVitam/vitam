@@ -28,12 +28,14 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -98,6 +100,16 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      * Last persisted date of Unit / Object Group
      */
     public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
+
+    /**
+     * Approximate creation date of Unit / Object Group
+     */
+    public static final String APPROXIMATE_CREATION_DATE = "_acd";
+
+    /**
+     * Approximate update date of Unit / Object Group
+     */
+    public static final String APPROXIMATE_UPDATE_DATE = "_aud";
 
     /**
      * Quick projection for ID and ObjectGroup Only
@@ -202,5 +214,13 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
 
     public Integer getAtomicVersion() {
         return getInteger(ATOMIC_VERSION);
+    }
+
+    public void setApproximateCreationDate(LocalDateTime creationDate) {
+        put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
+    }
+
+    public void setApproximateUpdateDate(LocalDateTime lastUpdate) {
+        put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
     }
 }

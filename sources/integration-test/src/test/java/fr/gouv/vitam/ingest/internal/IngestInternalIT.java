@@ -480,17 +480,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
 
-            final LocalDateTime approximateCD =
-                LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateCreationDate()).asText());
-            final LocalDateTime approximateUD =
-                LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateUpdateDate()).asText());
-
-            assertThat(approximateCD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(approximateCD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(approximateUD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(approximateUD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(approximateCD.isEqual(approximateUD)).isTrue();
-
+            checkApproximateDates(dateBeforeIngest, unit);
 
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
             assertThat(unit.get("#storage").get("strategyId").asText())
@@ -501,17 +491,18 @@ public class IngestInternalIT extends VitamRuleRunner {
             select.addRoots(og);
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            RequestResponseOK<ObjectGroup> objectGroupResponse =
-                JsonHandler.getFromJsonNode(jsonResponse, new TypeReference<>() {
-                });
-            assertThat(objectGroupResponse).isNotNull();
-            List<ObjectGroup> objectGroupList = objectGroupResponse.getResults();
-            assertThat(objectGroupList).hasSize(1);
-            ObjectGroup objectGroup = objectGroupList.iterator().next();
+            final JsonNode ogResults = jsonResponse.get(RESULTS);
+            assertNotNull(ogResults);
+            final JsonNode objectGroup = ogResults.get(0);
+            assertNotNull(objectGroup);
+
+            checkApproximateDates(dateBeforeIngest, objectGroup);
+
             // Bug 5159: check that all ObjectGroup _up are in _us
-            assertThat(objectGroup.getList(VitamFieldsHelper.allunitups(), String.class))
-                .containsAll(objectGroup.getList(VitamFieldsHelper.unitups(), String.class));
-            final String objectId = objectGroup.getId();
+            assertThat(JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.allunitups()), List.class,
+                String.class)).containsAll(
+                JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.unitups()), List.class, String.class));
+            final String objectId = objectGroup.get(VitamFieldsHelper.id()).asText();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage =
                 storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
@@ -689,6 +680,17 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             throw e;
         }
+    }
+
+    private void checkApproximateDates(LocalDateTime dateBeforeIngest, JsonNode metadata) {
+        final LocalDateTime approximateCD =
+            LocalDateTime.parse(metadata.get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime approximateUD =
+            LocalDateTime.parse(metadata.get(VitamFieldsHelper.approximateUpdateDate()).asText());
+
+        assertThat(approximateCD).isAfter(dateBeforeIngest).isBefore(LocalDateUtil.now());
+        assertThat(approximateUD).isAfter(dateBeforeIngest).isBefore(LocalDateUtil.now());
+        assertEquals(approximateCD, approximateUD);
     }
 
     private int checkAndRetrieveLfcVersionForUnit(String unitId, AccessInternalClient accessClient) throws Exception {

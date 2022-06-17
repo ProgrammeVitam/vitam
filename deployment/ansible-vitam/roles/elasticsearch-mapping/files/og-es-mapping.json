@@ -314,6 +314,14 @@
     },
     "_glpd": {
       "enabled": false
+    },
+    "_acd": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "_aud": {
+      "type": "date",
+      "format": "strict_date_optional_time"
     }
   }
 }

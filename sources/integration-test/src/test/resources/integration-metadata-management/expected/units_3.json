@@ -1,28 +1,5 @@
 [
   {
-    "_id": "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq",
-    "_sps": [
-      "FOR_TEST"
-    ],
-    "_us": [
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq",
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca"
-    ],
-    "_graph": [
-      "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca",
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq"
-    ],
-    "_uds": {
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq": 2,
-      "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca": 1
-    },
-    "_min": 1,
-    "_max": 3,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
-  },
-  {
     "_id": "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca",
     "_sps": [
       "FRAN_NP_009913"
@@ -38,9 +15,7 @@
     },
     "_min": 1,
     "_max": 2,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahlm6sdabkeoaldc3hq6laaaaaq",
@@ -61,9 +36,7 @@
     },
     "_min": 1,
     "_max": 3,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq",
@@ -84,9 +57,7 @@
     },
     "_min": 1,
     "_max": 3,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#"
   },
   {
     "_id": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
@@ -107,8 +78,6 @@
     },
     "_min": 1,
     "_max": 3,
-    "_glpd": "#TIMESTAMP#",
-    "_acd":"#TIMESTAMP#" ,
-    "_aud": "#TIMESTAMP#"
+    "_glpd": "#TIMESTAMP#"
   }
 ]
