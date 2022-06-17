@@ -1,12 +1,12 @@
 ### Configuration
-@transaction-id = aeeaaaaaaceezldyaamscambcvdf6zyaaaaq
-@project-id = aeeaaaaaaceezldyaamscambcvdf6eyaaaaq
+@transaction-id = aeeaaaaaachlf3tiaa2i6amb3wdtx4aaaaaq
+@project-id = aeeaaaaaachlf3tiaa2i6amb3wdtxpyaaaaq
 @unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
 @tenant = 0
 @access-contract = ContratTNR
 
 ### Création d'un nouveau projet
-POST {{url-collect}}/collect/v1/projects
+POST {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
 Content-Length: 401
@@ -25,7 +25,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Mise à jour d'un projet
-PUT {{url-collect}}/collect/v1/projects
+PUT {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
 Content-Length: 401
@@ -33,6 +33,7 @@ X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 {
+  "id": "{{project-id}}",
   "ArchivalAgencyIdentifier": "Identifier0",
   "TransferingAgencyIdentifier": "Identifier3",
   "OriginatingAgencyIdentifier": "FRAN_NP_009915",
@@ -44,7 +45,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Récuperation de tout les projets associé au tenant
-GET {{url-collect}}/collect/v1/projects
+GET {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
@@ -52,14 +53,14 @@ X-Access-Contract-Id: {{access-contract}}
 
 
 ### Récuperation d'un projet par id
-GET {{url-collect}}/collect/v1/projects/{{project-id}}
+GET {{url-collect}}/collect-external/v1/projects/{{project-id}}
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 ### Récuperation d'une unité archivistique pas dsl query
-GET {{url-collect}}/collect/v1/units
+GET {{url-collect}}/collect-external/v1/units
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
@@ -84,7 +85,7 @@ Content-Length: 143
 
 
 ### upload zip avec arborescence a traiter
-POST {{url-collect}}/collect/v1/projects/{{project-id}}/binary
+POST {{url-collect}}/collect-external/v1/projects/{{project-id}}/binary
 Accept: application/json
 Content-Type: application/zip
 X-Tenant-Id: {{tenant}}
@@ -95,7 +96,7 @@ X-Access-Contract-Id: {{access-contract}}
 
 
 ### Création d'une nouvelle transaction
-POST  {{url-collect}}/collect/v1/transactions
+POST  {{url-collect}}/collect-external/v1/transactions
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -113,7 +114,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Création et rattachement d'une nouvelle unité archivistique à la transaction
-POST  {{url-collect}}/collect/v1/transactions/{{transaction-id}}/units
+POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/units
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -136,7 +137,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Création et rattachement d'un usage(BinaryMaster)/version(1) à l'unité archivistique
-POST  {{url-collect}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/1
+POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster/1
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -149,7 +150,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Rattachement d'un binaire à un usage(BinaryMaster)/version(1)
-POST  {{url-collect}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/1/binary
+POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster/1/binary
 Accept: application/json
 Content-Type: application/octet-stream
 X-Tenant-Id: {{tenant}}
@@ -158,7 +159,7 @@ X-Access-Contract-Id: {{access-contract}}
 < /path_tobinary/binaire_test.txt
 
 ### Possibilité de création et rattachement d'une version 2 à un usage existant --> vérifier la prise en compte d'un tel scénario dans VITAM
-POST  {{url-collect}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/2
+POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster/2
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -171,7 +172,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Rattachement d'un binaire à l'usage(BinaryMaster)/version(2)
-POST  {{url-collect}}/collect/v1/units/{{unit-id}}/objects/BinaryMaster/2/binary
+POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster/2/binary
 Accept: application/json
 Content-Type: application/octet-stream
 X-Tenant-Id: {{tenant}}
@@ -180,7 +181,7 @@ X-Access-Contract-Id: {{access-contract}}
 < /path_tobinary/binary_version_2.txt
 
 ### Fermeture de la transaction
-POST  {{url-collect}}/collect/v1/transactions/{{transaction-id}}/close
+POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/close
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -189,7 +190,7 @@ X-Access-Contract-Id: {{access-contract}}
 {}
 
 ### Génération et envoi du SIP vers VITAM
-POST  {{url-collect}}/collect/v1/transactions/{{transaction-id}}/send
+POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/send
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

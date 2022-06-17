@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
@@ -77,6 +79,9 @@ public class BusinessApplication extends ConfigurationApplication {
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
+            SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
+            SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
+
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
             TransactionService transactionService = new TransactionService(transactionRepository);
             ProjectRepository projectRepository = new ProjectRepository(mongoDbAccess);
@@ -92,7 +97,8 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(
-                new TransactionResource(transactionService, collectService, sipService, projectService, fluxService));
+                new TransactionResource(secureEndpointRegistry, transactionService, collectService, sipService, projectService, fluxService));
+            singletons.add(secureEndpointScanner);
         } catch (IOException e) {
             LOGGER.debug("Error when starting BusinessApplication : {}", e);
             throw new CollectException(e);
