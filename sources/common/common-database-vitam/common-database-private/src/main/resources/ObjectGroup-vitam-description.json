@@ -550,5 +550,17 @@
     "type": "signed_long",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_acd",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_aud",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
   }
 ]

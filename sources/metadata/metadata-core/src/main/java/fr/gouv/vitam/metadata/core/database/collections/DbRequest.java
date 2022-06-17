@@ -260,7 +260,7 @@ public class DbRequest {
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
-            updatedDocument.setFuzzyUpdateDate(LocalDateUtil.now());
+            updatedDocument.setApproximateUpdateDate(LocalDateUtil.now());
             LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
@@ -982,14 +982,15 @@ public class DbRequest {
             final ObjectNode transformedUpdatedDocument =
                 ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
 
+            if (newDocumentVersion != documentVersion) {
+                transformedUpdatedDocument.put(MetadataDocument.APPROXIMATE_UPDATE_DATE,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            }
+
             if (metadataCollection == MetadataCollections.UNIT) {
                 if (!forceUpdate &&
                     !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
                     return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
-                }
-                if (newDocumentVersion != documentVersion) {
-                    transformedUpdatedDocument.put(Unit.APPROXIMATE_UPDATE_DATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
                 }
                 // Unit validation
                 unitValidator.validateUnit(transformedUpdatedDocument);
@@ -1048,8 +1049,8 @@ public class DbRequest {
             .filter(line -> !(line.contains("\"" + MetadataDocument.ATOMIC_VERSION + "\"")))
             .filter(line -> !(line.contains("\"" + MetadataDocument.GRAPH_LAST_PERSISTED_DATE + "\"")))
             .filter(line -> !(line.contains("\"" + MetadataDocument.OPS + "\"")))
-            .filter(line -> !(line.contains("\"" + Unit.APPROXIMATE_CREATION_DATE + "\"")))
-            .filter(line -> !(line.contains("\"" + Unit.APPROXIMATE_UPDATE_DATE + "\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.APPROXIMATE_CREATION_DATE + "\"")))
+            .filter(line -> !(line.contains("\"" + MetadataDocument.APPROXIMATE_UPDATE_DATE + "\"")))
             .filter(line -> !(line.contains("\"_history\"")))
             .count();
 
@@ -1183,8 +1184,11 @@ public class DbRequest {
 
             InsertToMongodb requestToMongodb =
                 (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(insertParserMultiple);
-            objectGroups.add(new ObjectGroup(requestToMongodb.getFinalData()));
+            final ObjectGroup og = new ObjectGroup(requestToMongodb.getFinalData());
 
+            setDateCreationAndModification(og);
+
+            objectGroups.add(og);
         }
 
         Stopwatch mongoWatch = Stopwatch.createStarted();
@@ -1348,10 +1352,10 @@ public class DbRequest {
         }
     }
 
-    private void setDateCreationAndModification(Unit unit) {
+    private void setDateCreationAndModification(MetadataDocument<? extends MetadataDocument<?>> metadataDocument) {
         final LocalDateTime now = LocalDateUtil.now();
-        unit.setFuzzyCreationDate(now);
-        unit.setFuzzyUpdateDate(now);
+        metadataDocument.setApproximateCreationDate(now);
+        metadataDocument.setApproximateUpdateDate(now);
     }
 
     /**

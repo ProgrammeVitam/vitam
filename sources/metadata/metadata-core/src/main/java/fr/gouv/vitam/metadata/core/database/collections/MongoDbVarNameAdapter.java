@@ -164,9 +164,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case IMPLEMENTATIONVERSION:
                         return VitamDocument.IMPLEMENTATIONVERSION;
                     case APPROXIMATE_CREATION_DATE:
-                        return Unit.APPROXIMATE_CREATION_DATE;
+                        return MetadataDocument.APPROXIMATE_CREATION_DATE;
                     case APPROXIMATE_UPDATE_DATE:
-                        return Unit.APPROXIMATE_UPDATE_DATE;
+                        return MetadataDocument.APPROXIMATE_UPDATE_DATE;
                     case ALL:
                     default:
                         break;

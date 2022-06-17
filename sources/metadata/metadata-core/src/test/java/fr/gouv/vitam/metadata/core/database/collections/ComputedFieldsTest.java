@@ -48,42 +48,42 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ComputedFieldsTest {
 
     private static final List<String> expectedUnitComputedFields =
-        Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
-            MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
-            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES,
-            Unit.APPROXIMATE_CREATION_DATE, Unit.APPROXIMATE_UPDATE_DATE);
+        Arrays.asList(Unit.UNITDEPTHS, MetadataDocument.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
+            MetadataDocument.GRAPH_LAST_PERSISTED_DATE, MetadataDocument.ORIGINATING_AGENCIES,
+            Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
 
-    private static final List<String> expectedUnitMainFields = Arrays
-        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
-            Unit.OPERATION_TRANSFERS,
-            Unit.DISSEMINATIONRULE, Unit.REUSERULE, Unit.CLASSIFICATIONRULE, Unit.RULE, Unit.END, Unit.STORAGERULES,
-            Unit.STORAGEEND, Unit.APPRAISALRULES, Unit.APPRAISALEND, Unit.ACCESSRULES, Unit.ACCESSEND,
-            Unit.DISSEMINATIONRULES, Unit.DISSEMINATIONEND, Unit.REUSERULES, Unit.REUSEEND, Unit.CLASSIFICATIONRULES,
-            Unit.CLASSIFICATIONEND, MetadataDocument.QUALIFIERS, MetadataDocument.NBCHILD, MetadataDocument.TYPE,
-            MetadataDocument.UP, MetadataDocument.OG, MetadataDocument.OPS, MetadataDocument.OPI,
+    private static final List<String> expectedUnitMainFields =
+        Arrays.asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
+            Unit.OPERATION_TRANSFERS, Unit.DISSEMINATIONRULE, Unit.REUSERULE, Unit.CLASSIFICATIONRULE, Unit.RULE,
+            Unit.END, Unit.STORAGERULES, Unit.STORAGEEND, Unit.APPRAISALRULES, Unit.APPRAISALEND, Unit.ACCESSRULES,
+            Unit.ACCESSEND, Unit.DISSEMINATIONRULES, Unit.DISSEMINATIONEND, Unit.REUSERULES, Unit.REUSEEND,
+            Unit.CLASSIFICATIONRULES, Unit.CLASSIFICATIONEND, MetadataDocument.QUALIFIERS, MetadataDocument.NBCHILD,
+            MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG, MetadataDocument.OPS, MetadataDocument.OPI,
             MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID, VitamDocument.VERSION, VitamDocument.TENANT_ID,
-            VitamDocument.SCORE, Unit.HISTORY,
-            Unit.ELIMINATION, MetadataDocument.ATOMIC_VERSION,
-            VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION);
+            VitamDocument.SCORE, Unit.HISTORY, Unit.ELIMINATION, MetadataDocument.ATOMIC_VERSION, VitamDocument.SCORE,
+            VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.APPROXIMATE_CREATION_DATE,
+            MetadataDocument.APPROXIMATE_UPDATE_DATE);
 
     private static final List<String> expectedGotComputedFields =
-        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);
+        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
+            MetadataDocument.UNITUPS);
 
-    private static final List<String> expectedGotMainFields = Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE,
-        ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
-        ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
-        ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
-        ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
-        MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
-        MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
-        VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
-        VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION);
+    private static final List<String> expectedGotMainFields =
+        Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE, ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION,
+            ObjectGroup.VERSIONS_STORAGE, ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID,
+            ObjectGroup.OBJECTSIZE, ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
+            ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
+            MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
+            MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
+            VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
+            VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION,
+            MetadataDocument.APPROXIMATE_CREATION_DATE, MetadataDocument.APPROXIMATE_UPDATE_DATE);
 
     @Test
     public void testUnitComputedFields() throws Exception {
 
-        assertThat(expectedUnitComputedFields)
-            .containsExactlyInAnyOrder(MetadataDocumentHelper.getComputedGraphUnitFields().toArray(new String[0]));
+        assertThat(expectedUnitComputedFields).containsExactlyInAnyOrder(
+            MetadataDocumentHelper.getComputedGraphUnitFields().toArray(new String[0]));
 
         for (Field field : Unit.class.getFields()) {
             if (!Modifier.isStatic(field.getModifiers())) {
@@ -104,9 +104,8 @@ public class ComputedFieldsTest {
     @Test
     public void testObjectGroupComputedFields() throws Exception {
 
-        assertThat(expectedGotComputedFields)
-            .containsExactlyInAnyOrder(
-                MetadataDocumentHelper.getComputedGraphObjectGroupFields().toArray(new String[0]));
+        assertThat(expectedGotComputedFields).containsExactlyInAnyOrder(
+            MetadataDocumentHelper.getComputedGraphObjectGroupFields().toArray(new String[0]));
 
         for (Field field : ObjectGroup.class.getFields()) {
             if (!Modifier.isStatic(field.getModifiers())) {

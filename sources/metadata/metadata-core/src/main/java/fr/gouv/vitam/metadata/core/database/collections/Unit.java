@@ -71,8 +71,6 @@ public class Unit extends MetadataDocument<Unit> {
      * elimination
      */
     public static final String ELIMINATION = "_elimination";
-    public static final String APPROXIMATE_CREATION_DATE = "_acd";
-    public static final String APPROXIMATE_UPDATE_DATE = "_aud";
     public static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
     public static final String VALID_COMPUTED_INHERITED_RULES = "_validComputedInheritedRules";
     public static final String OPERATION_TRANSFERS = "_opts";
@@ -210,15 +208,4 @@ public class Unit extends MetadataDocument<Unit> {
 
         put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
     }
-
-
-
-    public void setFuzzyCreationDate(LocalDateTime creationDate) {
-        put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
-    }
-
-    public void setFuzzyUpdateDate(LocalDateTime lastUpdate) {
-        put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
-    }
-
 }

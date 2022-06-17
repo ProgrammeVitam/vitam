@@ -180,10 +180,10 @@ public class MongoDbMetadataResponseFilter {
                         VitamFieldsHelper.implementationVersion());
                     break;
                 case APPROXIMATE_CREATION_DATE:
-                    replace(document, Unit.APPROXIMATE_CREATION_DATE, VitamFieldsHelper.approximateCreationDate());
+                    replace(document, MetadataDocument.APPROXIMATE_CREATION_DATE, VitamFieldsHelper.approximateCreationDate());
                     break;
                 case APPROXIMATE_UPDATE_DATE:
-                    replace(document, Unit.APPROXIMATE_UPDATE_DATE, VitamFieldsHelper.approximateUpdateDate());
+                    replace(document, MetadataDocument.APPROXIMATE_UPDATE_DATE, VitamFieldsHelper.approximateUpdateDate());
                     break;
                 case DUA:
                 case ALL:
