@@ -26,6 +26,7 @@
       - "mongodb-org-server={{ mongo_version }}"
       - "mongodb-org-shell={{ mongo_version }}"
       - "mongodb-org-tools={{ mongo_version }}"
+      - "mongodb-org-database-tools-extra={{ mongo_version }}"
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded

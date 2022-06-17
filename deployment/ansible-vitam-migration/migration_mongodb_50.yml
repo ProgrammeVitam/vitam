@@ -1,0 +1,100 @@
+---
+
+# Mongodb migration from 4.4 to 5.0.x
+######################################
+
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+####################################
+# Début de la migration mongo data #
+####################################
+
+- hosts: hosts_mongoc_data
+  gather_facts: no
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: reconfig
+    mongo_type: mongoc
+    mongo_port: "{{ mongodb.mongoc_port }}"
+  serial: 1
+
+- hosts: hosts_mongod_data
+  gather_facts: no
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: reconfig
+    mongo_type: mongod
+    mongo_port: "{{ mongodb.mongod_port }}"
+  serial: 1
+
+- hosts: hosts_mongodb_data
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: upgrade_pkg
+
+- hosts: hosts_mongos_data
+  roles:
+    - mongodb_set_feature_compatibility
+  vars:
+    mongo_group: hosts_mongos_data
+    mongo_version: "5.0"
+
+##################################
+# Fin de la migration mongo data #
+##################################
+
+#####################################
+# Début de la migration mongo offer #
+#####################################
+
+- hosts: hosts_mongoc_offer
+  gather_facts: no
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: reconfig
+    mongo_type: mongoc
+    mongo_port: "{{ mongodb.mongoc_port }}"
+  serial: 1
+
+- hosts: hosts_mongod_offer
+  gather_facts: no
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: reconfig
+    mongo_type: mongod
+    mongo_port: "{{ mongodb.mongod_port }}"
+  serial: 1
+
+- hosts: hosts_mongodb_offer
+  roles:
+    - mongodb_migration_v5
+  vars:
+    action: upgrade_pkg
+
+- hosts: hosts_mongos_offer
+  roles:
+    - mongodb_set_feature_compatibility
+  vars:
+    mongo_group: hosts_mongos_offer
+    mongo_version: "5.0"
+
+###################################
+# Fin de la migration mongo offer #
+###################################

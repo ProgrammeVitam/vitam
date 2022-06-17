@@ -209,6 +209,8 @@ public class CheckAttachementActionHandler extends ActionHandler {
                 if (itemStatus.isEmpty()) {
                     operationsIdToCheckWithLogbook.add(t);
                 } else {
+                    // FIXME : concurrent update?
+                    // FIXME : fail fast?
                     operationsStatus.put(t, itemStatus.get().getGlobalStatus().isGreaterOrEqualToKo() ||
                         !itemStatus.get().getGlobalState().equals(ProcessState.COMPLETED));
                 }
@@ -218,6 +220,7 @@ public class CheckAttachementActionHandler extends ActionHandler {
                 List<LogbookOperation> logbookOperations = checkLogbook(operationsIdToCheckWithLogbook);
                 logbookOperations.stream().map(LogbookOperation::getEvents).map(Iterables::getLast).forEach(
                     lastEvent -> operationsStatus.put(lastEvent.getEvIdProc(),
+                        // FIXME : fail fast?
                         isWorkflowUncompleted(lastEvent) ||
                             StatusCode.valueOf(lastEvent.getOutcome()).isGreaterOrEqualToKo())
                 );

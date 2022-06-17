@@ -187,6 +187,7 @@ public class SelectToMongodb extends RequestToMongodb {
         if (!idFound) {
             incl.add(VitamDocument.ID);
         }
+
         return computeBsonProjection(incl, excl, sliceProjections);
     }
 

@@ -145,7 +145,7 @@
 
         <!-- database libraries -->
         <elasticsearch.version>7.16.3</elasticsearch.version>
-        <mongo.version>4.5.0</mongo.version>
+        <mongo.version>4.6.1</mongo.version>
 
         <!-- object storing-->
         <jclouds.version>2.2.1</jclouds.version>

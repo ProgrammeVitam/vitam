@@ -172,7 +172,7 @@
         - update_mongodb_configuration
 
     - name: Initiate the replica set
-      command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
+      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js"
       tags:
         - update_mongodb_configuration
 
@@ -187,7 +187,7 @@
         - update_mongodb_configuration
 
     - name: Apply tuning PSSmin
-      command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js
+      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js"
       tags:
         - update_mongodb_configuration
     # Create the local shard admin user
