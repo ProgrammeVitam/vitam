@@ -210,6 +210,9 @@
   notify:
     - restart service
 
+- import_tasks: scheduler.yml
+  when: vitam_struct.vitam_component == "scheduler"
+
 # TODO: Explain the with_items and when line, or better find a cleaner way (split with separate command ?).
 # Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
 - name: Deploy specific configuration files (can override the common configuration files)

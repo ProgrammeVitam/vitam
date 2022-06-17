@@ -1,0 +1,23 @@
+- name: Ensure that the jobs sub-directory exists
+  file:
+    path: "{{ vitam_folder_conf }}/jobs"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  notify:
+    - restart service
+
+- name: Deploy configuration files in jobs subdir
+  template:
+    src: "{{ item }}"
+    dest: "{{ vitam_folder_conf }}/jobs/{{ item | basename | regex_replace('\\.j2$') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/jobs/*"
+  tags:
+    - update_vitam_configuration
+  notify:
+    - restart service

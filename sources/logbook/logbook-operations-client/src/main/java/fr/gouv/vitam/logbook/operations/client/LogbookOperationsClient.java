@@ -44,6 +44,7 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
+import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import java.util.List;
@@ -261,4 +262,6 @@ public interface LogbookOperationsClient extends BasicClient {
 
 
     RequestResponse<JsonNode> getLastOperationByType(String operationType) throws LogbookClientServerException;
+
+    void reconstructCollection(List<ReconstructionRequestItem> reconstructionItems) throws LogbookClientServerException;
 }

@@ -49,6 +49,7 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
+import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
@@ -69,6 +70,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final String OPERATIONS_URL = "/operations";
+    private final String RECONSTRUCTION_OPERATIONS_URI = "/reconstruction/operations";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -335,6 +337,18 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         try (Response response = make(get().withPath("/lastOperationByType").withBody(operationType).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public void reconstructCollection(List<ReconstructionRequestItem> reconstructionItems)
+        throws LogbookClientServerException {
+        try (Response response = make(
+            post().withPath(RECONSTRUCTION_OPERATIONS_URI).withBody(reconstructionItems).withJson())) {
+            check(response);
         } catch (VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }

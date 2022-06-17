@@ -232,12 +232,9 @@
   serial: 1
   roles:
     - vitam
-    - timers
-    - logbook
   vars:
     vitam_struct: "{{ vitam.logbook }}"
     vitam_timestamp_usage: secure-logbook
-    timers_list: "{{ vitam_timers.logbook }}"
 
 - hosts: hosts_workspace
   gather_facts: no

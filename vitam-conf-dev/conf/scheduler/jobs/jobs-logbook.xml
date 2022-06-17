@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data
+        xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData https://www.quartz-scheduler.org/xml/job_scheduling_data_1_8.xsd"
+        version="1.8">
+
+    <!--<pre-processing-commands>
+        <delete-jobs-in-group>*</delete-jobs-in-group>
+        <delete-triggers-in-group>*</delete-triggers-in-group>
+    </pre-processing-commands>-->
+
+    <processing-directives>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), overwrite them -->
+        <overwrite-existing-data>false</overwrite-existing-data>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), and over-write is false, ignore them rather then generating an error -->
+        <ignore-duplicates>true</ignore-duplicates>
+    </processing-directives>
+
+
+    <!--
+     <schedule>
+         <job>
+             <name>ReconstructionOperationJob</name>
+             <group>LogbookGroup</group>
+             <description>Job for reconstruction operation</description>
+             <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionOperationJob</job-class>
+         </job>
+
+         <trigger>
+             <cron>
+                 <name>ReconstructionOperationTrigger</name>
+                 <group>LogbookGroup</group>
+                 <job-name>ReconstructionOperationJob</job-name>
+                 <job-group>LogbookGroup</job-group>
+                 <cron-expression>0 0/5 * * * ?</cron-expression>
+             </cron>
+         </trigger>
+    </schedule>-->
+    <schedule>
+
+        <job>
+            <name>TraceabilityLFCObjectGroupJob</name>
+            <group>LogbookGroup</group>
+            <description>Job for traceability LFC of object group</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityLFCJob</job-class>
+            <job-data-map>
+                <entry>
+                    <key>item</key>
+                    <value>ObjectGroup</value>
+                </entry>
+            </job-data-map>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>TraceabilityLFCObjectGroupTrigger</name>
+                <group>LogbookGroup</group>
+                <job-name>TraceabilityLFCObjectGroupJob</job-name>
+                <job-group>LogbookGroup</job-group>
+                <cron-expression>* 15 0/1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+
+    </schedule>
+    <schedule>
+
+        <job>
+            <name>TraceabilityLFCUnitJob</name>
+            <group>LogbookGroup</group>
+            <description>Job for traceability LFC of unit</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityLFCJob</job-class>
+            <job-data-map>
+                <entry>
+                    <key>item</key>
+                    <value>Unit</value>
+                </entry>
+            </job-data-map>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>TraceabilityLFCUnitTrigger</name>
+                <group>LogbookGroup</group>
+                <job-name>TraceabilityLFCUnitJob</job-name>
+                <job-group>LogbookGroup</job-group>
+                <cron-expression>* 35 0/1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+
+    </schedule>
+
+    <schedule>
+
+        <job>
+            <name>TraceabilityAuditJob</name>
+            <group>LogbookGroup</group>
+            <description>Job for traceability of audit</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityAuditJob</job-class>
+            <job-data-map>
+                <entry>
+                    <key>operationTraceabilityMaxRenewalDelay</key>
+                    <value>12</value>
+                </entry>
+                <entry>
+                    <key>operationTraceabilityMaxRenewalDelayUnit</key>
+                    <value>HOURS</value>
+                </entry>
+                <entry>
+                    <key>lifecycleTraceabilityMaxRenewalDelay</key>
+                    <value>12</value>
+                </entry>
+                <entry>
+                    <key>lifecycleTraceabilityMaxRenewalDelayUnit</key>
+                    <value>HOURS</value>
+                </entry>
+            </job-data-map>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>TraceabilityAuditTrigger</name>
+                <group>LogbookGroup</group>
+                <job-name>TraceabilityAuditJob</job-name>
+                <job-group>LogbookGroup</job-group>
+                <cron-expression>0 55 00 * * ?</cron-expression>
+
+            </cron>
+        </trigger>
+
+    </schedule>
+
+    <schedule>
+
+        <job>
+            <name>OperationTraceabilityJob</name>
+            <group>LogbookGroup</group>
+            <description>Job for traceability</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityJob</job-class>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>TraceabilityTrigger</name>
+                <group>LogbookGroup</group>
+                <job-name>OperationTraceabilityJob</job-name>
+                <job-group>LogbookGroup</job-group>
+                <cron-expression>* 05 0/1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+
+    </schedule>
+
+</job-scheduling-data>

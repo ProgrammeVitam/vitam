@@ -52,18 +52,3 @@
     list_timers: [
       ["vitam-offer-log-compaction", "hosts_storage_offer_default", "last"]
     ]
-
-
-- hosts: hosts_logbook
-  any_errors_fatal: true
-  gather_facts: no
-  roles:
-    - start_vitam_timers
-  vars:
-    list_timers: [
-      ["vitam-logbook-reconstruction","hosts_logbook","","last"]
-      ,["vitam-traceability-lfc-objectgroup","hosts_logbook","last",""]
-      ,["vitam-traceability-lfc-unit","hosts_logbook","last",""]
-      ,["vitam-traceability-operations","hosts_logbook","last",""]
-      ,["vitam-traceability-audit","hosts_logbook","last",""]
-    ]
