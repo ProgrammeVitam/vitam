@@ -113,6 +113,21 @@ pipeline {
             }
         }
 
+        stage('Reinit containers') {
+            steps {
+                // Force termination / cleanup of containers
+                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+
+                // prepare storage for minIO SSL
+                dir("${pwd}/dataminiossl") {
+                    // bad rustine, as minIO docker writes as root
+                    //  sh "sudo chmod -R 777 ${pwd}/dataminiossl"
+                    deleteDir()
+                }
+                sh "mkdir ${pwd}/dataminiossl"
+            }
+        }
+
         stage ("Execute unit and integration tests on master branches") {
             when {
                 anyOf {
@@ -136,7 +151,7 @@ pipeline {
                             // openstack swift+keystone
                             sh 'docker run -d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
                             // minIO with SSL
-                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
+                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                             // elasticsearch
                             sh 'docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                             // mongodb
@@ -201,7 +216,7 @@ pipeline {
                             // openstack swift+keystone
                             sh 'docker run -d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
                             // minIO with SSL
-                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
+                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                             // elasticsearch
                             sh 'docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                             // mongodb
@@ -272,7 +287,7 @@ pipeline {
                             // openstack swift+keystone
                             sh 'docker run -d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
                             // minIO with SSL
-                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
+                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                             // elasticsearch
                             sh 'docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                             // mongodb
