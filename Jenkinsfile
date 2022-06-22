@@ -168,7 +168,7 @@ pipeline {
                             sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                             sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                             // Build Vitam
-                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E 's/[^[:alnum:]]+/_/g' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
+                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
                         } finally {
                             // Force termination / cleanup of containers
                             sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
@@ -233,7 +233,7 @@ pipeline {
                             sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                             sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                             // Build Vitam
-                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E 's/[^[:alnum:]]+/_/g' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
+                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
                         } finally {
                             // Force termination / cleanup of containers
                             sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
@@ -304,7 +304,7 @@ pipeline {
                             sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                             sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                             // Build Vitam
-                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E 's/[^[:alnum:]]+/_/g' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
+                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
                         } finally {
                             // Force termination / cleanup of containers
                             sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
