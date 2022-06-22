@@ -1,7 +1,11 @@
 ---
 - hosts: hosts_ihm_recette
+  gather_facts: no
+  run_once: true  
+  pre_tasks:
+    - setup:
+        filter: ansible_date_time
   roles:
     - loadTNR
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"
-    # KWA TODO: ensure that the role is run only once

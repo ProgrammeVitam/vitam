@@ -2,5 +2,9 @@
 
 - hosts: vitam
   any_errors_fatal: true
+  gather_facts: no
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family
   roles:
     - { role: vitam_browser, when: "browser.enabled | default(false) | bool == true" }

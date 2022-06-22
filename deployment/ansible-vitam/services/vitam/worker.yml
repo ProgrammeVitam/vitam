@@ -1,0 +1,17 @@
+---
+
+- hosts: hosts_worker
+  gather_facts: no
+  any_errors_fatal: true
+  pre_tasks:
+    - setup:
+        filter: ansible_processor_vcpus  
+  roles:
+    - siegfried
+    - vitam
+    - griffins
+  vars:
+    vitam_struct: "{{ vitam.worker }}"
+    vitam_timestamp_usage: secure-logbook
+  tags: worker
+    

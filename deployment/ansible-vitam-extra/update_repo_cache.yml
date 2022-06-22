@@ -1,5 +1,9 @@
 ---
 
 - hosts: vitam
+  gather_facts: no
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family
   roles:
     - update_repo_cache

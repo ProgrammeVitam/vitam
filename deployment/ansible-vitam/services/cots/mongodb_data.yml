@@ -2,12 +2,20 @@
 
 # mongodb commons (yum install, etc...)
 - hosts: hosts_mongodb_data
+  gather_facts: no
   any_errors_fatal: true
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family
+    - setup:
+        filter: ansible_virtualization_type    
   roles:
     - mongo_common
+  tags: mongodb_data
 
 # Mongoc replicas configuration
 - hosts: hosts_mongoc_data
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - mongoc
@@ -15,9 +23,11 @@
     mongo_bin: mongod
     mongod: "hosts_mongod_data"
     group_name: "hosts_mongoc_data"
+  tags: mongodb_data
 
 # Mongod replicas configuration
 - hosts: hosts_mongod_data
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - mongod
@@ -25,9 +35,11 @@
     mongo_bin: mongod
     mongoc: "hosts_mongoc_data"
     group_name: "hosts_mongod_data"
+  tags: mongodb_data
 
 # Mongos configuration
 - hosts: hosts_mongos_data
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - mongos
@@ -38,3 +50,4 @@
     mongoc: "hosts_mongoc_data"
     mongod: "hosts_mongod_data"
     mongos: "hosts_mongos_data"
+  tags: mongodb_data

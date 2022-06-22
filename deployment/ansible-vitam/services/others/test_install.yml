@@ -1,0 +1,7 @@
+---
+
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - tests_install

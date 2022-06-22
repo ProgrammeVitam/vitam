@@ -1,5 +1,11 @@
 ---
 
 - hosts: reverse
+  gather_facts: no
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family
+    - setup:
+        filter: ansible_date_time
   roles:
     - reverse

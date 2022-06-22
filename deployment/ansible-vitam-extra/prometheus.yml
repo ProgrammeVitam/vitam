@@ -1,11 +1,30 @@
 ---
 
 - hosts: hosts_prometheus
+  gather_facts: no
   roles:
     - role: prometheus-server
       tags: [prometheus, prometheus_server, generate_prometheus_conf, update_prometheus_configuration]
 
 - hosts: hosts_alertmanager
+  gather_facts: no
   roles:
     - role: prometheus-alertmanager
       tags: [prometheus, alertmanager, update_prometheus_configuration]
+
+### PROMETHEUS NODE EXPORTER / CONSUL EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - prometheus-node-exporter
+    - { role: prometheus-consul-exporter, when: "consul_disabled | default(false) | bool != true" }
+  tags: [prometheus, prometheus-exporter]
+
+### PROMETHEUS ELASTICSEARCH EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: elasticsearch
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - prometheus-elasticsearch-exporter
+  tags: [prometheus, prometheus-exporter]

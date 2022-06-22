@@ -1,0 +1,10 @@
+---
+
+- hosts: hosts_access_internal
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.accessinternal }}"
+  tags: access_internal

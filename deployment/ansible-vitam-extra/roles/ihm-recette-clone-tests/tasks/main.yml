@@ -58,7 +58,12 @@
     when: http_proxy_environnement is undefined
 
   - name: update apt cache
-    shell: apt-get update
+    apt:
+      update_cache: yes
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "Debian"
 

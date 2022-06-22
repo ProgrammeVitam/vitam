@@ -1,0 +1,29 @@
+---
+
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  tasks:
+    - setup:
+        filter: ansible_distribution
+    - setup:
+        filter: ansible_os_family
+    - setup:
+        filter: ansible_hostname
+    - setup:
+        filter: ansible_virtualization_type
+  tags: [consul_server, consul_agent]
+
+- hosts: hosts_consul_server
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - consul
+  tags: consul_server
+
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled | default(false) | bool == false )" }
+  tags: consul_agent

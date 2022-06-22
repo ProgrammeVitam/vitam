@@ -1,0 +1,12 @@
+---
+
+- hosts: hosts_elasticsearch_log
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - elasticsearch-cluster
+    - init_es_cluster_index_template
+    - { role: curator, tags: curator_logs}
+  vars:
+    composant: "{{ elasticsearch.log }}"
+  tags: elasticsearch_log

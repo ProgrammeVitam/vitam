@@ -1,0 +1,20 @@
+---
+
+- hosts: hosts_storage_offer_default
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - simulate_tape
+    - vitam
+    - offer
+    - timers
+  vars:
+    vitam_struct: "{{ vitam.storageofferdefault }}"
+    password_keystore: "{{ keystores.server.offer }}"
+    password_manager_keystore: "{{ keystores.server.offer }}"
+    password_truststore: "{{ truststores.client_storage }}"
+    password_grantedstore: "{{ grantedstores.client_storage }}"
+    vitam_certificate_client_type: "storage"
+    timers_list: "{{ vitam_timers.offer }}"
+  tags: offer
+

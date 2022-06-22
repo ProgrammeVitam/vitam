@@ -1,5 +1,6 @@
 ---
 
 - hosts: vitam
+  gather_facts: no
   roles:
     - { role: metricbeat, when: "groups['hosts_elasticsearch_log'] | length > 0 and metricbeat.enabled | default(false) | bool == true" }
