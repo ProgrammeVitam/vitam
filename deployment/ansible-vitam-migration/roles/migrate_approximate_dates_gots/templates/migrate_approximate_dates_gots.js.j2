@@ -6,7 +6,7 @@ var total = documents.length;
 for ( var counter = 0 ; counter <= total ; (counter+batch_size>total) ? counter += total%batch_size : counter += batch_size) {
   var bulkUpdateOps = [];
   var objects = documents.slice(counter, counter + batch_size).map(e => e._id);
-  db.getSiblingDB("logbook").LogbookLifeCycleObjectGroup.find({ "_id": { "$in": objects } }, { "_id": true, "evDateTime": true, "events": { "$slice": ["",-1] } }).forEach((e) => {
+  db.getSiblingDB("logbook").LogbookLifeCycleObjectGroup.find({ "_id": { "$in": objects } }, { "_id": true, "evDateTime": true, "events": { "$slice": -1 } }).forEach((e) => {
       bulkUpdateOps.push({
         updateOne: {
           filter: { "_id": e._id },
