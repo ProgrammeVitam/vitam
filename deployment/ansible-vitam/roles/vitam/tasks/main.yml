@@ -172,7 +172,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "timer_java_opts"
-  when: ( vitam_struct.vitam_component == "functional-administration" ) or ( vitam_struct.vitam_component == "logbook" ) or ( vitam_struct.vitam_component == "storage" )
+  when: ( vitam_struct.vitam_component == "functional-administration" ) or ( vitam_struct.vitam_component == "storage" )
   tags:
     - update_jvmoptions_vitam
 
