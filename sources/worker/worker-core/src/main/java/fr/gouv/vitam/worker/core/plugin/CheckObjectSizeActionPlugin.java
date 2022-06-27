@@ -40,7 +40,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,7 +74,6 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
 
             final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
-            boolean isFileSizeChanged = false;
             final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
             if (qualifiers != null) {
                 final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
@@ -84,25 +82,16 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                Pair<Boolean, String> checkSizeDetailsPair =
+                                String checkSizeEvDetDetails =
                                     checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
-                                if (checkSizeDetailsPair.getRight() != null) {
-                                    itemStatus.getSubTaskStatus().get(objectId)
-                                        .setEvDetailData(checkSizeDetailsPair.getRight());
+                                if (checkSizeEvDetDetails != null) {
+                                    itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(checkSizeEvDetDetails);
                                 }
-                                // The operator OR is useful for multibinary objects in GOT
-                                isFileSizeChanged = isFileSizeChanged || checkSizeDetailsPair.getLeft();
                             }
                         }
                     }
                 }
             }
-
-            if (isFileSizeChanged) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(), jsonOG, false, false);
-            }
-
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -116,10 +105,9 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_OBJECT_SIZE).setItemsStatus(CHECK_OBJECT_SIZE, itemStatus);
     }
 
-    private Pair<Boolean, String> checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
+    private String checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
         ItemStatus itemStatus) {
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
-        Boolean isSizeChanged = Boolean.FALSE;
         String eventDetailData = null;
         if (version.get(SedaConstants.PREFIX_WORK) != null &&
             !JsonHandler.isNullOrEmpty(version.get(SedaConstants.PREFIX_WORK)
@@ -135,16 +123,14 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
             if (workNode.get(IngestWorkflowConstants.IS_SIZE_INCORRECT).asBoolean()) {
                 subTaskItemStatus.increment(StatusCode.WARNING);
                 itemStatus.increment(StatusCode.WARNING);
-                isSizeChanged = Boolean.TRUE;
             } else {
                 subTaskItemStatus.increment(StatusCode.OK);
             }
-            ((ObjectNode) version).remove(SedaConstants.PREFIX_WORK);
         } else {
             subTaskItemStatus.increment(StatusCode.OK);
         }
         itemStatus.setSubTaskStatus(dataObjectInfo.getId(), subTaskItemStatus);
-        return Pair.of(isSizeChanged, eventDetailData);
+        return eventDetailData;
     }
 
     @Override
