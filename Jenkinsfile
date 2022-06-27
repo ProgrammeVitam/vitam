@@ -17,6 +17,7 @@ pipeline {
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
+        M2_REPO = "${HOME}/.m2"
         DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-java11-url")
@@ -113,10 +114,16 @@ pipeline {
             }
         }
 
-        stage('Reinit containers') {
+        stage('Reinit host & containers') {
             steps {
                 // Force termination / cleanup of containers
                 sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+
+                // Cleanup any remaining docker volumes
+                sh 'docker volume prune -f'
+
+                // Cleanup M2 repo
+                sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
 
                 // prepare storage for minIO SSL
                 dir("${pwd}/dataminiossl") {
@@ -584,7 +591,21 @@ pipeline {
                     }
                 }
             }
+        }
 
+        stage("Cleanup") {
+            steps {
+                script {
+                    // Cleanup any remaining docker volumes
+                    sh 'docker volume prune -f'
+
+                    // Cleanup M2 repo
+                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
+
+                    // Cleanup workspace
+                    sh 'rm -fr ${WORKSPACE}'
+                }
+            }
         }
     }
 }
