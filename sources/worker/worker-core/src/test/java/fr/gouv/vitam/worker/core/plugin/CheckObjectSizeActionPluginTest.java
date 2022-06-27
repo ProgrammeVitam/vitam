@@ -147,6 +147,7 @@ public class CheckObjectSizeActionPluginTest {
         assertEquals(CHECK_SIZE, response.getItemsStatus().get(CHECK_SIZE).getSubTaskStatus().values()
             .iterator().next().getItemId());
         handlerIO.close();
+
     }
 
     @Test
