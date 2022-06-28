@@ -61,11 +61,11 @@ public class TraceabilityLFCJob implements Job {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
 
-    TraceabilityLFCJob() {
+    public TraceabilityLFCJob() {
         this(LogbookOperationsClientFactory.getInstance());
     }
 
-    TraceabilityLFCJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public TraceabilityLFCJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
