@@ -10,8 +10,9 @@
     "CreatingOsVersion": "10",
     "LastModified": "2016-05-05T20:45:20"
   },
-  "_qualifiers": {
-    "BinaryMaster": {
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
       "_nbc": 1,
       "versions": [
         {
@@ -40,7 +41,8 @@
         }
       ]
     },
-    "Dissemination": {
+    {
+      "qualifier": "Dissemination",
       "_nbc": 1,
       "versions": [
         {
@@ -69,7 +71,8 @@
         }
       ]
     },
-    "Thumbnail": {
+    {
+      "qualifier": "Thumbnail",
       "_nbc": 1,
       "versions": [
         {
@@ -98,7 +101,8 @@
         }
       ]
     },
-    "TextContent": {
+    {
+      "qualifier": "TextContent",
       "_nbc": 1,
       "versions": [
         {
@@ -107,6 +111,13 @@
           "DataObjectVersion": "TextContent",
           "MessageDigest": "cb27754e97d86e44dd5ac063afd8d25c4ebd89aa7c0f3e89ad72b5d4b0ccfea142ce505e231e8a3c56391546eaa4ea46a71869e59a6e07be01e1abb1f057feee",
           "Size": "17120",
+          "_work": {
+            "_isSizeIncorrect": true,
+            "_diffSizeJson": {
+              "- Size": 1234,
+              "+ Size": 17120
+            }
+          },
           "FormatIdentification": {
             "FormatLitteral": "Plain Text File",
             "MimeType": "text/plain",
@@ -124,5 +135,5 @@
         }
       ]
     }
-  }
+  ]
 }
