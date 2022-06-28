@@ -36,10 +36,10 @@ logback_max_file_size: "{{ vitam_defaults.logback_max_file_size | default('10MB'
 logback_total_size_cap:
   file:
     history_days: "{{ vitam_defaults.logback_total_size_cap.file.history_days | default(30) }}"
-    totalsize: "{{ vitam_defaults.logback_total_size_cap.file.history_days | default('5GB') }}"
+    totalsize: "{{ vitam_defaults.logback_total_size_cap.file.totalsize | default('5GB') }}"
   security:
     history_days: "{{ vitam_defaults.logback_total_size_cap.security.history_days | default(30) }}"
-    totalsize: "{{ vitam_defaults.logback_total_size_cap.security.history_days | default('5GB') }}"
+    totalsize: "{{ vitam_defaults.logback_total_size_cap.security.totalsize | default('5GB') }}"
 
 reconstruction:
   log_level: "{{ vitam_defaults.reconstruction.log_level | default('INFO') }}"
