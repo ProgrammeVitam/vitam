@@ -261,7 +261,7 @@ public class DbRequest {
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
-            updatedDocument.setFuzzyUpdateDate(LocalDateUtil.now());
+            updatedDocument.setApproximateUpdateDate(LocalDateUtil.now());
             LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
@@ -1353,8 +1353,8 @@ public class DbRequest {
 
     private void setDateCreationAndModification(Unit unit) {
         final LocalDateTime now = LocalDateUtil.now();
-        unit.setFuzzyCreationDate(now);
-        unit.setFuzzyUpdateDate(now);
+        unit.setApporximateCreationDate(now);
+        unit.setApproximateUpdateDate(now);
     }
 
     /**

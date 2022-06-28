@@ -50,8 +50,7 @@ public class ComputedFieldsTest {
     private static final List<String> expectedUnitComputedFields =
         Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
             MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
-            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES,
-            Unit.APPROXIMATE_CREATION_DATE, Unit.APPROXIMATE_UPDATE_DATE);
+            MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
 
     private static final List<String> expectedUnitMainFields = Arrays
         .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
@@ -64,7 +63,8 @@ public class ComputedFieldsTest {
             MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID, VitamDocument.VERSION, VitamDocument.TENANT_ID,
             VitamDocument.SCORE, Unit.HISTORY,
             Unit.ELIMINATION, MetadataDocument.ATOMIC_VERSION,
-            VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION);
+            VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION,
+            Unit.APPROXIMATE_CREATION_DATE, Unit.APPROXIMATE_UPDATE_DATE);
 
     private static final List<String> expectedGotComputedFields =
         Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);

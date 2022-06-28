@@ -213,11 +213,11 @@ public class Unit extends MetadataDocument<Unit> {
 
 
 
-    public void setFuzzyCreationDate(LocalDateTime creationDate) {
+    public void setApporximateCreationDate(LocalDateTime creationDate) {
         put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
     }
 
-    public void setFuzzyUpdateDate(LocalDateTime lastUpdate) {
+    public void setApproximateUpdateDate(LocalDateTime lastUpdate) {
         put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
     }
 
