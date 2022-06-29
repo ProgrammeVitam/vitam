@@ -1,7 +1,7 @@
 # -*- mode: conf -*-
 
 [Unit]
-Description=Prometheus Node Exporter.
+Description=Prometheus Consul Exporter
 Documentation=https://github.com/prometheus/consul_exporter
 After=network.target
 
