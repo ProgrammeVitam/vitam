@@ -2,7 +2,7 @@ groups:
   - name: disk_root
     rules:
       - alert: OutOfDiskSpace
-        expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"})) > 75
+        expr: (100 - ((node_filesystem_avail_bytes{device="rootfs"} * 100) / node_filesystem_size_bytes{device="rootfs"})) > 75
         for: 10m
         labels:
           severity: warning
@@ -10,7 +10,7 @@ groups:
           summary: "Instance {{ $labels.hostname }} is running out of disk space"
           description: "Instance {{ $labels.hostname }} has its root partition 75% full since 10 minutes"
       - alert: OutOfDiskSpace
-        expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"})) > 90
+        expr: (100 - ((node_filesystem_avail_bytes{device="rootfs"} * 100) / node_filesystem_size_bytes{device="rootfs"})) > 90
         for: 10m
         labels:
           severity: critical

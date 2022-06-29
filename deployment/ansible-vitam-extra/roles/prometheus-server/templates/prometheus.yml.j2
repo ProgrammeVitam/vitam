@@ -13,7 +13,7 @@ alerting:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.alertmanager.api_port | default(9093) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
@@ -32,19 +32,19 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
 {% if prometheus.consul_exporter.enabled | default(true) | bool == true %}
-  - job_name: vitam-consul_exporter-exporter
+  - job_name: vitam-consul-exporter
     metrics_path: {{ prometheus.consul_exporter.metrics_path | default('/metrics') }}
     static_configs:
 {% for host in groups['vitam'] %}
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -56,7 +56,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin | default(28101) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -68,7 +68,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin | default(28102) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -80,7 +80,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin | default(28100) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -92,7 +92,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin | default(28001) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -104,7 +104,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -116,7 +116,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_demo.port_admin | default(28002) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -128,7 +128,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_recette.port_admin | default(28204) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -140,7 +140,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.logbook.port_admin | default(29002) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -152,7 +152,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.workspace.port_admin | default(28201) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -164,7 +164,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -176,7 +176,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.worker.port_admin | default(29104) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -188,7 +188,7 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
 
@@ -219,6 +219,6 @@ scrape_configs:
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin | default(18004) }}
       labels:
-        hostname: "{{ host }}"
+        hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
