@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -52,18 +51,21 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -71,9 +73,9 @@ public class IndexObjectGroupActionPluginTest {
 
 
     private static final String OBJECT_GROUP = "IndexObjectGroupActionPlugin/objectGroup.json";
+    private static final String EXISTING_OBJECT_GROUP_IN_DB =
+        "IndexObjectGroupActionPlugin/existing_objectGroup_in_db.json";
     private static final String EXISTING_OBJECT_GROUP = "IndexObjectGroupActionPlugin/existing_objectGroup.json";
-    private final InputStream objectGroup;
-    private final InputStream existingObjectGroup;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -84,20 +86,10 @@ public class IndexObjectGroupActionPluginTest {
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metaDataClientFactory;
     private List<IOParameter> in;
-    private JsonNode og;
-    private JsonNode existingOg;
 
     HandlerIOImpl handlerIO;
 
     IndexObjectGroupActionPlugin plugin;
-
-
-    public IndexObjectGroupActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
-        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        og = JsonHandler.getFromInputStream(objectGroup);
-        existingObjectGroup = PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP);
-        existingOg = JsonHandler.getFromInputStream(existingObjectGroup);
-    }
 
     @Before
     public void setUp() throws URISyntaxException {
@@ -134,7 +126,7 @@ public class IndexObjectGroupActionPluginTest {
         throws Exception {
         when(metadataClient.insertObjectGroup(any())).thenReturn(JsonHandler.createObjectNode());
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -145,18 +137,52 @@ public class IndexObjectGroupActionPluginTest {
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        ArgumentCaptor<List<JsonNode>> queryArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(metadataClient).insertObjectGroups(queryArgumentCaptor.capture());
+        String indexedObjectGroup = JsonHandler.unprettyPrint(queryArgumentCaptor.getValue());
+        assertThat(indexedObjectGroup).contains(("\"_id\":\"aeaaaaaaaaaaaaababztoakvqik56mqaaaaq\""));
+        assertThat(indexedObjectGroup).doesNotContain("_work");
+    }
+
+    @Test
+    public void givenExistingObjectGroupWhenAddingNewObjectThenOK()
+        throws Exception {
+        doNothing().when(metadataClient).updateObjectGroupById(any(), any());
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
+        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("IndexObjectGroupActionPluginTest");
+        final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
+
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        ArgumentCaptor<JsonNode> queryArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(metadataClient).updateObjectGroupById(queryArgumentCaptor.capture(), eq("aebaaaaaaacyojsgaay5ialsckziacaaaaaq"));
+
+        String indexedObjectGroup = JsonHandler.unprettyPrint(queryArgumentCaptor.getValue());
+        assertThat(indexedObjectGroup).contains(("aeaaaaaaaahdmfuhaar36ambrctkscaaaaaq"));
+        assertThat(indexedObjectGroup).contains(("aeaaaaaaaacyojsgaay5ialsckz6pbaaaaaq"));
+        assertThat(indexedObjectGroup).doesNotContain("_work");
     }
 
     @Test
     public void givenMetadataBadRequestWhenExecuteOnExistingGotThenReturnResponseKO()
         throws Exception {
-        ObjectNode existingOgRaw = (ObjectNode) existingOg.deepCopy();
-        existingOgRaw.remove("_work");
         doThrow(new InvalidParseOperationException("")).when(metadataClient).updateObjectGroupById(any(), any());
-        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(
-            new RequestResponseOK<JsonNode>().addResult(existingOgRaw));
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))));
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(existingOg);
+        handlerIO.getInput().add(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -175,7 +201,7 @@ public class IndexObjectGroupActionPluginTest {
         when(metadataClient.insertObjectGroups(any())).thenThrow(new MetaDataExecutionException(""));
 
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -193,7 +219,7 @@ public class IndexObjectGroupActionPluginTest {
         when(metadataClient.insertObjectGroups(any())).thenThrow(new InvalidParseOperationException(""));
 
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -204,5 +230,4 @@ public class IndexObjectGroupActionPluginTest {
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
-
 }

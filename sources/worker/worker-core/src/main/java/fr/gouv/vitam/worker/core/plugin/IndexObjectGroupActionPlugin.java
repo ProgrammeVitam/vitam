@@ -80,6 +80,9 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
     private static final String OG_INDEXATION = "OG_INDEXATION";
     private static final int OG_INPUT_RANK = 0;
+    public static final String INVALID_OR_MISSING_QUALIFIERS = "Invalid or missing _qualifiers";
+    public static final String MISSING_VERSIONS = "Missing versions";
+    public static final String MISSING_VERSION = "Missing version";
     private final MetaDataClientFactory metaDataClientFactory;
 
     public IndexObjectGroupActionPlugin() {
@@ -190,6 +193,9 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         throws MetaDataExecutionException,
         MetaDataClientServerException, InvalidParseOperationException,
         InvalidCreateOperationException, VitamClientException {
+
+        removeTemporaryObjectVersionWorkFields(json);
+
         JsonNode work = json.remove(SedaConstants.PREFIX_WORK);
         if (work != null && work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID) != null &&
             !work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText().isEmpty()) {
@@ -228,6 +234,33 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         itemStatus.increment(StatusCode.OK);
 
         return finalInsert;
+    }
+
+    private void removeTemporaryObjectVersionWorkFields(ObjectNode jsonOG) {
+
+        final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+        if (qualifiers == null || !qualifiers.isArray()) {
+            LOGGER.error(INVALID_OR_MISSING_QUALIFIERS + " : " + JsonHandler.unprettyPrint(jsonOG));
+            throw new IllegalStateException(INVALID_OR_MISSING_QUALIFIERS);
+        }
+
+        for (JsonNode qualifier : qualifiers) {
+            JsonNode qualifierVersions = qualifier.get(SedaConstants.TAG_VERSIONS);
+            if (qualifierVersions == null || !qualifierVersions.isArray()) {
+                LOGGER.error(MISSING_VERSIONS + " : " + JsonHandler.unprettyPrint(jsonOG));
+                throw new IllegalStateException(MISSING_VERSIONS);
+            }
+
+            for (JsonNode version : qualifierVersions) {
+                if (version == null || !version.isObject()) {
+                    LOGGER.error(MISSING_VERSION + " : " + JsonHandler.unprettyPrint(jsonOG));
+                    throw new IllegalStateException(MISSING_VERSION);
+                }
+
+                // Remove _work field
+                ((ObjectNode) version).remove(SedaConstants.PREFIX_WORK);
+            }
+        }
     }
 
     private Action generateQualifiersUpdate(ArrayNode originQualifiers, ArrayNode newQualifiers, ObjectNode infoNode)
