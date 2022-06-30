@@ -479,7 +479,7 @@ vitam:
         host: "collect.service.{{ consul_domain }}"
         port_service: 8030
         port_admin: 28030
-        baseuri: "collect"
+        baseuri: "collect-external"
         https_enabled: true
         secret_platform: "false"
     metadata_collect:
