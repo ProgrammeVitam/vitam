@@ -92,7 +92,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
-@Path("/collect/v1")
+@Path("/collect-external/v1")
 public class TransactionResource extends ApplicationStatusResource {
     public static final String ERROR_WHILE_TRYING_TO_SAVE_UNITS = "Error while trying to save units";
     public static final String SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID =
