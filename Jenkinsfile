@@ -600,10 +600,10 @@ pipeline {
                     sh 'docker volume prune -f'
 
                     // Cleanup M2 repo
-                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
+                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/ || true'
 
                     // Cleanup workspace
-                    sh 'rm -fr ${WORKSPACE}'
+                    sh 'rm -fr ${WORKSPACE} || true'
                 }
             }
         }
