@@ -156,17 +156,17 @@ pipeline {
 
                         try {
                             // openstack swift+keystone
-                            sh 'docker run -d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
+                            sh 'docker run -d -m 1g -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
                             // minIO with SSL
-                            sh "docker run -d --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
+                            sh "docker run -d -m 512m --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                             // elasticsearch
-                            sh 'docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
+                            sh 'docker run -d -m 1g --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                             // mongodb
-                            sh 'docker run -d --name mongodb -p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s ${SERVICE_DOCKER_PULL_URL}/mongo:${MONGO_VERSION} mongod --bind_ip_all --replSet rs0'
+                            sh 'docker run -d -m 1g --name mongodb -p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s ${SERVICE_DOCKER_PULL_URL}/mongo:${MONGO_VERSION} mongod --bind_ip_all --replSet rs0'
                             // minIO without SSL
-                            sh "docker run -d --name minionossl -p 127.0.0.1:9999:9000 -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
+                            sh "docker run -d -m 512m --name minionossl -p 127.0.0.1:9999:9000 -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                             // openio
-                            sh 'docker run -d --name openio -p 127.0.0.1:6007:6007 -e "REGION=us-west-1" ${SERVICE_DOCKER_PULL_URL}/openio/sds:${OPENIO_VERSION}'
+                            sh 'docker run -d -m 512m --name openio -p 127.0.0.1:6007:6007 -e "REGION=us-west-1" ${SERVICE_DOCKER_PULL_URL}/openio/sds:${OPENIO_VERSION}'
                             // Configure elasticsearch
                             sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
@@ -600,10 +600,10 @@ pipeline {
                     sh 'docker volume prune -f'
 
                     // Cleanup M2 repo
-                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
+                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/ || true'
 
                     // Cleanup workspace
-                    sh 'rm -fr ${WORKSPACE}'
+                    sh 'rm -fr ${WORKSPACE} || true'
                 }
             }
         }
