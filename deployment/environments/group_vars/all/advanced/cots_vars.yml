@@ -162,6 +162,10 @@ prometheus:
         enabled: true
         port: 9107
         metrics_path: /metrics
+    elasticsearch_exporter:
+        enabled: true
+        port: 9114
+        metrics_path: /metrics
     alertmanager:
         api_port: 9093
         cluster_port: 9094

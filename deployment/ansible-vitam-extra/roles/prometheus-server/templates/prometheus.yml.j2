@@ -33,6 +33,11 @@ scrape_configs:
       - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}
       labels:
         hostname: "{{ host.split(".")[0] }}"
+{% if host in groups['hosts_elasticsearch_data'] %}
+        elastic_cluster_name: "{{ elasticsearch.data.cluster_name }}"
+{% elif host in groups['hosts_elasticsearch_log'] %}
+        elastic_cluster_name: "{{ elasticsearch.log.cluster_name }}"
+{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -43,6 +48,18 @@ scrape_configs:
 {% for host in groups['vitam'] %}
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}
+
+{% if prometheus.elasticsearch_exporter.enabled | default(true) | bool == true %}
+  - job_name: vitam-elasticsearch-exporter
+    metrics_path: {{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}
+    static_configs:
+{% for host in groups['elasticsearch'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.elasticsearch_exporter.port | default(9114) }}
       labels:
         hostname: "{{ host.split(".")[0] }}"
 {% endfor %}

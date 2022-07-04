@@ -1,0 +1,10 @@
+Package: vitam-elasticsearch-exporter
+Source: elasticsearch_exporter
+Section: monitor
+Priority: optional
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Homepage: https://github.com/prometheus-community/elasticsearch_exporter
+Architecture: amd64
+Depends: vitam-user-vitam
+Description: Elasticsearch Exporter for Prometheus
+Version: 1.3.0

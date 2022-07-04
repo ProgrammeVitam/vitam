@@ -1,0 +1,17 @@
+#!/bin/bash
+
+chmod 750 -R /vitam/conf/elasticsearch_exporter
+chown -R vitam:vitam /vitam/conf/elasticsearch_exporter
+chmod 640 /vitam/conf/elasticsearch_exporter/sysconfig/elasticsearch_exporter
+
+chmod 750 /vitam/bin/elasticsearch_exporter
+chmod 755 /vitam/bin/elasticsearch_exporter/elasticsearch_exporter
+chown -R vitam:vitam /vitam/bin/elasticsearch_exporter
+
+chmod 750 /vitam/app/elasticsearch_exporter
+chown -R vitam:vitam /vitam/app/elasticsearch_exporter
+
+chmod 755 /vitam/data/elasticsearch_exporter
+chown -R vitam:vitam /vitam/data/elasticsearch_exporter
+
+systemctl daemon-reload
