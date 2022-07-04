@@ -292,6 +292,19 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         }
     }
 
+     @Override
+     public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext,
+         String projectId) throws VitamClientException{
+         try (Response response = make(
+             get().withPath(PROJECT_PATH + "/" + projectId + UNITS_PATH)
+                 .withHeaders(vitamContext.getHeaders())
+                 .withHeader(EXPECT, EXPECT_CONTINUE)
+                 .withJsonAccept())) {
+             check(response);
+             RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+             return (RequestResponseOK<JsonNode>) result;
+         }
+     }
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {

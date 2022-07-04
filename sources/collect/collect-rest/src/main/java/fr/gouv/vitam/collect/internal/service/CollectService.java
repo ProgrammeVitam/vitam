@@ -37,10 +37,10 @@ import fr.gouv.vitam.collect.internal.helpers.adapters.CollectVarNameAdapter;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.ObjectMapperBuilder;
 import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -108,7 +108,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
@@ -128,7 +130,6 @@ public class CollectService {
     private final MetaDataClientFactory metaDataClientFactory;
     private final FormatIdentifierFactory formatIdentifierFactory;
     private final CollectVarNameAdapter collectVarNameAdapter;
-    private final StorageClientFactory storageClientFactory;
 
     public CollectService(TransactionService transactionService, CollectConfiguration collectConfiguration) {
         this.transactionService = transactionService;
@@ -136,7 +137,6 @@ public class CollectService {
         this.workspaceCollectClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
         this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
-        this.storageClientFactory = StorageClientFactory.getInstance();
         this.collectVarNameAdapter = new CollectVarNameAdapter();
     }
 
@@ -146,7 +146,6 @@ public class CollectService {
         this.workspaceCollectClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
         this.metaDataClientFactory = metaDataClientFactory;
         this.formatIdentifierFactory = FormatIdentifierFactory.getInstance();
-        this.storageClientFactory = StorageClientFactory.getInstance();
         this.collectVarNameAdapter = new CollectVarNameAdapter();
     }
 
@@ -179,7 +178,7 @@ public class CollectService {
             }
             return archiveUnitModel;
         } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
-            | InvalidParseOperationException | MetaDataClientServerException e) {
+                 | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
             throw new CollectException("Error when fetching unit by id(" + unitId + ") " + e);
         }
@@ -271,8 +270,8 @@ public class CollectService {
                 throw new CollectException("Update Unit with object group id : " + archiveUnitModel.getId());
             }
         } catch (final CollectException | MetaDataExecutionException | MetaDataNotFoundException
-            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
-            | InvalidParseOperationException e) {
+                       | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
+                       | InvalidParseOperationException e) {
             LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
             throw new CollectException("Error when saving new objectGroup in metadata: " + e);
         }
@@ -445,8 +444,9 @@ public class CollectService {
             return formatIdentificationModel;
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException
-            | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException
-            | FormatIdentifierNotFoundException | FormatIdentifierFactoryException | FormatIdentifierTechnicalException e) {
+                 | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException
+                 | FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
+                 FormatIdentifierTechnicalException e) {
             LOGGER.error("Can't detect format for the object : {}", e);
             throw new CollectException("Can't detect format for the object : " + e);
         }
@@ -455,7 +455,7 @@ public class CollectService {
     public JsonNode getUnitsByTransactionIdInMetaData(String transactionId) throws CollectException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             SelectMultiQuery selectUnit = new SelectMultiQuery();
-            selectUnit.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
+            selectUnit.addQueries(QueryHelper.eq(initialOperation(), transactionId));
             selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
             return client.selectUnits(selectUnit.getFinalSelect());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -528,5 +528,22 @@ public class CollectService {
             throw new CollectException(e);
         }
         return jsonNode;
+    }
+
+    public JsonNode getUnitsByProjectId(String projectId) throws CollectException {
+        Optional<TransactionModel> projectTransaction =
+            transactionService.findTransactionByProjectId(projectId);
+        if (projectTransaction.isEmpty()) {
+            throw new CollectException("No transactions found for project ID");
+        }
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            SelectMultiQuery selectUnit = new SelectMultiQuery();
+            selectUnit.addQueries(QueryHelper.in(initialOperation(), projectTransaction.get().getId()));
+            selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
+            return client.selectUnits(selectUnit.getFinalSelect());
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error("Error when getting units in metadata: {}", e);
+            throw new CollectException("Error when getting units in metadata: " + e);
+        }
     }
 }
