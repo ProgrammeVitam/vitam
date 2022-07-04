@@ -176,6 +176,13 @@
     elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
     elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
 
+### PROMETHEUS ELASTICSEARCH EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: elasticsearch
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - prometheus-elasticsearch-exporter
+
 ### MONGO DB INSTALLATION ###
 
 - import_playbook: mongodb_data.yml

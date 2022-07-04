@@ -17,8 +17,9 @@
     group: "{{ grafana_group }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
   with_items:
+    - vitam_main_dashboard
+    - vitam_elasticsearch_dashboard
     - vitam_standard_dashboard
-    - vitam_consul_exporter_dashboard
 
 - name: Set the correct data source name in the dashboard for prometheus
   replace:
@@ -28,7 +29,6 @@
   changed_when: false
   with_items:
     - vitam_standard_dashboard
-    - vitam_consul_exporter_dashboard
   when: grafana.grafana_dashboards | length > 0
 
 - name: Set the correct data source name in the dashboard for alertmanager

@@ -1,0 +1,8 @@
+---
+prometheus_elasticsearch_exporter_tmp_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/tmp/elasticsearch_exporter"
+prometheus_elasticsearch_exporter_config_path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/elasticsearch_exporter"
+prometheus_elasticsearch_exporter_db_path:     "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/elasticsearch_exporter"
+prometheus_elasticsearch_exporter_app_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/app/elasticsearch_exporter"
+prometheus_elasticsearch_exporter_bin_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/bin/elasticsearch_exporter"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

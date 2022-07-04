@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "elasticsearch_exporter",
+    "port": {{ prometheus.elasticsearch_exporter.port | default(9114) }},
+    "address": "{{ ip_admin }}",
+    "tags": ["monitor", "prometheus","elasticsearch-exporter","vitam-elasticsearch-exporter"],
+    "checks": [
+        {
+          "name": "Prometheus elasticsearch_exporter : TCP check",
+          "notes": "Status elasticsearch_exporter",
+          "tcp": "{{ ip_admin }}:{{ prometheus.elasticsearch_exporter.port | default(9114) }}",
+          "interval": "{{ prometheus.check_consul | default(10) }}s"
+        }
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+---
+
+- name: Install vitam-elasticsearch-exporter package
+  package:
+    name: vitam-elasticsearch-exporter
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
+  notify: restart prometheus elasticsearch exporter
+
+- name: Check that elasticsearch_exporter directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/elasticsearch_exporter"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log
+    - data
+    - tmp
+  notify: restart prometheus elasticsearch exporter
+
+- name: Apply elasticsearch_exporter sysconfig settings
+  template:
+    src: "elasticsearch_exporter.j2"
+    dest: "{{ prometheus_elasticsearch_exporter_config_path }}/sysconfig/elasticsearch_exporter"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - update_elasticsearch_exporter_configuration
+  notify: restart prometheus elasticsearch exporter
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-elasticsearch-exporter.json.j2"
+    dest: "{{ consul_folder_conf }}/service-elasticsearch-exporter.json"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - consul_conf
+    - update_elasticsearch_exporter_configuration
+  notify: reload consul configuration
+
+- meta: flush_handlers
+  tags:
+    - update_elasticsearch_exporter_configuration
+
+- name: Ensure vitam-elasticsearch-exporter service is started
+  service:
+    name: vitam-elasticsearch-exporter
+    state: started
+    enabled: "{{ prometheus.elasticsearch_exporter.at_boot | default(service_at_boot) }}"
+
+- name: Wait for elasticsearch_exporter port {{ prometheus.elasticsearch_exporter.port | default(9114) }} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.elasticsearch_exporter.port | default(9114) }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"

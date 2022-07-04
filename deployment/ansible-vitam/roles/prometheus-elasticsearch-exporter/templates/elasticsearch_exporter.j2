@@ -1,0 +1,5 @@
+{% if inventory_hostname in groups['hosts_elasticsearch_data'] %}
+ELASTICSEARCH_EXPORTER_OPTS='--es.uri=http://{{ ip_service }}:{{ elasticsearch.data.port_http }} --web.listen-address=:{{ prometheus.elasticsearch_exporter.port | default(9114) }} --web.telemetry-path={{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}'
+{% elif inventory_hostname in groups['hosts_elasticsearch_log'] %}
+ELASTICSEARCH_EXPORTER_OPTS='--es.uri=http://{{ ip_admin }}:{{ elasticsearch.log.port_http }} --web.listen-address=:{{ prometheus.elasticsearch_exporter.port | default(9114) }} --web.telemetry-path={{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}'
+{% endif %}

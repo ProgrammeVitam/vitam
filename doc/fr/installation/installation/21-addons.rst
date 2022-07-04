@@ -625,7 +625,7 @@ La mise en oeuvre de SELinux est prise en charge par le processus de déploiemen
 Installation de la stack Prometheus
 ===================================
 
-.. note:: Si vous disposez d'un serveur Prometheus et alertmanager, vous pouvez installer uniquement ``node_exporter``.
+.. note:: Si vous disposez d'un serveur Prometheus et alertmanager, vous pouvez installer uniquement les exporters souhaités.
 
 Prometheus server et alertmanager sont des addons dans la solution :term:`VITAM`.
 
@@ -639,9 +639,19 @@ Voici à quoi correspond une configuration qui permettra d'installer toute la st
         prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
         server:
             port: 9090
+            tsdb_retention_time: "7d"
+            tsdb_retention_size: "5GB"
         node_exporter:
             enabled: true
             port: 9101
+            metrics_path: /metrics
+        consul_exporter:
+            enabled: true
+            port: 9107
+            metrics_path: /metrics
+        elasticsearch_exporter:
+            enabled: true
+            port: 9114
             metrics_path: /metrics
         alertmanager:
             api_port: 9093

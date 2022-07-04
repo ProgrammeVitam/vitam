@@ -1,0 +1,7 @@
+---
+
+- include_tasks: prometheus_elasticsearch_exporter_enabled.yml
+  when: prometheus.elasticsearch_exporter.enabled | default(true) | bool == true
+
+- include_tasks: prometheus_elasticsearch_exporter_disabled.yml
+  when: prometheus.elasticsearch_exporter.enabled | default(true) | bool == false
