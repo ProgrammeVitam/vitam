@@ -56,12 +56,12 @@ public class DescriptiveMetadataMapper {
     /**
      * element Mapper.
      */
-    private ElementMapper elementMapper;
+    private final ElementMapper elementMapper;
 
     /**
      * CustodialHistory mapper
      */
-    private CustodialHistoryMapper custodialHistoryMapper;
+    private final CustodialHistoryMapper custodialHistoryMapper;
 
     /**
      * constructor
@@ -89,8 +89,9 @@ public class DescriptiveMetadataMapper {
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());
 
         descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
-        descriptiveMetadataModel.setAgent(metadataContentType.getAgent());
 
+        // Seda2.2 fields
+        descriptiveMetadataModel.setAgent(metadataContentType.getAgent());
         descriptiveMetadataModel.setTextContent(metadataContentType.getTextContent());
         descriptiveMetadataModel.setOriginatingSystemIdReplyTo(metadataContentType.getOriginatingSystemIdReplyTo());
         descriptiveMetadataModel.setDateLitteral(metadataContentType.getDateLitteral());

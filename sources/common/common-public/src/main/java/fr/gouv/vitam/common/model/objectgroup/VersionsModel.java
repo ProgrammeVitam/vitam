@@ -54,6 +54,9 @@ public class VersionsModel {
     @JsonProperty("DataObjectVersion")
     private String dataObjectVersion;
 
+    @JsonIgnore
+    private final Map<String, Object> any = new HashMap<>();
+
     @JsonProperty("DataObjectGroupId")
     private String dataObjectGroupId;
 
@@ -92,9 +95,8 @@ public class VersionsModel {
 
     @JsonProperty("#opi")
     private String opi;
-
-    @JsonIgnore
-    private Map<String, Object> any = new HashMap<>();
+    @JsonProperty("DataObjectProfile")
+    private String dataObjectProfile;
 
     @JsonAnyGetter
     public Map<String, Object> getAny() {
@@ -153,6 +155,14 @@ public class VersionsModel {
 
     public void setDataObjectVersion(String dataObjectVersion) {
         this.dataObjectVersion = dataObjectVersion;
+    }
+
+    public String getDataObjectProfile() {
+        return dataObjectProfile;
+    }
+
+    public void setDataObjectProfile(String dataObjectProfile) {
+        this.dataObjectProfile = dataObjectProfile;
     }
 
     public FormatIdentificationModel getFormatIdentification() {
@@ -247,6 +257,7 @@ public class VersionsModel {
             "rank=" + rank +
             ", id='" + id + '\'' +
             ", dataObjectVersion='" + dataObjectVersion + '\'' +
+            ", dataObjectProfile='" + dataObjectProfile + '\'' +
             ", dataObjectGroupId='" + dataObjectGroupId + '\'' +
             ", formatIdentification=" + formatIdentification +
             ", fileInfoModel=" + fileInfoModel +
