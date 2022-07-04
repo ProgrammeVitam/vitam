@@ -103,6 +103,8 @@ public class TransactionResource extends ApplicationStatusResource {
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
     private static final String OPI = "#opi";
     private static final String ID = "#id";
+    private static final String ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG =
+        "Error when getting units by project ID in metadata : {}";
     private final TransactionService transactionService;
     private final ProjectService projectService;
     private final CollectService collectService;
@@ -216,7 +218,7 @@ public class TransactionResource extends ApplicationStatusResource {
             Integer tenantId = ParameterHelper.getTenantParameter();
             List<ProjectModel> listProjects = projectService.findProjectsByTenant(tenantId);
             List<ProjectDto> projectDtoList =
-                listProjects.stream().map(projectModel -> CollectHelper.convertProjectModeltoProjectDto(projectModel))
+                listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
                     .collect(Collectors.toList());
 
             return CollectRequestResponse.toResponseOK(projectDtoList);
@@ -309,8 +311,6 @@ public class TransactionResource extends ApplicationStatusResource {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
-     * @throws CollectException Throw if error occurs when send Unit to database
      */
     @Path("/units")
     @GET
@@ -434,7 +434,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Secured(permission = TRANSACTION_BINARY_READ, description = "télécharger un binaire")
     public Response download(@PathParam("unitId") String unitId,
         @PathParam("usage") String usageString,
-        @PathParam("version") Integer version) throws CollectException {
+        @PathParam("version") Integer version) {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
@@ -562,5 +562,23 @@ public class TransactionResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
 
+    }
+
+    @Path("/projects/{projectId}/units")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitsByProjectId(@PathParam("projectId") String projectId) {
+
+        try {
+            SanityChecker.checkParameter(projectId);
+            JsonNode response = collectService.getUnitsByProjectId(projectId);
+            return Response.status(Response.Status.OK).entity(response).build();
+        } catch (CollectException e) {
+            LOGGER.error(ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG, e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG, e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
     }
 }

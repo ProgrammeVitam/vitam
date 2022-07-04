@@ -216,5 +216,14 @@ public interface CollectClient extends MockOrRestClient {
      */
     RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery) throws VitamClientException;
 
+    /**
+     * Get all AU attached to transactions related to project Id param
+     * @param vitamContext
+     * @param projectId
+     * @return
+     * @throws VitamClientException
+     */
+    RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext,
+        String projectId) throws VitamClientException;
 
 }
