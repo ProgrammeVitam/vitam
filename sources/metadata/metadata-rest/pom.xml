@@ -158,22 +158,6 @@
 							</resources>
 						</configuration>
 					</execution>
-					<execution>
-						<id>copy-systemd-resources</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
-							<resources>
-								<resource>
-									<directory>src/main/systemd</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 
@@ -225,26 +209,7 @@
 								</source>
 							</sources>
 						</mapping>
-						<mapping>
-							<directory>/usr/lib/systemd/system/</directory>
-							<filemode>644</filemode>
-							<username>root</username>
-							<groupname>root</groupname>
-							<directoryIncluded>false</directoryIncluded>
-							<sources>
-								<source>
-									<location>${project.build.directory}/systemd</location>
-								</source>
-							</sources>
-						</mapping>
 					</mappings>
-					<!-- Systemd hook scriptlets -->
-					<preremoveScriptlet>
-						<script>%systemd_preun vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
-					</preremoveScriptlet>
-					<postremoveScriptlet>
-						<script>%systemd_postun vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
-					</postremoveScriptlet>
 				</configuration>
 			</plugin>
 
@@ -298,17 +263,6 @@
 								<group>${unix.group}</group>
 								<filemode>0750</filemode>
 								<prefix>/vitam/conf/${unix.name}</prefix>
-							</mapper>
-						</data>
-						<data>
-							<src>${project.build.directory}/systemd/</src>
-							<type>directory</type>
-							<mapper>
-								<type>perm</type>
-								<user>${unix.user}</user>
-								<group>${unix.group}</group>
-								<filemode>0755</filemode>
-								<prefix>/lib/systemd/system/</prefix>
 							</mapper>
 						</data>
 

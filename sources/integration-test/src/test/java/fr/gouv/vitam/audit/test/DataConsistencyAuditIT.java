@@ -283,7 +283,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
     public interface MetadataAuditResource {
 
-        @GET("/metadata/v1/auditDataConsistency")
+        @GET("/v1/auditDataConsistency")
         @Headers({
             "Accept: application/json",
             "Content-Type: application/json"
