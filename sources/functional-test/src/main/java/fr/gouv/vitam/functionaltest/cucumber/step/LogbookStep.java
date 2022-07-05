@@ -242,30 +242,6 @@ public class LogbookStep extends CommonStep {
         }
     }
 
-    private void the_logbook_operation_has_not_the_status(String status) {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
-        LogbookOperation master = requestResponseOK.getFirstResult();
-        assertThat(master.getOutcome()).as("master has forbidden status %s",
-            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
-        for (LogbookEventOperation event : master.getEvents()) {
-            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
-                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
-        }
-    }
-
-    private void the_logbook_lifecycle_has_not_the_status(String status) {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
-        LogbookLifecycle master = requestResponseOK.getFirstResult();
-        assertThat(master.getOutcome()).as("master has forbidden status %s",
-            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
-        for (LogbookEvent event : master.getEvents()) {
-            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
-                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
-        }
-    }
-
     @Then("^l'outcome détail de l'événement (.*) est (.*)$")
     public void the_outcome_detail_is(String eventName, String eventOutDetail) throws Throwable {
         if (requestResponse.isOk()) {
@@ -275,52 +251,6 @@ public class LogbookStep extends CommonStep {
                 the_logbook_operation_outcome_detail_is(eventName, eventOutDetail);
             }
         }
-    }
-
-    private void the_logbook_operation_outcome_detail_is(String eventName, String eventOutDetail)
-        throws SoftAssertionError {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
-
-        List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
-
-        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
-
-            the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
-        }
-    }
-
-    private void the_logbook_lifecycle_outcome_detail_is(String eventName, String eventOutDetail)
-        throws SoftAssertionError {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
-
-        List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
-
-        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
-
-            the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
-        }
-    }
-
-    private void the_logbook_event_outcome_detail_check(String eventName, String eventOutDetail,
-        AutoCloseableSoftAssertions softly, List<LogbookEvent> events) {
-        softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
-        LogbookEvent onlyElement = Iterables.getOnlyElement(events);
-
-        String currentOutDetail = onlyElement.getOutDetail();
-        softly.assertThat(currentOutDetail)
-            .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail,
-                eventOutDetail)
-            .isEqualTo(eventOutDetail);
     }
 
     /**
@@ -346,53 +276,6 @@ public class LogbookStep extends CommonStep {
                 world.getOperationId(), error.getCode()));
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
-    }
-
-    private void the_logbook_operation_status_are(List<String> eventNames, String eventStatus)
-        throws SoftAssertionError {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
-
-        List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
-        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            for (String eventName : eventNames) {
-                List<LogbookEvent> events =
-                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                        .filter(event -> !"STARTED".equals(event.getOutcome()))
-                        .collect(Collectors.toList());
-
-                the_logbook_event_status_check(eventStatus, softly, eventName, events);
-            }
-        }
-    }
-
-    private void the_logbook_lifecycle_status_are(List<String> eventNames, String eventStatus)
-        throws SoftAssertionError {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
-
-        List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
-        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            for (String eventName : eventNames) {
-                List<LogbookEvent> events =
-                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                        .filter(event -> !"STARTED".equals(event.getOutcome()))
-                        .collect(Collectors.toList());
-
-                the_logbook_event_status_check(eventStatus, softly, eventName, events);
-            }
-        }
-    }
-
-    private void the_logbook_event_status_check(String eventStatus, AutoCloseableSoftAssertions softly,
-        String eventName, List<LogbookEvent> events) {
-        softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
-        LogbookEvent onlyElement = Iterables.getOnlyElement(events);
-
-        String currentStatus = onlyElement.getOutcome();
-        softly.assertThat(currentStatus)
-            .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
-            .isEqualTo(eventStatus);
     }
 
     /**
@@ -463,4 +346,121 @@ public class LogbookStep extends CommonStep {
     }
 
 
+    private void the_logbook_operation_has_not_the_status(String status) {
+        RequestResponseOK<LogbookOperation> requestResponseOK =
+            (RequestResponseOK<LogbookOperation>) requestResponse;
+        LogbookOperation master = requestResponseOK.getFirstResult();
+        assertThat(master.getOutcome()).as("master has forbidden status %s",
+            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
+        for (LogbookEventOperation event : master.getEvents()) {
+            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
+                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
+        }
+    }
+
+    private void the_logbook_lifecycle_has_not_the_status(String status) {
+        RequestResponseOK<LogbookLifecycle> requestResponseOK =
+            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+        LogbookLifecycle master = requestResponseOK.getFirstResult();
+        assertThat(master.getOutcome()).as("master has forbidden status %s",
+            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
+        for (LogbookEvent event : master.getEvents()) {
+            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
+                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
+        }
+    }
+
+    private void the_logbook_operation_status_are(List<String> eventNames, String eventStatus)
+        throws SoftAssertionError {
+        RequestResponseOK<LogbookOperation> requestResponseOK =
+            (RequestResponseOK<LogbookOperation>) requestResponse;
+
+        List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            for (String eventName : eventNames) {
+                List<LogbookEvent> events =
+                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                        .filter(event -> !"STARTED".equals(event.getOutcome()))
+                        .collect(Collectors.toList());
+
+                the_logbook_event_status_check(eventStatus, softly, eventName, events);
+            }
+        }
+    }
+
+    private void the_logbook_lifecycle_status_are(List<String> eventNames, String eventStatus)
+        throws SoftAssertionError {
+        RequestResponseOK<LogbookLifecycle> requestResponseOK =
+            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+
+        List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            for (String eventName : eventNames) {
+                List<LogbookEvent> events =
+                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                        .filter(event -> !"STARTED".equals(event.getOutcome()))
+                        .collect(Collectors.toList());
+
+                the_logbook_event_status_check(eventStatus, softly, eventName, events);
+            }
+        }
+    }
+
+    private void the_logbook_event_status_check(String eventStatus, AutoCloseableSoftAssertions softly,
+        String eventName, List<LogbookEvent> events) {
+        softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
+        LogbookEvent onlyElement = Iterables.getOnlyElement(events);
+
+        String currentStatus = onlyElement.getOutcome();
+        softly.assertThat(currentStatus)
+            .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
+            .isEqualTo(eventStatus);
+    }
+
+
+    private void the_logbook_operation_outcome_detail_is(String eventName, String eventOutDetail)
+        throws SoftAssertionError {
+        RequestResponseOK<LogbookOperation> requestResponseOK =
+            (RequestResponseOK<LogbookOperation>) requestResponse;
+
+        List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
+
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            List<LogbookEvent> events =
+                actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                    .filter(event -> !"STARTED".equals(event.getOutcome()))
+                    .collect(Collectors.toList());
+
+            the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
+        }
+    }
+
+    private void the_logbook_lifecycle_outcome_detail_is(String eventName, String eventOutDetail)
+        throws SoftAssertionError {
+        RequestResponseOK<LogbookLifecycle> requestResponseOK =
+            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+
+        List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
+
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            List<LogbookEvent> events =
+                actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                    .filter(event -> !"STARTED".equals(event.getOutcome()))
+                    .collect(Collectors.toList());
+
+            the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
+        }
+    }
+
+    private void the_logbook_event_outcome_detail_check(String eventName, String eventOutDetail,
+        AutoCloseableSoftAssertions softly, List<LogbookEvent> events) {
+        softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
+        LogbookEvent onlyElement = Iterables.getOnlyElement(events);
+
+        String currentOutDetail = onlyElement.getOutDetail();
+        softly.assertThat(currentOutDetail)
+            .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail,
+                eventOutDetail)
+            .isEqualTo(eventOutDetail);
+    }
 }
