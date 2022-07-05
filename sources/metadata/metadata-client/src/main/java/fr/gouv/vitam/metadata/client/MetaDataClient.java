@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -408,6 +409,72 @@ public interface MetaDataClient extends BasicClient {
      */
     void deleteObjectGroupBulk(Collection<String> listIds)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to access and launch the Vitam store graph service for metadatas.
+     *
+     * @throws MetaDataExecutionException MetaDataExecutionException
+     * @throws MetaDataClientServerException MetaDataClientServerException
+     * @param vitamContext
+     * @return
+     */
+    Response storeGraph(VitamContext vitamContext)
+        throws MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to access and launch the Vitam reconstruction service for metadatas.<br/>
+     *
+     *
+     * @param vitamContext
+     * @param reconstructionItems list of reconstruction request items
+     * @throws MetaDataClientServerException MetaDataClientServerException
+     * @return
+     */
+    Response reconstructCollection(VitamContext vitamContext,
+        JsonNode reconstructionItems)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to process obsolete compute inherited rules service for metadatas.<br/>
+     *
+     * @param vitamContext
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
+     * @return
+     */
+    Response processObsoleteComputedInheritedRules(
+        VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to process purge expired DIP files service for metadatas.<br/>
+     *
+     * @param vitamContext
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
+     * @return
+     */
+    Response purgeExpiredDipFiles(VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to process purge expired tranfering SIP files service for metadatas.<br/>
+     *
+     * @param vitamContext
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
+     * @return
+     */
+    Response purgeExpiredTransfersSIPFiles(VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * API to process audit data consistency Mongo and ES service for metadatas.<br/>
+     *
+     * @param vitamContext
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
+     * @return
+     */
+    Response runAuditDataConsistencyMongoEs(VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     Response streamUnits(JsonNode selectQuery)
         throws MetaDataClientServerException, MetadataScrollThresholdExceededException,

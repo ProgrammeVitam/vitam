@@ -7,3 +7,4 @@ Architecture Technique
 
    introduction.rst
    logbook.rst
+   metadata.rst

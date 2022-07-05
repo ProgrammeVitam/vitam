@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.index.model.ReindexationOK;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -70,6 +71,7 @@ import java.util.Set;
  */
 public class MetaDataClientMock extends AbstractMockClient implements MetaDataClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientMock.class);
+    public static final String STOP_USING_MOCKS_IN_PRODUCTION = "Stop using mocks in production";
 
     @Override
     public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
@@ -275,12 +277,12 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
         String objectGroupsToUpdateJsonLineFileName) {
-        throw new IllegalStateException("Stop using mocks in production");
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
     public JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery) {
-        throw new UnsupportedOperationException("Stop using mocks in production");
+        throw new UnsupportedOperationException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
@@ -290,16 +292,50 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public void deleteUnitsBulk(Collection<String> listIds) {
-        throw new IllegalStateException("Stop using mocks in production");
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
     public void deleteObjectGroupBulk(Collection<String> listIds) {
-        throw new IllegalStateException("Stop using mocks in production");
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response storeGraph(VitamContext vitamContext) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response reconstructCollection(VitamContext vitamContext,
+        JsonNode reconstructionItems) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response processObsoleteComputedInheritedRules(
+        VitamContext vitamContext) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response purgeExpiredDipFiles(VitamContext vitamContext) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response purgeExpiredTransfersSIPFiles(
+        VitamContext vitamContext) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
+    }
+
+    @Override
+    public Response runAuditDataConsistencyMongoEs(
+        VitamContext vitamContext) {
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
     public Response streamUnits(JsonNode selectQuery) throws MetaDataClientServerException {
-        throw new IllegalStateException("Stop using mocks in production");
+        throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 }

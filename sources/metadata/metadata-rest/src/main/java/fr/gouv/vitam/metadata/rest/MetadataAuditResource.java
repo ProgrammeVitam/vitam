@@ -50,7 +50,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/metadata/v1")
+@Path("/v1")
 @Tag(name = "Metadata")
 public class MetadataAuditResource {
 

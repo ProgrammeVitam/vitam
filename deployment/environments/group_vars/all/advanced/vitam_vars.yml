@@ -120,18 +120,13 @@ vitam_timers:
         - name: vitam-functional-administration-reconstruction
           frequency: "*-*-* *:0/5:00"
     metadata:
-        - name: vitam-metadata-store-graph
-          frequency: "*-*-* *:10/30:00"
-        - name: vitam-metadata-reconstruction
-          frequency: "*-*-* *:0/5:00"
-        - name: vitam-metadata-computed-inherited-rules
-          frequency: "*-*-* 02:30:00"
-        - name: vitam-metadata-purge-dip
-          frequency: "*-*-* *:00:00"
-        - name: vitam-metadata-purge-transfers-SIP
-          frequency: "*-*-* 02:25:00"
-        - name: vitam-metadata-audit-mongodb-es
-          frequency: "2020-01-01 00:00:00"
+          frequency_store_graph: "0 10/30 * * * ?"
+          frequency_reconstruction: "0 0/5 * * * ?"
+          frequency_computed_inherited_rules: "0 30 2 * * ?"
+          frequency_purge_dip: "0 0 * * * ?"
+          frequency_purge_transfers_sip: "0 25 2 * * ?"
+          frequency_audit_mongodb_es: "0 0 0 1 JAN ? 2020"
+    
     offer:
       # Compaction offer logs
       - name: vitam-offer-log-compaction

@@ -250,7 +250,6 @@ public class MetadataManagementResource {
     @Path(STORE_GRAPH_URI)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraph() {
         try {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());

@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -88,6 +89,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     private static final String COMPUTE_GRAPH_URI = "/computegraph";
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
+    private static final String RECONSTRUCTION_URI = "/reconstruction";
+    private static final String STORE_GRAPH_URI = "/storegraph";
+    private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI =
+        "/units/computedInheritedRules/processObsoletes";
+    private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
+    private static final String PURGE_EXPIRED_TRANSFER_SIP_FILES_URI = "/purgeTransfersSIP";
+    private static final String AUDIT_DATA_CONSISTENCY_URI = "/auditDataConsistency";
 
     public MetaDataClientRest(VitamClientFactoryInterface factory) {
         super(factory);
@@ -475,6 +483,38 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
     }
 
+    @Override
+    public Response storeGraph(VitamContext vitamContext)
+        throws MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        InvalidParseOperationException, MetaDataClientServerException {
+
+        try (Response response = make(get()
+            .withJsonContentType()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(STORE_GRAPH_URI))) {
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response reconstructCollection(VitamContext vitamContext,
+        JsonNode reconstructionItems)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException {
+        try (Response response = make(post()
+            .withJson()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(RECONSTRUCTION_URI)
+            .withBody(reconstructionItems))) {
+            check(response);
+            return response;
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
@@ -568,6 +608,66 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
                 response.close();
             }
+        }
+    }
+
+    @Override
+    public Response processObsoleteComputedInheritedRules(
+        VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException {
+        try (Response response = make(post()
+            .withJson()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(COMPUTED_INHERITED_RULES_OBSOLETE_URI))) {
+            check(response);
+            return response;
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response purgeExpiredDipFiles(VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException {
+        try (Response response = make(delete()
+            .withJson()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(PURGE_EXPIRED_DIP_FILES_URI))) {
+            check(response);
+            return response;
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response purgeExpiredTransfersSIPFiles(
+        VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException {
+        try (Response response = make(delete()
+            .withJson()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(PURGE_EXPIRED_TRANSFER_SIP_FILES_URI))) {
+            check(response);
+            return response;
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response runAuditDataConsistencyMongoEs(
+        VitamContext vitamContext)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException {
+        try (Response response = make(get()
+            .withJson()
+            .withHeaders(vitamContext.getHeaders())
+            .withPath(AUDIT_DATA_CONSISTENCY_URI))) {
+            check(response);
+            return response;
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
         }
     }
 
