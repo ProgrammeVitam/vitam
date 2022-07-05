@@ -1,13 +1,16 @@
 {
-  "_mgt": {
-    "HoldRule": {
-      "Rules": [
+  "_mgt":{
+    "HoldRule":{
+      "Rules":[
         {
-          "Rule": "HOL-00002"
+          "Rule":"HOL-00002"
         }
       ],
-      "PreventInheritance": false,
-      "PreventRulesId": [ "HOL-00003", "HOL-00004" ]
+      "PreventInheritance":false,
+      "PreventRulesId":[
+        "HOL-00003",
+        "HOL-00004"
+      ]
     }
   }
 }

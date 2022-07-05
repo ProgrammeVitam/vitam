@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -54,7 +55,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -91,7 +91,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
     private final int bulkSize;
 
     public ComputeInheritedRuleProgenyIdentifierPlugin() {
-        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
+        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(), GlobalDatas.LIMIT_LOAD);
         // Default constructor for workflow initialization by Worker
     }
 

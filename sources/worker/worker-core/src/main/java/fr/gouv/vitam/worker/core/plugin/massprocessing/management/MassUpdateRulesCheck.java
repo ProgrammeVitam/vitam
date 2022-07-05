@@ -42,11 +42,13 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateErrorInfo;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -129,6 +131,18 @@ public class MassUpdateRulesCheck extends ActionHandler {
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
 
+            if(numberOfInCorrectDeleteRule(ruleActions) > 0) {
+                final String message = "You can not add preventRulesId and preventRulesIdToRemove at the same time";
+                alertService.createAlert(message);
+                return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
+            }
+
+             if(numberOfInCorrectAddRule(ruleActions) > 0) {
+                final String message = "You can not add preventRulesId and preventRulesIdToAdd at the same time";
+                alertService.createAlert(message);
+                return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
+            }
+
             return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Step OK."));
         } catch (VitamException e) {
             LOGGER.error(e);
@@ -160,5 +174,32 @@ public class MassUpdateRulesCheck extends ActionHandler {
         }
         foundKeys.add(key);
         return false;
+    }
+
+    private int numberOfInCorrectDeleteRule(RuleActions ruleActions) {
+        AtomicInteger numberOfInCorrectDeleteRule = new AtomicInteger();
+        ruleActions.getDelete().forEach(ruleCategoryActionMap -> ruleCategoryActionMap.keySet().forEach(ruleCategoryName -> {
+            if(ruleCategoryActionMap.get(ruleCategoryName) != null
+                && !CollectionUtils.isEmpty(ruleCategoryActionMap.get(ruleCategoryName).getPreventRulesIdToRemove())
+                 && !CollectionUtils.isEmpty(ruleCategoryActionMap.get(ruleCategoryName).getPreventRulesId()))
+                {
+                    numberOfInCorrectDeleteRule.getAndIncrement();
+            }
+        }));
+        return numberOfInCorrectDeleteRule.get();
+    }
+
+    private int numberOfInCorrectAddRule(RuleActions ruleActions) {
+        AtomicInteger numberOfInCorrectAddRule = new AtomicInteger();
+        ruleActions.getAdd().forEach(ruleCategoryActionMap -> ruleCategoryActionMap.keySet().forEach(ruleCategoryName -> {
+            if(ruleCategoryActionMap.get(ruleCategoryName) != null
+                && !CollectionUtils.isEmpty(ruleCategoryActionMap.get(ruleCategoryName).getPreventRulesIdToAdd())
+                && !CollectionUtils.isEmpty(ruleCategoryActionMap.get(ruleCategoryName).getPreventRulesId())
+               )
+            {
+                numberOfInCorrectAddRule.getAndIncrement();
+            }
+        }));
+        return numberOfInCorrectAddRule.get();
     }
 }

@@ -423,7 +423,7 @@ public final class PropertiesUtils {
      */
     public static String getResourceAsString(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
-            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES);
         }
 
         String fileAsString = null;

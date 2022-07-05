@@ -1,0 +1,19 @@
+{
+  "delete": [
+    {
+      "AppraisalRule": {
+        "PreventRulesIdToRemove": [
+          "APP-00001"
+        ]
+      }
+    }
+  ],
+  "update": [
+
+  ],
+  "add": [
+
+  ],
+  "addOrUpdateMetadata": {},
+  "deleteMetadata": {}
+}

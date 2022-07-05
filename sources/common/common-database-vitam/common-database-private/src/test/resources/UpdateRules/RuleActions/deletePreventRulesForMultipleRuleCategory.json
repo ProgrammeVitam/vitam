@@ -1,0 +1,17 @@
+{
+  "add": [],
+  "update": [],
+  "delete": [
+    {
+      "AppraisalRule": {
+        "PreventRulesIdToRemove": ["APP-00004", "APP-00003"]
+      },
+      "AccessRule": {
+        "PreventRulesIdToRemove": ["ACC-00004", "ACC-00003"]
+      },
+      "StorageRule": {
+        "PreventRulesIdToRemove": ["STO-00004", "STO-00003"]
+      }
+    }
+  ]
+}

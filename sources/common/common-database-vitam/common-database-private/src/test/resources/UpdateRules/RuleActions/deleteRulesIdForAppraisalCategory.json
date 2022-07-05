@@ -1,0 +1,18 @@
+{
+  "add":[
+
+  ],
+  "update":[
+
+  ],
+  "delete":[
+    {
+      "AppraisalRule":{
+        "PreventRulesIdToRemove":[
+          "APP-00004",
+          "APP-00003"
+        ]
+      }
+    }
+  ]
+}

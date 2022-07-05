@@ -1,0 +1,21 @@
+{
+  "_mgt":{
+    "AppraisalRule":{
+      "Rules":[
+        {
+          "Rule":"APP-000010",
+          "StartDate":"2000-01-01"
+        }
+      ],
+      "Inheritance":{
+        "PreventInheritance":false,
+        "PreventRulesId":[
+          "APP-00001",
+          "APP-00002",
+          "APP-00003",
+          "APP-00004"
+        ]
+      }
+    }
+  }
+}
