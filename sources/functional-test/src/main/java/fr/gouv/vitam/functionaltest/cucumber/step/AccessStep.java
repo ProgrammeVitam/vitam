@@ -376,6 +376,13 @@ public class AccessStep extends CommonStep {
         assertThat(world.getResults()).hasSize(numberOfResult);
     }
 
+    @Then("^tous les résultats contiennent la propriété \"([^\"]*)\" dont la valeur est \"([^\"]*)\"$")
+    public void results_contains_key_value(String fieldKey, String fieldValue) {
+        world.getResults().forEach(result-> {
+            assertThat(result.get(fieldKey).textValue()).isEqualTo(fieldValue);
+        });
+    }
+
     /**
      * check if the status of the select result is unauthorized
      *
