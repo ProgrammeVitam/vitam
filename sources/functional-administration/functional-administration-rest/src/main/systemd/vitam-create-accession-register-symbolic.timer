@@ -1,8 +1,0 @@
-[Unit]
-Description=Launch vitam creation of accession register each 6 hours.
-
-[Timer]
-OnCalendar=*-*-* 00:00:00
-
-[Install]
-WantedBy=timers.target

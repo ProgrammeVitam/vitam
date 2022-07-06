@@ -5,26 +5,6 @@ case "$1" in
     if [ -x /bin/systemctl ]; then
       systemctl --no-reload disable vitam-${unix.name}.service >/dev/null 2>&1 || true
       systemctl stop vitam-${unix.name}.service >/dev/null 2>&1 || true
-
-      systemctl --no-reload disable vitam-functional-administration-reconstruction.timer >/dev/null 2>&1 || true
-      systemctl stop vitam-functional-administration-reconstruction.timer >/dev/null 2>&1 || true
-      systemctl --no-reload disable vitam-functional-administration-reconstruction.service >/dev/null 2>&1 || true
-      systemctl stop vitam-functional-administration-reconstruction.service >/dev/null 2>&1 || true
-
-      systemctl --no-reload disable vitam-rule-management-audit.timer >/dev/null 2>&1 || true
-      systemctl stop vitam-rule-management-audit.timer >/dev/null 2>&1 || true
-      systemctl --no-reload disable vitam-rule-management-audit.service >/dev/null 2>&1 || true
-      systemctl stop vitam-rule-management-audit.service >/dev/null 2>&1 || true
-
-      systemctl --no-reload disable vitam-create-accession-register-symbolic.timer >/dev/null 2>&1 || true
-      systemctl stop vitam-create-accession-register-symbolic.timer >/dev/null 2>&1 || true
-      systemctl --no-reload disable vitam-create-accession-register-symbolic.service >/dev/null 2>&1 || true
-      systemctl stop vitam-create-accession-register-symbolic.service >/dev/null 2>&1 || true
-
-      systemctl --no-reload disable vitam-functional-administration-accession-register-reconstruction.timer >/dev/null 2>&1 || true
-      systemctl stop vitam-functional-administration-accession-register-reconstruction.timer >/dev/null 2>&1 || true
-      systemctl --no-reload disable vitam-functional-administration-accession-register-reconstruction.service >/dev/null 2>&1 || true
-      systemctl stop vitam-functional-administration-accession-register-reconstruction.service >/dev/null 2>&1 || true
     fi
     ;;
 

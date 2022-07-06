@@ -286,11 +286,8 @@
   serial: 1
   roles:
     - vitam
-    - timers
-    - functional_administration
   vars:
     vitam_struct: "{{ vitam.functional_administration }}"
-    timers_list: "{{ vitam_timers.functional_administration }}"
 
 - hosts: hosts_security_internal
   gather_facts: no

@@ -24,12 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.rules.main;
+package fr.gouv.vitam.scheduler.server.job;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.configuration.SecureConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -39,61 +36,53 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * Utility to launch the rule audit through command line and external scheduler
  */
-public class CallRuleAudit {
+public class RuleManagementAuditJob implements Job {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallRuleAudit.class);
-    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RuleManagementAuditJob.class);
     private final AdminManagementClientFactory adminManagementClientFactory;
 
-    public CallRuleAudit(AdminManagementClientFactory adminManagementClientFactory) {
+    public RuleManagementAuditJob(AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
-    public static void main(String[] args) {
+    public RuleManagementAuditJob() {
+        this(AdminManagementClientFactory.getInstance());
+    }
+
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        List<Integer> tenants = VitamConfiguration.getTenants();
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+
         try {
-            CallRuleAudit callRuleAudit = new CallRuleAudit(AdminManagementClientFactory.getInstance());
-            callRuleAudit.run();
-        } catch (Exception e) {
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(
+                () -> auditRules(VitamConfiguration.getAdminTenant(), tenants)
+                , executorService);
+            completableFuture.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new JobExecutionException("Rule management audit is interrupted", e);
+        } catch (ExecutionException e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Cannot execute AccessionRegisterSymbolicMain", e);
+            throw new JobExecutionException("Rule management audit is failed", e);
+        } finally {
+            executorService.shutdown();
         }
     }
 
-    void run() throws IOException, ExecutionException, InterruptedException {
-        platformSecretConfiguration();
-        File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-        SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
-        List<Integer> tenants = conf
-            .getTenants()
-            .stream()
-            .map(Integer::parseInt)
-            .collect(Collectors.toList());
 
-        runInVitamThreadExecutor(() -> auditRules(conf.getAdminTenant(), tenants));
-    }
-
-    private static void runInVitamThreadExecutor(Runnable runnable)
-        throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
-        completableFuture.get();
-        executorService.shutdown();
-    }
 
     private void auditRules(int adminTenant, List<Integer> tenants) {
         VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
@@ -108,17 +97,5 @@ public class CallRuleAudit {
         }
     }
 
-    private static void platformSecretConfiguration() {
-        // Load Platform secret from vitam.conf file
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
 
-            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
-            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
-
-        } catch (final IOException e) {
-            throw new IllegalStateException("Cannot load configuration", e);
-        }
-    }
 }

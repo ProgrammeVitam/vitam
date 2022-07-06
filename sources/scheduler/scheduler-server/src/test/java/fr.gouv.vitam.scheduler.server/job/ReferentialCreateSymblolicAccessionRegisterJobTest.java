@@ -25,7 +25,8 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.accession.register.symbolic;
+
+package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -42,9 +43,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +59,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class AccessionRegisterSymbolicMainTest {
+public class ReferentialCreateSymblolicAccessionRegisterJobTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -68,13 +70,17 @@ public class AccessionRegisterSymbolicMainTest {
     @Mock
     private AdminManagementClient adminManagementClient;
 
+    @Mock
+    private JobExecutionContext context;
+
     @InjectMocks
-    private AccessionRegisterSymbolicMain accessionRegisterSymbolicMain;
+    private ReferentialCreateSymblolicAccessionRegisterJob accessionRegisterSymbolicMain;
 
     @Before
     public void setup() {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         VitamConfiguration.setAdminTenant(1);
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
     }
 
     @Test
@@ -89,7 +95,8 @@ public class AccessionRegisterSymbolicMainTest {
         }).when(adminManagementClient).createAccessionRegisterSymbolic(any());
 
         // When
-        accessionRegisterSymbolicMain.run();
+
+        accessionRegisterSymbolicMain.execute(context);
 
         // Then
         verify(adminManagementClient).createAccessionRegisterSymbolic(eq(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)));
@@ -106,8 +113,8 @@ public class AccessionRegisterSymbolicMainTest {
             .when(adminManagementClient).createAccessionRegisterSymbolic(any());
 
         // When / Then
-        assertThatThrownBy(() -> accessionRegisterSymbolicMain.run())
-            .isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> accessionRegisterSymbolicMain.execute(context))
+            .isInstanceOf(JobExecutionException.class);
         verify(adminManagementClient).createAccessionRegisterSymbolic(any());
     }
 }

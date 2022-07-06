@@ -219,38 +219,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>copy-systemd-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/systemd</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/systemd</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-script-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/script</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/main/script</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
 
                 </executions>
             </plugin>
@@ -303,40 +271,9 @@
                                 </source>
                             </sources>
                         </mapping>
-                        <mapping>
-                            <directory>/vitam/script/${unix.name}</directory>
-                            <!-- OMA : change to 750 and change directive if not correct
-                                                        <defaultFileMode>640</defaultFileMode>
-                            -->
-                            <filemode>750</filemode>
-                            <username>${unix.user}</username>
-                            <groupname>${unix.user}</groupname>
-                            <sources>
-                                <source>
-                                    <location>${project.build.directory}/script</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/usr/lib/systemd/system/</directory>
-                            <filemode>644</filemode>
-                            <username>root</username>
-                            <groupname>root</groupname>
-                            <directoryIncluded>false</directoryIncluded>
-                            <sources>
-                                <source>
-                                    <location>${project.build.directory}/systemd</location>
-                                </source>
-                            </sources>
-                        </mapping>
+
                     </mappings>
-                    <!-- Systemd hook scriptlets -->
-                    <preremoveScriptlet>
-                        <script>%systemd_preun vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service vitam-create-accession-register-symbolic.timer vitam-create-accession-register-symbolic.service vitam-functional-administration-accession-register-reconstruction.timer vitam-functional-administration-accession-register-reconstruction.service</script>
-                    </preremoveScriptlet>
-                    <postremoveScriptlet>
-                        <script>%systemd_postun vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service vitam-create-accession-register-symbolic.timer vitam-create-accession-register-symbolic.service vitam-functional-administration-accession-register-reconstruction.timer vitam-functional-administration-accession-register-reconstruction.service</script>
-                    </postremoveScriptlet>
+
                 </configuration>
             </plugin>
             <plugin>
@@ -416,17 +353,6 @@
                                 <group>${unix.group}</group>
                                 <filemode>0750</filemode>
                                 <prefix>/vitam/conf/${unix.name}</prefix>
-                            </mapper>
-                        </data>
-                        <data>
-                            <src>${project.build.directory}/systemd/</src>
-                            <type>directory</type>
-                            <mapper>
-                                <type>perm</type>
-                                <user>${unix.user}</user>
-                                <group>${unix.group}</group>
-                                <filemode>0755</filemode>
-                                <prefix>/lib/systemd/system/</prefix>
                             </mapper>
                         </data>
                     </dataSet>

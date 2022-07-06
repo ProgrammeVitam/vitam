@@ -1,14 +1,5 @@
 ---
 
-- hosts: hosts_functional_administration
-  any_errors_fatal: true
-  gather_facts: no
-  roles:
-    - stop_vitam_timers
-  vars:
-    list_timers: ["vitam-create-accession-register-symbolic","vitam-rule-management-audit","vitam-functional-administration-reconstruction","vitam-functional-administration-accession-register-reconstruction"]
-    vitam_component: "{{ vitam.functional_administration.vitam_component }}"
-
 - hosts: hosts_storage_engine
   any_errors_fatal: true
   gather_facts: no

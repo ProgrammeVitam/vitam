@@ -1,18 +1,5 @@
 ---
 
-- hosts: hosts_functional_administration
-  any_errors_fatal: true
-  gather_facts: no
-  roles:
-    - start_vitam_timers
-  vars:
-    list_timers: [
-     ["vitam-create-accession-register-symbolic","hosts_functional_administration","last","last"]
-     ,["vitam-rule-management-audit","hosts_functional_administration","last",""] #,"inventory_hostname == groups['hosts_functional_administration'] | last",""]
-     ,["vitam-functional-administration-reconstruction","hosts_functional_administration","","last"] #,"","inventory_hostname == groups['hosts_functional_administration'] | last"]
-     ,["vitam-functional-administration-accession-register-reconstruction","hosts_functional_administration","","last"] #"","inventory_hostname == groups['hosts_functional_administration'] | last"]
-    ]
-
 
 - hosts: hosts_storage_engine
   any_errors_fatal: true

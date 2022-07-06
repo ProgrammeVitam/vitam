@@ -59,6 +59,12 @@ public class ReconstructionRequestItem {
         super();
     }
 
+    public ReconstructionRequestItem(String collection, Integer tenant, int limit) {
+        this.collection = collection;
+        this.tenant = tenant;
+        this.limit = limit;
+    }
+
     /**
      * Get the collection of the profile
      *

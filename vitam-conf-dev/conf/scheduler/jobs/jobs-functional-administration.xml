@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data
+        xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData https://www.quartz-scheduler.org/xml/job_scheduling_data_1_8.xsd"
+        version="1.8">
+
+        <!--<pre-processing-commands>
+            <delete-jobs-in-group>*</delete-jobs-in-group>
+            <delete-triggers-in-group>*</delete-triggers-in-group>
+        </pre-processing-commands>-->
+
+        <processing-directives>
+            <!-- if there are any jobs/trigger in scheduler of same name (as in this
+                file), overwrite them -->
+            <overwrite-existing-data>false</overwrite-existing-data>
+            <!-- if there are any jobs/trigger in scheduler of same name (as in this
+                file), and over-write is false, ignore them rather then generating an error -->
+            <ignore-duplicates>true</ignore-duplicates>
+        </processing-directives>
+
+        
+
+    <schedule>
+        <job>
+            <name>ReferentialCreateSymblolicAccessionRegisterJob</name>
+            <group>functionalAdminGroup</group>
+            <description>Job for referential accession register symbolic</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.ReferentialCreateSymblolicAccessionRegisterJob</job-class>
+        </job>
+
+        <trigger>
+           <cron>
+                <name>ReferentialCreateSymblolicAccessionRegisterTrigger</name>
+                <group>functionalAdminGroup</group>
+                <job-name>ReferentialCreateSymblolicAccessionRegisterJob</job-name>
+                <job-group>functionalAdminGroup</job-group>
+                <cron-expression>0 50 0 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+
+    <schedule>
+        <job>
+            <name>RuleManagementAuditJob</name>
+            <group>functionalAdminGroup</group>
+            <description>Job for management rules audit</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.RuleManagementAuditJob</job-class>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>RuleManagementAuditTrigger</name>
+                <group>functionalAdminGroup</group>
+                <job-name>RuleManagementAuditJob</job-name>
+                <job-group>functionalAdminGroup</job-group>
+                <cron-expression>0 40 * * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+
+
+<!--
+    <schedule>
+        <job>
+            <name>ReconstructionAccessionRegisterJob</name>
+            <group>functionalAdminGroup</group>
+            <description>Job for reconstruction accession register</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionAccessionRegisterJob</job-class>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>ReconstructionAccessionRegisterTrigger</name>
+                <group>functionalAdminGroup</group>
+                <job-name>ReconstructionAccessionRegisterJob</job-name>
+                <job-group>functionalAdminGroup</job-group>
+                <cron-expression>0 0/5 * * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+    <schedule>
+        <job>
+            <name>ReconstructionReferentialJob</name>
+            <group>functionalAdminGroup</group>
+            <description>job for referentials reconstruction </description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionReferentialJob</job-class>
+        </job>
+
+        <trigger>
+            <cron>
+                <name>ReconstructionReferentialTrigger</name>
+                <group>functionalAdminGroup</group>
+                <job-name>ReconstructionReferentialJob</job-name>
+                <job-group>functionalAdminGroup</job-group>
+                <cron-expression>0 0/5 * * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+
+-->
+</job-scheduling-data>

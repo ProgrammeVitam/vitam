@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
+import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -866,5 +867,11 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     RequestResponse<JsonNode> findJobs() throws AdminManagementClientServerException;
+
+
+    void reconstructCollection(String collection) throws AdminManagementClientServerException;
+
+    void reconstructAccessionRegister(List<ReconstructionRequestItem> reconstructionItems) throws
+        AdminManagementClientServerException;
 }
 

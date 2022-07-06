@@ -92,10 +92,6 @@ vitam:
             # memory: "-Xms512m -Xmx512m"
             # gc: ""
             # java: ""
-        timer_jvm_opts:
-            # memory: "-Xms32m -Xmx128m"
-            # gc: ""
-            # java: ""
     scheduler:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
