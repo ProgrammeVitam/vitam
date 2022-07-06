@@ -7,7 +7,7 @@
     - start_vitam_timers
   vars:
     list_timers: [
-     ["vitam-create-accession-register-symbolic","hosts_functional_administration","last","last"]
+     ["vitam-create-accession-register-symbolic","hosts_functional_administration","last",""]
      ,["vitam-rule-management-audit","hosts_functional_administration","last",""] #,"inventory_hostname == groups['hosts_functional_administration'] | last",""]
      ,["vitam-functional-administration-reconstruction","hosts_functional_administration","","last"] #,"","inventory_hostname == groups['hosts_functional_administration'] | last"]
      ,["vitam-functional-administration-accession-register-reconstruction","hosts_functional_administration","","last"] #"","inventory_hostname == groups['hosts_functional_administration'] | last"]
