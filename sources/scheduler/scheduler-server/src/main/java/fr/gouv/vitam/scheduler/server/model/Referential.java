@@ -24,7 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- * Provides core classes of functional administration rules module
- */
-package fr.gouv.vitam.functional.administration.rules.main;
+
+
+package fr.gouv.vitam.scheduler.server.model;
+
+public enum Referential {
+     FORMATS,
+     RULES,
+     MANAGEMENT_CONTRACT,
+     INGEST_CONTRACT,
+     ACCESS_CONTRACT,
+     PROFILE,
+     ARCHIVE_UNIT_PROFILE,
+     AGENCIES,
+     CONTEXT,
+     SECURITY_PROFILE,
+     GRIFFIN,
+     PRESERVATION_SCENARIO,
+     ONTOLOGY
+}

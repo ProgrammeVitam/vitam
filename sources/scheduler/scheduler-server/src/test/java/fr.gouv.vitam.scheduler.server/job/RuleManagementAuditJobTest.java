@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.rules.main;
+package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -42,9 +42,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +58,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class CallRuleAuditTest {
+public class RuleManagementAuditJobTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -68,13 +69,17 @@ public class CallRuleAuditTest {
     @Mock
     private AdminManagementClient adminManagementClient;
 
+    @Mock
+    private JobExecutionContext context;
+
     @InjectMocks
-    private CallRuleAudit callRuleAudit;
+    private RuleManagementAuditJob ruleManagementAuditJob;
 
     @Before
     public void setup() {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         VitamConfiguration.setAdminTenant(1);
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
     }
 
     @Test
@@ -89,7 +94,7 @@ public class CallRuleAuditTest {
         }).when(adminManagementClient).launchRuleAudit(any());
 
         // When
-        callRuleAudit.run();
+        ruleManagementAuditJob.execute(context);
 
         // Then
         verify(adminManagementClient).launchRuleAudit(eq(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)));
@@ -106,8 +111,8 @@ public class CallRuleAuditTest {
             .when(adminManagementClient).launchRuleAudit(any());
 
         // When / Then
-        assertThatThrownBy(() -> callRuleAudit.run())
-            .isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> ruleManagementAuditJob.execute(context))
+            .isInstanceOf(JobExecutionException.class);
         verify(adminManagementClient).launchRuleAudit(any());
     }
 }

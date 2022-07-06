@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.client;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -64,6 +62,7 @@ import fr.gouv.vitam.common.model.administration.preservation.PreservationScenar
 import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
@@ -89,6 +88,7 @@ import java.util.List;
  */
 public class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "stream is a mandatory parameter";
+    private static final String CANNOT_BE_USED = "Cannot be used";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
     @Override
@@ -294,7 +294,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public Status importManagementContracts(List<ManagementContractModel> accessContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
@@ -335,13 +335,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse findManagementContracts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse findManagementContractsByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
@@ -438,7 +438,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
@@ -599,49 +599,49 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants) {
-        throw new RuntimeException("Cannot be used");
+        throw new RuntimeException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<AccessionRegisterSymbolicModel> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl)
         throws AdminManagementClientServerException {
-        throw new RuntimeException("Cannot be used");
+        throw new RuntimeException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
         throws AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModelList)
         throws AdminManagementClientServerException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<GriffinModel> findGriffinByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<PreservationScenarioModel> findPreservationByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<PreservationScenarioModel> findPreservation(JsonNode dslQuery)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<GriffinModel> findGriffin(JsonNode dslQuery) {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
@@ -653,7 +653,18 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<JsonNode> findJobs() {
-        throw new IllegalStateException("Cannot be used");
+        throw new IllegalStateException(CANNOT_BE_USED);
+    }
+
+    @Override
+    public void reconstructCollection(String collection) throws AdminManagementClientServerException {
+        throw new IllegalStateException(CANNOT_BE_USED);
+    }
+
+    @Override
+    public void reconstructAccessionRegister(List<ReconstructionRequestItem> reconstructionItems)
+        throws AdminManagementClientServerException {
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
 }

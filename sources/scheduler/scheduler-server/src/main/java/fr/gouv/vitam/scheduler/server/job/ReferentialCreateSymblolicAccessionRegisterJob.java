@@ -24,12 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.accession.register.symbolic;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+
+package fr.gouv.vitam.scheduler.server.job;
+
+
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.configuration.SecureConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -41,51 +41,31 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
-public class AccessionRegisterSymbolicMain {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterSymbolicMain.class);
-    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
+public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReferentialCreateSymblolicAccessionRegisterJob.class);
     private AdminManagementClientFactory adminManagementClientFactory;
 
-    public AccessionRegisterSymbolicMain(
+    public ReferentialCreateSymblolicAccessionRegisterJob(
         AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
-    public static void main(String[] args) {
-        try {
-            AccessionRegisterSymbolicMain accessionRegisterSymbolicMain =
-                new AccessionRegisterSymbolicMain(AdminManagementClientFactory.getInstance());
-            accessionRegisterSymbolicMain.run();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot execute AccessionRegisterSymbolicMain", e);
-        }
+    public ReferentialCreateSymblolicAccessionRegisterJob() {
+        this(AdminManagementClientFactory.getInstance());
     }
 
-    void run() throws IOException, ExecutionException, InterruptedException {
-        platformSecretConfiguration();
 
-        File confFile = PropertiesUtils.findFile("securisationDaemon.conf");
-        SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
-        List<Integer> tenants = conf
-            .getTenants()
-            .stream()
-            .map(Integer::parseInt)
-            .collect(Collectors.toList());
-
-        runInVitamThreadExecutor(() -> createAccessionRegisterSymbolic(conf.getAdminTenant(), tenants));
-    }
 
     private static void runInVitamThreadExecutor(Runnable runnable)
         throws InterruptedException, ExecutionException {
@@ -108,17 +88,15 @@ public class AccessionRegisterSymbolicMain {
         }
     }
 
-    private static void platformSecretConfiguration() {
-        // Load Platform secret from vitam.conf file
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
-
-            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
-            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
-
-        } catch (final IOException e) {
-            throw new IllegalStateException("Cannot load configuration", e);
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        try {
+            List<Integer> tenants = VitamConfiguration.getTenants();
+            runInVitamThreadExecutor(
+                () -> createAccessionRegisterSymbolic(VitamConfiguration.getAdminTenant(), tenants));
+        } catch (Exception e) {
+            LOGGER.error(e);
+            throw new JobExecutionException(e);
         }
     }
+
 }

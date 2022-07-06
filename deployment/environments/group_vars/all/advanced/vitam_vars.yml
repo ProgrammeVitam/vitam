@@ -110,15 +110,11 @@ vitam_timers:
         # Sécurisation du journal des écritures
         - name: vitam-storage-log-traceability
           frequency: "*-*-* 0/4:40:00" # every 4 hours
-    functional_administration:
-        - name: vitam-create-accession-register-symbolic
-          frequency: "*-*-* 00:50:00"
-        - name: vitam-functional-administration-accession-register-reconstruction
-          frequency: "*-*-* *:0/5:00"
-        - name: vitam-rule-management-audit
-          frequency: "*-*-* *:40:00"
-        - name: vitam-functional-administration-reconstruction
-          frequency: "*-*-* *:0/5:00"
+    functional_administration: 
+          frequency_create_accession_register_symbolic: "0 50 0 * * ?"
+          frequency_accession_register_reconstruction: "0 0/5 * * * ?" 
+          frequency_rule_management_audit: "0 40 * * * ?" 
+          frequency_reconstruction: "0 0/5 * * * ?"
     metadata:
           frequency_store_graph: "0 10/30 * * * ?"
           frequency_reconstruction: "0 0/5 * * * ?"

@@ -71,6 +71,7 @@ import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -146,6 +147,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
     private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server Error";
+    private static final String RECONSTRUCTION_URI = "/reconstruction/";
+
+    private static final String RECONSTRUCTION_ACCESSION_REGISTER = "/accessionregisterreconstruction/";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1519,6 +1523,27 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+    }
+
+    @Override
+    public void reconstructCollection(String collection) throws AdminManagementClientServerException {
+        try (Response response = make(
+            post().withPath(RECONSTRUCTION_URI + collection).withJson())) {
+            check(response);
+        } catch (VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+    }
+
+    @Override
+    public void reconstructAccessionRegister(List<ReconstructionRequestItem> reconstructionItems)
+        throws AdminManagementClientServerException {
+        try (Response response = make(
+            post().withPath(RECONSTRUCTION_ACCESSION_REGISTER).withBody(reconstructionItems).withJson())) {
+            check(response);
         } catch (VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }

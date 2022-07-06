@@ -379,40 +379,7 @@ public class ReconstructionServiceImplTest {
     }
 
 
-    @Test
-    @RunWithCustomExecutor
-    public void reconstructCollectionScript() throws Exception {
 
-        String scriptPath =
-            "../../../deployment/ansible-vitam/roles/functional_administration/templates/reconstruction.sh.j2";
-        String scriptFile = FileUtils.readFileToString(new File(scriptPath), StandardCharsets.US_ASCII);
-
-        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
-
-            boolean shouldBeReconstructed;
-            switch (collection) {
-                case ACCESSION_REGISTER_SUMMARY:
-                case ACCESSION_REGISTER_DETAIL:
-                case ACCESSION_REGISTER_SYMBOLIC:
-                    // Reconstruction is done via another script...
-                    shouldBeReconstructed = false;
-                    break;
-
-                case VITAM_SEQUENCE:
-                    // Recomputed while reconstruction corresponding function admin collections
-                    shouldBeReconstructed = false;
-                    break;
-
-                default:
-                    shouldBeReconstructed = true;
-                    break;
-            }
-
-            assertThat(scriptFile.contains("local_curl " + collection.name()))
-                .withFailMessage("Expected reconstruction of " + collection.name() + " to be " + shouldBeReconstructed)
-                .isEqualTo(shouldBeReconstructed);
-        }
-    }
 
     @Test
     @RunWithCustomExecutor
