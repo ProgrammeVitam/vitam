@@ -1,0 +1,27 @@
+
+DatabaseOwner clamav
+UpdateLogFile {{ vitam_defaults.folder.root_path }}/log/clamav/freshclam.log
+LogVerbose false
+LogSyslog false
+LogFacility LOG_LOCAL6
+LogFileMaxSize 0
+LogRotate true
+LogTime true
+Foreground false
+Debug false
+MaxAttempts 5
+ConnectTimeout 30
+ReceiveTimeout 0
+TestDatabases yes
+Checks {{ clamav.freshclam.db_update_periodicity | default('1') }}
+
+DatabaseMirror database.clamav.net
+# private_mirror takes the lead if defined
+{% if clamav.freshclam.private_mirror_address is defined and clamav.freshclam.private_mirror_address is not none %}
+PrivateMirror {{ clamav.freshclam.private_mirror_address }}
+{% endif %}
+
+{% if http_proxy_environnement is defined and http_proxy_environnement != '' and clamav.freshclam.use_proxy == 'yes' %}
+HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
+HTTPProxyPort {{ http_proxy_environnement | urlsplit('port')}}
+{% endif %}
