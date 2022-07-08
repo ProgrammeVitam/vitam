@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1656922392618,
+  "iteration": 1657268694991,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -659,7 +659,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{device=\"rootfs\",hostname=~\"$ingestexternal\"} * 100) / node_filesystem_size_bytes{device=\"rootfs\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/\",fstype!=\"rootfs\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -748,7 +748,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{device=\"rootfs\",hostname=~\"$workspace\"} * 100) / node_filesystem_size_bytes{device=\"rootfs\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$workspace\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{hostname=~\"$workspace\",mountpoint=\"/\",fstype!=\"rootfs\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -837,7 +837,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{device=\"rootfs\",hostname=~\"$worker\"} * 100) / node_filesystem_size_bytes{device=\"rootfs\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$worker\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{hostname=~\"$worker\",mountpoint=\"/\",fstype!=\"rootfs\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -1017,7 +1017,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_memory_MemAvailable_bytes{hostname=~\"$worker\"} * 100) / node_memory_MemTotal_bytes)",
+          "expr": "100 - ((node_memory_MemAvailable_bytes{hostname=~\"$worker\"} * 100) / node_memory_MemTotal_bytes{hostname=~\"$worker\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -1288,7 +1288,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/vitam\",hostname=~\"$ingestexternal\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/vitam\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/vitam\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/vitam\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -1377,7 +1377,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/vitam\",hostname=~\"$workspace\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/vitam\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/vitam\",hostname=~\"$workspace\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/vitam\",hostname=~\"$ingestexternal\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
