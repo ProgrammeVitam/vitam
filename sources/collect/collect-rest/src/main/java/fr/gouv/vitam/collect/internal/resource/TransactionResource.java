@@ -56,13 +56,17 @@ import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -76,11 +80,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
@@ -105,19 +114,38 @@ public class TransactionResource extends ApplicationStatusResource {
     private static final String ID = "#id";
     private static final String ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG =
         "Error when getting units by project ID in metadata : {}";
+    private final SecureEndpointRegistry secureEndpointRegistry;
     private final TransactionService transactionService;
     private final ProjectService projectService;
     private final CollectService collectService;
     private final SipService sipService;
     private final FluxService fluxService;
 
-    public TransactionResource(TransactionService transactionService, CollectService collectService,
+    public TransactionResource(
+        SecureEndpointRegistry secureEndpointRegistry,
+        TransactionService transactionService, CollectService collectService,
         SipService sipService, ProjectService projectService, FluxService fluxService) {
+        this.secureEndpointRegistry = secureEndpointRegistry;
         this.transactionService = transactionService;
         this.collectService = collectService;
         this.sipService = sipService;
         this.projectService = projectService;
         this.fluxService = fluxService;
+    }
+
+    /**
+     * Récupère la liste des endpoints de la resource
+     *
+     * @return response
+     */
+    @Path("/")
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured()
+    public Response listResourceEndpoints() {
+        String resourcePath = TransactionResource.class.getAnnotation(Path.class).value();
+        List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
+        return Response.status(Response.Status.OK).entity(securedEndpointList).build();
     }
 
     @Path("/projects")
@@ -149,7 +177,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_CREATE, description = "Mise a jour d'un projet")
+    @Secured(permission = PROJECT_UPDATE, description = "Mise à jour d'un projet")
     public Response updateProject(ProjectDto projectDto) {
         try {
             ParametersChecker.checkParameter("You must supply projects datas!", projectDto);
@@ -176,7 +204,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_READ, description = "récupérer le projet")
+    @Secured(permission = PROJECT_ID_READ, description = "Récupére un projet par son id")
     public Response getProjectById(@PathParam("projectId") String projectId) {
         try {
             SanityChecker.checkParameter(projectId);
@@ -212,7 +240,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_READ, description = "récupérer liste de projet par tenant")
+    @Secured(permission = PROJECT_READ, description = "Récupére la liste des projets par tenant")
     public Response getProjects() {
         try {
             Integer tenantId = ParameterHelper.getTenantParameter();
@@ -235,7 +263,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_CREATE, description = "Créer une transaction")
+    @Secured(permission = TRANSACTION_CREATE, description = "Crée une transaction")
     public Response initTransaction(TransactionDto transactionDto) {
         try {
             ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
@@ -258,7 +286,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_CREATE, description = "Créer une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_CREATE, description = "Crée une unité archivistique et la rattache à la transaction courante")
     public Response uploadArchiveUnit(@PathParam("transactionId") String transactionId, JsonNode unitJsonNode) {
 
         try {
@@ -291,7 +319,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/units/{unitId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "récupérer une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "Récupére une unité archivistique")
     public Response getUnitById(@PathParam("unitId") String unitId) {
 
         try {
@@ -316,7 +344,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_READ, description = "récupérer une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_READ, description = "Récupére toutes les unités archivistique")
     public Response selectUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery) {
         try {
             return CollectRequestResponse.toResponseOK(collectService.selectUnits(jsonQuery));
@@ -329,6 +357,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/transactions/{transactionId}/units")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_ID_UNITS, description = "Récupére toutes les unités archivistique d'une transaction")
     public Response getUnitsByTransaction(@PathParam("transactionId") String transactionId) {
 
         try {
@@ -349,7 +378,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_OBJECT_UPSERT, description = "ajouter ou modifier un objet group")
+    @Secured(permission = TRANSACTION_OBJECT_UPSERT, description = "Crée ou met à jour un groupe d'objets")
     public Response uploadObjectGroup(@PathParam("unitId") String unitId,
         @PathParam("usage") String usageString,
         @PathParam("version") Integer version,
@@ -379,7 +408,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/objects/{gotId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_OBJECT_READ, description = "récupérer un groupe d'objet")
+    @Secured(permission = TRANSACTION_OBJECT_READ, description = "Récupére un groupe d'objet")
     public Response getObjectById(@PathParam("gotId") String gotId) {
 
         try {
@@ -399,7 +428,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "ajouter ou modifier un binaire")
+    @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "Crée ou met à jour un binaire d'un usage/version")
     public Response upload(@PathParam("unitId") String unitId,
         @PathParam("usage") String usageString,
         @PathParam("version") Integer version,
@@ -431,7 +460,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/units/{unitId}/objects/{usage}/{version}/binary")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = TRANSACTION_BINARY_READ, description = "télécharger un binaire")
+    @Secured(permission = TRANSACTION_BINARY_READ, description = "Télécharge un usage/version du binaire d'un groupe d'objets")
     public Response download(@PathParam("unitId") String unitId,
         @PathParam("usage") String usageString,
         @PathParam("version") Integer version) {
@@ -462,7 +491,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_CLOSE, description = "Fermer une transaction")
+    @Secured(permission = TRANSACTION_CLOSE, description = "Ferme une transaction")
     public Response closeTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
@@ -481,7 +510,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_SEND, description = "Envoyer une transaction")
+    @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
     public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
 
         try {
@@ -525,7 +554,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @POST
     @Consumes({CommonMediaType.ZIP})
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "ajouter un zip contenant une arborescence")
+    @Secured(permission = PROJECT_ID_BINARY, description = "Charge les binaires d'un projet")
     public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
         try {
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
@@ -567,6 +596,7 @@ public class TransactionResource extends ApplicationStatusResource {
     @Path("/projects/{projectId}/units")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_ID_UNITS, description = "Récupére toutes les unités archivistique d'un projet")
     public Response getUnitsByProjectId(@PathParam("projectId") String projectId) {
 
         try {

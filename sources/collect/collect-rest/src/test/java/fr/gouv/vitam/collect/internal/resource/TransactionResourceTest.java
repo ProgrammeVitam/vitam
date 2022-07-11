@@ -42,6 +42,7 @@ import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -72,6 +73,8 @@ public class TransactionResourceTest {
     private static JsonNode sampleUploadArchiveUnit;
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+    @Mock
+    private SecureEndpointRegistry secureEndpointRegistry;
     private TransactionResource transactionResource;
     @Mock
     private TransactionService transactionService;
@@ -92,7 +95,7 @@ public class TransactionResourceTest {
     @Before
     public void setUp() {
         given(collectConfiguration.getWorkspaceUrl()).willReturn("http://localhost:8082");
-        transactionResource = new TransactionResource(transactionService, collectService, sipService, projectService,fluxService);
+        transactionResource = new TransactionResource(secureEndpointRegistry, transactionService, collectService, sipService, projectService,fluxService);
     }
 
     @Test

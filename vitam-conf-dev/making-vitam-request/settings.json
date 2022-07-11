@@ -6,8 +6,8 @@
     "local": {
       "url-access": "https://127.0.0.1:8444",
       "url-ingest": "https://127.0.0.1:8443",
-      "url-collect": "https://127.0.0.1:8030",
-      "url-admin": "https://127.0.0.1:18004"
+      "url-admin": "https://127.0.0.1:18004",
+      "url-collect": "https://127.0.0.1:8030"
     }
   },
   "rest-client.certificates": {
@@ -20,6 +20,10 @@
       "passphrase": "azerty4"
     },
     "127.0.0.1:8445": {
+      "pfx": "vitam/vitam-conf-dev/conf/ihm-demo/keystore_ihm-demo.p12",
+      "passphrase": "azerty4"
+    },
+    "127.0.0.1:8030": {
       "pfx": "vitam/vitam-conf-dev/conf/ihm-demo/keystore_ihm-demo.p12",
       "passphrase": "azerty4"
     },
