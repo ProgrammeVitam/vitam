@@ -21,8 +21,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 7,
-  "iteration": 1656508283035,
+  "id": 2,
+  "iteration": 1657635015205,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -129,7 +129,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "scalar(elasticsearch_cluster_health_status{color=\"green\",cluster=~\"$cluster\"}) + scalar(elasticsearch_cluster_health_status{color=\"yellow\",cluster=~\"$cluster\"}) * 2 + scalar(elasticsearch_cluster_health_status{color=\"red\",cluster=~\"$cluster\"}) * 3",
+          "expr": "max(elasticsearch_cluster_health_status{color=\"green\",cluster=~\"$cluster\"}) + max(elasticsearch_cluster_health_status{color=\"yellow\",cluster=~\"$cluster\"}) * 2 + max(elasticsearch_cluster_health_status{color=\"red\",cluster=~\"$cluster\"}) * 3",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -289,7 +289,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_number_of_data_nodes{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_number_of_data_nodes{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -375,7 +375,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_number_of_pending_tasks{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_number_of_pending_tasks{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -467,7 +467,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_active_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_active_shards{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -546,7 +546,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_active_primary_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_active_primary_shards{cluster=~\"$cluster\"})",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -630,7 +630,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_initializing_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_initializing_shards{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -716,7 +716,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_relocating_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_relocating_shards{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -802,7 +802,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_unassigned_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_unassigned_shards{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -888,7 +888,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "elasticsearch_cluster_health_delayed_unassigned_shards{cluster=~\"$cluster\"}",
+          "expr": "max(elasticsearch_cluster_health_delayed_unassigned_shards{cluster=~\"$cluster\"})",
           "format": "time_series",
           "instant": false,
           "interval": "",

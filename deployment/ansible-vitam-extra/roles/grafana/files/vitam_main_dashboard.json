@@ -21,8 +21,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1657268694991,
+  "id": 1,
+  "iteration": 1657634893034,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -128,7 +128,7 @@
             "uid": "${datasource}"
           },
           "exemplar": false,
-          "expr": "elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"red\"}==1 or (elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"yellow\"}==1)+2 or (elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"green\"}==1)+4",
+          "expr": "max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"red\"})==1 or max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"yellow\"}==1)+2 or max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-data\",color=\"green\"}==1)+4",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -197,7 +197,7 @@
             "uid": "${datasource}"
           },
           "exemplar": false,
-          "expr": "count((consul_health_service_status{status=\"critical\"} == 1))",
+          "expr": "sum(max(consul_health_service_status{status=\"critical\"}==1) by (node, service_id))",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -286,7 +286,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(consul_health_service_status{status=\"critical\"})",
+          "expr": "sum(max(consul_health_service_status{status=\"critical\"}==1) by (node, service_id))",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -385,7 +385,7 @@
             "uid": "${datasource}"
           },
           "exemplar": false,
-          "expr": "elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"red\"}==1 or (elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"yellow\"}==1)+2 or (elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"green\"}==1)+4",
+          "expr": "max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"red\"})==1 or max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"yellow\"}==1)+2 or max(elasticsearch_cluster_health_status{cluster=\"elasticsearch-log\",color=\"green\"}==1)+4",
           "instant": true,
           "interval": "",
           "legendFormat": "",
