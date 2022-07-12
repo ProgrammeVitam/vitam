@@ -1,0 +1,16 @@
+---
+
+### IHM DEMO ###
+- hosts: hosts_ihm_demo
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.ihm_demo }}"
+    vitam_certificate_client_type: "external"
+    password_keystore: "{{ keystores.server.ihm_demo }}"
+    password_manager_keystore: "{{ keystores.server.ihm_demo }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
+  tags: ihm_demo

@@ -3,6 +3,14 @@
 
 ### HOSTS NETWORK VARS CHECK ###
 - hosts: hosts
+  gather_facts: no
+  pre_tasks:
+    - setup:
+        filter: ansible_hostname  
+    - setup:
+        filter: ansible_os_family
+    - setup:
+        filter: ansible_virtualization_type
   roles:
     - checks
 
@@ -27,10 +35,6 @@
 
 - import_playbook: library.yml
 
-- hosts: ldap
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - openldap_server
+- import_playbook: ldap.yml
 
 - import_playbook: ihm-recette.yml

@@ -1,5 +1,9 @@
 ---
 
 - hosts: vitam
+  gather_facts: no
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family
   roles:
     - { role: packetbeat, when: "groups['hosts_elasticsearch_log'] | length > 0 and inventory_hostname not in single_vm_hostnames and packetbeat.enabled | default(false) | bool == true" }

@@ -1,0 +1,18 @@
+---
+
+- hosts: hosts_ingest_external
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - siegfried
+    - antivirus
+    - create_upload_dir
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.ingestexternal }}"
+    password_keystore: "{{ keystores.server.ingest_external }}"
+    password_manager_keystore: "{{ keystores.server.ingest_external }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
+    vitam_certificate_client_type: "external"
+  tags: ingest_external

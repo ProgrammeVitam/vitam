@@ -65,7 +65,7 @@ Tips: pour tous les cas d'appel de ansible-playbook, il est possible de remplace
 
 
 6. Générer les host_vars "réseau"
-    ``ansible-playbook ansible-vitam/generate_hostvars_for_1_network_interface.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+    ``ansible-playbook ansible-vitam-exploitation/generate_hostvars_for_1_network_interface.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
    A l'issue, vérifier les fichiers sous ``environments/host_vars`` et les adapter au besoin.
 
 

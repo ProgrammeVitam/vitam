@@ -72,7 +72,7 @@ Si les machines sur lesquelles :term:`VITAM` sera déployé disposent de plusieu
     - Interface nommée eth0 = ip_service
     - Interface nommée eth1 = ip_admin
 
-Alors il est possible d'utiliser le playbook ``ansible-vitam-extra/generate_hostvars_for_2_network_interfaces.yml``
+Alors il est possible d'utiliser le playbook ``ansible-vitam-exploitation/generate_hostvars_for_2_network_interfaces.yml``
 
 .. Note:: Pour les autres cas de figure, il sera nécessaire de générer ces hostvars à la main ou de créer un script pour automatiser cela.
 

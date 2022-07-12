@@ -1,0 +1,16 @@
+---
+
+- hosts: hosts_kibana_log
+  gather_facts: no
+  any_errors_fatal: true
+  pre_tasks:
+    - setup:
+        filter: ansible_os_family    
+  roles:
+    - kibana
+    - kibana_dashboards
+  vars:
+    composant: "{{ kibana.log }}"
+    elasticsearch_host: "{{ elasticsearch.log.host }}"
+    elasticsearch_port: "{{ elasticsearch.log.port_http }}"
+  tags: kibana_log

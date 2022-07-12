@@ -138,7 +138,7 @@
       daemon_reload: yes
       enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: stopped
-
+         
   - name: Add proxy directives to download databases when proxy is defined
     blockinfile:
       backup: yes

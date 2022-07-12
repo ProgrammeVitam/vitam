@@ -1,0 +1,13 @@
+---
+
+### ELASTICSEARCH DATA INSTALLATION ###
+- hosts: hosts_elasticsearch_data
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - elasticsearch-cluster
+    - init_es_cluster_index_template
+  vars:
+    composant: "{{ elasticsearch.data }}"
+  tags: elasticsearch_data
+

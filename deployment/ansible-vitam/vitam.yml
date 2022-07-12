@@ -33,391 +33,82 @@
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
 
-### INFRASTRUCTURE CHECKS ###
-- hosts: vitam
-  any_errors_fatal: true
-  roles:
-    - { role: checks_infra, when: checks_infra | default(false) | bool == true }
-
-### HOSTS NETWORK VARS CHECK ###
-- hosts: vitam
-  any_errors_fatal: true
-  roles:
-    - checks
+### INFRASTRUCTURE CHECKS AND HOSTS NETWORK VARS CHECK ###
+- import_playbook: services/others/pre_check.yml
 
 ### STOP VITAM TIMERS ###
-- hosts: hosts_scheduler
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - service
-  vars:
-    state: stopped
-    name: vitam-scheduler
-    hote: "{{ ip_service }}"
-    port_check: "{{ vitam.scheduler.port_service }}"
-    timeout: "{{ vitam_defaults.services.stop_timeout }}"
-
-- name: Stop Vitam timers
-  import_playbook: internal_stop_vitam_timers.yml
+- import_playbook: ../ansible-vitam-exploitation/stop_vitam_timers.yml
 
 ### HOSTS NORMALIZATION ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - normalize-host
-    - selinux_conf
-    - syslogd
-
-### CHECK VITAM ONTOLOGY WHEN UPGRADE ###
-- hosts: hosts_functional_administration
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - check_ontologies
-  vars:
-    vitam_struct: "{{ vitam.functional_administration }}"
+- import_playbook: services/others/pre_install.yml
 
 ### CONSUL INSTALLATION ###
-- hosts: hosts_consul_server
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - consul
-
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled | default(false) | bool == false )" }
-
-### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - prometheus-node-exporter
-
-### PROMETHEUS CONSUL EXPORTER INSTALLATION OR UNINSTALL ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - { role: prometheus-consul-exporter, when: "consul_disabled | default(false) | bool != true" }
+- import_playbook: services/cots/consul.yml
 
 ### CEREBRO INSTALLATION ###
-- hosts: hosts_cerebro
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - role: cerebro
+- import_playbook: services/cots/cerebro.yml
 
-### ELASTICSEARCH LOG INSTALLATION ###
-- hosts: hosts_elasticsearch_log
-  any_errors_fatal: true
-  roles:
-    - elasticsearch-cluster
-    - init_es_cluster_index_template
-    - { role: curator, tags: curator_logs}
-  vars:
-    composant: "{{ elasticsearch.log }}"
+### ELK LOG INSTALLATION  ###
 
-### LOG SERVER INSTALLATION ###
-- hosts: hosts_logstash
-  any_errors_fatal: true
-  roles:
-    - logstash
+- import_playbook: services/cots/elasticsearch_log.yml
 
-- hosts: hosts_kibana_log
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - kibana
-    - kibana_dashboards
-  vars:
-    composant: "{{ kibana.log }}"
-    elasticsearch_host: "{{ elasticsearch.log.host }}"
-    elasticsearch_port: "{{ elasticsearch.log.port_http }}"
+- import_playbook: services/cots/logstash.yml
 
-### SYSLOG DAEMON CONFIGURATION ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - syslogd_configure
+- import_playbook: services/cots/kibana_log.yml
 
-### ELASTICSEARCH DATA INSTALLATION ###
-- hosts: hosts_elasticsearch_data
-  any_errors_fatal: true
-  roles:
-    - elasticsearch-cluster
-    - init_es_cluster_index_template
-  vars:
-    composant: "{{ elasticsearch.data }}"
+### EK DATA INSTALLATION ###
 
-- hosts: hosts_kibana_data
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.elastickibanainterceptor }}"
+- import_playbook: services/cots/elasticsearch_data.yml
 
-### KIBANA DATA INSTALLATION ###
-- hosts: hosts_kibana_data
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - kibana
-    - kibana_dashboards
-  vars:
-    composant: "{{ kibana.data }}"
-    elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
-    elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
-
-### PROMETHEUS ELASTICSEARCH EXPORTER INSTALLATION OR UNINSTALL ###
-- hosts: elasticsearch
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - prometheus-elasticsearch-exporter
+- import_playbook: services/cots/kibana_data.yml
 
 ### MONGO DB INSTALLATION ###
 
-- import_playbook: mongodb_data.yml
+- import_playbook: services/cots/mongodb_data.yml
 
-- import_playbook: mongodb_offer.yml
+- import_playbook: services/cots/mongodb_offer.yml
 
 ### VITAM ###
-- hosts: hosts_storage_offer_default
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - simulate_tape
-    - vitam
-    - offer
-    - timers
-  vars:
-    vitam_struct: "{{ vitam.storageofferdefault }}"
-    password_keystore: "{{ keystores.server.offer }}"
-    password_manager_keystore: "{{ keystores.server.offer }}"
-    password_truststore: "{{ truststores.client_storage }}"
-    password_grantedstore: "{{ grantedstores.client_storage }}"
-    vitam_certificate_client_type: "storage"
-    timers_list: "{{ vitam_timers.offer }}"
 
-- hosts: hosts_storage_engine
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-    - timers
-    - storage
-  vars:
-    vitam_struct: "{{ vitam.storageengine }}"
-    vitam_certificate_client_type: "storage"
-    vitam_timestamp_usage: secure-storage
-    timers_list: "{{ vitam_timers.storage }}"
+- import_playbook: services/vitam/offer.yml
 
-- hosts: hosts_metadata
-  gather_facts: no
-  any_errors_fatal: true
-  serial: 1
-  roles:
-    - elasticsearch-mapping
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.metadata }}"
+- import_playbook: services/vitam/storage_engine.yml
 
-- hosts: hosts_logbook
-  gather_facts: no
-  any_errors_fatal: true
-  serial: 1
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.logbook }}"
-    vitam_timestamp_usage: secure-logbook
+- import_playbook: services/vitam/metadata.yml
 
-- hosts: hosts_workspace
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.workspace }}"
+- import_playbook: services/vitam/logbook.yml 
 
-- hosts: hosts_metadata_collect
-  serial: 1
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - elasticsearch-mapping
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.metadata_collect }}"
+- import_playbook: services/vitam/workspace.yml 
 
-- hosts: hosts_workspace_collect
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.workspace_collect }}"
+- import_playbook: services/vitam/metadata_collect.yml 
 
-- hosts: hosts_collect
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - siegfried
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.collect }}"
-    password_keystore: "{{ keystores.server.collect }}"
-    password_manager_keystore: "{{ keystores.server.collect }}"
-    password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}"
-    vitam_certificate_client_type: "external"
+- import_playbook: services/vitam/workspace_collect.yml
 
-- hosts: hosts_functional_administration
-  gather_facts: no
-  any_errors_fatal: true
-  serial: 1
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.functional_administration }}"
+- import_playbook: services/vitam/collect.yml
 
-- hosts: hosts_security_internal
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.security_internal }}"
+- import_playbook: services/vitam/functional_administration.yml
 
-- hosts: vitam
-  any_errors_fatal: true
-  roles:
-    - { role: tests_install, when: tests_install | default(false) | bool == true }
+- import_playbook: services/others/test_install.yml
+  when: tests_install | default(false) | bool == true
 
-- hosts: hosts_security_internal
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - { role: init_contexts_and_security_profiles, tags: update_vitam_certificates, when: primary_site | lower == "true" }
-  vars:
-    vitam_struct: "{{ vitam.security_internal }}"
+- import_playbook: services/vitam/security_internal.yml
 
-- hosts: hosts_processing
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.processing }}"
+- import_playbook: services/vitam/processing.yml
 
-- hosts: hosts_batch_report
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.batchreport }}"
+- import_playbook: services/vitam/batch_report.yml
 
-- hosts: hosts_worker
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - siegfried
-    - vitam
-    - griffins
-  vars:
-    vitam_struct: "{{ vitam.worker }}"
-    vitam_timestamp_usage: secure-logbook
+- import_playbook: services/vitam/worker.yml
 
-- hosts: hosts_access_internal
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.accessinternal }}"
+- import_playbook: services/vitam/access_internal.yml
 
-- hosts: hosts_access_external
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.accessexternal }}"
-    password_keystore: "{{ keystores.server.access_external }}"
-    password_manager_keystore: "{{ keystores.server.access_external }}"
-    password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}"
-    vitam_certificate_client_type: "external"
+- import_playbook: services/vitam/access_external.yml
 
-# 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
-- hosts: hosts_access_external
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - { role: init_pronom, when: primary_site | lower == "true" }
-  vars:
-    vitam_struct: "{{ vitam.accessexternal }}"
-    password_keystore: "{{ keystores.server.access_external }}"
-    password_manager_keystore: "{{ keystores.server.access_external }}"
-    password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}"
-    vitam_certificate_client_type: "external"
+- import_playbook: services/vitam/ingest_internal.yml
 
-- hosts: hosts_ingest_internal
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.ingestinternal }}"
+- import_playbook: services/vitam/ingest_external.yml
 
-- hosts: hosts_ingest_external
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - siegfried
-    - antivirus
-    - create_upload_dir
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.ingestexternal }}"
-    password_keystore: "{{ keystores.server.ingest_external }}"
-    password_manager_keystore: "{{ keystores.server.ingest_external }}"
-    password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}"
-    vitam_certificate_client_type: "external"
+- import_playbook: services/vitam/scheduler.yml
 
-### START VITAM TIMERS ###
-- hosts: hosts_scheduler
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.scheduler }}"
+- import_playbook:  ../ansible-vitam-exploitation/start_vitam_timers.yml
 
-- name: Start Vitam timers
-  import_playbook: internal_start_vitam_timers.yml
-
-### IHM DEMO ###
-- hosts: hosts_ihm_demo
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.ihm_demo }}"
-    vitam_certificate_client_type: "external"
-    password_keystore: "{{ keystores.server.ihm_demo }}"
-    password_manager_keystore: "{{ keystores.server.ihm_demo }}"
-    password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}"
+- import_playbook: services/vitam/ihm_demo.yml

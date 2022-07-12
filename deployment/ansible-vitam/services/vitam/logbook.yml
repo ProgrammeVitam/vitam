@@ -1,0 +1,13 @@
+---
+
+- hosts: hosts_logbook
+  gather_facts: no
+  any_errors_fatal: true
+  serial: 1 
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.logbook }}"
+    vitam_timestamp_usage: secure-logbook
+  tags: logbook
+    

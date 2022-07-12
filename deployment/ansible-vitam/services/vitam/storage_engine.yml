@@ -1,0 +1,15 @@
+---
+
+- hosts: hosts_storage_engine
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - vitam
+    - timers
+    - storage
+  vars:
+    vitam_struct: "{{ vitam.storageengine }}"
+    vitam_certificate_client_type: "storage"
+    vitam_timestamp_usage: secure-storage
+    timers_list: "{{ vitam_timers.storage }}"
+  tags: storage_engine

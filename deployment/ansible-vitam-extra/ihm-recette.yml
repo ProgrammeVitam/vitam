@@ -1,13 +1,13 @@
 ---
 
-### HOSTS NETWORK VARS CHECK ###
-- hosts: hosts
-  roles:
-    - checks
-
 - hosts: hosts_ihm_recette
   gather_facts: no
   any_errors_fatal: true
+  pre_tasks:
+    - setup:
+        filter: ansible_processor_cores
+    - setup:
+        filter: ansible_processor_threads_per_core 
   roles:
     - ihm-recette-data-sets
     - elasticsearch-mapping

@@ -1,0 +1,11 @@
+---
+
+- hosts: hosts_batch_report
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.batchreport }}"
+  tags: batch_report
+    

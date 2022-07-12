@@ -1,0 +1,12 @@
+---
+
+- hosts: hosts_metadata_collect
+  serial: 1
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - elasticsearch-mapping
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.metadata_collect }}"
+  tags: metadata_collect

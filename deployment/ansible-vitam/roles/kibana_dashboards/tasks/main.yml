@@ -22,7 +22,7 @@
   register: kibana_result
   until: kibana_result.status == 200
   retries: "{{ composant.api_call_timeout }}"
-  delay: 1
+  delay: 10
   tags: load_kibana
 
 - name: creating group_var variable
