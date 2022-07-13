@@ -1,2 +1,3 @@
 ---
 clamav_service_name: "clamav-daemon"
+freshclam_conf_path: "/etc/clamav/"

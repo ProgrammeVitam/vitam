@@ -39,8 +39,8 @@
   file:
     path: "{{ vitam_defaults.folder.root_path }}/log/clamav"
     state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
+    owner: "clamav"
+    group: "clamav"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: apply custom config file for clamAV
@@ -80,6 +80,16 @@
     state: absent
   when: clamav.logrotate | default('enabled') | lower == 'disabled'
 
+- name: apply custom config file for freshclam
+  template:
+    src: clamav/freshclam.conf.j2
+    dest: "{{ freshclam_conf_path }}/freshclam.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart clamav
+
 - block:
 
   - name: ensure clamAV daemon is started at boot
@@ -93,12 +103,6 @@
       path: "/etc/sysconfig/freshclam"
       regexp: '^FRESHCLAM_DELAY(.)*'
       replace: '#FRESHCLAM_DELAY\1'
-
-  - name: change check periodicity for clamAV database updates
-    lineinfile:
-      path: "/etc/freshclam.conf"
-      regexp: '^[# \t]*Checks'
-      line: "Checks {{ clamav.db_update_periodicity }}"
 
   when: ansible_os_family == "RedHat"
 
@@ -138,19 +142,6 @@
       daemon_reload: yes
       enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: stopped
-         
-  - name: Add proxy directives to download databases when proxy is defined
-    blockinfile:
-      backup: yes
-      dest: /etc/clamav/freshclam.conf
-      insertbefore: EOF # necessary or this entry won't be asked
-      marker: "# {mark} ANSIBLE MANAGED BLOCK"
-      block: |
-        HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
-        HTTPProxyPort {{ http_proxy_environnement | urlsplit('port') }}
-    when:
-      - http_proxy_environnement is defined
-      - http_proxy_environnement != ''
 
   - name: update database for clamAV
     shell: freshclam
@@ -170,12 +161,6 @@
       daemon_reload: yes
       enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: restarted
-
-  - name: change check periodicity for clamAV database updates
-    lineinfile:
-      path: "/etc/clamav/freshclam.conf"
-      regexp: '^[# \t]*Checks'
-      line: "Checks {{ clamav.db_update_periodicity }}"
 
 # - name: restart clamav-daemon.socket service
 #   systemd:
