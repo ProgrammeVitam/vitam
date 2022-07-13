@@ -19,7 +19,7 @@ OPTIONS {{url-access}}/admin-external/v1/
 Content-Type: application/json
 X-Tenant-Id: 0
 
-### Liste des points d'API d'admin-external
-OPTIONS {{url-collect}}/collect/v1/
+### Liste des points d'API de collect
+OPTIONS {{url-collect}}/collect-external/v1/
 Content-Type: application/json
 X-Tenant-Id: 0
