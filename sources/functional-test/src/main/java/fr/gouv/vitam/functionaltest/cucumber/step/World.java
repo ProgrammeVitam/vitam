@@ -86,6 +86,7 @@ public class World {
     private String applicationSessionId;
     private List<JsonNode> results;
     private LogbookEvent logbookEvent;
+    private Path sipFile;
     private Path dipFile;
     private Path transferFile;
     private Path atrFile;
@@ -470,7 +471,7 @@ public class World {
                     ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
                 } catch (VitamException e) {
                     // FAIL WHEN unable purge ?
-                    LOGGER.error("Unable purge data " + i.toString() + " on tenant: " + i +
+                    LOGGER.error("Unable purge data " + i + " on tenant: " + i +
                         Arrays.toString(e.getStackTrace()));
                 }
             });
@@ -507,13 +508,20 @@ public class World {
         return collectClient;
     }
 
+    public Path getSipFile() {
+        return sipFile;
+    }
+
+    public void setSipFile(Path path) {
+        this.sipFile = path;
+    }
+
     public Path getDipFile() {
         return dipFile;
     }
 
-    public World setDipFile(Path dipFile) {
+    public void setDipFile(Path dipFile) {
         this.dipFile = dipFile;
-        return this;
     }
 
     public Path getTransferFile() {

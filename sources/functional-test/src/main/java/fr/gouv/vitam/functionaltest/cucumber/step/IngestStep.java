@@ -48,7 +48,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
@@ -67,8 +66,6 @@ public class IngestStep extends CommonStep {
     public static final String ID = "ID";
     public static final String _ID = "#id";
 
-    private Path sip;
-
     private static boolean deleteSip = false;
     private static boolean attachMode = false;
 
@@ -83,7 +80,7 @@ public class IngestStep extends CommonStep {
      */
     @Given("^un fichier SIP nommé (.*)$")
     public void a_sip_named(String fileName) {
-        this.sip = Paths.get(world.getBaseDirectory(), fileName);
+        world.setSipFile(Paths.get(world.getBaseDirectory(), fileName));
     }
 
     /**
@@ -94,7 +91,7 @@ public class IngestStep extends CommonStep {
      */
     @When("^je télécharge le SIP")
     public void upload_this_sip() throws VitamException, IOException {
-        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+        try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
                 .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -119,7 +116,7 @@ public class IngestStep extends CommonStep {
      */
     @When("^je télécharge le plan")
     public void upload_this_plan() throws IOException, VitamException {
-        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+        try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
 
             RequestResponse<Void> response = world.getIngestClient()
                 .ingest(
@@ -150,7 +147,7 @@ public class IngestStep extends CommonStep {
      */
     @When("^je télécharge l'arbre")
     public void upload_this_tree() throws IOException, VitamException {
-        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+        try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
                 .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
@@ -174,7 +171,9 @@ public class IngestStep extends CommonStep {
 
     @When("je construit le sip de rattachement avec le template")
     public void build_the_attachenment_by_systemid() throws IOException {
-        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId(), null, null);
+        world.setSipFile(
+            SipTool.copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_STRING, world.getUnitId(), null,
+                null));
         attachMode = true;
     }
 
@@ -183,17 +182,19 @@ public class IngestStep extends CommonStep {
         if (_ID.equals(metadataName) && ID.equals(metadataValue)) {
             metadataValue = world.getUnitId();
         }
-        this.sip = SipTool
-            .copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_NAME, metadataName, SipTool.REPLACEMENT_VALUE,
-                metadataValue);
+        world.setSipFile(SipTool
+            .copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_NAME, metadataName,
+                SipTool.REPLACEMENT_VALUE,
+                metadataValue));
         attachMode = true;
     }
 
 
     @When("je construit le SIP de rattachement au groupe d'objet existant avec le template")
     public void build_the_attachenment_to_existing_object_group() throws IOException {
-        this.sip =
-            SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getObjectGroupId(), null, null);
+        world.setSipFile(
+            SipTool.copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_STRING, world.getObjectGroupId(),
+                null, null));
         attachMode = true;
     }
 
@@ -224,12 +225,12 @@ public class IngestStep extends CommonStep {
     @After
     public void afterScenario() throws IOException {
 
-        if (this.sip != null && deleteSip) {
+        if (world.getSipFile() != null && deleteSip) {
             try {
                 // if we have a real guid, that means we were handling a created file, if not, that means the sip was
                 // used in vitam-itests so we don't delete it !!
-                GUIDReader.getGUID(this.sip.getFileName().toString());
-                Files.delete(this.sip);
+                GUIDReader.getGUID(world.getSipFile().getFileName().toString());
+                Files.delete(world.getSipFile());
             } catch (final InvalidGuidOperationException e) {
                 LOGGER.info("This is not a guid, no need to delete ", e);
             }
