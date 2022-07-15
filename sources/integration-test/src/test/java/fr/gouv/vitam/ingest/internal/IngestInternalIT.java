@@ -480,17 +480,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
 
-            final LocalDateTime approximateCD =
-                LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateCreationDate()).asText());
-            final LocalDateTime approximateUD =
-                LocalDateTime.parse(unit.get(VitamFieldsHelper.approximateUpdateDate()).asText());
-
-            assertThat(approximateCD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(approximateCD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(approximateUD.isAfter(dateBeforeIngest)).isTrue();
-            assertThat(approximateUD.isBefore(LocalDateUtil.now())).isTrue();
-            assertThat(approximateCD.isEqual(approximateUD)).isTrue();
-
+            checkApproximateDates(dateBeforeIngest, unit);
 
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
             assertThat(unit.get("#storage").get("strategyId").asText())
@@ -689,6 +679,17 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             throw e;
         }
+    }
+
+    private void checkApproximateDates(LocalDateTime dateBeforeIngest, JsonNode metadata) {
+        final LocalDateTime approximateCD =
+            LocalDateTime.parse(metadata.get(VitamFieldsHelper.approximateCreationDate()).asText());
+        final LocalDateTime approximateUD =
+            LocalDateTime.parse(metadata.get(VitamFieldsHelper.approximateUpdateDate()).asText());
+
+        assertThat(approximateCD).isAfter(dateBeforeIngest).isBefore(LocalDateUtil.now());
+        assertThat(approximateUD).isAfter(dateBeforeIngest).isBefore(LocalDateUtil.now());
+        assertEquals(approximateCD, approximateUD);
     }
 
     private int checkAndRetrieveLfcVersionForUnit(String unitId, AccessInternalClient accessClient) throws Exception {

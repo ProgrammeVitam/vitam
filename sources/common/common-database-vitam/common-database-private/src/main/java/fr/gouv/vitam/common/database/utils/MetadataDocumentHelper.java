@@ -57,9 +57,7 @@ public class MetadataDocumentHelper {
         MAX("_max"),
         UDS("_uds"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
-        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
-        APPROXIMATE_CREATION_DATE("_acd"),
-        APPROXIMATE_UPDATE_DATE("_aud");
+        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules");
 
 
         private final String fieldName;
@@ -79,7 +77,9 @@ public class MetadataDocumentHelper {
         ELIMINATION("_elimination"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
-        ATOMIC_VERSION("_av");
+        ATOMIC_VERSION("_av"),
+        APPROXIMATE_CREATION_DATE("_acd"),
+        APPROXIMATE_UPDATE_DATE("_aud");
 
         private final String fieldName;
 
