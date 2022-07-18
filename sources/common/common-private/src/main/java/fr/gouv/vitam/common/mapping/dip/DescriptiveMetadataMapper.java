@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.mapping.dip;
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
+import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
 import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
@@ -46,8 +48,8 @@ import org.apache.commons.collections.CollectionUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -59,8 +61,8 @@ import static javax.xml.datatype.DatatypeFactory.newInstance;
  */
 public class DescriptiveMetadataMapper {
 
-    private CustodialHistoryMapper custodialHistoryMapper = new CustodialHistoryMapper();
-    private ManagementMapper managementMapper = new ManagementMapper(new RuleMapper());
+    private final CustodialHistoryMapper custodialHistoryMapper = new CustodialHistoryMapper();
+    private final ManagementMapper managementMapper = new ManagementMapper(new RuleMapper());
 
 
     /**
@@ -142,10 +144,17 @@ public class DescriptiveMetadataMapper {
             dmc.getAuthorizedAgent().addAll(metadataModel.getAuthorizedAgent());
         }
 
+        // seda 2.2 fields
         if (CollectionUtils.isNotEmpty(metadataModel.getAgent())) {
             dmc.getAgent().addAll(metadataModel.getAgent());
         }
 
+        if (CollectionUtils.isNotEmpty(metadataModel.getTextContent())) {
+            dmc.getTextContent().addAll(metadataModel.getTextContent());
+        }
+
+        dmc.setOriginatingSystemIdReplyTo(metadataModel.getOriginatingSystemIdReplyTo());
+        dmc.setDateLitteral(metadataModel.getDateLitteral());
 
 
         if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
@@ -253,7 +262,26 @@ public class DescriptiveMetadataMapper {
         eventType.setOutcome(event.getOutcome());
         eventType.setOutcomeDetail(event.getOutcomeDetail());
         eventType.setOutcomeDetailMessage(event.getOutcomeDetailMessage());
+        if (Objects.nonNull(event.getLinkingAgentIdentifier())) {
+            eventType.getLinkingAgentIdentifier().addAll(
+                event.getLinkingAgentIdentifier().stream().map(this::mapLinkingAgentIdentifier)
+                    .collect(Collectors.toList()));
+        }
         return eventType;
+    }
+
+    private LinkingAgentIdentifierType mapLinkingAgentIdentifier(
+        LinkingAgentIdentifierTypeModel linkingAgentIdentifierTypeModel) {
+        if (linkingAgentIdentifierTypeModel == null) {
+            return null;
+        }
+        LinkingAgentIdentifierType linkingAgentIdentifierType = new LinkingAgentIdentifierType();
+        linkingAgentIdentifierType.setLinkingAgentIdentifierType(
+            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierType());
+        linkingAgentIdentifierType.setLinkingAgentIdentifierValue(
+            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierValue());
+        linkingAgentIdentifierType.setLinkingAgentRole(linkingAgentIdentifierTypeModel.getLinkingAgentRole());
+        return linkingAgentIdentifierType;
     }
 
     private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel,

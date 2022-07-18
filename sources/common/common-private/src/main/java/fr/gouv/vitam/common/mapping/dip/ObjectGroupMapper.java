@@ -49,15 +49,13 @@ import javax.xml.datatype.DatatypeFactory;
 import java.math.BigInteger;
 import java.util.Map;
 
-import static java.util.Collections.singletonList;
-
 /**
  * Mapper that map ObjectGroupResponse(POJO Dslquery response) to a DataObjectPackage (JAXB elements)
  */
 public class ObjectGroupMapper {
 
-    private static PhysicalDimensionsMapper physicalDimensionsMapper = new PhysicalDimensionsMapper();
-    private CoreMetadataMapper coreMetadataMapper;
+    private static final PhysicalDimensionsMapper physicalDimensionsMapper = new PhysicalDimensionsMapper();
+    private final CoreMetadataMapper coreMetadataMapper;
 
     public ObjectGroupMapper() {
         this.coreMetadataMapper = new CoreMetadataMapper();
@@ -162,7 +160,7 @@ public class ObjectGroupMapper {
             mapCommonInformations(version, binaryDataObjectType);
             binaryDataObjectType.setMetadata(coreMetadataMapper.map(version.getMetadata()));
 
-            // other metadata 
+            // other metadata
             final DescriptiveTechnicalMetadataType otherMetadata = new DescriptiveTechnicalMetadataType();
             Map<String, Object> otherMetadataMap = version.getOtherMetadata();
             if (otherMetadataMap != null && !otherMetadataMap.isEmpty()) {
@@ -203,5 +201,10 @@ public class ObjectGroupMapper {
         // where the fields is mapped in mongo
         minimalDataObjectType.setDataObjectVersion(version.getDataObjectVersion());
         minimalDataObjectType.setId(version.getId());
+        if (version.getDataObjectProfile() != null && !version.getDataObjectProfile().isEmpty()) {
+            final IdentifierType identifierType = new IdentifierType();
+            identifierType.setValue(version.getDataObjectProfile());
+            minimalDataObjectType.setDataObjectProfile(identifierType);
+        }
     }
 }

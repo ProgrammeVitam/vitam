@@ -153,6 +153,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final String SIP_EXTENDED =
         "integration-ingest-internal/SIP_EXTENDED.zip";
 
+    private static final String WARNING_SIP_mail_Seda2_2 = "sip/WARNING_SIP_mail_Seda2.2.zip";
+
     private static final BinarySizePlatformThreshold binarySizePlatformThreshold =
         VitamConfiguration.getBinarySizePlatformThreshold();
     private static final List<BinarySizeTenantThreshold> binarySizeTenantThreshold =
@@ -213,6 +215,48 @@ public class TransferAndDipIT extends VitamRuleRunner {
         // restaure params
         VitamConfiguration.setBinarySizePlatformThreshold(binarySizePlatformThreshold);
         VitamConfiguration.setBinarySizeTenantThreshold(binarySizeTenantThreshold);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_DIP_with_all_seda2_2_fields() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, WARNING_SIP_mail_Seda2_2);
+        verifyOperation(ingestOpId, OK);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            true
+        );
+
+        exportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters();
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+
+        // When ArchiveDeliveryRequestReply
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, OK);
+
+        String manifest = getManifestString(getDip(exportOperationId));
+
+        assertThat(manifest).contains(
+            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
+
+        assertThat(manifest).contains("<DateLitteral>XXème siècle</DateLitteral>");
+        assertThat(manifest).contains(
+            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>");
+        assertThat(manifest).contains(
+            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>");
+        assertThat(manifest).contains("<TextContent>").contains("</TextContent>");
+        assertThat(manifest).contains("<DataObjectProfile>AUP_IDENTIFIER</DataObjectProfile>");
     }
 
     @Test
