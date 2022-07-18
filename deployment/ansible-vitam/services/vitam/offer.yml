@@ -17,4 +17,3 @@
     vitam_certificate_client_type: "storage"
     timers_list: "{{ vitam_timers.offer }}"
   tags: offer
-

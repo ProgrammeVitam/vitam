@@ -8,11 +8,6 @@
 - hosts: hosts_mongodb_offer
   gather_facts: no
   any_errors_fatal: true
-  pre_tasks:
-    - setup:
-        filter: ansible_os_family
-    - setup:
-        filter: ansible_virtualization_type 
   roles:
     - { role: mongo_common, when: "inventory_hostname not in single_vm_hostnames" }
   tags: mongod_offer

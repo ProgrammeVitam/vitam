@@ -10,4 +10,3 @@
     vitam_struct: "{{ vitam.functional_administration }}"
     timers_list: "{{ vitam_timers.functional_administration }}"
   tags: functional_administration
-    

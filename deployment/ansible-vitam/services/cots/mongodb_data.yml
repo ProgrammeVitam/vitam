@@ -4,11 +4,6 @@
 - hosts: hosts_mongodb_data
   gather_facts: no
   any_errors_fatal: true
-  pre_tasks:
-    - setup:
-        filter: ansible_os_family
-    - setup:
-        filter: ansible_virtualization_type    
   roles:
     - mongo_common
   tags: mongodb_data

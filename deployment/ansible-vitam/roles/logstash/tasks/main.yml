@@ -1,5 +1,16 @@
 ---
 
+- setup:
+    filter: ansible_os_family
+- setup:
+    filter: ansible_memory_mb
+- setup:
+    filter: ansible_distribution_release
+- setup:
+    filter: ansible_processor_cores
+- setup:
+    filter: ansible_processor_threads_per_core
+
 #### Logstash installation ####
 - name: check wether replica number for logstash is compatible with inventory
   fail: msg="Too much replica defined for logstash index in elasticsearch-log"

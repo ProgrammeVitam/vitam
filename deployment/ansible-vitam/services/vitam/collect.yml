@@ -14,4 +14,3 @@
     password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
   tags: collect
-    

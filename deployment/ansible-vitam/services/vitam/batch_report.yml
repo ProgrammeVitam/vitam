@@ -8,4 +8,3 @@
   vars:
     vitam_struct: "{{ vitam.batchreport }}"
   tags: batch_report
-    

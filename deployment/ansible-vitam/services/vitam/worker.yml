@@ -5,7 +5,7 @@
   any_errors_fatal: true
   pre_tasks:
     - setup:
-        filter: ansible_processor_vcpus  
+        filter: ansible_processor_vcpus
   roles:
     - siegfried
     - vitam
@@ -14,4 +14,3 @@
     vitam_struct: "{{ vitam.worker }}"
     vitam_timestamp_usage: secure-logbook
   tags: worker
-    
