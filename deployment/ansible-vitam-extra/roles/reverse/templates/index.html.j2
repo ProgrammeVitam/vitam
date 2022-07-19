@@ -183,11 +183,14 @@
                   {% endif %}
                   {% endfor %}
                 </div>
+                <div class="col-md-3">
                 {% if browser.enabled | default(false) | bool == true %}
-                <div class="col-md-2">
                   <a href="/nodes/{{ item }}/browse/" class="btn btn-primary btn-xs" target="_blank">Browser</a>
-                </div>
                 {% endif %}
+                {% if prometheus.node_exporter.enabled | default(false) | bool == true %}
+                  <a href="/nodes/{{ item }}/node-exporter" class="btn btn-primary btn-xs" target="_blank">Node Exporter</a>
+                {% endif %}
+                </div>
               </div>
               {% endfor %}
             </div>

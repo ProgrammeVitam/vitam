@@ -283,4 +283,12 @@
     ProxyPassReverse /alertmanager http://{{ hostvars[groups['hosts_alertmanager'][0]]['ip_admin'] }}:{{ prometheus.alertmanager.api_port }}
     {% endif %}
 
+    {% if prometheus.node_exporter.enabled | default(false) | bool == true %}
+    # Node Exporter metrics
+    {% for host in groups['vitam'] %}
+    ProxyPass /nodes/{{ host }}/node-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}{{ prometheus.node_exporter.metrics_path | default('/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/node-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}{{ prometheus.node_exporter.metrics_path | default('/metrics') }}
+    {% endfor %}
+    {% endif %}
+
 </VirtualHost>
