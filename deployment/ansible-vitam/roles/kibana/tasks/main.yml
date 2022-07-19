@@ -1,5 +1,8 @@
 ---
 
+- setup:
+    filter: ansible_os_family
+
 #### Kibana installation ####
 - name: Set command for CentOS
   set_fact:

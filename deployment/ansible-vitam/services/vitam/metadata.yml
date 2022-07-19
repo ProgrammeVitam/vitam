@@ -3,7 +3,7 @@
 - hosts: hosts_metadata
   gather_facts: no
   any_errors_fatal: true
-  serial: 1  
+  serial: 1
   roles:
     - elasticsearch-mapping
     - vitam

@@ -6,7 +6,7 @@
   roles:
     - elasticsearch-cluster
     - init_es_cluster_index_template
-    - { role: curator, tags: curator_logs}
+    - { role: curator, tags: curator_logs }
   vars:
     composant: "{{ elasticsearch.log }}"
   tags: elasticsearch_log

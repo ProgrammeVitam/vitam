@@ -2,10 +2,9 @@
 
 - hosts: hosts_workspace_collect
   gather_facts: no
-  any_errors_fatal: true 
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
     vitam_struct: "{{ vitam.workspace_collect }}"
   tags: workspace_collect
-    
