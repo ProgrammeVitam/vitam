@@ -84,8 +84,8 @@
     ProxyPassReverse  /{{ vitam.ingestexternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_metadata'] %}
-    ProxyPass {{ vitam.metadata.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  {{ vitam.metadata.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}/admin/v1
+    ProxyPass /{{ vitam.metadata.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.metadata.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_ihm_demo'] %}
     ProxyPass /{{ vitam.ihm_demo.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_demo.port_admin }}/admin/v1 {{ reverse_connection_params }}
@@ -291,8 +291,26 @@
     ProxyPassReverse /alertmanager http://{{ hostvars[groups['hosts_alertmanager'][0]]['ip_admin'] }}:{{ prometheus.alertmanager.api_port }}
     {% endif %}
 
+    # Metadata metrics
+    {% for host in groups['hosts_metadata'] %}
+    ProxyPass /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    {% endfor %}
+
+    # Processing metrics
+    {% for host in groups['hosts_processing'] %}
+    ProxyPass /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    {% endfor %}
+
+    # Storage Engine metrics
+    {% for host in groups['hosts_storage_engine'] %}
+    ProxyPass /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    {% endfor %}
+
     {% if prometheus.node_exporter.enabled | default(false) | bool == true %}
-    # Node Exporter
+    # Node Exporter metrics
     {% for host in groups['vitam'] %}
     ProxyPass /nodes/{{ host }}/node-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}{{ prometheus.node_exporter.metrics_path | default('/metrics') }}
     ProxyPassReverse /nodes/{{ host }}/node-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}{{ prometheus.node_exporter.metrics_path | default('/metrics') }}
@@ -300,7 +318,7 @@
     {% endif %}
 
     {% if prometheus.consul_exporter.enabled | default(false) | bool == true %}
-    # Consul Exporter
+    # Consul Exporter metrics
     {% for host in groups['vitam'] %}
     ProxyPass /nodes/{{ host }}/consul-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}{{ prometheus.consul_exporter.metrics_path | default('/metrics') }}
     ProxyPassReverse /nodes/{{ host }}/consul-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}{{ prometheus.consul_exporter.metrics_path | default('/metrics') }}
@@ -308,7 +326,7 @@
     {% endif %}
 
     {% if prometheus.elasticsearch_exporter.enabled | default(false) | bool == true %}
-    # Elasticsearch Exporter
+    # Elasticsearch Exporter metrics
     {% for host in groups['elasticsearch'] %}
     ProxyPass /nodes/{{ host }}/elasticsearch-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.elasticsearch_exporter.port | default(9114) }}{{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}
     ProxyPassReverse /nodes/{{ host }}/elasticsearch-exporter http://{{ hostvars[host]['ip_admin'] }}:{{ prometheus.elasticsearch_exporter.port | default(9114) }}{{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}
