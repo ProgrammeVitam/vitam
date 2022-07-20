@@ -169,7 +169,15 @@
                   {% for group in groups %}
                   {% if item in groups[group] %}
                   {% if (group not in ('hosts','all','vitam','prometheus','reverse','elasticsearch','mongo_common')) and (not(group is search('^zone'))) %}
+                  {% if group|regex_replace('hosts_', '')| replace('_','-') == 'metadata' %}
+                  <a href="/nodes/{{ item }}/metadata/metrics" class="btn btn-primary btn-xs" target="_blank">metadata</a><br/>
+                  {% elif group|regex_replace('hosts_', '')| replace('_','-') == 'processing' %}
+                  <a href="/nodes/{{ item }}/processing/metrics" class="btn btn-primary btn-xs" target="_blank">processing</a><br/>
+                  {% elif group|regex_replace('hosts_', '')| replace('_','-') == 'storage-engine' %}
+                  <a href="/nodes/{{ item }}/storage/metrics" class="btn btn-primary btn-xs" target="_blank">storage-engine</a><br/>
+                  {% else %}
                   {{ group|regex_replace('hosts_', '')| replace('_','-') }}<br/>
+                  {% endif %}
                   {% endif %}
                   {% endif %}
                   {% endfor %}
