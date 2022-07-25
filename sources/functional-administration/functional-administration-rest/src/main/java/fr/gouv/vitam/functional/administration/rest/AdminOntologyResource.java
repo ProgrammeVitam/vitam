@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
 import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
-import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;

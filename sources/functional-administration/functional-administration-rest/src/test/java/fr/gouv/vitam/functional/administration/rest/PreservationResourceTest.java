@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import fr.gouv.vitam.functional.administration.griffin.GriffinService;
-import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
+import fr.gouv.vitam.functional.administration.core.griffin.GriffinService;
+import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenarioService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
