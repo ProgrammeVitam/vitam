@@ -1,10 +1,6 @@
 ---
 - hosts: hosts_ihm_recette
-  gather_facts: no
-  run_once: true  
-  pre_tasks:
-    - setup:
-        filter: ansible_date_time
+  run_once: true
   roles:
     - loadTNR
   vars:

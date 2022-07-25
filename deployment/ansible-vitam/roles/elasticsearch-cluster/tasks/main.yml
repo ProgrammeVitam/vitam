@@ -3,17 +3,6 @@
 - name: Populate service facts
   service_facts:
 
-- setup:
-    filter: ansible_os_family
-- setup:
-    filter: ansible_memory_mb
-- setup:
-    filter: ansible_distribution_release    
-- setup:
-    filter: ansible_processor_cores
-- setup:
-    filter: ansible_processor_threads_per_core
-    
 - name: Set command for CentOS
   set_fact:
     check_es_version: "rpm -q vitam-{{ composant.cluster_name }}"

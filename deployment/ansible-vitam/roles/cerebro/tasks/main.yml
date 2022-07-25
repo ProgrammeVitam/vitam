@@ -1,8 +1,5 @@
 ---
 
-- setup:
-    filter: ansible_os_family
-
 # tasks file for cerebro
 - name: Install java 11 (prerequisite for cerebro) only when CentOS
   yum:

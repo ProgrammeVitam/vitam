@@ -1,9 +1,4 @@
 ---
-  
-- setup:
-    filter: ansible_os_family 
-- setup:
-    filter: ansible_nodename  
 
 # FIXME : will need more testing to be sure it is mandatory here
 - name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian"

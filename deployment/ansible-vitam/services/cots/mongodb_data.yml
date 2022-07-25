@@ -2,7 +2,6 @@
 
 # mongodb commons (yum install, etc...)
 - hosts: hosts_mongodb_data
-  gather_facts: no
   any_errors_fatal: true
   roles:
     - mongo_common

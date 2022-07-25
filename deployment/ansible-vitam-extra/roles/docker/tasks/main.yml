@@ -2,11 +2,6 @@
 
 # tasks file for mongo-express & elasticsearch-head
 
-- setup:
-    filter: ansible_distribution_release
-- setup:
-    filter: ansible_os_family
-
 # Begin docker debian
 - block:
 

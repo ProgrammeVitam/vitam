@@ -3,14 +3,6 @@
 
 ### HOSTS NETWORK VARS CHECK ###
 - hosts: hosts
-  gather_facts: no
-  pre_tasks:
-    - setup:
-        filter: ansible_hostname  
-    - setup:
-        filter: ansible_os_family
-    - setup:
-        filter: ansible_virtualization_type
   roles:
     - checks
 
