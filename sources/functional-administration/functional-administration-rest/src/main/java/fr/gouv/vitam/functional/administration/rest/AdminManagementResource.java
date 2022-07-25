@@ -77,8 +77,6 @@ import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusService
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
-import fr.gouv.vitam.functional.administration.audit.service.ReferentialAuditService;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -101,11 +99,13 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
-import fr.gouv.vitam.functional.administration.rules.core.RuleImportResultSet;
-import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
-import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
+import fr.gouv.vitam.functional.administration.core.accession.register.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.core.audit.ReferentialAuditService;
+import fr.gouv.vitam.functional.administration.core.contract.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.core.format.ReferentialFormatFileImpl;
+import fr.gouv.vitam.functional.administration.core.rules.RuleImportResultSet;
+import fr.gouv.vitam.functional.administration.core.rules.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.core.rules.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;

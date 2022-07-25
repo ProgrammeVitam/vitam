@@ -43,9 +43,9 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.context.api.ContextService;
-import fr.gouv.vitam.functional.administration.context.core.ContextServiceImpl;
-import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
+import fr.gouv.vitam.functional.administration.core.context.ContextService;
+import fr.gouv.vitam.functional.administration.core.context.ContextServiceImpl;
+import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;

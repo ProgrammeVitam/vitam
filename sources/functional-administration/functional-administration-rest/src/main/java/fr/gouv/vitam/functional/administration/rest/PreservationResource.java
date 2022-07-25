@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.griffin.GriffinService;
-import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
+import fr.gouv.vitam.functional.administration.core.griffin.GriffinService;
+import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenarioService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;

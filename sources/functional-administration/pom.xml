@@ -13,20 +13,9 @@
 
     <modules>
         <module>functional-administration-common</module>
-        <module>functional-administration-format</module>
+        <module>functional-administration-core</module>
         <module>functional-administration-rest</module>
         <module>functional-administration-client</module>
-        <module>functional-administration-rules</module>
-        <module>functional-administration-accession-register</module>
-        <module>functional-administration-contract</module>
-        <module>functional-administration-profile</module>
-        <module>functional-administration-context</module>
-        <module>functional-administration-agencies</module>
-        <module>functional-administration-security-profile</module>
-        <module>functional-administration-archive-unit-profiles</module>
-        <module>functional-administration-ontologies</module>
-        <module>functional-administration-griffins</module>
-        <module>functional-administration-audit</module>
     </modules>
 
     <build>

@@ -45,8 +45,8 @@ import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFuncti
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.griffin.GriffinService;
-import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
+import fr.gouv.vitam.functional.administration.core.griffin.GriffinService;
+import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenarioService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
