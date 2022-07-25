@@ -6,7 +6,6 @@
 
 # mongodb commons (yum install, etc...)
 - hosts: hosts_mongodb_offer
-  gather_facts: no
   any_errors_fatal: true
   roles:
     - { role: mongo_common, when: "inventory_hostname not in single_vm_hostnames" }

@@ -14,7 +14,6 @@
 
   when: ansible_os_family == "RedHat"
 
-
 - block:
 
   - name: create VITAM repositories for Debian

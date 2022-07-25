@@ -1,7 +1,6 @@
 ---
 
 - hosts: hosts_cerebro
-  gather_facts: no
   any_errors_fatal: true
   roles:
     - cerebro

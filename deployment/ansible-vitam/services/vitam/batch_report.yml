@@ -1,7 +1,6 @@
 ---
 
 - hosts: hosts_batch_report
-  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam

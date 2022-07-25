@@ -1,15 +1,7 @@
 ---
 
 - hosts: vitam
-  gather_facts: no
   any_errors_fatal: true
-  pre_tasks:
-    - setup:
-        filter: ansible_hostname
-    - setup:
-        filter: ansible_os_family
-    - setup:
-        filter: ansible_virtualization_type
   roles:
     - { role: checks_infra, when: checks_infra | default(false) | bool == true }
     - { role: checks, when: checks | default(true) | bool == true }

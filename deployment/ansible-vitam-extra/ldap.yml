@@ -1,10 +1,5 @@
 ---
 
 - hosts: ldap
-  gather_facts: no
-  any_errors_fatal: true
-  pre_tasks:
-    - setup:
-        filter: ansible_os_family
   roles:
     - openldap_server

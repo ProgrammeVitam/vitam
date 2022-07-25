@@ -1,7 +1,6 @@
 ---
 
 - hosts: hosts_kibana_log
-  gather_facts: no
   any_errors_fatal: true
   roles:
     - kibana

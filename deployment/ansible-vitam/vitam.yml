@@ -76,11 +76,11 @@
 
 - import_playbook: services/vitam/metadata.yml
 
-- import_playbook: services/vitam/logbook.yml 
+- import_playbook: services/vitam/logbook.yml
 
-- import_playbook: services/vitam/workspace.yml 
+- import_playbook: services/vitam/workspace.yml
 
-- import_playbook: services/vitam/metadata_collect.yml 
+- import_playbook: services/vitam/metadata_collect.yml
 
 - import_playbook: services/vitam/workspace_collect.yml
 
@@ -109,6 +109,6 @@
 
 - import_playbook: services/vitam/scheduler.yml
 
-- import_playbook:  ../ansible-vitam-exploitation/start_vitam_timers.yml
+- import_playbook: ../ansible-vitam-exploitation/start_vitam_timers.yml
 
 - import_playbook: services/vitam/ihm_demo.yml
