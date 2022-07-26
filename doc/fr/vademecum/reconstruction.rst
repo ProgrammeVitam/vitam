@@ -178,25 +178,18 @@ Controler la base metadata. Une collection Offset doit être désormais créée.
    Snapshot
    Unit
 
-Effectuer le comptage des objets via le playbook d'exploitation reconstruction_doc_count.yml :
+Effectuer le comptage des objets via le playbook ``ansible-vitam-exploitation/reconstruction_doc_count.yml`` :
 
 ::
-   ansible-playbook -i environments/<hostfile.site.secondaire>  ansible-vitam-exploitation/reconstruction_doc_count.yml --vault-password-file vault_pass.txt (--extra-vars="@environments/vitam_extra<_reference.yml") -e site="reference"
+   ansible-playbook -i environments/<hostfile.site> ansible-vitam-exploitation/reconstruction_doc_count.yml --vault-password-file vault_pass.txt
 
-::
-   ansible-playbook -i environments/<hostfile.site.primaire>  ansible-vitam-exploitation/reconstruction_doc_count.yml --vault-password-file vault_pass.txt (--extra-vars="@environments/vitam_extra<_reconstructed.yml") -e site="reconstruction"
+.. warning:: Pensez à générer les host_vars avant de lancer le playbook de comptage ci-dessus autrement les ips des machines ne seront pas connues par le playbook et l'execution tombera en erreur (playbook generate_hostvars_for_1_network_interface ou generate_hostvars_for_2_network_interface selon votre topologie réseau).
 
-.. warning::  Pensez à générer les host_vars avant de lancer le playbook de comptage ci-dessus autrement les ips des machines ne seront pas connues par le playbook et l'execution tombera en erreur (playbook generate_hostvars_for_1_network_interface ou generate_hostvars_for_2_network_interface selon votre topologie réseau ).
-
-
-Vous trouverez les rapports générés par ces playbooks dans environment/ :
-- doc_count_site_reconst.report
-- doc_count_site_ref.report
+À l'issue de l'exécution, le fichier ``environments/unit_got_docs_count.<site_name>`` est généré. Il sera ainsi aisé de faire un diff entre votre site de référence et le site de reconstruction pour suivre l'état d'avancement de la reconstruction.
 
 Exemple de rapport généré :
 ::
-    ## Mongodata Unit and Object Group Doc count
-
+    ## Mongo-data Unit and ObjectGroup Doc count
     tenant 0 - Unit_DocCount=2564
     tenant 0 - ObjectGroup_DocCount=635
     tenant 1 - Unit_DocCount=12
@@ -205,7 +198,7 @@ Exemple de rapport généré :
     tenant 2 - ObjectGroup_DocCount=0
     tenant 3 - Unit_DocCount=0
     tenant 3 - ObjectGroup_DocCount=0
-    ## Elasticsearch-data Unit and Object Group Doc count
+    ## Elasticsearch-data Unit and ObjectGroup Doc count
     unit_0_20220406_090103    2564
     unit_2_20220406_090106       0
     unit_5_20220406_090111       0
