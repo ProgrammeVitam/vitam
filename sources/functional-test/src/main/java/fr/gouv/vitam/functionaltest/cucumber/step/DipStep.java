@@ -28,10 +28,15 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.github.fge.jsonpatch.diff.JsonDiff;
 import cucumber.api.java.After;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -40,11 +45,13 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
-import org.apache.commons.collections.EnumerationUtils;
+import fr.gouv.vitam.functionaltest.models.UnitModel;
+import org.apache.commons.collections4.list.TreeList;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Node;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
@@ -53,11 +60,23 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
@@ -77,6 +96,21 @@ public class DipStep extends CommonStep {
         super(world);
     }
 
+    private static void assertEqualsUnitsJson(JsonNode expectedUnits, JsonNode value) throws Exception {
+        final List<UnitModel> listExpectedUnits =
+            JsonHandler.getFromJsonNode(expectedUnits, TreeList.class, UnitModel.class);
+        listExpectedUnits.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
+
+        final List<UnitModel> listRealUnits = JsonHandler.getFromJsonNode(value, TreeList.class, UnitModel.class);
+        listRealUnits.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
+        final JsonNode diff =
+            JsonDiff.asJson(JsonHandler.toJsonNode(listExpectedUnits), JsonHandler.toJsonNode(listRealUnits));
+
+        if (!diff.isEmpty()) {
+            fail("Units are not equals " + JsonHandler.unprettyPrint(diff));
+        }
+    }
+
     @When("^j'exporte le dip$")
     public void exportDip() throws VitamException {
         cleanTempDipFile();
@@ -85,21 +119,7 @@ public class DipStep extends CommonStep {
         JsonNode jsonNode = JsonHandler.getFromString(query);
 
         DipRequest dipExportRequest = new DipRequest(jsonNode);
-        RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
-
-        checkExportDipResponse(response);
-    }
-
-    @When("^j'exporte le dip avec la version SEDA \"([^\"]*)\"")
-    public void exportDipBySedaVersion(String sedaVersion) throws VitamException {
-        cleanTempDipFile();
-        VitamContext vitamContext = initContext();
-        String query = world.getQuery();
-        JsonNode jsonNode = JsonHandler.getFromString(query);
-
-        DipRequest dipExportRequest = new DipRequest(jsonNode);
-        dipExportRequest.setSedaVersion(sedaVersion);
-        RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+        RequestResponse<JsonNode> response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
         checkExportDipResponse(response);
     }
@@ -132,70 +152,208 @@ public class DipStep extends CommonStep {
         world.setDipFile(tempFile.toPath());
     }
 
+    @When("^j'exporte le dip avec la version SEDA \"([^\"]*)\"")
+    public void exportDipBySedaVersion(String sedaVersion) throws VitamException {
+        cleanTempDipFile();
+        VitamContext vitamContext = initContext();
+        String query = world.getQuery();
+        JsonNode jsonNode = JsonHandler.getFromString(query);
+
+        DipRequest dipExportRequest = new DipRequest(jsonNode);
+        dipExportRequest.setSedaVersion(sedaVersion);
+        RequestResponse<JsonNode> response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+
+        checkExportDipResponse(response);
+    }
+
     @Then("^le dip contient (\\d+) unités archivistiques$")
     public void checkDipUnitCount(int nbUnits) throws Exception {
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt =
-                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
-            assertThat(cpt).isEqualTo(nbUnits);
+        try (ZipFile zipFile = new ZipFile(world.getDipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt =
+                    countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+                assertThat(cpt).isEqualTo(nbUnits);
+            }
         }
     }
 
     @Then("^le dip contient (\\d+) groupes d'objets$")
     public void checkDipObjectGroupCount(int nbObjectGroups) throws Exception {
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt = countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup");
-            assertThat(cpt).isEqualTo(nbObjectGroups);
+        try (ZipFile zipFile = new ZipFile(world.getDipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt = countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup");
+                assertThat(cpt).isEqualTo(nbObjectGroups);
+            }
         }
     }
 
     @Then("^le dip contient (\\d+) objets dont (\\d+) sont binaires$")
     public void checkDipObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
+        try (ZipFile zipFile = new ZipFile(world.getDipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt =
+                    countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+                assertThat(cpt).isEqualTo(nbObjects);
+            }
 
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt =
-                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject");
-            assertThat(cpt).isEqualTo(nbObjects);
+            List<ZipArchiveEntry> entries = Collections.list(zipFile.getEntries());
+            long binaryFiles = entries.stream()
+                .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
+                .count();
+
+            assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
         }
-
-        List<ZipArchiveEntry> entries = EnumerationUtils.toList(zipFile.getEntries());
-        long binaryFiles = entries.stream()
-            .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
-            .count();
-
-        assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
     }
 
     @Then("^le dip utilise la version SEDA \"([^\"]*)\"$")
     public void checkDipSedaVerion(String sedaVersion) throws Exception {
 
         // Get manifest from DIP
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
-        String manifest;
-        ZipArchiveEntry manifestEntry = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifestEntry)) {
-            manifest = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+        try (ZipFile zipFile = new ZipFile(world.getDipFile().toFile())) {
+            String manifest;
+            ZipArchiveEntry manifestEntry = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifestEntry)) {
+                manifest = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+            }
+
+            // Get selected Seda version
+            Optional<SupportedSedaVersions> supportedSedaVersion =
+                SupportedSedaVersions.getSupportedSedaVersionByVersion(sedaVersion);
+
+            // Then
+            assertThat(supportedSedaVersion.isPresent()).isTrue();
+            assertThat(manifest).contains(
+                String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, supportedSedaVersion.get().getNamespaceURI(),
+                    supportedSedaVersion.get().getNamespaceURI(),
+                    supportedSedaVersion.get().getSedaValidatorXSD()));
+        }
+    }
+
+    @Then("le SIP et le DIP sont semblables")
+    public void compareSipAndDip() throws Exception {
+        final String sipManifest = transform(getManifestFromZip(world.getSipFile()));
+        final String dipManifest = transform(getManifestFromZip(world.getDipFile()));
+
+        XmlMapper xmlMapper = new XmlMapper();
+        final JsonNode sip = xmlMapper.readValue(sipManifest, JsonNode.class);
+        final JsonNode dip = xmlMapper.readValue(dipManifest, JsonNode.class);
+        final JsonNode gots = sip.at("/DataObjectPackage/DataObjectGroup");
+        final JsonNode gotsDip = dip.at("/DataObjectPackage/DataObjectGroup");
+        final JsonNode units = sip.at("/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+        final JsonNode unitsDip = dip.at("/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+
+
+        final ArrayNode jsonNodes = filterGots(gots);
+        final ArrayNode jsonNodes2 = filterGots(gotsDip);
+        purgeIgnoredFields(jsonNodes,
+            List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook"));
+        purgeIgnoredFields(jsonNodes2,
+            List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook"));
+
+        assertEqualsGotsJson(jsonNodes, jsonNodes2);
+        purgeIgnoredFields(units, List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId"));
+        purgeIgnoredFields(unitsDip,
+            List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId"));
+
+        assertEqualsUnitsJson(units, unitsDip);
+    }
+
+    private void assertEqualsGotsJson(JsonNode expectedGots, JsonNode value) {
+        final JsonNode diff = JsonDiff.asJson(expectedGots, value);
+        if (!diff.isEmpty()) {
+            fail("ObjectGroups are not equals " + JsonHandler.unprettyPrint(diff));
+        }
+    }
+
+    private ArrayNode filterGots(JsonNode gots) {
+        ArrayNode listGOTS = JsonHandler.createArrayNode();
+        if (gots.isArray()) {
+            for (var i = 0; i < gots.size(); i++) {
+                var e = gots.get(i);
+                var elem = e.get("BinaryDataObject");
+                if (elem.isArray()) {
+                    var toto = (ArrayNode) elem;
+                    for (var j = 0; j < toto.size(); j++) {
+                        var kk = toto.get(j);
+                        if (kk.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
+                            listGOTS.add(kk);
+                        }
+                    }
+                    ((ArrayNode) gots).set(i, toto);
+                } else {
+                    if (elem.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
+                        listGOTS.add(elem);
+                    }
+                }
+            }
+        } else {
+            listGOTS.add(gots);
         }
 
-        // Get selected Seda version
-        Optional<SupportedSedaVersions> supportedSedaVersion =
-            SupportedSedaVersions.getSupportedSedaVersionByVersion(sedaVersion);
+        return listGOTS;
+    }
 
-        // Then
-        assertThat(supportedSedaVersion.isPresent()).isTrue();
-        assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, supportedSedaVersion.get().getNamespaceURI(),
-                supportedSedaVersion.get().getNamespaceURI(),
-                supportedSedaVersion.get().getSedaValidatorXSD()));
+    private void purgeIgnoredFields(JsonNode jsonNode, List<String> ignoredFields) {
+        if (jsonNode.isValueNode()) {
+            return;
+        }
+        if (jsonNode.isArray()) {
+            for (int i = 0; i < jsonNode.size(); i++) {
+                purgeIgnoredFields(jsonNode.get(i), ignoredFields);
+            }
+            return;
+        }
+        if (jsonNode.isObject()) {
+            ((ObjectNode) jsonNode).remove(ignoredFields);
+            for (JsonNode node : jsonNode) {
+                purgeIgnoredFields(node, ignoredFields);
+            }
+            return;
+        }
+        throw new IllegalStateException("Unknown type " + jsonNode);
+    }
+
+
+    private boolean filterNode(Node node) {
+        return node.getNodeName().equalsIgnoreCase("BinaryDataObject");
+    }
+
+    private Node getChildNode(Node node, String childNodeName) {
+        for (var k = 0; k < node.getChildNodes().getLength(); k++) {
+            if (node.getChildNodes().item(k).getNodeName().equalsIgnoreCase(childNodeName))
+                return node.getChildNodes().item(k);
+        }
+        return null;
+    }
+
+    private String transform(Source manifest) throws FileNotFoundException, TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer(
+            new StreamSource(PropertiesUtils.getResourceFile("transform.xsl")));
+
+        StringWriter writer = new StringWriter();
+        StreamResult streamResult = new StreamResult(writer);
+
+        transformer.transform(manifest, streamResult);
+        return writer.toString();
+    }
+
+    private Source getManifestFromZip(Path zip) throws IOException {
+        try (ZipFile zipFile = new ZipFile(zip.toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
+                return new StreamSource(new StringReader(xml));
+            }
+        }
     }
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
@@ -244,7 +402,7 @@ public class DipStep extends CommonStep {
         return vitamContext;
     }
 
-    private void checkExportDipResponse(RequestResponse response) throws VitamException {
+    private void checkExportDipResponse(RequestResponse<JsonNode> response) throws VitamException {
         assertThat(response.isOk()).isTrue();
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);
