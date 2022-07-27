@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.core.backup;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -90,7 +92,7 @@ public class FunctionalBackupServiceTest {
     public static final String BACKUP_SEQUENCE_DOC =
         "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\",\"Counter\":10,\"Name\":\"BACKUP_A\",\"_tenant\":0}";
 
-    private static String PREFIX = GUIDFactory.newGUID().getId();
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class));

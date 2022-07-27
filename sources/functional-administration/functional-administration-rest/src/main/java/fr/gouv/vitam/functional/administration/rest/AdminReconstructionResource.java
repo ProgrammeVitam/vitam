@@ -40,13 +40,13 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
-import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
-import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.reconstruction.ReconstructionService;
+import fr.gouv.vitam.functional.administration.core.reconstruction.ReconstructionServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.validation.Valid;
@@ -90,7 +90,7 @@ public class AdminReconstructionResource {
     /**
      * Reconstruction service.
      */
-    private ReconstructionService reconstructionService;
+    private final ReconstructionService reconstructionService;
 
     private final MongoDbAccessAdminImpl mongoAccess;
 

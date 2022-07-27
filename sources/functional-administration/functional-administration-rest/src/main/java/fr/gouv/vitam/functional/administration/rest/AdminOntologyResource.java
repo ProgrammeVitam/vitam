@@ -35,10 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
-import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
+import fr.gouv.vitam.functional.administration.core.ontologies.OntologyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
@@ -60,24 +57,21 @@ public class AdminOntologyResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
 
-    private OntologyResource ontologyResource;
+    private final OntologyResource ontologyResource;
 
     public static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
     private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
         "Ontology model list is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final FunctionalBackupService functionalBackupService;
+    private final OntologyService ontologyService;
 
     /**
      * @param ontologyResource
      */
-    public AdminOntologyResource(OntologyResource ontologyResource, MongoDbAccessAdminImpl mongoDbAccess,
-        FunctionalBackupService functionalBackupService) {
+    public AdminOntologyResource(OntologyResource ontologyResource, OntologyService ontologyService) {
         LOGGER.debug("init Ontology Resource server");
         this.ontologyResource = ontologyResource;
-        this.mongoAccess = mongoDbAccess;
-        this.functionalBackupService = functionalBackupService;
+        this.ontologyService = ontologyService;
     }
 
     @Path("/ontologies")
@@ -90,8 +84,7 @@ public class AdminOntologyResource {
         LOGGER.info("use of admin tenant: 1");
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+        try {
             VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
             RequestResponse<OntologyModel>
                 requestResponse = ontologyService.importInternalOntologies(ontologyModelList);
@@ -145,10 +138,9 @@ public class AdminOntologyResource {
         LOGGER.info("use of admin tenant: 1");
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+        try {
             VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-            RequestResponse
+            RequestResponse<OntologyModel>
                 response = ontologyService.checkUpgradeOntologies(ontologyModelList);
 
             if (!response.isOk()) {
@@ -172,10 +164,11 @@ public class AdminOntologyResource {
      * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
-    private VitamError getErrorEntity(Response.Status status, String message, String code) {
+    private VitamError<OntologyModel> getErrorEntity(Response.Status status, String message, String code) {
         String aMessage = messageFromReason(status, message);
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+        return new VitamError<OntologyModel>(aCode).setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 

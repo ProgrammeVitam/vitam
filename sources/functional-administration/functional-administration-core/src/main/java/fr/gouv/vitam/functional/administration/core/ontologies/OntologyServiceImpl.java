@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.core.ontologies;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -72,7 +73,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.ErrorReportOntologies;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.OntologyErrorCode;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -80,9 +80,7 @@ import fr.gouv.vitam.functional.administration.common.exception.OntologyInternal
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
-import fr.gouv.vitam.functional.administration.core.ontologies.OntologyManager;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.collections4.IterableUtils;
@@ -126,14 +124,12 @@ import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT
  */
 public class OntologyServiceImpl implements OntologyService {
 
+    static final String BACKUP_ONTOLOGY_EVENT = "STP_BACKUP_ONTOLOGY";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyServiceImpl.class);
-
     private static final Integer ADMIN_TENANT = VitamConfiguration.getAdminTenant();
-
     private static final String IDENTIFIER = "IDENTIFIER";
     private static final String CTR_SCHEMA = "CTR_SCHEMA";
     private static final String ONTOLOGY_IMPORT_EVENT = "IMPORT_ONTOLOGY";
-    static final String BACKUP_ONTOLOGY_EVENT = "STP_BACKUP_ONTOLOGY";
     private static final String CHECK_ONTOLOGY_IMPORT_EVENT = "CHECK_ONTOLOGY_IMPORT";
 
 
@@ -145,13 +141,12 @@ public class OntologyServiceImpl implements OntologyService {
     private static final String UPDATED_ONTOLOGIES = "updatedOntologies";
     private static final String CREATED_ONTOLOGIES = "createdOntologies";
     private static final Pattern INVALID_IDENTIFIER_PATTERN = Pattern.compile("^[_#\\s]|\\s");
-
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final LogbookOperationsClient logbookClient;
-    private final FunctionalBackupService functionalBackupService;
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
     private static final Map<OntologyType, List<OntologyType>> typeMap = getOntologyTypeMap();
+    private final MongoDbAccessAdminImpl mongoAccess;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final FunctionalBackupService functionalBackupService;
 
     /**
      * Constructor
@@ -160,18 +155,37 @@ public class OntologyServiceImpl implements OntologyService {
      * @param functionalBackupService the functional backup service
      */
     public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService) {
+        this(mongoAccess, functionalBackupService, LogbookOperationsClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.mongoAccess = mongoAccess;
-        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.functionalBackupService = functionalBackupService;
     }
 
+    private static Map<OntologyType, List<OntologyType>> getOntologyTypeMap() {
+
+        EnumMap<OntologyType, List<OntologyType>> ontologyTypeMap = new EnumMap<>(OntologyType.class);
+
+        ontologyTypeMap.put(OntologyType.TEXT, Collections.singletonList(OntologyType.KEYWORD));
+        ontologyTypeMap.put(OntologyType.KEYWORD, Collections.singletonList(OntologyType.TEXT));
+        ontologyTypeMap.put(OntologyType.DATE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
+        ontologyTypeMap.put(OntologyType.LONG, Collections.emptyList());
+        ontologyTypeMap.put(OntologyType.DOUBLE, Collections.emptyList());
+        ontologyTypeMap.put(OntologyType.BOOLEAN, Collections.emptyList());
+        ontologyTypeMap.put(OntologyType.GEO_POINT, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
+        ontologyTypeMap.put(OntologyType.ENUM, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
+        return ontologyTypeMap;
+    }
 
     @Override
     public RequestResponse<OntologyModel> importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws VitamException, IOException {
         return importOntologies(forceUpdate, ontologyModelList, false);
     }
-
 
     @Override
     public RequestResponse<OntologyModel> importInternalOntologies(List<OntologyModel> ontologyInternalModelList)
@@ -198,7 +212,7 @@ public class OntologyServiceImpl implements OntologyService {
         GUID eip = GUIDReader.getGUID(operationId);
 
         Map<String, List<ErrorReportOntologies>> errors = new HashMap<>();
-        OntologyManager manager = new OntologyManager(logbookClient, eip, errors);
+        OntologyManager manager = new OntologyManager(logbookOperationsClientFactory, eip, errors);
         manager.logStarted(ONTOLOGY_IMPORT_EVENT, null);
 
         try {
@@ -355,7 +369,7 @@ public class OntologyServiceImpl implements OntologyService {
         GUID eip = GUIDReader.getGUID(operationId);
 
         Map<String, List<ErrorReportOntologies>> errors = new HashMap<>();
-        OntologyManager manager = new OntologyManager(logbookClient, eip, errors);
+        OntologyManager manager = new OntologyManager(logbookOperationsClientFactory, eip, errors);
         // trace the event in logbook
         manager.logStarted(CHECK_ONTOLOGY_IMPORT_EVENT, null);
         try {
@@ -393,7 +407,6 @@ public class OntologyServiceImpl implements OntologyService {
         return new RequestResponseOK<OntologyModel>().addAllResults(ontologyInternalModelList)
             .setHttpCode(Response.Status.OK.getStatusCode());
     }
-
 
     private VitamError ontologyCommonChecks(List<OntologyModel> ontologyModelList,
         boolean externalOntologyUpdate, GUID eip, Map<String, List<ErrorReportOntologies>> errors,
@@ -463,7 +476,6 @@ public class OntologyServiceImpl implements OntologyService {
             }
         }
     }
-
 
     private VitamError exitCheckOnErrors(Map<String, List<ErrorReportOntologies>> errors, OntologyManager manager)
         throws VitamException {
@@ -660,21 +672,6 @@ public class OntologyServiceImpl implements OntologyService {
         }
     }
 
-    private static Map<OntologyType, List<OntologyType>> getOntologyTypeMap() {
-
-        EnumMap<OntologyType, List<OntologyType>> ontologyTypeMap = new EnumMap<>(OntologyType.class);
-
-        ontologyTypeMap.put(OntologyType.TEXT, Collections.singletonList(OntologyType.KEYWORD));
-        ontologyTypeMap.put(OntologyType.KEYWORD, Collections.singletonList(OntologyType.TEXT));
-        ontologyTypeMap.put(OntologyType.DATE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        ontologyTypeMap.put(OntologyType.LONG, Collections.emptyList());
-        ontologyTypeMap.put(OntologyType.DOUBLE, Collections.emptyList());
-        ontologyTypeMap.put(OntologyType.BOOLEAN, Collections.emptyList());
-        ontologyTypeMap.put(OntologyType.GEO_POINT, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        ontologyTypeMap.put(OntologyType.ENUM, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        return ontologyTypeMap;
-    }
-
     private void checkInternalFieldDelete(List<OntologyModel> toDelete, OntologyManager manager,
         Map<String, List<ErrorReportOntologies>> errors) {
         for (final OntologyModel ontm : toDelete) {
@@ -812,14 +809,6 @@ public class OntologyServiceImpl implements OntologyService {
             return result.getRequestResponseOK(queryDsl, Ontology.class, OntologyModel.class);
         }
     }
-
-    @Override
-    public void close() {
-        if (null != logbookClient) {
-            logbookClient.close();
-        }
-    }
-
 
     private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
         return VitamErrorUtils.getVitamError(vitamCode, error, "Ontology", statusCode);

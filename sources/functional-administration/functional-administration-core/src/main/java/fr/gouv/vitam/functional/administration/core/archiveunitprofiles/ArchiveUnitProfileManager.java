@@ -76,25 +76,22 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class ArchiveUnitProfileManager {
 
-    private static final String FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE = "FunctionalModule-ArchiveUnitProfile";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitProfileManager.class);
-
     public static final String EMPTY_REQUIRED_FIELD = "IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO";
     public static final String WRONG_FIELD_FORMAT = "IMPORT_ARCHIVEUNITPROFILE.TO_BE_DEFINED.KO";
     public static final String DUPLICATE_IN_DATABASE = "IMPORT_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO";
     public static final String INVALID_JSON_SCHEMA = "IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO";
     public static final String IMPORT_KO = "IMPORT_ARCHIVEUNITPROFILE.KO";
-
     public static final String UPDATE_AUP_NOT_FOUND = "UPDATE_ARCHIVEUNITPROFILE.AUP_NOT_FOUND.KO";
     public static final String UPDATE_VALUE_NOT_IN_ENUM = "UPDATE_ARCHIVEUNITPROFILE.NOT_IN_ENUM.KO";
     public static final String UPDATE_DUPLICATE_IN_DATABASE = "UPDATE_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO";
     public static final String UPDATE_KO = "UPDATE_ARCHIVEUNITPROFILE.KO";
-
-    private HashMap<ArchiveUnitProfileValidator, String> validators;
+    private static final String FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE = "FunctionalModule-ArchiveUnitProfile";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitProfileManager.class);
+    private final HashMap<ArchiveUnitProfileValidator, String> validators;
 
     private final GUID eip;
 
-    private LogbookOperationsClient logbookClient;
+    private final LogbookOperationsClient logbookClient;
     private final MetaDataClient metaDataClient;
 
     public ArchiveUnitProfileManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient, GUID eip) {
@@ -114,7 +111,7 @@ public class ArchiveUnitProfileManager {
         VitamError error) {
 
         for (ArchiveUnitProfileValidator validator : validators.keySet()) {
-            Optional<RejectionCause> result = validator.validate(profile);
+            Optional<ArchiveUnitProfileValidator.RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
                 // there is a validation error on this profile
                 /* profile is valid, add it to the list to persist */
@@ -279,9 +276,9 @@ public class ArchiveUnitProfileManager {
      */
     public ArchiveUnitProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
-            RejectionCause rejection = null;
+            ArchiveUnitProfileValidator.RejectionCause rejection = null;
             if (profile.getName() == null || profile.getName().length() == 0) {
-                rejection = RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.NAME);
+                rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.NAME);
             }
             return (rejection == null) ? Optional.empty() : Optional.of(rejection);
         };
@@ -294,7 +291,7 @@ public class ArchiveUnitProfileManager {
      */
     public ArchiveUnitProfileValidator createWrongFieldFormatValidator() {
         return (archiveUnitProfile) -> {
-            RejectionCause rejection = null;
+            ArchiveUnitProfileValidator.RejectionCause rejection = null;
 
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             if (archiveUnitProfile.getStatus() == null) {
@@ -305,8 +302,9 @@ public class ArchiveUnitProfileManager {
                 !archiveUnitProfile.getStatus().equals(ArchiveUnitProfileStatus.INACTIVE)) {
                 LOGGER.error("Error archive unit profile status not valide (must be ACTIVE or INACTIVE");
                 rejection =
-                    RejectionCause.rejectMandatoryMissing("Status " + archiveUnitProfile.getStatus() +
-                        " not valide must be ACTIVE or INACTIVE");
+                    ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
+                        "Status " + archiveUnitProfile.getStatus() +
+                            " not valide must be ACTIVE or INACTIVE");
             }
 
 
@@ -321,7 +319,7 @@ public class ArchiveUnitProfileManager {
 
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
-                rejection = RejectionCause.rejectMandatoryMissing("CreationDate");
+                rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing("CreationDate");
             }
             try {
                 if (archiveUnitProfile.getActivationdate() == null ||
@@ -334,7 +332,7 @@ public class ArchiveUnitProfileManager {
                 }
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
-                rejection = RejectionCause.rejectMandatoryMissing("ActivationDate");
+                rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing("ActivationDate");
             }
             try {
 
@@ -348,7 +346,7 @@ public class ArchiveUnitProfileManager {
                 }
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
-                rejection = RejectionCause.rejectMandatoryMissing("DeactivationDate");
+                rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing("DeactivationDate");
             }
 
             archiveUnitProfile.setLastupdate(now);
@@ -386,7 +384,8 @@ public class ArchiveUnitProfileManager {
                 boolean exist =
                     FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().countDocuments(clause) > 0;
                 if (exist) {
-                    return Optional.of(RejectionCause.rejectDuplicateIdentifierInDatabase(profile.getIdentifier()));
+                    return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectDuplicateIdentifierInDatabase(
+                        profile.getIdentifier()));
                 }
             }
             return Optional.empty();
@@ -407,10 +406,12 @@ public class ArchiveUnitProfileManager {
                     JsonSchemaValidator.forUserSchema(profile.getControlSchema());
                     return Optional.empty();
                 } catch (InvalidJsonSchemaException e) {
-                    return Optional.of(RejectionCause.rejectJsonShema(ArchiveUnitProfile.CONTROLSCHEMA));
+                    return Optional.of(
+                        ArchiveUnitProfileValidator.RejectionCause.rejectJsonShema(ArchiveUnitProfile.CONTROLSCHEMA));
                 }
             } else {
-                return Optional.of(RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.CONTROLSCHEMA));
+                return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
+                    ArchiveUnitProfile.CONTROLSCHEMA));
             }
 
         };
@@ -431,12 +432,15 @@ public class ArchiveUnitProfileManager {
                         .setQuery(QueryHelper.eq("ArchiveUnitProfile", profile.getIdentifier()));
                     JsonNode jsonNode = metaDataClient.selectUnits(selectMultiple.getFinalSelect());
                     if (jsonNode != null && jsonNode.get("$results").size() > 0) {
-                        return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));
+                        return Optional.of(
+                            ArchiveUnitProfileValidator.RejectionCause.rejectJsonSchemaModificationIfInUse(
+                                profile.getName()));
                     }
                 } catch (InvalidCreateOperationException | InvalidParseOperationException |
-                    MetaDataExecutionException |
-                    MetaDataDocumentSizeException | MetaDataClientServerException e) {
-                    return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));
+                         MetaDataExecutionException |
+                         MetaDataDocumentSizeException | MetaDataClientServerException e) {
+                    return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectJsonSchemaModificationIfInUse(
+                        profile.getName()));
                 }
 
             }

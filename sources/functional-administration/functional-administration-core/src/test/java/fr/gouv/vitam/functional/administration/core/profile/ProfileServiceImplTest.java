@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -59,8 +58,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
-import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.http.HttpStatus;
@@ -84,8 +82,6 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.OP_PROFILE_STORAGE;
-import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.PROFILE_BACKUP_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -97,27 +93,22 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class ProfileServiceImplTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
+    static final String DATABASE_HOST = "localhost";
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
-
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Profile.class));
-
-    static final String DATABASE_HOST = "localhost";
-    private static VitamCounterService vitamCounterService;
-    private static MongoDbAccessAdminImpl dbImpl;
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
-
     static ProfileService profileService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -204,7 +195,7 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
             eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
@@ -219,9 +210,9 @@ public class ProfileServiceImplTest {
             profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
-        verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
+        verify(functionalBackupService).saveFile(any(), any(), eq(ProfileServiceImpl.OP_PROFILE_STORAGE),
             eq(DataCategory.PROFILE), anyString());
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
             eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
     }
@@ -601,7 +592,7 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
             eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
@@ -620,7 +611,7 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
             eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
 
@@ -654,7 +645,7 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
             eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);

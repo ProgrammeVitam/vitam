@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.core.backup;
 
 
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -35,7 +35,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -67,9 +66,9 @@ public class BackupServiceTest {
     private static WorkspaceClient workspaceClient;
     private static StorageClient storageClient;
 
-    private WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private String FILE_TO_SAVE = "accession-register.json";
+    private final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private final String FILE_TO_SAVE = "accession-register.json";
     InputStream inputStream;
 
     @Before
@@ -190,7 +189,7 @@ public class BackupServiceTest {
             .deleteContainer(any(), anyBoolean());
 
         //When
-        backupService.backup(inputStream, DataCategory.REPORT, URI);
+        backupService.backup(inputStream, REPORT, URI);
         verify(workspaceClient).deleteContainer(any(), anyBoolean());
     }
 }

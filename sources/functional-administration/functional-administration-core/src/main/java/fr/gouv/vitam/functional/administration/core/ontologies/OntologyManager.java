@@ -44,6 +44,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,15 +58,15 @@ public class OntologyManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyManager.class);
 
-    private Map<String, List<ErrorReportOntologies>> errors;
+    private final Map<String, List<ErrorReportOntologies>> errors;
 
     private final GUID eip;
 
-    private LogbookOperationsClient logbookClient;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public OntologyManager(LogbookOperationsClient logbookClient, GUID eip,
+    public OntologyManager(LogbookOperationsClientFactory logbookOperationsClientFactory, GUID eip,
         Map<String, List<ErrorReportOntologies>> errors) {
-        this.logbookClient = logbookClient;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.eip = eip;
         this.errors = errors;
     }
@@ -99,8 +100,9 @@ public class OntologyManager {
                 StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
         logbookMessageError(objectId, errorsDetails, logbookParameters);
-
-        logbookClient.update(logbookParameters);
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            logbookOperationsClient.update(logbookParameters);
+        }
     }
 
     private void logbookMessageError(String objectId, String errorsDetails,
@@ -136,8 +138,9 @@ public class OntologyManager {
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
-
-        logbookClient.update(logbookParameters);
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            logbookOperationsClient.update(logbookParameters);
+        }
     }
 
     /**
@@ -152,8 +155,9 @@ public class OntologyManager {
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
 
         logbookMessageError(objectId, null, logbookParameters);
-        logbookClient.create(logbookParameters);
-
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            logbookOperationsClient.create(logbookParameters);
+        }
     }
 
     /**
@@ -175,8 +179,9 @@ public class OntologyManager {
         if (null != message && !message.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, message);
         }
-
-        logbookClient.update(logbookParameters);
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            logbookOperationsClient.update(logbookParameters);
+        }
     }
 }
 

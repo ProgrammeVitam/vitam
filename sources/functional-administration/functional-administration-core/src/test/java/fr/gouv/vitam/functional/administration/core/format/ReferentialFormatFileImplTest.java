@@ -49,13 +49,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.format.model.FormatImportReport;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -90,28 +90,23 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 
 public class ReferentialFormatFileImplTest {
+    private static final Integer TENANT_ID = 0;
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FileFormat.class));
+    static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
+    static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
+    static ReferentialFormatFileImpl formatFile;
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
     String FILE_TO_TEST_OK = "DROID_SignatureFile_V94.xml";
     String FILE_TO_TEST_OK_V1 = "FF-vitam-V1.xml";
     String FILE_TO_TEST_OK_V2 = "FF-vitam-V2.xml";
-    private static final Integer TENANT_ID = 0;
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FileFormat.class));
-
-    static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
-    static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
-    static ReferentialFormatFileImpl formatFile;
-
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -122,7 +117,7 @@ public class ReferentialFormatFileImplTest {
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
-        mongoDbNodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        mongoDbNodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(

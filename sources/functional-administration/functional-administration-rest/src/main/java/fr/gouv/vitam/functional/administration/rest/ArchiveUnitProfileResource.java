@@ -36,11 +36,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.core.archiveunitprofiles.ArchiveUnitProfileService;
-import fr.gouv.vitam.functional.administration.core.archiveunitprofiles.ArchiveUnitProfileServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -72,19 +68,13 @@ public class ArchiveUnitProfileResource {
     private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
         "The dsl query is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final VitamCounterService vitamCounterService;
-    private final FunctionalBackupService functionalBackupService;
+    private final ArchiveUnitProfileService archiveUnitProfileService;
 
     /**
-     * @param mongoAccess
-     * @param vitamCounterService
+     * @param archiveUnitProfileService
      */
-    public ArchiveUnitProfileResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.functionalBackupService = functionalBackupService;
+    public ArchiveUnitProfileResource(ArchiveUnitProfileService archiveUnitProfileService) {
+        this.archiveUnitProfileService = archiveUnitProfileService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -110,9 +100,8 @@ public class ArchiveUnitProfileResource {
     public Response createProfiles(List<ArchiveUnitProfileModel> archiveUnitProfileModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ARCHIVE_UNIT_PROFILE_JSON_IS_MANDATORY_PATAMETER, archiveUnitProfileModelList);
 
-        try (ArchiveUnitProfileService archiveUnitProfileService =
-            new ArchiveUnitProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-            RequestResponse requestResponse =
+        try {
+            RequestResponse<ArchiveUnitProfileModel> requestResponse =
                 archiveUnitProfileService.createArchiveUnitProfiles(archiveUnitProfileModelList);
 
             if (!requestResponse.isOk()) {
@@ -148,15 +137,15 @@ public class ArchiveUnitProfileResource {
         ParametersChecker.checkParameter(ARCHIVE_UNIT_PROFILE_JSON_IS_MANDATORY_PATAMETER, profileMetadataId);
         ParametersChecker.checkParameter(DSL_QUERY_IS_MANDATORY_PATAMETER, queryDsl);
 
-        try (ArchiveUnitProfileService profileService =
-            new ArchiveUnitProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+        try {
             SanityChecker.checkParameter(profileMetadataId);
-            RequestResponse requestResponse = profileService.updateArchiveUnitProfile(profileMetadataId, queryDsl);
+            RequestResponse<ArchiveUnitProfileModel> requestResponse =
+                archiveUnitProfileService.updateArchiveUnitProfile(profileMetadataId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
-                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                ((VitamError<ArchiveUnitProfileModel>) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
             } else if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<ArchiveUnitProfileModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
 
@@ -186,11 +175,10 @@ public class ArchiveUnitProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProfiles(JsonNode queryDsl) {
 
-        try (ArchiveUnitProfileService profileService =
-            new ArchiveUnitProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+        try {
 
             final RequestResponseOK<ArchiveUnitProfileModel> profileModelList =
-                profileService.findArchiveUnitProfiles(queryDsl).setQuery(queryDsl);
+                archiveUnitProfileService.findArchiveUnitProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
                 .entity(profileModelList)
@@ -211,12 +199,12 @@ public class ArchiveUnitProfileResource {
      * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
-    private VitamError getErrorEntity(Status status, String message, String code) {
+    private VitamError<ArchiveUnitProfileModel> getErrorEntity(Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError<ArchiveUnitProfileModel>(aCode).setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }

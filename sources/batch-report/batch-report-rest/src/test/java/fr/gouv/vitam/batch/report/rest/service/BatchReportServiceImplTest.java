@@ -73,8 +73,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -177,10 +175,6 @@ public class BatchReportServiceImplTest {
     private WorkspaceClientFactory workspaceClientFactory;
     @Mock
     private WorkspaceClient workspaceClient;
-    @Mock
-    private StorageClientFactory storageClientFactory;
-    @Mock
-    private StorageClient storageClient;
     @Mock
     private ExtractedMetadataRepository extractedMetadataRepository;
     @Mock
@@ -311,9 +305,6 @@ public class BatchReportServiceImplTest {
         String filename = String.format("report.jsonl", processId);
         Path report = initialisePathWithFileName(filename);
 
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
-
         PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
         Document preservationData = getPreservationDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
@@ -360,9 +351,6 @@ public class BatchReportServiceImplTest {
         String filename = String.format("report.jsonl", processId);
         Path report = initialisePathWithFileName(filename);
 
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
-
         AuditStatsModel auditStatus =
             new AuditStatsModel(1, 2, new HashSet<String>(), new AuditFullStatusCount(), new HashMap<>());
         Document auditData = getAuditDocument(processId);
@@ -401,8 +389,6 @@ public class BatchReportServiceImplTest {
         // Given
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         String filename = "report.jsonl";
         Path report = initialisePathWithFileName(filename);
@@ -444,8 +430,6 @@ public class BatchReportServiceImplTest {
         // Given
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         String filename = "report.jsonl";
         Path report = initialisePathWithFileName(filename);
@@ -489,7 +473,7 @@ public class BatchReportServiceImplTest {
                 actualInputStream, JSON_NODE_TYPE_REFERENCE);
             JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
                 expectedReportInputStream,
-                JSON_NODE_TYPE_REFERENCE);
+                JSON_NODE_TYPE_REFERENCE)
         ) {
 
             JsonAssert.assertJsonEquals(
@@ -517,9 +501,6 @@ public class BatchReportServiceImplTest {
         when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
         String filename = String.format("report.jsonl", processId);
         Path report = initialisePathWithFileName(filename);
-
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         EvidenceAuditStatsModel auditStatus =
             new EvidenceAuditStatsModel(1, 0, 1, new EvidenceAuditFullStatusCount());

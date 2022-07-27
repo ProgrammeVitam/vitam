@@ -47,11 +47,11 @@
 			<artifactId>processing-management-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!--<dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-backup-client</artifactId>
 			<version>${project.version}</version>
-		</dependency>-->
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

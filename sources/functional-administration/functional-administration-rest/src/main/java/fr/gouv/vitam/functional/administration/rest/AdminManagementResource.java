@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -98,10 +97,10 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialImpor
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.core.accession.register.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.core.audit.ReferentialAuditService;
 import fr.gouv.vitam.functional.administration.core.contract.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.core.contract.ContractService;
 import fr.gouv.vitam.functional.administration.core.format.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.core.rules.RuleImportResultSet;
 import fr.gouv.vitam.functional.administration.core.rules.RulesManagerFileImpl;
@@ -154,8 +153,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -726,7 +725,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     prodServices.toArray(new String[0])).setDepthLimit(0));
             }
             parser.addCondition(
-                eq(ORIGINATING_AGENCY, URLDecoder.decode(originatingAgency, CharsetUtils.UTF_8)));
+                eq(ORIGINATING_AGENCY, URLDecoder.decode(originatingAgency, StandardCharsets.UTF_8)));
 
             accessionRegisterDetails =
                 accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
@@ -735,7 +734,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(BAD_REQUEST)
                 .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
-        } catch (final ReferentialException | AccessUnauthorizedException | UnsupportedEncodingException | InvalidCreateOperationException e) {
+        } catch (final ReferentialException | AccessUnauthorizedException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();

@@ -48,9 +48,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.core.reconstruction.RestoreBackupServiceImpl;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
@@ -115,7 +115,7 @@ public class RestoreBackupIT {
     private static final String OFFER_FOLDER = "offer";
     private static final String BACKUP_COPY_FOLDER = "backup";
     private static final int TENANT_ID = 0;
-    private static String CONTAINER = "0_rules";
+    private static final String CONTAINER = "0_rules";
     private static String containerName = "";
 
     static TemporaryFolder folder = new TemporaryFolder();
@@ -169,7 +169,7 @@ public class RestoreBackupIT {
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
-            final String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
+            final String[] seg = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
         serverConfiguration
@@ -327,7 +327,7 @@ public class RestoreBackupIT {
 
     private void storeBackupCopies(final File file) {
         final String extension = "json";
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
             final String uri = file.getName();
 
             // add the object on the container on the Workspace

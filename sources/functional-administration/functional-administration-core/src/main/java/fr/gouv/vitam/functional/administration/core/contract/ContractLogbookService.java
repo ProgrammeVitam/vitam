@@ -48,19 +48,9 @@ import java.util.List;
 
 public class ContractLogbookService {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractLogbookService.class);
-
-    private final GUID eip;
-    private final LogbookOperationsClient logbookClient;
-    private final String contractsImportEventCode;
-    private final String contractUpdateEventCode;
-    private final String collectionType;
-    private final String contractCheckKey;
-
     public static final String MC_GLOBAL_ERROR = "ManagementContract service error";
     public static final String IC_GLOBAL_ERROR = "IngestContract service error";
     public static final String AC_GLOBAL_ERROR = "AccessContract service error";
-
     public static final String EMPTY_REQUIRED_FIELD = ".EMPTY_REQUIRED_FIELD.KO";
     public static final String WRONG_FIELD_FORMAT = ".TO_BE_DEFINED.KO";
     public static final String DUPLICATE_IN_DATABASE = ".IDENTIFIER_DUPLICATION.KO";
@@ -71,16 +61,21 @@ public class ContractLogbookService {
     public static final String FORMAT_MUST_BE_EMPTY = ".FORMAT_MUST_BE_EMPTY.KO";
     public static final String FORMAT_MUST_NOT_BE_EMPTY = ".FORMAT_MUST_NOT_BE_EMPTY.KO";
     public static final String MANAGEMENTCONTRACT_NOT_FOUND = ".MANAGEMENTCONTRACT_NOT_FOUND.KO";
-
     public static final String CONTRACT_BAD_REQUEST = ".BAD_REQUEST.KO";
     public static final String UPDATE_CONTRACT_NOT_FOUND = ".CONTRACT_NOT_FOUND.KO";
     public static final String UPDATE_VALUE_NOT_IN_ENUM = ".NOT_IN_ENUM.KO";
     public static final String UPDATE_WRONG_FILEFORMAT = ".FILEFORMAT_NOT_FOUND.KO";
     public static final String STRATEGY_VALIDATION_ERROR = ".STRATEGY_VALIDATION_ERROR.KO";
     public static final String VERSION_RETENTION_POLICY_VALIDATION_ERROR = ".VERSION_RETENTION_POLICY_ERROR.KO";
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractLogbookService.class);
     private static final String EVDETDATA_IDENTIFIER = "identifier";
     private static final String UPDATED_DIFFS = "updatedDiffs";
+    private final GUID eip;
+    private final LogbookOperationsClient logbookClient;
+    private final String contractsImportEventCode;
+    private final String contractUpdateEventCode;
+    private final String collectionType;
+    private final String contractCheckKey;
 
     public ContractLogbookService(LogbookOperationsClient logbookClient, GUID eip, String contractsImportEventCode,
         String contractUpdateEventCode, String collectionType, String contractCheckKey) {

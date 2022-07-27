@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.profile.api.impl;
+package fr.gouv.vitam.functional.administration.core.profile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -66,7 +66,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
@@ -75,9 +74,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
-import fr.gouv.vitam.functional.administration.core.profile.ProfileManager;
-import fr.gouv.vitam.functional.administration.core.profile.ProfileValidator;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.profile.ProfileValidator.RejectionCause;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -117,31 +114,29 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
  */
 public class ProfileServiceImpl implements ProfileService {
 
+    public static final String OP_PROFILE_STORAGE = "OP_PROFILE_STORAGE";
+    public static final String PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG = "Profile Format should be XSD or RNG : ";
+    public static final String PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE =
+        "Profile identifier already exists in database ";
+    public static final String PROFILE_IDENTIFIER_MUST_BE_STRING = "Profile identifier shoud be a string ";
+    public static final String PROFILE_BACKUP_EVENT = "BACKUP_PROFILE";
+    public static final String PATH_UNUPDATABLE = "The path field is not updatable";
+    public static final String PATH_SHOULD_NOT_BE_FILLED = "The profile path should not be filled manually";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
-
     private static final String PROFILE_IS_MANDATORY_PARAMETER = "profiles parameter is mandatory";
     private static final String PROFILES_IMPORT_EVENT = "STP_IMPORT_PROFILE_JSON";
     private static final String PROFILES_UPDATE_EVENT = "STP_UPDATE_PROFILE_JSON";
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
     private static final String PROFILE_NOT_FOUND = "Update a not found profile";
-    public static final String OP_PROFILE_STORAGE = "OP_PROFILE_STORAGE";
     private static final String UPDATED_DIFFS = "updatedDiffs";
-
     private static final String THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The profile status must be ACTIVE or INACTIVE but not ";
-    public static final String PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG = "Profile Format should be XSD or RNG : ";
-    public static final String PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE =
-        "Profile identifier already exists in database ";
-    public static final String PROFILE_IDENTIFIER_MUST_BE_STRING = "Profile identifier shoud be a string ";
+    private static final String _TENANT = "_tenant";
+    private static final String _ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
-    public static final String PROFILE_BACKUP_EVENT = "BACKUP_PROFILE";
-    public static final String PATH_UNUPDATABLE = "The path field is not updatable";
-    public static final String PATH_SHOULD_NOT_BE_FILLED = "The profile path should not be filled manually";
 
     /**
      * Constructor

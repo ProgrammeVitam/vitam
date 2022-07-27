@@ -16,6 +16,7 @@
         <module>functional-administration-core</module>
         <module>functional-administration-rest</module>
         <module>functional-administration-client</module>
+        <module>functional-administration-backup-client</module>
     </modules>
 
     <build>

@@ -58,9 +58,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -75,6 +73,8 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -98,10 +98,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -136,6 +134,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -155,15 +154,8 @@ import static org.mockito.Mockito.when;
  */
 public class RulesManagerFileImplTest {
 
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
     public static final int RULE_AUDIT_THREAD_POOL_SIZE = 4;
-
-    @ClassRule
-    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final String ACC_00003 = "ACC-00003";
     private static final String HOL_00001 = "HOL-00001";
     private static final String HOL_00002 = "HOL-00002";
@@ -185,62 +177,46 @@ public class RulesManagerFileImplTest {
         = "jeu_donnees_KO_regles_CSV_HoldRuleWithDurationAndNoMeasure.csv";
     private static final String FILE_TO_TEST_KO_HOLDRULE_MEASUREMENT_WITHOUT_DURATION
         = "jeu_donnees_KO_regles_CSV_HoldRuleWithMeasureAndNoDuration.csv";
-
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final Integer TENANT_ID = 0;
-
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-
+    private static final List<MongoDbNode> nodes = new ArrayList<>();
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    static RulesManagerFileImpl rulesFileManager;
+    private static VitamCounterService vitamCounterService;
+    private static VitamRuleService vitamRuleService;
+    private static MongoDbAccessAdminImpl dbImpl;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @ClassRule
-    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    private static VitamCounterService vitamCounterService;
-    private static VitamRuleService vitamRuleService;
-    static RulesManagerFileImpl rulesFileManager;
-    private static MongoDbAccessAdminImpl dbImpl;
-
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    @Mock
-    private LogbookOperationsClient logbookOperationsClient;
-
-    @Mock
-    private MetaDataClientFactory metaDataClientFactory;
-
-    @Mock
-    private MetaDataClient metaDataClient;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private ProcessingManagementClientFactory processingManagementClientFactory;
-
-    @Mock
-    private ProcessingManagementClient processingManagementClient;
-
-    @Mock
-    private FunctionalBackupService functionalBackupService;
-
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-
-    private static List<MongoDbNode> nodes = new ArrayList<>();
-
-    public final ExpectedException exception = ExpectedException.none();
-
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClient metaDataClient;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private WorkspaceClient workspaceClient;
+    @Mock
+    private ProcessingManagementClientFactory processingManagementClientFactory;
+    @Mock
+    private ProcessingManagementClient processingManagementClient;
+    @Mock
+    private FunctionalBackupService functionalBackupService;
     @Mock
     private RestoreBackupService restoreBackupService;
 
@@ -259,7 +235,7 @@ public class RulesManagerFileImplTest {
         SystemPropertyUtil.refresh();
 
 
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
@@ -269,6 +245,23 @@ public class RulesManagerFileImplTest {
         vitamRuleService = getRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
+    }
+
+    private static VitamRuleService getRuleDurationConfigration(List<Integer> tenants) {
+        Map<Integer, Map<String, String>> durationList = new HashMap<>();
+        Map<String, String> duration = new HashMap<>();
+        duration.put(AppraisalRule.name(), "6 day");
+        duration.put(AccessRule.name(), "5");
+        for (Integer tenant : tenants) {
+
+            durationList.put(tenant, duration);
+        }
+        return new VitamRuleService(durationList);
     }
 
     @Before
@@ -298,11 +291,6 @@ public class RulesManagerFileImplTest {
         FunctionalAdminCollectionsTestUtils.resetVitamSequenceCounter();
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
-    }
-
     /**
      * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant
      * ID is changed for each call.
@@ -322,16 +310,11 @@ public class RulesManagerFileImplTest {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
 
-        try {
+        assertThrows(FileRulesCsvException.class, () -> {
             Map<String, FileRulesModel> rulesToImport =
                 rulesFileManager.getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
             rulesFileManager.checkFile(rulesToImport);
-            fail("Check file with FILE_TO_TEST_KO should throw exception");
-        } catch (final FileRulesCsvException e) {
-            exception.expect(FileRulesCsvException.class);
-        } catch (FileRulesDeleteException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        }
+        });
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
@@ -586,11 +569,10 @@ public class RulesManagerFileImplTest {
             assertEquals(25, fileRulesAfterInsert.size());
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
-            InvalidCreateOperationException e) {
+                 InvalidCreateOperationException e) {
             fail("ReferentialException " + e.getCause());
         }
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -644,7 +626,7 @@ public class RulesManagerFileImplTest {
 
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
-            InvalidCreateOperationException | LogbookClientException e) {
+                 InvalidCreateOperationException | LogbookClientException e) {
             fail("ReferentialException " + e.getCause());
             e.printStackTrace();
         } catch (Exception e) {
@@ -686,7 +668,7 @@ public class RulesManagerFileImplTest {
                 vitamCounterService.getSequence(tenantId, SequenceType.RULES_SEQUENCE));
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
-            InvalidCreateOperationException e) {
+                 InvalidCreateOperationException e) {
             e.printStackTrace();
             fail("ReferentialException " + e.getCause());
         }
@@ -780,7 +762,7 @@ public class RulesManagerFileImplTest {
 
         // mock logbook client
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
-        assertThatCode(() -> when(logbookOperationsClient.selectOperation(Matchers.anyObject()))
+        assertThatCode(() -> when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
         // When
@@ -853,7 +835,6 @@ public class RulesManagerFileImplTest {
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -1308,18 +1289,6 @@ public class RulesManagerFileImplTest {
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), anyString(),
             eq(DataCategory.REPORT), anyString());
-    }
-
-    private static VitamRuleService getRuleDurationConfigration(List<Integer> tenants) {
-        Map<Integer, Map<String, String>> durationList = new HashMap<>();
-        Map<String, String> duration = new HashMap<>();
-        duration.put(AppraisalRule.name(), "6 day");
-        duration.put(AccessRule.name(), "5");
-        for (Integer tenant : tenants) {
-
-            durationList.put(tenant, duration);
-        }
-        return new VitamRuleService(durationList);
     }
 
     @Test

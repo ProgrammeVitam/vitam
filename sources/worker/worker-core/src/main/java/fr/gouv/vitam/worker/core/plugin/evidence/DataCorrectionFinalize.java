@@ -32,8 +32,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.functional.administration.core.backup.BackupService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -107,7 +107,7 @@ public class DataCorrectionFinalize extends ActionHandler {
                 handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
-                BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
+                BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream)
             ) {
 
                 for (URI uri : uriListObjectsWorkspace) {

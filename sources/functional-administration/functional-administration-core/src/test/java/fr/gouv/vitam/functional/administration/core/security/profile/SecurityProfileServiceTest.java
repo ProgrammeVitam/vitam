@@ -56,9 +56,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -66,6 +63,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.context.ContextService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -74,6 +73,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -88,39 +88,34 @@ import java.util.Optional;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 
 public class SecurityProfileServiceTest {
 
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
-
-    @ClassRule public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
-
-    @ClassRule public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
-    private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
-
-    @Rule public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+    private static final String NAME = "Name";
     private static final String BACKUP_SECURITY_PROFILE = "STP_BACKUP_SECURITY_PROFILE";
-
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
-    private static MongoDbAccessAdminImpl dbImpl;
-
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-
+    @ClassRule public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    @ClassRule public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+    private static MongoDbAccessAdminImpl dbImpl;
+    @Rule public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     private VitamCounterService vitamCounterService;
     private FunctionalBackupService functionalBackupService;
     private SecurityProfileService securityProfileService;
-    private AdminManagementClient adminManagementClient;
+
+    private ContextService contextService;
 
 
     @BeforeClass
@@ -135,6 +130,12 @@ public class SecurityProfileServiceTest {
         dbImpl =
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
                 Collections::emptyList, indexManager);
+
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @Before
@@ -155,17 +156,12 @@ public class SecurityProfileServiceTest {
         LogbookOperationsClientFactory.changeMode(null);
 
         functionalBackupService = mock(FunctionalBackupService.class);
-        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
+        contextService = mock(ContextService.class);
         securityProfileService = new SecurityProfileService(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
-                Collections::emptyList, indexManager), vitamCounterService, functionalBackupService,
-            adminManagementClient);
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
+                Collections::emptyList, indexManager), vitamCounterService, functionalBackupService);
+        securityProfileService.setContextService(contextService);
     }
 
     @After
@@ -623,6 +619,7 @@ public class SecurityProfileServiceTest {
         assertThat(createResponseCast.getResults().get(0).getId()).isNotEmpty();
 
         String identifier = createResponseCast.getResults().get(0).getIdentifier();
+        when(contextService.securityProfileIsUsedInContexts(anyString())).thenReturn(false);
 
         RequestResponse<SecurityProfileModel> response = securityProfileService.deleteSecurityProfile(identifier);
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());

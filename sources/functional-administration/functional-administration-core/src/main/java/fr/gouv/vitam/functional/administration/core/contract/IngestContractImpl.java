@@ -65,7 +65,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -74,7 +73,7 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.contract.GenericContractValidator.GenericRejectionCause;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -106,6 +105,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference
  */
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
+    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
     private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Ingest contract status must be ACTIVE or INACTIVE but not ";
     private static final String INGEST_CONTRACT_CHECK_PARENT_LINK_STATUS_NOT_IN_ENUM =
@@ -115,12 +115,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String EVERYFORMAT_LIST_EMPTY = "formatType field must not be empty when everyFormat is false";
     private static final String EVERYFORMAT_LIST_NOT_EMPTY = "formatType field must be empty when everyFormat is true";
     private static final String DATE_MUST_BE_VALID = "must be a valid date";
-
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
-    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
-
-
     private static final String EMPTY_REQUIRED_FIELD =
         CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
     private static final String DUPLICATE_IN_DATABASE =
@@ -153,22 +149,18 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
-
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
+    private static final String RESULT_HITS = "$hits";
+    private static final String HITS_SIZE = "size";
+    private static final String CONTRACT_KEY = "IngestContract";
+    private static final String CONTRACT_CHECK_KEY = "ingestContractCheck";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final MetaDataClient metaDataClient;
     private final FunctionalBackupService functionalBackupService;
     private final ContractService<ManagementContractModel> managementContractService;
-
-
-    private static final String UND_TENANT = "_tenant";
-    private static final String UND_ID = "_id";
-    private static final String RESULT_HITS = "$hits";
-    private static final String HITS_SIZE = "size";
-
-    private static final String CONTRACT_KEY = "IngestContract";
-    private static final String CONTRACT_CHECK_KEY = "ingestContractCheck";
 
 
 
@@ -207,6 +199,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         this.functionalBackupService = functionalBackupService;
         this.logbookClient = logbookClient;
         this.managementContractService = managementContractService;
+    }
+
+    private static VitamError<IngestContractModel> getVitamError(String vitamCode, String error) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO, IngestContractModel.class);
     }
 
     @Override
@@ -409,243 +405,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT)) {
             return result.getRequestResponseOK(queryDsl, IngestContract.class, IngestContractModel.class);
         }
-    }
-
-    /**
-     * Contract validator
-     */
-    protected final static class IngestContractValidationService {
-
-        private final Map<IngestContractValidator, String> validators;
-
-        private final MetaDataClient metaDataClient;
-
-        private final ContractService<ManagementContractModel> managementContractService;
-
-
-        public IngestContractValidationService(MetaDataClient metaDataClient,
-            ContractService<ManagementContractModel> managementContractService) {
-            this.metaDataClient = metaDataClient;
-            this.managementContractService = managementContractService;
-            // Init validator
-            validators = new HashMap<>() {{
-                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
-                put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
-                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
-                put(createCheckProfilesExistsInDatabaseValidator(), PROFILE_NOT_FOUND_IN_DATABASE);
-                put(createCheckFormatFileExistsInDatabaseValidator(), FORMAT_NOT_FOUND);
-            }};
-        }
-
-        private boolean validateContract(IngestContractModel contract, String jsonFormat,
-            VitamError<IngestContractModel> error) {
-
-            for (final IngestContractValidator validator : validators.keySet()) {
-                final Optional<GenericRejectionCause> result =
-                    validator.validate(contract, jsonFormat);
-                if (result.isPresent()) {
-                    // there is a validation error on this contract
-                    /* contract is valid, add it to the list to persist */
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
-                        .get().getReason()).setMessage(validators.get(validator)));
-                    // once a validation error is detected on a contract, jump to next contract
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Validate that contract have not a missing mandatory parameter
-         *
-         * @return IngestContractValidator
-         */
-        private IngestContractValidator createMandatoryParamsValidator() {
-            return (contract, jsonFormat) -> {
-                GenericRejectionCause rejection = null;
-                if (contract.getName() == null || contract.getName().trim().isEmpty()) {
-                    rejection =
-                        GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
-                }
-
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
-            };
-        }
-
-        /**
-         * Set a default value if null
-         *
-         * @return IngestContractValidator
-         */
-        private IngestContractValidator createWrongFieldFormatValidator() {
-            return (contract, inputList) -> {
-                GenericRejectionCause rejection = null;
-                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
-                if (contract.getStatus() == null) {
-                    contract.setStatus(ActivationStatus.INACTIVE);
-                }
-                if (contract.getCheckParentLink() == null) {
-                    contract.setCheckParentLink(IngestContractCheckState.AUTHORIZED);
-                }
-
-                try {
-                    if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
-                        contract.setCreationdate(now);
-                    } else {
-                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
-                    }
-
-                } catch (final Exception e) {
-                    LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = GenericRejectionCause.rejectMandatoryMissing("Creationdate");
-                }
-                try {
-                    if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
-                        contract.setActivationdate(now);
-                    } else {
-                        contract
-                            .setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
-                    }
-                } catch (final Exception e) {
-                    LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
-                }
-                try {
-                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
-                        contract.setDeactivationdate(null);
-                    } else {
-
-                        contract.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(contract
-                            .getDeactivationdate()));
-                    }
-                } catch (final Exception e) {
-                    LOGGER.error("Error ingest contract parse dates", e);
-                    rejection =
-                        GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
-                }
-
-                contract.setLastupdate(now);
-
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
-            };
-        }
-
-
-        /**
-         * Check if the contract the same name already exists in database
-         *
-         * @return IngestContractValidator
-         */
-        private IngestContractValidator createCheckDuplicateInDatabaseValidator() {
-            return (contract, contractName) -> {
-                if (ParametersChecker.isNotEmpty(contract.getIdentifier())) {
-                    final int tenant = ParameterHelper.getTenantParameter();
-                    final Bson clause =
-                        and(eq(VitamDocument.TENANT_ID, tenant),
-                            eq(IngestContract.IDENTIFIER, contract.getIdentifier()));
-                    final boolean exist =
-                        FunctionalAdminCollections.INGEST_CONTRACT.getCollection().countDocuments(clause) > 0;
-                    if (exist) {
-                        return Optional
-                            .of(GenericRejectionCause.rejectDuplicatedInDatabase(contract.getIdentifier()));
-                    }
-                }
-                return Optional.empty();
-            };
-        }
-
-
-        /**
-         * Check if the Id of the contract is empty
-         *
-         * @return
-         */
-        private IngestContractValidator checkEmptyIdentifierSlaveModeValidator() {
-            return (contract, contractIdentifier) -> {
-                if (contractIdentifier == null || contractIdentifier.isEmpty()) {
-                    return Optional
-                        .of(GenericRejectionCause
-                            .rejectMandatoryMissing(IngestContract.IDENTIFIER));
-                }
-                return Optional.empty();
-            };
-        }
-
-        /**
-         * Check if the profiles exist in database
-         *
-         * @return IngestContractValidator
-         */
-        private IngestContractValidator createCheckProfilesExistsInDatabaseValidator() {
-            return (contract, contractName) -> {
-                if (null == contract.getArchiveProfiles() || contract.getArchiveProfiles().size() == 0) {
-                    return Optional.empty();
-                }
-                GenericRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
-                final Bson clause =
-                    and(eq(VitamDocument.TENANT_ID, tenant), in(Profile.IDENTIFIER, contract.getArchiveProfiles()));
-                final long count = FunctionalAdminCollections.PROFILE.getCollection().countDocuments(clause);
-                if (count != contract.getArchiveProfiles().size()) {
-                    rejection =
-                        GenericRejectionCause
-                            .rejectArchiveProfileNotFoundInDatabase(contractName);
-                }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
-            };
-        }
-
-        /**
-         * Check if the fileFormat submitted exist in database
-         *
-         * @return IngestContractValidator
-         */
-        private IngestContractValidator createCheckFormatFileExistsInDatabaseValidator() {
-            return (contract, contractName) -> {
-                if (null == contract.getFormatType() || contract.getFormatType().size() == 0) {
-                    return Optional.empty();
-                }
-                GenericRejectionCause rejection = null;
-
-                final Bson clause =
-                    in(FileFormat.PUID, contract.getFormatType());
-
-                final long count = FunctionalAdminCollections.FORMATS.getCollection().countDocuments(clause);
-
-                if (count != contract.getFormatType().size()) {
-                    rejection =
-                        GenericRejectionCause
-                            .rejectFormatFileTypeNotFoundInDatabase(contractName);
-                }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
-            };
-        }
-
-        private boolean checkIfUnitExist(String unitId)
-            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
-            InvalidParseOperationException {
-            final Select select = new Select();
-            JsonNode jsonNode = metaDataClient.selectUnitbyId(select.getFinalSelect(), unitId);
-            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
-                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
-        }
-
-        private boolean checkIfManagementContractExists(String managementContractId)
-            throws ReferentialException, InvalidParseOperationException {
-            ManagementContractModel mc = managementContractService.findByIdentifier(managementContractId);
-            return mc != null;
-        }
-
-        private boolean checkIfAllUnitExist(Set<String> unitIds)
-            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
-            InvalidParseOperationException, InvalidCreateOperationException {
-            final Select select = new Select();
-            select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
-            JsonNode jsonNode = metaDataClient.selectUnits(select.getFinalSelect());
-            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
-                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
-        }
-
     }
 
     @Override
@@ -915,7 +674,241 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
     }
 
-    private static VitamError<IngestContractModel> getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO, IngestContractModel.class);
+
+    /**
+     * Contract validator
+     */
+    protected final static class IngestContractValidationService {
+
+        private final Map<IngestContractValidator, String> validators;
+
+        private final MetaDataClient metaDataClient;
+
+        private final ContractService<ManagementContractModel> managementContractService;
+
+
+        public IngestContractValidationService(MetaDataClient metaDataClient,
+            ContractService<ManagementContractModel> managementContractService) {
+            this.metaDataClient = metaDataClient;
+            this.managementContractService = managementContractService;
+            // Init validator
+            validators = new HashMap<>() {{
+                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+                put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
+                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(createCheckProfilesExistsInDatabaseValidator(), PROFILE_NOT_FOUND_IN_DATABASE);
+                put(createCheckFormatFileExistsInDatabaseValidator(), FORMAT_NOT_FOUND);
+            }};
+        }
+
+        private boolean validateContract(IngestContractModel contract, String jsonFormat,
+            VitamError<IngestContractModel> error) {
+
+            for (final IngestContractValidator validator : validators.keySet()) {
+                final Optional<GenericRejectionCause> result =
+                    validator.validate(contract, jsonFormat);
+                if (result.isPresent()) {
+                    // there is a validation error on this contract
+                    /* contract is valid, add it to the list to persist */
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
+                        .get().getReason()).setMessage(validators.get(validator)));
+                    // once a validation error is detected on a contract, jump to next contract
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Validate that contract have not a missing mandatory parameter
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createMandatoryParamsValidator() {
+            return (contract, jsonFormat) -> {
+                GenericRejectionCause rejection = null;
+                if (contract.getName() == null || contract.getName().trim().isEmpty()) {
+                    rejection =
+                        GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
+                }
+
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+        /**
+         * Set a default value if null
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createWrongFieldFormatValidator() {
+            return (contract, inputList) -> {
+                GenericRejectionCause rejection = null;
+                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+                if (contract.getStatus() == null) {
+                    contract.setStatus(ActivationStatus.INACTIVE);
+                }
+                if (contract.getCheckParentLink() == null) {
+                    contract.setCheckParentLink(IngestContractCheckState.AUTHORIZED);
+                }
+
+                try {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
+                        contract.setCreationdate(now);
+                    } else {
+                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
+                    }
+
+                } catch (final Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("Creationdate");
+                }
+                try {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
+                        contract.setActivationdate(now);
+                    } else {
+                        contract
+                            .setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
+                    }
+                } catch (final Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
+                }
+                try {
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
+                        contract.setDeactivationdate(null);
+                    } else {
+
+                        contract.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(contract
+                            .getDeactivationdate()));
+                    }
+                } catch (final Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection =
+                        GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
+                }
+
+                contract.setLastupdate(now);
+
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+
+        /**
+         * Check if the contract the same name already exists in database
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createCheckDuplicateInDatabaseValidator() {
+            return (contract, contractName) -> {
+                if (ParametersChecker.isNotEmpty(contract.getIdentifier())) {
+                    final int tenant = ParameterHelper.getTenantParameter();
+                    final Bson clause =
+                        and(eq(VitamDocument.TENANT_ID, tenant),
+                            eq(IngestContract.IDENTIFIER, contract.getIdentifier()));
+                    final boolean exist =
+                        FunctionalAdminCollections.INGEST_CONTRACT.getCollection().countDocuments(clause) > 0;
+                    if (exist) {
+                        return Optional
+                            .of(GenericRejectionCause.rejectDuplicatedInDatabase(contract.getIdentifier()));
+                    }
+                }
+                return Optional.empty();
+            };
+        }
+
+
+        /**
+         * Check if the Id of the contract is empty
+         *
+         * @return
+         */
+        private IngestContractValidator checkEmptyIdentifierSlaveModeValidator() {
+            return (contract, contractIdentifier) -> {
+                if (contractIdentifier == null || contractIdentifier.isEmpty()) {
+                    return Optional
+                        .of(GenericRejectionCause
+                            .rejectMandatoryMissing(IngestContract.IDENTIFIER));
+                }
+                return Optional.empty();
+            };
+        }
+
+        /**
+         * Check if the profiles exist in database
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createCheckProfilesExistsInDatabaseValidator() {
+            return (contract, contractName) -> {
+                if (null == contract.getArchiveProfiles() || contract.getArchiveProfiles().size() == 0) {
+                    return Optional.empty();
+                }
+                GenericRejectionCause rejection = null;
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
+                    and(eq(VitamDocument.TENANT_ID, tenant), in(Profile.IDENTIFIER, contract.getArchiveProfiles()));
+                final long count = FunctionalAdminCollections.PROFILE.getCollection().countDocuments(clause);
+                if (count != contract.getArchiveProfiles().size()) {
+                    rejection =
+                        GenericRejectionCause
+                            .rejectArchiveProfileNotFoundInDatabase(contractName);
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+        /**
+         * Check if the fileFormat submitted exist in database
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createCheckFormatFileExistsInDatabaseValidator() {
+            return (contract, contractName) -> {
+                if (null == contract.getFormatType() || contract.getFormatType().size() == 0) {
+                    return Optional.empty();
+                }
+                GenericRejectionCause rejection = null;
+
+                final Bson clause =
+                    in(FileFormat.PUID, contract.getFormatType());
+
+                final long count = FunctionalAdminCollections.FORMATS.getCollection().countDocuments(clause);
+
+                if (count != contract.getFormatType().size()) {
+                    rejection =
+                        GenericRejectionCause
+                            .rejectFormatFileTypeNotFoundInDatabase(contractName);
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+        private boolean checkIfUnitExist(String unitId)
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException {
+            final Select select = new Select();
+            JsonNode jsonNode = metaDataClient.selectUnitbyId(select.getFinalSelect(), unitId);
+            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
+                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
+        }
+
+        private boolean checkIfManagementContractExists(String managementContractId)
+            throws ReferentialException, InvalidParseOperationException {
+            ManagementContractModel mc = managementContractService.findByIdentifier(managementContractId);
+            return mc != null;
+        }
+
+        private boolean checkIfAllUnitExist(Set<String> unitIds)
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException, InvalidCreateOperationException {
+            final Select select = new Select();
+            select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
+            JsonNode jsonNode = metaDataClient.selectUnits(select.getFinalSelect());
+            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
+                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
+        }
+
     }
 }

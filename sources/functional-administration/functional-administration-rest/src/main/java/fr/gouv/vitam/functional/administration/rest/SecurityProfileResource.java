@@ -39,11 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -75,21 +71,13 @@ public class SecurityProfileResource {
     private static final String SECURITY_PROFILE_JSON_IS_MANDATORY_PARAMETER =
         "The json input of security profiles is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final VitamCounterService vitamCounterService;
-    private final FunctionalBackupService functionalBackupService;
-    private final AdminManagementClient adminManagementClient;
+    private final SecurityProfileService securityProfileService;
 
     /**
-     * @param mongoAccess
-     * @param functionalBackupService
+     * @param securityProfileService
      */
-    public SecurityProfileResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.functionalBackupService = functionalBackupService;
-        this.adminManagementClient = adminManagementClient;
+    public SecurityProfileResource(SecurityProfileService securityProfileService) {
+        this.securityProfileService = securityProfileService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -116,12 +104,13 @@ public class SecurityProfileResource {
     public Response importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(SECURITY_PROFILE_JSON_IS_MANDATORY_PARAMETER, securityProfileModelList);
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService, adminManagementClient)) {
-            RequestResponse requestResponse = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        try {
+            RequestResponse<SecurityProfileModel> requestResponse =
+                securityProfileService.createSecurityProfiles(securityProfileModelList);
 
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
 
@@ -151,8 +140,7 @@ public class SecurityProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findSecurityProfiles(JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService, adminManagementClient)) {
+        try {
 
             RequestResponseOK<SecurityProfileModel> securityProfileModelList =
                 securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
@@ -180,8 +168,7 @@ public class SecurityProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findSecurityProfileByIdentifier(@PathParam("id") String identifier) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService, adminManagementClient)) {
+        try {
 
             final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
             parser.parse(new Select().getFinalSelect());
@@ -208,15 +195,17 @@ public class SecurityProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSecurityProfile(@PathParam("id") String identifier, JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService, adminManagementClient)) {
+        try {
 
-            RequestResponse requestResponse = securityProfileService.updateSecurityProfile(identifier, queryDsl);
+            RequestResponse<SecurityProfileModel> requestResponse =
+                securityProfileService.updateSecurityProfile(identifier, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
-                ((VitamError) requestResponse).setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
+                ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
+                    Response.Status.NOT_FOUND.getStatusCode());
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             } else if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
 
@@ -241,10 +230,10 @@ public class SecurityProfileResource {
      */
     Response deleteSecurityProfile(String securityProfileId) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService, adminManagementClient)) {
+        try {
 
-            RequestResponse requestResponse = securityProfileService.deleteSecurityProfile(securityProfileId);
+            RequestResponse<SecurityProfileModel> requestResponse =
+                securityProfileService.deleteSecurityProfile(securityProfileId);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             }
@@ -276,12 +265,12 @@ public class SecurityProfileResource {
      * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
-    private VitamError getErrorEntity(Response.Status status, String message, String code) {
+    private VitamError<SecurityProfileModel> getErrorEntity(Response.Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
+        return new VitamError<SecurityProfileModel>(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
             .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

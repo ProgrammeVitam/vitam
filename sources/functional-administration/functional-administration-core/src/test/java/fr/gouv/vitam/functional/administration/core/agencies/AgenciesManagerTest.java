@@ -40,7 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static fr.gouv.vitam.functional.administration.core.agencies.AgenciesService.AGENCIES_IMPORT_EVENT;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
@@ -82,13 +81,13 @@ public class AgenciesManagerTest {
         LogbookAgenciesImportManager manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         // When
-        manager.logStarted(GUIDFactory.newOperationLogbookGUID(TENANT_ID), AGENCIES_IMPORT_EVENT);
+        manager.logStarted(GUIDFactory.newOperationLogbookGUID(TENANT_ID), AgenciesService.AGENCIES_IMPORT_EVENT);
 
         // Then
         verify(logbookOperationsClient).create(captor.capture());
         LogbookOperationParameters log = captor.getValue();
 
-        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("STARTED");
 
@@ -111,7 +110,7 @@ public class AgenciesManagerTest {
         verify(logbookOperationsClient, times(1)).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
 
-        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("OK");
 
@@ -123,7 +122,7 @@ public class AgenciesManagerTest {
 
         log = captor.getValue();
 
-        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("WARNING");
         assertThat(log.getParameterValue(eventDetailData)).isEqualTo("{\"FileName\":\"test.json\"}");
@@ -147,7 +146,7 @@ public class AgenciesManagerTest {
         verify(logbookOperationsClient).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
         //Then
-        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
     }
@@ -168,9 +167,10 @@ public class AgenciesManagerTest {
         verify(logbookOperationsClient).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
         //Then
-        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
-        assertThat(log.getParameterValue(outcomeDetail)).isEqualTo(AGENCIES_IMPORT_EVENT + ".DELETION.KO");
+        assertThat(log.getParameterValue(outcomeDetail)).isEqualTo(
+            AgenciesService.AGENCIES_IMPORT_EVENT + ".DELETION.KO");
     }
 }

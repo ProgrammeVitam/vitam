@@ -33,15 +33,17 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.context.ContextService;
+import fr.gouv.vitam.functional.administration.core.context.ContextServiceImpl;
+import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
+import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -62,7 +64,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
  */
 public class AdminFunctionalApplication extends Application {
 
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     /**
      * Construcror
@@ -109,22 +111,30 @@ public class AdminFunctionalApplication extends Application {
 
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
-            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+            SecurityProfileService securityProfileService = new SecurityProfileService(mongoDbAccess,
+                vitamCounterService,
+                functionalBackupService);
 
-            ContextResource contextResource = new ContextResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService, adminManagementClient);
+            ContextService contextService = new ContextServiceImpl(mongoDbAccess, vitamCounterService);
+
+            securityProfileService.setContextService(contextService);
+            contextService.setSecurityProfileService(securityProfileService);
+
+            ContextResource contextResource = new ContextResource(contextService);
+
+            final OntologyServiceImpl ontologyService = new OntologyServiceImpl(mongoDbAccess, functionalBackupService);
+
 
             AdminContextResource adminContextResource = new AdminContextResource(contextResource);
             singletons.add(adminContextResource);
 
-            OntologyResource ontologyResource = new OntologyResource(mongoDbAccess, functionalBackupService);
+
+            OntologyResource ontologyResource = new OntologyResource(ontologyService);
             AdminOntologyResource adminOntologyResource =
-                new AdminOntologyResource(ontologyResource, mongoDbAccess, functionalBackupService);
+                new AdminOntologyResource(ontologyResource, ontologyService);
             singletons.add(adminOntologyResource);
 
-            SecurityProfileResource securityProfileResource =
-                new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                    adminManagementClient);
+            SecurityProfileResource securityProfileResource = new SecurityProfileResource(securityProfileService);
             AdminSecurityProfileResource adminSecurityProfileResource =
                 new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);

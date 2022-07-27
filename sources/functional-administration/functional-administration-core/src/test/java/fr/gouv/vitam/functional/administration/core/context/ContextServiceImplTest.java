@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -69,9 +68,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.core.context.ContextService;
-import fr.gouv.vitam.functional.administration.core.context.ContextServiceImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.contract.ContractService;
 import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.After;
@@ -112,34 +110,26 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class ContextServiceImplTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
+    static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
-
-    static final String PREFIX = GUIDFactory.newGUID().getId();
-
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Context.class));
-
-    private static VitamCounterService vitamCounterService;
-    private static MongoDbAccessAdminImpl dbImpl;
-    private static FunctionalBackupService functionalBackupService;
-
     static ContextService contextService;
-
     static SecurityProfileService securityProfileService;
     static ContractService<IngestContractModel> ingestContractService;
     static ContractService<AccessContractModel> accessContractService;
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
+    private static FunctionalBackupService functionalBackupService;
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

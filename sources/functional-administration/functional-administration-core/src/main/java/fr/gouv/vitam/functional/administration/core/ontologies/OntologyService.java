@@ -24,14 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.ontologies.api;
+package fr.gouv.vitam.functional.administration.core.ontologies;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -41,7 +40,7 @@ import java.util.List;
 /**
  * This service manages CRUD on Ontologies
  */
-public interface OntologyService extends VitamAutoCloseable {
+public interface OntologyService {
 
 
     /**
