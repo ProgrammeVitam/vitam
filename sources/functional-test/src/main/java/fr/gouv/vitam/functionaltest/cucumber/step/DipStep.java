@@ -335,7 +335,7 @@ public class DipStep extends CommonStep {
     private String transform(Source manifest) throws FileNotFoundException, TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer(
-            new StreamSource(PropertiesUtils.getResourceFile("transform.xsl")));
+            new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl")));
 
         StringWriter writer = new StringWriter();
         StreamResult streamResult = new StreamResult(writer);
