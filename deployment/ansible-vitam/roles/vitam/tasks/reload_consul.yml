@@ -15,6 +15,7 @@
       host: "{{ vitam_struct.host }}"
       port: "{{ vitam_struct.port_service }}"
       state: started
+      timeout: "{{ vitam_defaults.services.start_timeout }}"
   when: ( vitam_struct.vitam_component != vitam.storageofferdefault.vitam_component ) and
         ( ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components ) )
@@ -27,6 +28,7 @@
       host: "{{ offer_conf }}.service.{{ consul_domain }}"
       port: "{{ vitam_struct.port_service }}"
       state: started
+      timeout: "{{ vitam_defaults.services.start_timeout }}"
   when: ( vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component ) and
         ( ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components ) )
