@@ -45,7 +45,7 @@ appender.rolling.strategy.action.type = Delete
 appender.rolling.strategy.action.basepath = ${sys:es.logs.base_path}
 appender.rolling.strategy.action.condition.type = IfFileName
 appender.rolling.strategy.action.condition.glob = ${sys:es.logs.cluster_name}-*
-appender.rolling.strategy.action.condition.nested_condition.type = IfAccumulatedFileSize
+appender.rolling.strategy.action.condition.nested_condition.type = {{ composant.log_appenders.rolling.condition_type | default('IfAccumulatedFileSize') }}
 appender.rolling.strategy.action.condition.nested_condition.exceeds = {{ composant.log_appenders.rolling.max_total_log_size }}
 
 rootLogger.level = {{ composant.log_appenders.root.log_level }}

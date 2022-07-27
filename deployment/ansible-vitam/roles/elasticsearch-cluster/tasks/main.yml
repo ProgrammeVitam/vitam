@@ -224,7 +224,7 @@
 
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
-- name: add {{ composant.cluster_name }}.conf in tempfile.d
+- name: add {{ composant.cluster_name }}.conf in tmpfiles.d
   template:
     src: "tempfile.d-elasticsearch.conf.j2"
     dest: "/usr/lib/tmpfiles.d/{{ composant.cluster_name }}.conf"

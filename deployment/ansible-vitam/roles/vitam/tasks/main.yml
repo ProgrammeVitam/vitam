@@ -361,5 +361,6 @@
     host: "{{ ip_service }}"
     port: "{{ vitam_struct.port_service }}"
     state: started
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )

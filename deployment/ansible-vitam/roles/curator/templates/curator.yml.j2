@@ -16,6 +16,7 @@ client:
   master_only: False
 
 logging:
-  loglevel: INFO
+  logfile: {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/curator/curator.log
+  loglevel: {{ curator.log_level | default('INFO') | upper }}
   logformat: default
   blacklist: ['elasticsearch', 'urllib3']
