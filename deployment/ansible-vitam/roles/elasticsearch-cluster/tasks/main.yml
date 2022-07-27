@@ -3,24 +3,6 @@
 - name: Populate service facts
   service_facts:
 
-- name: Set command for CentOS
-  set_fact:
-    check_es_version: "rpm -q vitam-{{ composant.cluster_name }}"
-  when: ansible_os_family == "RedHat"
-
-- name: Set command for Debian
-  set_fact:
-    check_es_version: "dpkg-query -l  'vitam-{{ composant.cluster_name }}'"
-  when: ansible_os_family == "Debian"
-
-- name: checking whether elasticsearch package is already installed
-  shell : "{{ check_es_version }}"
-  register: is_installed
-  ignore_errors: true
-
-- import_tasks: pre_migration.yml
-  when: is_installed.stdout.find('5.6.') != -1
-
 - name: Set default directory for RedHat family
   set_fact:
     sysconfig_dir: "sysconfig"
@@ -275,6 +257,3 @@
     name: "vitam-{{ composant.cluster_name }}"
     state: started
     enabled: "{{ composant.at_boot | default(service_at_boot) }}"
-
-- import_tasks: post_migration.yml
-  when: is_installed.stdout.find('5.6.') != -1
