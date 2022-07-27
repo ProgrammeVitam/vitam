@@ -37,9 +37,9 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -116,7 +116,7 @@ public class ReferentialAuditServiceTest {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
         ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(functionalBackupService.FIELD_COLLECTION),
+            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
                 new TypeReference<>() {
                 });
 
@@ -155,7 +155,7 @@ public class ReferentialAuditServiceTest {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
         ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(functionalBackupService.FIELD_COLLECTION),
+            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
                 new TypeReference<>() {
                 });
 
@@ -173,7 +173,7 @@ public class ReferentialAuditServiceTest {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
         ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(functionalBackupService.FIELD_COLLECTION),
+            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
                 new TypeReference<>() {
                 });
 
@@ -258,7 +258,7 @@ public class ReferentialAuditServiceTest {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
         ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(functionalBackupService.FIELD_COLLECTION),
+            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
                 new TypeReference<>() {
                 });
 

@@ -68,7 +68,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -76,7 +75,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -118,18 +117,14 @@ import static org.mockito.Mockito.when;
 
 public class IngestContractImplTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
     private static final String DATABASE_HOST = "localhost";
     private static final String DATABASE_NAME = "vitam-test";
     private static final String FORMAT_FILE = "file-format-light.json";
-
-    public static final String PREFIX = GUIDFactory.newGUID().getId();
-
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(AccessContract.class, Agencies.class));
@@ -146,9 +141,9 @@ public class IngestContractImplTest {
 
     static ContractService<IngestContractModel> ingestContractService;
     private static MongoDbAccessAdminImpl dbImpl;
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

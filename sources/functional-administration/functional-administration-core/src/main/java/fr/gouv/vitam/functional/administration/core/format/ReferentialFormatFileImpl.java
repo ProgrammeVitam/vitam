@@ -33,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -61,12 +60,12 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.format.model.FileFormatImportEventDetails;
 import fr.gouv.vitam.functional.administration.core.format.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.core.format.model.FormatImportReport;
@@ -109,12 +108,12 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMA
  */
 public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, VitamAutoCloseable {
 
+    public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private static final String BACKUP_FORMAT_EVENT = "STP_BACKUP_REFERENTIAL_FORMAT";
-    private final MongoDbAccessAdminImpl mongoAccess;
-    public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
+    private final MongoDbAccessAdminImpl mongoAccess;
     private final FunctionalBackupService backupService;
     private final LogbookOperationsClient logbookOperationsClient;
 
@@ -207,7 +206,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             delete.setQuery(in(PUID, report.getRemovedPuids().toArray(new String[0])));
 
             mongoAccess.deleteDocument(delete.getFinalDelete(), FORMATS);
-        } catch (InvalidCreateOperationException | BadRequestException | ReferentialException | SchemaValidationException e) {
+        } catch (InvalidCreateOperationException | BadRequestException | ReferentialException |
+                 SchemaValidationException e) {
             throw new ReferentialException("Could not delete removed formats", e);
         }
     }
@@ -226,7 +226,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
             mongoAccess.insertDocuments((ArrayNode) JsonHandler.toJsonNode(fileFormatsToAdd), FORMATS).close();
 
-        } catch (ReferentialException | DocumentAlreadyExistsException | SchemaValidationException | InvalidParseOperationException e) {
+        } catch (ReferentialException | DocumentAlreadyExistsException | SchemaValidationException |
+                 InvalidParseOperationException e) {
             throw new ReferentialException("Could not insert added formats", e);
         }
     }
@@ -414,7 +415,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         try {
             logbookOperationsClient.update(logbookParametersEnd);
         } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-            LogbookClientServerException e) {
+                 LogbookClientServerException e) {
             LOGGER.error(e);
             throw new ReferentialException(e);
         }
@@ -458,7 +459,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             logbookOperationsClient.create(logbookParametersStart);
 
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | InvalidGuidOperationException e) {
+                 LogbookClientServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             throw new ReferentialException(e);
         }

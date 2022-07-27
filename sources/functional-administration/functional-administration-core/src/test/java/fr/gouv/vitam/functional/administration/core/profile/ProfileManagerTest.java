@@ -45,13 +45,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProfileManagerTest {
+    private static final Integer TENANT_ID = 1;
+    static ProfileManager profileManager = new ProfileManager(null, null);
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    private static final Integer TENANT_ID = 1;
-    static ProfileManager profileManager = new ProfileManager(null, null);
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

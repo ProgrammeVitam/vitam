@@ -63,12 +63,22 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-backup-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>processing-management-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>batch-report-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>logbook-operations-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

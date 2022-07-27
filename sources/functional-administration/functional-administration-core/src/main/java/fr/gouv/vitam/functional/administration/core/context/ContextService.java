@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.core.context;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -34,6 +35,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 
 import java.util.List;
 
@@ -90,4 +92,10 @@ public interface ContextService extends VitamAutoCloseable {
      * @throws VitamException thrown if operation could not be done
      */
     RequestResponse<ContextModel> deleteContext(String contextId, boolean forceDelete) throws VitamException;
+
+    boolean securityProfileIsUsedInContexts(String securityProfileId)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException;
+
+    void setSecurityProfileService(
+        SecurityProfileService securityProfileService);
 }

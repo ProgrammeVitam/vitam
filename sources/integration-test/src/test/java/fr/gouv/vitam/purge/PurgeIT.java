@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -49,7 +50,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.functional.administration.core.backup.BackupService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -106,13 +107,10 @@ public class PurgeIT extends VitamRuleRunner {
     private StorageClient storageClient;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private MetaDataClient metaDataClient;
-    private PurgeDeleteService purgeDeleteService = new PurgeDeleteService();
-    private BackupService backupService = new BackupService();
-
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(PurgeIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 LogbookMain.class,
@@ -120,6 +118,8 @@ public class PurgeIT extends VitamRuleRunner {
                 StorageMain.class,
                 DefaultOfferMain.class
             ));
+    private final PurgeDeleteService purgeDeleteService = new PurgeDeleteService();
+    private final BackupService backupService = new BackupService();
 
     @BeforeClass
     public static void beforeClass() throws Exception {

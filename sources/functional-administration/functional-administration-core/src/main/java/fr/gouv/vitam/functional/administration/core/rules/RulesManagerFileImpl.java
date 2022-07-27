@@ -85,10 +85,8 @@ import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FileRulesCSV;
 import fr.gouv.vitam.functional.administration.common.FileRulesErrorCode;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
@@ -99,8 +97,10 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegal
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.core.reconstruction.RestoreBackupServiceImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -230,6 +230,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         this.logbookRuleImportManager = new LogbookRuleImportManager(logbookOperationsClientFactory);
         this.ruleAuditThreadPoolSize = ruleAuditThreadPoolSize;
         this.restoreBackupService = restoreBackupService;
+    }
+
+    private static FileRulesModel convertFileRulesToFilesRulesModel(FileRules fileRule) {
+        return new FileRulesModel(fileRule.getRuleid(),
+            fileRule.getRuletype(),
+            fileRule.getRulevalue(),
+            fileRule.getRuledescription(),
+            fileRule.getRuleduration(),
+            fileRule.getRulemeasurement());
     }
 
     @Override
@@ -399,8 +408,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
     }
 
-
-
     private void generateReportWhenFileRulesIllegalDurationModeUpdateException(GUID eip,
         List<FileRulesModel> usedRulesWithDurationModeUpdate, String filename)
         throws ReferentialException, InvalidParseOperationException, LogbookClientException {
@@ -475,7 +482,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 }
 
             } catch (ContentAddressableStorageServerException | InternalServerException |
-                VitamClientException | BadRequestException | OperationContextException e) {
+                     VitamClientException | BadRequestException | OperationContextException e) {
                 LOGGER.error(e);
                 logbookRuleImportManager.updateUnitRuleUpdateWorkflowLogbook(updateOperationGUID, reqId);
             }
@@ -505,8 +512,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             }
             this.logbookRuleImportManager.updateCommitFileRulesLogbookOperationOkOrKo(StatusCode.OK, eipMaster,
                 fileRulesModelToDelete.size(), fileRulesModelToUpdate.size(), fileRulesModelToInsert.size());
-        } catch (ReferentialException | DocumentAlreadyExistsException | InvalidCreateOperationException | InvalidParseOperationException |
-            SchemaValidationException | BadRequestException e) {
+        } catch (ReferentialException | DocumentAlreadyExistsException | InvalidCreateOperationException |
+                 InvalidParseOperationException |
+                 SchemaValidationException | BadRequestException e) {
             LOGGER.error(e);
             this.logbookRuleImportManager.updateCommitFileRulesLogbookOperationOkOrKo(StatusCode.KO, eipMaster,
                 fileRulesModelToDelete.size(), fileRulesModelToUpdate.size(), fileRulesModelToInsert.size());
@@ -578,15 +586,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             return response.getResults();
         }
         return fileRules;
-    }
-
-    private static FileRulesModel convertFileRulesToFilesRulesModel(FileRules fileRule) {
-        return new FileRulesModel(fileRule.getRuleid(),
-            fileRule.getRuletype(),
-            fileRule.getRulevalue(),
-            fileRule.getRuledescription(),
-            fileRule.getRuleduration(),
-            fileRule.getRulemeasurement());
     }
 
     public Map<String, FileRulesModel> getRulesFromCSV(InputStream ruleInputStream)
@@ -680,7 +679,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             List<JsonNode> unitsUsedByRule =
                 checkRuleReferencedByUnitInDatabase(fileRulesLinkedToUnitQueryBuilder(rule));
             return !CollectionUtils.isEmpty(unitsUsedByRule);
-        } catch (MetaDataDocumentSizeException | MetaDataExecutionException | InvalidParseOperationException | MetaDataClientServerException e) {
+        } catch (MetaDataDocumentSizeException | MetaDataExecutionException | InvalidParseOperationException |
+                 MetaDataClientServerException e) {
             throw new RuntimeException("Could not check rule references", e);
         }
     }

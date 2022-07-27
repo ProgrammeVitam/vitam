@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.core.agencies;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -58,7 +57,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.functional.administration.core.agencies.AgenciesService.AGENCIES_IMPORT_EVENT;
 
 /**
  * Agency validator and logBook manager
@@ -101,9 +99,10 @@ class LogbookAgenciesImportManager {
 
 
         logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eipId, AgenciesService.AGENCIES_IMPORT_EVENT, eip,
+                LogbookTypeProcess.MASTERDATA,
                 statusCode,
-                VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, statusCode), eip);
+                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, statusCode), eip);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
             JsonHandler.unprettyPrint(evDetData));
 
@@ -171,15 +170,17 @@ class LogbookAgenciesImportManager {
 
         // create logbook parameters
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eip, AgenciesService.AGENCIES_IMPORT_EVENT, eip,
+                LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
+                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
         // set outcomeDetail
         if (subEvenType != null) {
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
+                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
+                VitamLogbookMessages.getOutcomeDetail(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType,
+                    StatusCode.KO));
         }
         // set evDetData
         logbookMessageError(errorsDetails, logbookParameters);
@@ -215,8 +216,9 @@ class LogbookAgenciesImportManager {
             final Select select = new Select();
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
-            select.setQuery(and().add(eq(LogbookMongoDbName.eventType.getDbname(), AGENCIES_IMPORT_EVENT))
-                .add(ne(LogbookMongoDbName.eventIdentifier.getDbname(), eip.getId())));
+            select.setQuery(
+                and().add(eq(LogbookMongoDbName.eventType.getDbname(), AgenciesService.AGENCIES_IMPORT_EVENT))
+                    .add(ne(LogbookMongoDbName.eventIdentifier.getDbname(), eip.getId())));
             // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
             // select.addProjection(
             //     JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
@@ -233,7 +235,7 @@ class LogbookAgenciesImportManager {
                 if (result.get(LogbookDocument.EVENTS) != null && result.get(LogbookDocument.EVENTS).size() > 0) {
                     JsonNode lastEvent =
                         result.get(LogbookDocument.EVENTS).get(result.get(LogbookDocument.EVENTS).size() - 1);
-                    return !AGENCIES_IMPORT_EVENT.equals(
+                    return !AgenciesService.AGENCIES_IMPORT_EVENT.equals(
                         lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
                 } else {
                     return true;

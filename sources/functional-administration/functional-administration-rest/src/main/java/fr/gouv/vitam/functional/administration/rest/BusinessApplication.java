@@ -34,10 +34,8 @@ import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
@@ -45,8 +43,15 @@ import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFuncti
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.agencies.AgenciesService;
+import fr.gouv.vitam.functional.administration.core.archiveunitprofiles.ArchiveUnitProfileServiceImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.context.ContextService;
+import fr.gouv.vitam.functional.administration.core.context.ContextServiceImpl;
 import fr.gouv.vitam.functional.administration.core.griffin.GriffinService;
 import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenarioService;
+import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
+import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -122,19 +127,32 @@ public class BusinessApplication extends Application {
             resource.setVitamCounterService(vitamCounterService);
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
+            final SecurityProfileService securityProfileService = new SecurityProfileService(mongoDbAccess,
+                vitamCounterService,
+                functionalBackupService);
+
+            final ContextService contextService = new ContextServiceImpl(mongoDbAccess, vitamCounterService);
+
+            securityProfileService.setContextService(contextService);
+            contextService.setSecurityProfileService(securityProfileService);
+
+            final AgenciesService agenciesService =
+                new AgenciesService(mongoDbAccess, vitamCounterService, functionalBackupService);
+            final OntologyServiceImpl
+                ontologyService = new OntologyServiceImpl(mongoDbAccess, functionalBackupService);
+            final ArchiveUnitProfileServiceImpl archiveUnitProfileService =
+                new ArchiveUnitProfileServiceImpl(mongoDbAccess, vitamCounterService, functionalBackupService);
+
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
-            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
-
             singletons.add(resource);
-            singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
-            singletons.add(new OntologyResource(mongoDbAccess, functionalBackupService));
+            singletons.add(new ArchiveUnitProfileResource(archiveUnitProfileService));
+            singletons.add(new OntologyResource(ontologyService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                adminManagementClient));
-            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                adminManagementClient));
-            singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new ContextResource(contextService));
+            singletons.add(new SecurityProfileResource(securityProfileService));
+
+            singletons.add(new AgenciesResource(agenciesService));
             singletons.add(new ReindexationResource(indexManager));
             singletons.add(new EvidenceResource(mongoDbAccess, vitamCounterService));
             singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader,

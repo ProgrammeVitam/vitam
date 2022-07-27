@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.model.administration.VersionUsageModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ManagementContract;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
@@ -70,7 +69,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.contract.GenericContractValidator.GenericRejectionCause;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -105,20 +104,16 @@ import static fr.gouv.vitam.functional.administration.common.ManagementContract.
 
 public class ManagementContractImpl implements ContractService<ManagementContractModel> {
 
+    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_MANAGEMENT_CONTRACT";
+    public static final String INVALID_INTERMEDIARY_VERSION_TYPE = "%s is an invalid intermediary version type.";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManagementContractImpl.class);
-
     private static final String MANAGEMENT_CONTRACT_NOT_FOUND = "Management contract not found";
     private static final String CONTRACT_IS_MANDATORY_PARAMETER = "The collection of management contracts is mandatory";
-
     private static final String THE_MANAGEMENT_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The management contract status must be ACTIVE or INACTIVE but not ";
     private static final String DATE_MUST_BE_VALID = "must be a valid date";
-
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_MANAGEMENT_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_MANAGEMENT_CONTRACT";
-    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_MANAGEMENT_CONTRACT";
-
-
     private static final String EMPTY_REQUIRED_FIELD =
         CONTRACTS_IMPORT_EVENT + ContractLogbookService.EMPTY_REQUIRED_FIELD;
     private static final String DUPLICATE_IN_DATABASE =
@@ -129,7 +124,6 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         CONTRACTS_IMPORT_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
     private static final String VERSION_RETENTION_POLICY_VALIDATION_ERROR =
         CONTRACTS_IMPORT_EVENT + ContractLogbookService.VERSION_RETENTION_POLICY_VALIDATION_ERROR;
-
     private static final String UPDATE_CONTRACT_NOT_FOUND =
         CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_CONTRACT_NOT_FOUND;
     private static final String UPDATE_CONTRACT_BAD_REQUEST =
@@ -140,16 +134,10 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         CONTRACT_UPDATE_EVENT + ContractLogbookService.STRATEGY_VALIDATION_ERROR;
     private static final String UPDATE_VERSION_RETENTION_POLICY_VALIDATION_ERROR =
         CONTRACT_UPDATE_EVENT + ContractLogbookService.VERSION_RETENTION_POLICY_VALIDATION_ERROR;
-
-
-
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
-
     private static final String CONTRACT_KEY = "ManagementContract";
     private static final String CONTRACT_CHECK_KEY = "managementContractCheck";
-    public static final String INVALID_INTERMEDIARY_VERSION_TYPE = "%s is an invalid intermediary version type.";
-
     private final MongoDbAccessReferential mongoAccess;
 
     private final VitamCounterService vitamCounterService;
@@ -172,6 +160,11 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         this.functionalBackupService = functionalBackupService;
         this.storageClient = storageClient;
         this.logbookClient = logbookOperationsClient;
+    }
+
+    private static VitamError<ManagementContractModel> getVitamError(String vitamCode, String error) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO,
+            ManagementContractModel.class);
     }
 
     @Override
@@ -594,10 +587,6 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         }
     }
 
-    private static VitamError<ManagementContractModel> getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, CONTRACT_KEY, StatusCode.KO,
-            ManagementContractModel.class);
-    }
 
     /**
      * Contract validator

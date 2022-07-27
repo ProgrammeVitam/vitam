@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
@@ -71,7 +70,7 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.core.archiveunitprofiles.ArchiveUnitProfileValidator.RejectionCause;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -93,33 +92,27 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
  */
 public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitProfileServiceImpl.class);
-
-    private static final String ARCHIVE_UNIT_PROFILE_IMPORT_EVENT = "IMPORT_ARCHIVEUNITPROFILE";
-    private static final String ARCHIVE_UNIT_PROFILE_BACKUP_EVENT = "BACKUP_ARCHIVEUNITPROFILE";
-    private static final String ARCHIVE_UNIT_PROFILES_UPDATE_EVENT = "UPDATE_ARCHIVEUNITPROFILE";
-
-    private static final String UPDATED_DIFFS = "updatedDiffs";
-
-    private static final String ARCHIVE_UNIT_PROFILE_IS_MANDATORY_PARAMETER =
-        "archive unit profiles parameter is mandatory";
-    private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND = "Update a not found archive unit profile";
-
-    private static final String ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE =
-        "The archive unit profile status must be ACTIVE or INACTIVE but not ";
     public static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE =
         "Archive unit profile identifier already exists in database ";
     public static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER_MUST_BE_STRING =
         "Archive unit profile identifier must be a string ";
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitProfileServiceImpl.class);
+    private static final String ARCHIVE_UNIT_PROFILE_IMPORT_EVENT = "IMPORT_ARCHIVEUNITPROFILE";
+    private static final String ARCHIVE_UNIT_PROFILE_BACKUP_EVENT = "BACKUP_ARCHIVEUNITPROFILE";
+    private static final String ARCHIVE_UNIT_PROFILES_UPDATE_EVENT = "UPDATE_ARCHIVEUNITPROFILE";
+    private static final String UPDATED_DIFFS = "updatedDiffs";
+    private static final String ARCHIVE_UNIT_PROFILE_IS_MANDATORY_PARAMETER =
+        "archive unit profiles parameter is mandatory";
+    private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND = "Update a not found archive unit profile";
+    private static final String ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE =
+        "The archive unit profile status must be ACTIVE or INACTIVE but not ";
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final MetaDataClient metaDataClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
-    private static final String UND_TENANT = "_tenant";
-    private static final String UND_ID = "_id";
-
     private boolean checkOntology = true;
 
     /**
@@ -197,7 +190,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // if a profile have and id
                 if (null != aupm.getId()) {
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                        RejectionCause.rejectIdNotAllowedInCreate(aupm.getName()).getReason()));
+                        ArchiveUnitProfileValidator.RejectionCause.rejectIdNotAllowedInCreate(aupm.getName())
+                            .getReason()));
                     continue;
                 }
 
@@ -225,7 +219,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 }
 
                 // Json schema validation of profile ControlSchema property
-                final Optional<RejectionCause> checkSchema =
+                final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                     manager.createJsonSchemaValidator().validate(aupm);
 
 
@@ -246,7 +240,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
 
                 if (slaveMode) {
-                    final Optional<RejectionCause> result =
+                    final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
                         manager.checkEmptyIdentifierSlaveModeValidator().validate(aupm);
 
 
@@ -558,7 +552,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         }
 
         if (ArchiveUnitProfileModel.CONTROLSCHEMA.equals(field)) {
-            final Optional<RejectionCause> checkSchema =
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                 manager.createJsonSchemaValidator()
                     .validate(new ArchiveUnitProfileModel().setControlSchema(value.asText()));
             checkSchema.ifPresent(t -> error
@@ -575,8 +569,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
-                Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
-                    .validate(new ArchiveUnitProfileModel().setIdentifier(value.asText()));
+                Optional<ArchiveUnitProfileValidator.RejectionCause> validateIdentifier =
+                    manager.createCheckDuplicateInDatabaseValidator()
+                        .validate(new ArchiveUnitProfileModel().setIdentifier(value.asText()));
                 if (validateIdentifier.isPresent()) {
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                         ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText()
@@ -590,7 +585,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
         if (ArchiveUnitProfileModel.CONTROLSCHEMA.equals(field)) {
             // Json schema validation of profileModel ControlSchema property
-            final Optional<RejectionCause> checkSchema =
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                 manager.createJsonSchemaValidator().validate(profileModel);
             checkSchema.ifPresent(t -> error
                 .addToErrors(
@@ -599,7 +594,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                         .setMessage(ArchiveUnitProfileManager.UPDATE_KO)));
 
             // check if the archiveUnitProfile is used by an archiveUnit
-            final Optional<RejectionCause> checkUsedJsonSchema =
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkUsedJsonSchema =
                 manager.createCheckUsedJsonSchema().validate(profileModel);
             checkUsedJsonSchema.ifPresent(t -> error
                 .addToErrors(
@@ -662,7 +657,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         final String field, final VitamError<ArchiveUnitProfileModel> error) {
         if (!ontologyMap.containsKey(field)) {
             error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                RejectionCause.rejectMissingFieldInOntology(field).getReason()));
+                ArchiveUnitProfileValidator.RejectionCause.rejectMissingFieldInOntology(field).getReason()));
         }
     }
 }

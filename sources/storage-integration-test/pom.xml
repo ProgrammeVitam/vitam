@@ -72,6 +72,12 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-core</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>vitam-offer</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>

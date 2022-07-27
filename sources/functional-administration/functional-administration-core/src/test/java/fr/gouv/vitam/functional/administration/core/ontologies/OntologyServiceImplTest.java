@@ -52,13 +52,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
@@ -86,35 +86,23 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class OntologyServiceImplTest {
-    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<>() {
-    };
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
     private static final Integer TENANT_ID = 2;
     private static final Integer ADMIN_TENANT = 1;
-
     private static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final String DATABASE_HOST = "localhost";
-
+    private static final FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Ontology.class));
 
     private static OntologyServiceImpl ontologyService;
-    private static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-
-    @Before
-    public void setUp() {
-        String operationId = newRequestIdGUID(TENANT_ID).toString();
-
-        VitamThreadUtils.getVitamSession().setRequestId(operationId);
-    }
+    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<>() {
+    };
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -142,7 +130,13 @@ public class OntologyServiceImplTest {
     @AfterClass
     public static void tearDownAfterClass() {
         FunctionalAdminCollectionsTestUtils.afterTestClass(true);
-        ontologyService.close();
+    }
+
+    @Before
+    public void setUp() {
+        String operationId = newRequestIdGUID(TENANT_ID).toString();
+
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
     }
 
     @After

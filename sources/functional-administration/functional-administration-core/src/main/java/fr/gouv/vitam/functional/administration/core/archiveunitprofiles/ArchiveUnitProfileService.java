@@ -88,7 +88,7 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * @return RequestResponseOK on success or VitamError else
      * @throws VitamException if in error occurs while validating contracts
      */
-    RequestResponse updateArchiveUnitProfile(String id, JsonNode queryDsl)
+    RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl)
         throws VitamException;
 
 }

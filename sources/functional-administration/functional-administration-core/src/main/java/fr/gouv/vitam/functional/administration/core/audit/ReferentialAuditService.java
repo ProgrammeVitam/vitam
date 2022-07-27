@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.functional.administration.core.audit;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -45,10 +44,10 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -75,8 +74,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static fr.gouv.vitam.functional.administration.common.FunctionalBackupService.DEFAULT_EXTENSION;
-import static fr.gouv.vitam.functional.administration.common.FunctionalBackupService.FIELD_COLLECTION;
+import static fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService.DEFAULT_EXTENSION;
+import static fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService.FIELD_COLLECTION;
 
 
 public class ReferentialAuditService {
@@ -98,6 +97,10 @@ public class ReferentialAuditService {
         FunctionalBackupService functionalBackupService) {
         this.storageClientFactory = storageClientFactory;
         this.functionalBackupService = functionalBackupService;
+    }
+
+    private static <T> Iterable<T> iteratorToIterable(Iterator<T> iterator) {
+        return () -> iterator;
     }
 
     public void runAudit(String collectionName, int tenant)
@@ -290,9 +293,5 @@ public class ReferentialAuditService {
                 .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
                 ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
-    }
-
-    private static <T> Iterable<T> iteratorToIterable(Iterator<T> iterator) {
-        return () -> iterator;
     }
 }

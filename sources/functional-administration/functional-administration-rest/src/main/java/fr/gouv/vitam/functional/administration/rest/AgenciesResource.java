@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -45,10 +44,7 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.core.agencies.AgenciesImportResult;
 import fr.gouv.vitam.functional.administration.core.agencies.AgenciesService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -88,14 +84,8 @@ public class AgenciesResource {
 
     private final AgenciesService agenciesService;
 
-    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
-        this(mongoAccess, vitamCounterService, new FunctionalBackupService(vitamCounterService));
-    }
-
-    @VisibleForTesting
-    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService) {
-        this.agenciesService = new AgenciesService(mongoAccess, vitamCounterService, functionalBackupService);
+    public AgenciesResource(AgenciesService agenciesService) {
+        this.agenciesService = agenciesService;
         LOGGER.debug("init Admin Management Resource server");
     }
 

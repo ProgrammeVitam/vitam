@@ -37,11 +37,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
-import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
+import fr.gouv.vitam.functional.administration.core.ontologies.OntologyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -71,17 +68,13 @@ public class OntologyResource {
     private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
         "The json input of ontology type is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final FunctionalBackupService functionalBackupService;
+    private final OntologyService ontologyService;
 
     /**
-     * @param mongoAccess
-     * @param functionalBackupService
+     * @param ontologyService
      */
-    public OntologyResource(MongoDbAccessAdminImpl mongoAccess,
-        FunctionalBackupService functionalBackupService) {
-        this.mongoAccess = mongoAccess;
-        this.functionalBackupService = functionalBackupService;
+    public OntologyResource(OntologyService ontologyService) {
+        this.ontologyService = ontologyService;
         LOGGER.debug("init Ontology Resource server");
     }
 
@@ -109,8 +102,7 @@ public class OntologyResource {
         List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+        try {
             RequestResponse<OntologyModel> requestResponse =
                 ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
@@ -143,8 +135,7 @@ public class OntologyResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findOntologies(JsonNode queryDsl) {
 
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+        try {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
                 ontologyService.findOntologies(queryDsl).setQuery(queryDsl);
@@ -172,8 +163,7 @@ public class OntologyResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findOntologiesForCache(JsonNode queryDsl) {
 
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+        try {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
                 ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);

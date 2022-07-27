@@ -29,8 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.functional.administration.core.backup.BackupService;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -77,7 +77,7 @@ public class PreservationStorageBinaryPluginTest {
     @InjectMocks
     private PreservationStorageBinaryPlugin storageBinaryPlugin;
 
-    private HandlerIO handler = new TestHandlerIO();
+    private final HandlerIO handler = new TestHandlerIO();
 
     @Test
     public void should_disable_lfc_when_not_GENERATE_action() throws Exception {

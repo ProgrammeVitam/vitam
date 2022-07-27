@@ -69,7 +69,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -77,12 +76,11 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.core.context.ContextValidator.ContextRejectionCause;
 import fr.gouv.vitam.functional.administration.core.contract.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.core.contract.ContractService;
 import fr.gouv.vitam.functional.administration.core.contract.IngestContractImpl;
-
 import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -139,7 +137,7 @@ public class ContextServiceImpl implements ContextService {
     private final FunctionalBackupService functionalBackupService;
     private final ContractService<IngestContractModel> ingestContract;
     private final ContractService<AccessContractModel> accessContract;
-    private final SecurityProfileService securityProfileService;
+    private SecurityProfileService securityProfileService;
 
     /**
      * Constructor
@@ -147,15 +145,13 @@ public class ContextServiceImpl implements ContextService {
      * @param mongoAccess MongoDB client
      */
     public ContextServiceImpl(
-        MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        SecurityProfileService securityProfileService) {
+        MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         this.internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
         this.ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
         this.accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
-        this.securityProfileService = securityProfileService;
         this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
     }
 
@@ -403,6 +399,14 @@ public class ContextServiceImpl implements ContextService {
         }
     }
 
+    @Override
+    public boolean securityProfileIsUsedInContexts(String securityProfileId)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException {
+        final Select select = new Select();
+        select.setQuery(QueryHelper.eq(Context.SECURITY_PROFILE, securityProfileId));
+        return exist(select.getFinalSelect());
+    }
+
     private boolean exist(JsonNode finalSelect) throws InvalidParseOperationException, ReferentialException {
         DbRequestResult result = mongoAccess.findDocuments(finalSelect, FunctionalAdminCollections.CONTEXT);
         final List<ContextModel> list =
@@ -550,6 +554,12 @@ public class ContextServiceImpl implements ContextService {
     @Override
     public void close() {
         logbookClient.close();
+    }
+
+    @Override
+    public void setSecurityProfileService(
+        SecurityProfileService securityProfileService) {
+        this.securityProfileService = securityProfileService;
     }
 
 
@@ -806,12 +816,12 @@ public class ContextServiceImpl implements ContextService {
 
                 List<ContextRejectionCause> validationErrors = new ArrayList<>();
                 if (StringUtils.isBlank(context.getName())) {
-                    validationErrors.add(ContextRejectionCause.rejectMandatoryMissing(Context.NAME));
+                    validationErrors.add(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.NAME));
                 }
 
                 if (StringUtils.isBlank(context.getSecurityProfileIdentifier())) {
                     validationErrors
-                        .add(ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
+                        .add(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
                 }
 
                 if (context.getStatus() == null) {
@@ -834,7 +844,7 @@ public class ContextServiceImpl implements ContextService {
                     securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
 
                 if (securityProfileModel.isEmpty()) {
-                    return Collections.singletonList(ContextRejectionCause
+                    return Collections.singletonList(ContextValidator.ContextRejectionCause
                         .invalidSecurityProfile(context.getSecurityProfileIdentifier()));
                 } else {
                     // OK
@@ -855,7 +865,7 @@ public class ContextServiceImpl implements ContextService {
                     final Bson clause = eq(Context.IDENTIFIER, context.getIdentifier());
                     final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().countDocuments(clause) > 0;
                     if (exist) {
-                        return Collections.singletonList(ContextRejectionCause
+                        return Collections.singletonList(ContextValidator.ContextRejectionCause
                             .rejectDuplicatedInDatabase(context.getIdentifier()));
                     }
                 }
@@ -875,14 +885,14 @@ public class ContextServiceImpl implements ContextService {
                 for (final PermissionModel pm : pmList) {
                     if (pm.getTenant() == null) {
                         validationErrors.add(
-                            ContextRejectionCause.rejectNullTenant());
+                            ContextValidator.ContextRejectionCause.rejectNullTenant());
                     } else {
                         final int tenant = pm.getTenant();
                         final Set<String> icList = pm.getIngestContract();
                         for (final String ic : icList) {
                             if (!checkIdentifierOfIngestContract(ic, tenant)) {
                                 validationErrors.add(
-                                    ContextRejectionCause
+                                    ContextValidator.ContextRejectionCause
                                         .rejectNoExistanceOfIngestContract(ic, tenant));
                             }
                         }
@@ -891,7 +901,7 @@ public class ContextServiceImpl implements ContextService {
                         for (final String ac : acList) {
                             if (!checkIdentifierOfAccessContract(ac, tenant)) {
                                 validationErrors.add(
-                                    ContextRejectionCause
+                                    ContextValidator.ContextRejectionCause
                                         .rejectNoExistanceOfAccessContract(ac, tenant));
                             }
                         }
@@ -914,13 +924,13 @@ public class ContextServiceImpl implements ContextService {
                 for (final PermissionModel pm : pmList) {
                     if (pm.getTenant() == null) {
                         validationErrors.add(
-                            ContextRejectionCause.rejectNullTenant());
+                            ContextValidator.ContextRejectionCause.rejectNullTenant());
                     } else {
                         final int tenant = pm.getTenant();
                         List<Integer> tenants = VitamConfiguration.getTenants();
                         if (!tenants.contains(tenant)) {
                             validationErrors.add(
-                                ContextRejectionCause.rejectNoExistanceOfTenant(tenant));
+                                ContextValidator.ContextRejectionCause.rejectNoExistanceOfTenant(tenant));
                         }
                     }
                 }
@@ -961,7 +971,7 @@ public class ContextServiceImpl implements ContextService {
         private ContextValidator checkEmptyIdentifierSlaveModeValidator() {
             return (context) -> {
                 if (context.getIdentifier() == null || context.getIdentifier().isEmpty()) {
-                    return Collections.singletonList(ContextRejectionCause.rejectMandatoryMissing(
+                    return Collections.singletonList(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(
                         Context.IDENTIFIER));
                 }
                 return Collections.emptyList();

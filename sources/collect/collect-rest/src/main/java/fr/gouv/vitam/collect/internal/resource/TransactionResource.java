@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.Consumes;
@@ -558,10 +557,6 @@ public class TransactionResource extends ApplicationStatusResource {
     public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
         try {
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
-            if (inputStreamObject == null) {
-                LOGGER.error(ErrorMessage.STREAM_IS_NULL.getMessage());
-                return Response.status(BAD_REQUEST).build();
-            }
             Optional<ProjectModel> projectModel = projectService.findProject(projectId);
 
             if (projectModel.isEmpty()) {

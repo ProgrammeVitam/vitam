@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,7 +91,7 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
         doAnswer((args) -> {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
-            return new RequestResponseOK<StorageLogBackupResult>();
+            return new RequestResponseOK<AccessionRegisterSymbolic>();
         }).when(adminManagementClient).createAccessionRegisterSymbolic(any());
 
         // When

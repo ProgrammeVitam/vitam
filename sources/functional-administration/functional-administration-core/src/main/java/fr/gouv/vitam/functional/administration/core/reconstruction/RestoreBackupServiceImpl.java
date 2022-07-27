@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.impl;
+package fr.gouv.vitam.functional.administration.core.reconstruction;
 
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -40,9 +40,9 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -80,7 +80,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     private static final String OBJECT_ID_TAG = "objectId";
     private static final String EXTENSION_JSON = ".json";
 
-    private StorageClientFactory storageClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     /**
      * Constructor
@@ -94,7 +94,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         FunctionalAdminCollections collection) {
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy,
-                offerId, type);
+                offerId, type)
         ) {
             // recover an intact backup copy for the reconstruction.
             Iterable<ObjectEntry> iterable = () -> listing;
@@ -103,7 +103,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
             String regex = "\\d+_+(\\w+)_+(\\d+)?" + EXTENSION_JSON + "$";
             Pattern pattern = Pattern.compile(regex);
 
-            Optional<Integer> result = stream.map(n -> n.getObjectId())
+            Optional<Integer> result = stream.map(ObjectEntry::getObjectId)
                 .map(pattern::matcher)
                 .filter(Matcher::matches)
                 .filter(matcher -> collection.getName().equals(matcher.group(1)))

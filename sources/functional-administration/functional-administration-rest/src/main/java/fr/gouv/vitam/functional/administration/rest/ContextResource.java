@@ -37,15 +37,9 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.core.context.ContextService;
-import fr.gouv.vitam.functional.administration.core.context.ContextServiceImpl;
-import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -76,21 +70,13 @@ public class ContextResource {
     private static final String CONTEXTS_JSON_IS_MANDATORY_PATAMETER =
         "The json input of contexts is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final VitamCounterService vitamCounterService;
-    private final FunctionalBackupService functionalBackupService;
-    private final AdminManagementClient adminManagementClient;
+    private final ContextService contextService;
 
     /**
-     * @param mongoAccess
-     * @param functionalBackupService
+     * @param contextService
      */
-    public ContextResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.functionalBackupService = functionalBackupService;
-        this.adminManagementClient = adminManagementClient;
+    public ContextResource(ContextService contextService) {
+        this.contextService = contextService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -101,15 +87,11 @@ public class ContextResource {
     public Response importContexts(List<ContextModel> ContextModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(CONTEXTS_JSON_IS_MANDATORY_PATAMETER, ContextModelList);
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService,
-            functionalBackupService, adminManagementClient);
-            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
-                securityProfileService)) {
-            RequestResponse requestResponse = contextService.createContexts(ContextModelList);
+        try {
+            RequestResponse<ContextModel> requestResponse = contextService.createContexts(ContextModelList);
 
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<ContextModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
@@ -161,12 +143,7 @@ public class ContextResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
-
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService,
-            functionalBackupService, adminManagementClient);
-            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
-                securityProfileService)) {
+        try {
             SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
                 RequestResponseOK<ContextModel> response =
@@ -194,14 +171,10 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService,
-            functionalBackupService, adminManagementClient);
-            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
-                securityProfileService)) {
-            RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
+        try {
+            RequestResponse<ContextModel> requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                ((VitamError<ContextModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
 
@@ -232,12 +205,8 @@ public class ContextResource {
      */
     Response deleteContext(String contextId, boolean force) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService,
-            functionalBackupService, adminManagementClient);
-            ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService,
-                securityProfileService)) {
-            RequestResponse requestResponse = contextService.deleteContext(contextId, force);
+        try {
+            RequestResponse<ContextModel> requestResponse = contextService.deleteContext(contextId, force);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             }

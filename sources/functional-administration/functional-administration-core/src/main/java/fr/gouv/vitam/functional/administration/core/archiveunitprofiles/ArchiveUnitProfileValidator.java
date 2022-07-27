@@ -73,7 +73,7 @@ public interface ArchiveUnitProfileValidator {
     /**
      * Rejection Cause
      */
-    public class RejectionCause {
+    class RejectionCause {
 
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE =
             "Id must be null when creating archive unit profile (%s)";

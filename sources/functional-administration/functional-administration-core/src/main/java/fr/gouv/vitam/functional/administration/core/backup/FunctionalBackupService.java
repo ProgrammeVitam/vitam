@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.core.backup;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
@@ -149,7 +150,7 @@ public class FunctionalBackupService {
             } catch (VitamException | RuntimeException logbookErrorException) {
                 LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
             }
-            throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
+            throw new FunctionalBackupServiceException("Could not backup collection " + collection, e);
         }
     }
 

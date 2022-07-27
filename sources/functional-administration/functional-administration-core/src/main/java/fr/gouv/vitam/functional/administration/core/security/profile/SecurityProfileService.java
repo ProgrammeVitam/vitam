@@ -61,9 +61,7 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
@@ -71,6 +69,8 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.core.context.ContextService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -117,14 +117,12 @@ public class SecurityProfileService implements VitamAutoCloseable {
         "STP_UPDATE_SECURITY_PROFILE.UNKNOWN_PERMISSION";
     private static final String UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR =
         "At least, one security pofile's permission is not valid";
-
+    private static final String _ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
-    private final AdminManagementClient adminManagementClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
-
-    private static final String _ID = "_id";
+    private ContextService contextService;
 
     /**
      * Constructor
@@ -134,12 +132,11 @@ public class SecurityProfileService implements VitamAutoCloseable {
      * @param functionalBackupService
      */
     public SecurityProfileService(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
+        FunctionalBackupService functionalBackupService) {
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        this.adminManagementClient = adminManagementClient;
     }
 
     public RequestResponse<SecurityProfileModel> createSecurityProfiles(List<SecurityProfileModel> securityProfileList)
@@ -432,9 +429,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
                     .setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             }
 
-            RequestResponse<Boolean> requestResponse =
-                adminManagementClient.securityProfileIsUsedInContexts(securityProfileId);
-            if (((RequestResponseOK<Boolean>) requestResponse).getResults().get(0)) {
+            boolean isSecurityProfileUsed =
+                contextService.securityProfileIsUsedInContexts(securityProfileId);
+            if (isSecurityProfileUsed) {
                 manager.logValidationError("Security profile is used : " + securityProfileId,
                     SECURITY_PROFILE_DELETE_EVENT);
                 return getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
@@ -495,6 +492,33 @@ public class SecurityProfileService implements VitamAutoCloseable {
             result.getDocuments(SecurityProfile.class, SecurityProfileModel.class);
         return !list.isEmpty();
     }
+
+    @Override
+    public void close() {
+        logbookClient.close();
+    }
+
+    private boolean isSlaveMode() {
+        return vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.SECURITY_PROFILE_SEQUENCE.getCollection(),
+                ParameterHelper.getTenantParameter());
+    }
+
+    private VitamError<SecurityProfileModel> getVitamError(String vitamCode, String error) {
+        return VitamErrorUtils
+            .getVitamError(vitamCode, error, "SecurityProfile", StatusCode.KO, SecurityProfileModel.class);
+    }
+
+    private VitamError<SecurityProfileModel> getVitamErrorWithMessage(String vitamCode, String msg) {
+        return VitamErrorUtils
+            .getVitamErrorWithMessage(vitamCode, SecurityProfileService.UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR,
+                "SecurityProfile", StatusCode.KO, msg, SecurityProfileModel.class);
+    }
+
+    public void setContextService(ContextService contextService) {
+        this.contextService = contextService;
+    }
+
 
     /**
      * Logbook manager for security profile operations
@@ -692,27 +716,5 @@ public class SecurityProfileService implements VitamAutoCloseable {
             logbookClient.update(logbookParameters);
         }
 
-    }
-
-    @Override
-    public void close() {
-        logbookClient.close();
-    }
-
-    private boolean isSlaveMode() {
-        return vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.SECURITY_PROFILE_SEQUENCE.getCollection(),
-                ParameterHelper.getTenantParameter());
-    }
-
-    private VitamError<SecurityProfileModel> getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils
-            .getVitamError(vitamCode, error, "SecurityProfile", StatusCode.KO, SecurityProfileModel.class);
-    }
-
-    private VitamError<SecurityProfileModel> getVitamErrorWithMessage(String vitamCode, String msg) {
-        return VitamErrorUtils
-            .getVitamErrorWithMessage(vitamCode, SecurityProfileService.UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR,
-                "SecurityProfile", StatusCode.KO, msg, SecurityProfileModel.class);
     }
 }

@@ -109,8 +109,8 @@ public class EvidenceResource {
 
     private WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
-    private MongoDbAccessAdminImpl mongoDbAccess;
-    private VitamCounterService vitamCounterService;
+    private final MongoDbAccessAdminImpl mongoDbAccess;
+    private final VitamCounterService vitamCounterService;
 
     @VisibleForTesting
     EvidenceResource(

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.impl;
+package fr.gouv.vitam.functional.administration.core.reconstruction;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -64,10 +64,9 @@ import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
-import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -279,11 +278,11 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     }
 
     private FunctionalAdminCollections getCollection(ReconstructionRequestItem reconstructionItem) {
-        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase()
-            .equals(reconstructionItem.getCollection().toLowerCase())) {
+        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+            .equalsIgnoreCase(reconstructionItem.getCollection())) {
             return FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL;
-        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase()
-            .equals(reconstructionItem.getCollection().toLowerCase())) {
+        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName()
+            .equalsIgnoreCase(reconstructionItem.getCollection())) {
             return FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC;
         } else {
             throw new IllegalArgumentException(

@@ -49,7 +49,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
@@ -58,6 +57,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -93,6 +93,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ReferentialAccessionRegisterImplTest {
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final int ACCESSION_REGISTER_SYMBOLIC_THREAD_POOL_SIZE = 4;
     private static final String ACCESSION_REGISTER_DETAIL = "accession-register_detail.json";
     private static final String ACCESSION_REGISTER_DETAIL_ELIMINATION = "accession-register_detail_elimination.json";
@@ -101,31 +102,23 @@ public class ReferentialAccessionRegisterImplTest {
     private static final String FILE_TO_TEST_OK = "accession-register.json";
     private static final String FILE_TO_TEST_2_OK = "accession-register_2.json";
     private static final Integer TENANT_ID = 0;
-
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    public static final String PREFIX = GUIDFactory.newGUID().getId();
-
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(
         MongoDbAccess.getMongoClientSettingsBuilder(AccessionRegisterDetail.class, AccessionRegisterSummary.class));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
-    private static ElasticsearchAccessFunctionalAdmin esClient;
-
     static ReferentialAccessionRegisterImpl accessionRegisterImpl;
     static AccessionRegisterDetailModel register;
+    private static ElasticsearchAccessFunctionalAdmin esClient;
     private static MongoDbAccessAdminImpl mongoDbAccessAdmin;
-
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
-        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -159,6 +152,11 @@ public class ReferentialAccessionRegisterImplTest {
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
+    @AfterClass
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
+    }
+
     @Before
     public void setup() {
 
@@ -167,11 +165,6 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(mongoDbAccessAdmin,
             functionalBackupService, metaDataClientFactory,
             ACCESSION_REGISTER_SYMBOLIC_THREAD_POOL_SIZE);
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After

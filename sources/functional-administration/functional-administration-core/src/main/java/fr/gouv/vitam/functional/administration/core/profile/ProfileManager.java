@@ -84,26 +84,23 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class ProfileManager {
 
-    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
-    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileManager.class);
-
     public static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_PROFILE_JSON.EMPTY_REQUIRED_FIELD.KO";
     public static final String WRONG_FIELD_FORMAT = "STP_IMPORT_PROFILE_JSON.TO_BE_DEFINED.KO";
     public static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO";
     public static final String PROFILE_NOT_FOUND_IN_DATABASE = "STP_IMPORT_PROFILE_JSON.PROFILE_NOT_FOUND.KO";
     public static final String IMPORT_KO = "STP_IMPORT_PROFILE_JSON.KO";
-
     public static final String UPDATE_PROFILE_NOT_FOUND = "STP_UPDATE_PROFILE_JSON.PROFILE_NOT_FOUND.KO";
     public static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_PROFILE_JSON.NOT_IN_ENUM.KO";
     public static final String UPDATE_DUPLICATE_IN_DATABASE = "STP_UPDATE_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO";
     public static final String UPDATE_KO = "STP_UPDATE_PROFILE_JSON.KO";
-
-    private Map<ProfileValidator, String> validators;
+    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
+    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileManager.class);
+    private final Map<ProfileValidator, String> validators;
 
     private final GUID eip;
 
-    private LogbookOperationsClient logbookClient;
+    private final LogbookOperationsClient logbookClient;
 
     public ProfileManager(LogbookOperationsClient logbookClient, GUID eip) {
         this.logbookClient = logbookClient;

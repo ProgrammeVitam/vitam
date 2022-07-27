@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.functional.administration.core.backup.BackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -87,7 +87,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,7 +132,7 @@ public class StorageTestMultiIT {
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
-    private static TemporaryFolder folder = new TemporaryFolder();
+    private static final TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -169,7 +168,7 @@ public class StorageTestMultiIT {
         final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
         final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
-        mongoDbNodes.get(0).setDbPort(mongoRule.getDataBasePort());
+        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
         defaultOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
@@ -183,11 +182,11 @@ public class StorageTestMultiIT {
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
-            final String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
+            final String[] seg = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
         serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + workspacePort);
 
         folder.create();
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
@@ -306,7 +305,7 @@ public class StorageTestMultiIT {
     }
 
     private static void populateWorkspace(String filepath)
-        throws ContentAddressableStorageServerException, FileNotFoundException, IOException {
+        throws ContentAddressableStorageServerException, IOException {
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             try {
                 workspaceClient.createContainer(CONTAINER);

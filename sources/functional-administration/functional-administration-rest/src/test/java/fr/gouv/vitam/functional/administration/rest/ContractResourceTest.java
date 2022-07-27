@@ -136,14 +136,14 @@ public class ContractResourceTest {
     private static final int TENANT_ID = 0;
 
     private static MongoDbAccessReferential mongoDbAccess;
-    private static String DATABASE_HOST = "localhost";
-    private static JunitHelper junitHelper = JunitHelper.getInstance();
+    private static final String DATABASE_HOST = "localhost";
+    private static final JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
     private static AgenciesService agenciesService;
 
-    private static int workspacePort = junitHelper.findAvailablePort();
+    private static final int workspacePort = junitHelper.findAvailablePort();
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager
         = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
@@ -189,7 +189,7 @@ public class ContractResourceTest {
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
@@ -197,7 +197,7 @@ public class ContractResourceTest {
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
         mongoDbAccess =
             MongoDbAccessAdminFactory
                 .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
