@@ -13,6 +13,7 @@
     host: "{{ ip_service }}"
     port: "{{ vitam_struct.port_service }}"
     state: started
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
 
 - name: "Check if service is listening on service port (http check)"
   uri:
