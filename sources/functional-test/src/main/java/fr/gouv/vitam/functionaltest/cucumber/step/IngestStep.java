@@ -205,9 +205,9 @@ public class IngestStep extends CommonStep {
      */
     @Given("^les données du jeu de test du SIP nommé (.*)")
     public void use_test_set_from_sip(String fileName) {
+        a_sip_named(fileName);
         if (!StringUtils.isNotBlank(World.getOperationId(fileName))) {
             try {
-                a_sip_named(fileName);
                 upload_this_sip();
                 LogbookEventOperation lastEvent =
                     world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
