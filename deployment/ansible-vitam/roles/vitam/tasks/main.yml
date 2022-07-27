@@ -185,14 +185,11 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "java.security"
-    - "logbook-client.conf"
     - "server-identity.conf"
     - "logback.xml"
     - "logback-access.xml"
     - "jetty-config.xml"
     - "vitam.conf"
-  when: ( item != "logbook-client.conf" ) or
-        ( item == "logbook-client.conf" and vitam_struct.vitam_component != "ihm-demo" )
   tags:
     - update_vitam_configuration
   notify:
