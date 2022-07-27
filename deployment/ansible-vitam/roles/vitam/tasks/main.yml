@@ -252,13 +252,6 @@
   notify:
     - restart service
 
-- name: ensure external messages file is absent
-  file:
-    path: "{{ vitam_folder_conf }}/vitam-logbook-messages_fr.properties"
-    state: absent
-  notify:
-    - restart service
-
 #### Certificates stores deployment ####
 
 - name: "Check if {{ vitam_struct.vitam_component }} server jks keystore exists"
