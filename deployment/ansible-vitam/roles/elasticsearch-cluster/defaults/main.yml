@@ -6,4 +6,3 @@
 elasticsearch_memory: ""
 # Default port configuration
 port_http: 9200
-groupe: test
