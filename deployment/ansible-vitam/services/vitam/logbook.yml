@@ -2,7 +2,10 @@
 
 - hosts: hosts_logbook
   any_errors_fatal: true
-  serial: 1
+  # First server started alone to ensure indexes are created once
+  serial:
+    - 1
+    - "100%"
   roles:
     - vitam
   vars:
