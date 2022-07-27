@@ -6,4 +6,4 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.ingestinternal }}"
-  tags: ingest_external
+  tags: ingest_internal
