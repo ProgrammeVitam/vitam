@@ -27,6 +27,7 @@
     - disable_internet_repositories_install == true
 
 - import_tasks: tape_offer.yml
+  when: vitam_struct.vitam_component == "offer"
 
 - import_tasks: compute_offers.yml
   tags:
