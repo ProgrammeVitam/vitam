@@ -19,7 +19,7 @@ appender.rolling.strategy.action.type = Delete
 appender.rolling.strategy.action.basepath = ${sys:ls.logs}
 appender.rolling.strategy.action.condition.type = IfFileName
 appender.rolling.strategy.action.condition.glob = logstash-${sys:ls.log.format}-*
-appender.rolling.strategy.action.condition.nested_condition.type = IfAccumulatedFileSize
+appender.rolling.strategy.action.condition.nested_condition.type = {{ logstash.log_appenders.rolling.condition_type | default('IfAccumulatedFileSize') }}
 appender.rolling.strategy.action.condition.nested_condition.exceeds = {{ logstash.log_appenders.rolling.max_total_log_size }}
 
 appender.json_rolling.type = RollingFile
@@ -40,7 +40,7 @@ appender.json_rolling.strategy.action.type = Delete
 appender.json_rolling.strategy.action.basepath = ${sys:ls.logs}
 appender.json_rolling.strategy.action.condition.type = IfFileName
 appender.json_rolling.strategy.action.condition.glob = logstash-${sys:ls.log.format}-*
-appender.json_rolling.strategy.action.condition.nested_condition.type = IfAccumulatedFileSize
+appender.json_rolling.strategy.action.condition.nested_condition.type = {{ logstash.log_appenders.json_rolling.condition_type | default('IfAccumulatedFileSize') }}
 appender.json_rolling.strategy.action.condition.nested_condition.exceeds = {{ logstash.log_appenders.json_rolling.max_total_log_size }}
 
 rootLogger.level = ${sys:ls.log.level}

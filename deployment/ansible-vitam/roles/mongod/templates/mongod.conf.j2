@@ -3,15 +3,15 @@
 # for documentation of all options, see:
 #   http://docs.mongodb.org/manual/reference/configuration-options/
 
-
 # where to write logging data.
 systemLog:
   destination: file
   syslogFacility: local0
+  verbosity: {{ mongodb.verbosity | default(0) }}
+  traceAllExceptions: {{ mongodb.trace_all_exceptions | default('false') }}
   logAppend: true
   logRotate: reopen
   path: {{ mongo_folder_log }}/mongod.log
-
 
 # Where and how to store data.
 storage:
@@ -23,7 +23,6 @@ storage:
     engineConfig:
         cacheSizeGB: {{ mongod_memory }}
 {% endif %}
-
 
 # network interfaces
 net:
@@ -42,6 +41,3 @@ replication:
 
 sharding:
   clusterRole: shardsvr # role du shard
-
-
-# ansible managed security conf
