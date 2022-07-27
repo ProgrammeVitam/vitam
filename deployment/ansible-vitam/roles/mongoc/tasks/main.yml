@@ -8,14 +8,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart mongoc
-
-- name: enable mongoc
-  service:
-    name: vitam-mongoc
-    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-  notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 #### Configuration ####
 
@@ -38,7 +31,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Create db directory
   file:
@@ -50,7 +43,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Create the mongoc configuration server file
   template:
@@ -62,7 +55,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Enable logrotate for vitam-mongoc
   template:
@@ -100,26 +93,9 @@
     - consul_conf
     - update_mongodb_configuration
   notify:
-   - reload consul configuration
-
-
-# Ensure that the installation is complete and consul up before contnuing...
-- meta: flush_handlers
-  tags:
-    - update_mongodb_configuration
-
-- name: Ensure service is started
-  service:
-    name: vitam-mongoc
-    state: started
-  tags:
-    - update_mongodb_configuration
-
-#### Mongo online configuration ####
-# Note : mongodb needs to be started for these elements to succeed
+   - "mongoc - reload consul configuration"
 
 # Enable mongo passphrase
-
 - name: Copy the passphrase
   template:
     src: "keyfile.j2"
@@ -129,11 +105,44 @@
     mode: 0600
   tags:
     - update_mongodb_configuration
+  notify:
+    - "mongoc - reload consul configuration"
 
-# Now lest's initiate the replica set
+# Ensure that the installation is complete and consul up before continuing...
+- meta: flush_handlers
+  tags:
+    - update_mongodb_configuration
+
+- name: Ensure {{ mongo_cluster_name }}-mongoc service is started at boot
+  service:
+    name: vitam-mongoc
+    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+    state: started
+
+- name: Wait for the {{ mongo_cluster_name }}-mongoc port to be open
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ mongodb.mongoc_port }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+- name: Check {{ mongo_cluster_name }}-mongoc service health in local consul agent
+  uri:
+    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ mongo_cluster_name }}-mongoc"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"
+
+#### Mongo online configuration ####
+# Note : mongodb needs to be started for these elements to succeed
+
+# Now let's initiate the replica set
 # Do this only on the first node of the current shard
 # We have to wait for all the node to be up
 
+# FIXME : Is it really OK to re-initiate mongoc replica set during upgrades?
 - block:
 
     - name: Wait for the service port to be open on all members of the replica
@@ -189,4 +198,4 @@
       tags:
         - update_mongodb_configuration
 
-  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"
+  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap | lower == "true"

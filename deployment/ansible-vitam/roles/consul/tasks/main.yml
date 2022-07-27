@@ -1,7 +1,7 @@
 ---
 
 - include_tasks: consul_enabled.yml
-  when: consul_disabled is not defined or consul_disabled |lower != "true"
+  when: consul_disabled is not defined or consul_disabled | lower != "true"
 
 - include_tasks: consul_disabled.yml
-  when: consul_disabled is defined and consul_disabled |lower == "true"
+  when: consul_disabled is defined and consul_disabled | lower == "true"

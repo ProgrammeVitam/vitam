@@ -14,7 +14,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart consul
+    - "consul - restart service"
 
 - name: Install Consul-selinux package
   package:
@@ -25,17 +25,10 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart consul
+    - "consul - restart service"
   when:
     - selinux_state | lower in ["enforcing", "permissive"]
     - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
-
-- name: Enable consul service
-  service:
-    name: "{{ consul_service }}"
-    enabled: "{{ consul.at_boot | default(service_at_boot) }}"
-  notify:
-      - restart consul
 
 #### Configuration ####
 
@@ -55,7 +48,7 @@
     - data
     - tmp
   notify:
-    - restart consul
+    - "consul - restart service"
 
 - name: Deploy consul common configuration files
   template:
@@ -67,14 +60,15 @@
   with_items:
     - "consul.json"
   notify:
-      - restart consul
+      - "consul - restart service"
 
 # Ensure that the installation is complete and consul up before setting up the system-wide dns resolver...
 - meta: flush_handlers
 
-- name: Ensure service is started
+- name: Ensure consul service is started at boot
   service:
     name: "{{ consul_service }}"
+    enabled: "{{ consul.at_boot | default(service_at_boot) }}"
     state: started
 
 # Changing the resolv.conf doesn't work into a docker container...
@@ -139,8 +133,6 @@
         - vitam_dns_localhost_enforce.service
 
   when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
-
-- meta: flush_handlers
 
 - name: Wait for consul port to be open
   wait_for:
