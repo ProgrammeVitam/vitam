@@ -592,20 +592,20 @@ pipeline {
                 }
             }
         }
+    }
 
-        stage("Cleanup") {
-            steps {
-                script {
-                    // Cleanup any remaining docker volumes
-                    sh 'docker volume prune -f'
+    post {
+        // Clean after build
+        always {
 
-                    // Cleanup M2 repo
-                    sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
+            // Cleanup any remaining docker volumes
+            sh 'docker volume prune -f'
 
-                    // Cleanup workspace
-                    sh 'rm -fr ${WORKSPACE}/*'
-                }
-            }
+            // Cleanup M2 repo
+            sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
+
+            // Cleanup workspace
+            cleanWs()
         }
     }
 }
