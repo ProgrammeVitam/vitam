@@ -122,6 +122,22 @@
     enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
     state: started
 
+- name: Wait for the {{ mongo_cluster_name }}-mongod port to be open
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ mongodb.mongod_port }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+- name: Check {{ mongo_cluster_name }}-mongod service health in local consul agent
+  uri:
+    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ mongo_cluster_name }}-mongod"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"
+
 #### Mongo online configuration ####
 # Note : mongodb needs to be started for these elements to succeed
 

@@ -27,15 +27,4 @@
         - selinux_state | lower in ["enforcing", "permissive"]
         - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
 
-    - name: Ensure consul service is started
-      service:
-        name: "vitam-consul"
-        state: started
-
-    - name: Check if consul is listening
-      wait_for:
-        host: "127.0.0.1"
-        port: "53"
-        state: started
-
   when: consul_disabled is not defined or consul_disabled |lower != "true"

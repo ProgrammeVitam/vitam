@@ -6,22 +6,6 @@
     state: restarted
   listen: "elasticsearch-cluster - restart service"
 
-- name: wait until port is open
-  wait_for:
-    host: "{{ ip_service }}"
-    port: "{{ composant.port_http }}"
-    state: started
-  when: composant.groupe == "data"
-  listen: "elasticsearch-cluster - restart service"
-
-- name: wait until port is open
-  wait_for:
-    host: "{{ ip_admin }}"
-    port: "{{ composant.port_http }}"
-    state: started
-  when: composant.groupe == "log"
-  listen: "elasticsearch-cluster - restart service"
-
 - name: "elasticsearch-cluster - create systemd tmpfiles"
   command: systemd-tmpfiles --create
 
@@ -29,11 +13,4 @@
   service:
     name: vitam-consul
     state: reloaded
-  listen: "elasticsearch-cluster - reload consul configuration"
-
-- name: wait for elasticsearch cluster to be resolved by consul
-  wait_for:
-    host: "{{ composant.host }}"
-    port: "{{ composant.port_http }}"
-    timeout: "{{ vitam_defaults.services.start_timeout }}"
   listen: "elasticsearch-cluster - reload consul configuration"
