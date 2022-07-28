@@ -31,13 +31,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.github.fge.jsonpatch.diff.JsonDiff;
 import cucumber.api.java.After;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -46,6 +46,8 @@ import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functionaltest.models.UnitModel;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.collections4.list.TreeList;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -83,6 +85,7 @@ import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.functionaltest.models.UnitModel.UNIT_MODEL_COMPARATOR;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -92,23 +95,13 @@ public class DipStep extends CommonStep {
     private static final String EXPECTED_MANIFEST_START_WITH_SEDA_VERSION =
         "<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:pr=\"info:lc/xmlns/premis-v2\" xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
 
+    private static final List<String> IGNORED_UNIT_FIELDS =
+        List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId");
+    private static final List<String> IGNORED_GOT_FIELDS =
+        List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook");
+
     public DipStep(World world) {
         super(world);
-    }
-
-    private static void assertEqualsUnitsJson(JsonNode expectedUnits, JsonNode value) throws Exception {
-        final List<UnitModel> listExpectedUnits =
-            JsonHandler.getFromJsonNode(expectedUnits, TreeList.class, UnitModel.class);
-        listExpectedUnits.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
-
-        final List<UnitModel> listRealUnits = JsonHandler.getFromJsonNode(value, TreeList.class, UnitModel.class);
-        listRealUnits.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
-        final JsonNode diff =
-            JsonDiff.asJson(JsonHandler.toJsonNode(listExpectedUnits), JsonHandler.toJsonNode(listRealUnits));
-
-        if (!diff.isEmpty()) {
-            fail("Units are not equals " + JsonHandler.unprettyPrint(diff));
-        }
     }
 
     @When("^j'exporte le dip$")
@@ -203,9 +196,8 @@ public class DipStep extends CommonStep {
             }
 
             List<ZipArchiveEntry> entries = Collections.list(zipFile.getEntries());
-            long binaryFiles = entries.stream()
-                .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
-                .count();
+            long binaryFiles =
+                entries.stream().filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/")).count();
 
             assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
         }
@@ -230,8 +222,7 @@ public class DipStep extends CommonStep {
             assertThat(supportedSedaVersion.isPresent()).isTrue();
             assertThat(manifest).contains(
                 String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, supportedSedaVersion.get().getNamespaceURI(),
-                    supportedSedaVersion.get().getNamespaceURI(),
-                    supportedSedaVersion.get().getSedaValidatorXSD()));
+                    supportedSedaVersion.get().getNamespaceURI(), supportedSedaVersion.get().getSedaValidatorXSD()));
         }
     }
 
@@ -249,54 +240,58 @@ public class DipStep extends CommonStep {
         final JsonNode unitsDip = dip.at("/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
 
 
-        final ArrayNode jsonNodes = filterGots(gots);
-        final ArrayNode jsonNodes2 = filterGots(gotsDip);
-        purgeIgnoredFields(jsonNodes,
-            List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook"));
-        purgeIgnoredFields(jsonNodes2,
-            List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook"));
+        final ArrayNode SipGotsFiltred = filterGots(gots);
+        final ArrayNode DipGotsFiltred = filterGots(gotsDip);
 
-        assertEqualsGotsJson(jsonNodes, jsonNodes2);
-        purgeIgnoredFields(units, List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId"));
-        purgeIgnoredFields(unitsDip,
-            List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId"));
 
+        purgeIgnoredFields(SipGotsFiltred, IGNORED_GOT_FIELDS);
+        purgeIgnoredFields(DipGotsFiltred, IGNORED_GOT_FIELDS);
+        assertEqualsGotsJson(SipGotsFiltred, DipGotsFiltred);
+
+
+        purgeIgnoredFields(units, IGNORED_UNIT_FIELDS);
+        purgeIgnoredFields(unitsDip, IGNORED_UNIT_FIELDS);
         assertEqualsUnitsJson(units, unitsDip);
     }
 
+    private static void assertEqualsUnitsJson(JsonNode expectedUnits, JsonNode value) throws Exception {
+        final List<UnitModel> listExpectedUnits = sortUnitJson(expectedUnits);
+        final List<UnitModel> listRealUnits = sortUnitJson(value);
+
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(listExpectedUnits), JsonHandler.toJsonNode(listRealUnits),
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+    }
+
     private void assertEqualsGotsJson(JsonNode expectedGots, JsonNode value) {
-        final JsonNode diff = JsonDiff.asJson(expectedGots, value);
-        if (!diff.isEmpty()) {
-            fail("ObjectGroups are not equals " + JsonHandler.unprettyPrint(diff));
-        }
+        JsonAssert.assertJsonEquals(expectedGots, value, JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     private ArrayNode filterGots(JsonNode gots) {
-        ArrayNode listGOTS = JsonHandler.createArrayNode();
+        ArrayNode listGots = JsonHandler.createArrayNode();
         if (gots.isArray()) {
             for (var i = 0; i < gots.size(); i++) {
-                var e = gots.get(i);
-                var elem = e.get("BinaryDataObject");
-                if (elem.isArray()) {
-                    var toto = (ArrayNode) elem;
-                    for (var j = 0; j < toto.size(); j++) {
-                        var kk = toto.get(j);
-                        if (kk.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
-                            listGOTS.add(kk);
+                var got = gots.get(i);
+                var binaryDataObject = got.get("BinaryDataObject");
+                if (binaryDataObject.isArray()) {
+                    var objects = (ArrayNode) binaryDataObject;
+                    for (var j = 0; j < objects.size(); j++) {
+                        var object = objects.get(j);
+                        if (object.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
+                            listGots.add(object);
                         }
                     }
-                    ((ArrayNode) gots).set(i, toto);
+                    ((ArrayNode) gots).set(i, objects);
                 } else {
-                    if (elem.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
-                        listGOTS.add(elem);
+                    if (binaryDataObject.get("DataObjectVersion").asText().startsWith("BinaryMaster")) {
+                        listGots.add(binaryDataObject);
                     }
                 }
             }
         } else {
-            listGOTS.add(gots);
+            listGots.add(gots);
         }
 
-        return listGOTS;
+        return listGots;
     }
 
     private void purgeIgnoredFields(JsonNode jsonNode, List<String> ignoredFields) {
@@ -334,8 +329,8 @@ public class DipStep extends CommonStep {
 
     private String transform(Source manifest) throws FileNotFoundException, TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer(
-            new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl")));
+        Transformer transformer =
+            transformerFactory.newTransformer(new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl")));
 
         StringWriter writer = new StringWriter();
         StreamResult streamResult = new StreamResult(writer);
@@ -409,13 +404,21 @@ public class DipStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout =
+            vitamPoolingClient.wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L,
+                TimeUnit.MILLISECONDS);
 
         if (!processTimeout) {
             fail("dip processing not finished. Timeout exceeded.");
         }
 
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+    private static List<UnitModel> sortUnitJson(JsonNode expectedUnits) throws InvalidParseOperationException {
+        final List<UnitModel> listExpectedUnits =
+            JsonHandler.getFromJsonNode(expectedUnits, TreeList.class, UnitModel.class);
+        listExpectedUnits.sort(UNIT_MODEL_COMPARATOR);
+        return listExpectedUnits;
     }
 }
