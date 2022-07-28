@@ -1,9 +1,7 @@
-Consul
-======
+Curator
+=======
 
-Ce rôle a pour but le déploiement de Curator
-
-
+Ce rôle a pour but le déploiement et la configuration de Curator
 
 License
 -------
