@@ -1,15 +1,6 @@
 ---
 
 #### Curator ####
-- name: ensure old package "python-elasticsearch-curator" is absent
-  package:
-    name: python-elasticsearch-curator
-    state: absent
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-
 - name: install elasticsearch-curator package
   package:
     name: elasticsearch-curator
