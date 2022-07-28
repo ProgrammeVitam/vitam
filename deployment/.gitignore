@@ -1,1 +1,8 @@
 environments/.facts_cache
+vault_pass.txt
+vault_pki.pass
+*.retry
+environments/backups/
+environments/troubleshoot*
+environments/offer_diff_reports/
+environments/unit_got_docs_count*
