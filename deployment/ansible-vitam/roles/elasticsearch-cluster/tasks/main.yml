@@ -231,16 +231,11 @@
   notify:
    - "elasticsearch-cluster - reload consul configuration"
 
-# Force flush handlers to be sure previous role handlers have been run (for index templates)
-- meta: flush_handlers
+- name: Flush handlers
+  meta: flush_handlers
 
-- name: Ensure consul service is started
-  service:
-    name: "vitam-consul"
-    state: started
-
-- name: Ensure service vitam-{{ composant.cluster_name }} is started and autostart at boot
+- name: Ensure service {{ composant.cluster_name }} is started at boot
   service:
     name: "vitam-{{ composant.cluster_name }}"
-    state: started
     enabled: "{{ composant.at_boot | default(service_at_boot) }}"
+    state: started

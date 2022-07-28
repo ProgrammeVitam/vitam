@@ -53,14 +53,6 @@
     state: absent
   when: kibana.logrotate | default('enabled') | lower == 'disabled'
 
-- name: flush_handlers
-  meta: flush_handlers
-
-- name: Make sure kibana is started
-  systemd:
-    name: kibana
-    state: started
-
 #### Consul configuration ####
 - name: Ensure consul config dir is OK
   file:
@@ -80,3 +72,12 @@
     - consul_conf
   notify:
     - "kibana - reload consul configuration"
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Make sure kibana is started at boot
+  systemd:
+    name: kibana
+    enabled: "{{ composant.at_boot | default(service_at_boot) }}"
+    state: started

@@ -63,8 +63,3 @@
     state: started
   with_fileglob:
     - "{{ role_path }}/templates/systemd/*.timer.j2"
-
-- name: Ensure consul service is started
-  service:
-    name: "vitam-consul"
-    state: started

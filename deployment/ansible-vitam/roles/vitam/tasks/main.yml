@@ -369,10 +369,10 @@
 
 - import_tasks: selinux_contexts.yml
 
-- name: flush_handlers
+- name: Flush handlers
   meta: flush_handlers
 
-- name: ensure {{ package_name }} service is disabled and stopped
+- name: Ensure "{{ package_name }}" service is disabled and stopped on secondary site
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
     enabled: false
@@ -380,7 +380,7 @@
   when: ( primary_site | lower == "false" ) and
         ( vitam_struct.vitam_component not in vitam_secondary_site_components )
 
-- name: Ensure {{ package_name }} service is started
+- name: Ensure "{{ package_name }}" service is started at boot
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
     state: started

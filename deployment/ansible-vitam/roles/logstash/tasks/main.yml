@@ -174,13 +174,11 @@
   notify:
    - "logstash - reload consul configuration"
 
-- name: Ensure consul service is started
-  service:
-    name: vitam-consul
-    state: started
+- name: Flush handlers
+  meta: flush_handlers
 
-- name: Ensure logstash service is started
+- name: Ensure logstash service is started at boot
   service:
     name: logstash
-    state: started
     enabled: "{{ logstash.at_boot | default(service_at_boot) }}"
+    state: started

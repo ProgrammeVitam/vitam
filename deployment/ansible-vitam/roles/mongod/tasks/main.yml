@@ -11,13 +11,6 @@
   notify:
     - "mongod - restart service"
 
-- name: enable mongod
-  service:
-    name: vitam-mongod
-    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-  notify:
-    - "mongod - restart service"
-
 #### Configuration ####
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
@@ -105,24 +98,7 @@
   notify:
    - "mongod - reload consul configuration"
 
-
-# Ensure that the installation is complete and consul up before continuing...
-- meta: flush_handlers
-  tags:
-    - update_mongodb_configuration
-
-- name: Ensure service is started
-  service:
-    name: vitam-mongod
-    state: started
-  tags:
-    - update_mongodb_configuration
-
-#### Mongo online configuration ####
-# Note : mongodb needs to be started for these elements to succeed
-
 # Enable mongo passphrase
-
 - name: Copy the passphrase
   template:
     src: "keyfile.j2"
@@ -132,11 +108,28 @@
     mode: 0600
   tags:
     - update_mongodb_configuration
+  notify:
+    - "mongod - reload consul configuration"
 
-# Now lest's initiate the replica set
+# Ensure that the installation is complete and consul up before continuing...
+- meta: flush_handlers
+  tags:
+    - update_mongodb_configuration
+
+- name: Ensure {{ mongo_cluster_name }}-mongod service is started at boot
+  service:
+    name: vitam-mongod
+    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+    state: started
+
+#### Mongo online configuration ####
+# Note : mongodb needs to be started for these elements to succeed
+
+# Now let's initiate the replica set
 # Do this only on the first node of the current shard
 # We have to wait for all the node to be up
 
+# FIXME : Is it really OK to re-initiate mongod replica set during upgrades?
 - block:
 
     - name: Wait for the service port to be open on all members of the replica
@@ -207,4 +200,4 @@
       tags:
         - update_mongodb_configuration
 
-  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"
+  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap | lower == "true"

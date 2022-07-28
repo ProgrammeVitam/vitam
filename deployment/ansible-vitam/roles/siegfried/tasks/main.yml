@@ -11,10 +11,11 @@
   notify:
     - "siegfried - restart service"
 
-- name: Ensure siegfried is started on boot
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Ensure siegfried is started at boot
   service:
     name: vitam-siegfried
     enabled: "{{ siegfried.at_boot | default(service_at_boot) }}"
     state: started
-  notify:
-    - "siegfried - restart service"

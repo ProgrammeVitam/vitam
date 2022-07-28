@@ -140,7 +140,11 @@
   notify:
    - "cerebro - reload consul configuration"
 
-- name: Ensure consul service is started
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Ensure cerebro is started at boot
   service:
-    name: "vitam-consul"
+    name: vitam-elasticsearch-cerebro
+    enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
     state: started
