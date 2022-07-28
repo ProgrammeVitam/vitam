@@ -140,8 +140,6 @@
 
   when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
 
-- meta: flush_handlers
-
 - name: Wait for consul port to be open
   wait_for:
     host: "127.0.0.1"
