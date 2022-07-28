@@ -41,7 +41,7 @@
   tags:
     - update_package_vitam
   notify:
-    - restart service
+    - "vitam - restart service"
   when: force_vitam_version is not defined
 
 # Force a specific version to install (even downgrade)
@@ -55,7 +55,7 @@
       tags:
         - update_package_vitam
       notify:
-        - restart service
+        - "vitam - restart service"
       when: ansible_os_family == "Debian"
 
     - name: Install {{ package_name }} package
@@ -70,14 +70,14 @@
       tags:
         - update_package_vitam
       notify:
-        - restart service
+        - "vitam - restart service"
       when: ansible_os_family == "RedHat"
 
   when: force_vitam_version is defined
 
 #### Configuration ####
 
-- name: Check that the directories exist (must be removed when the RPM plugin will be patched)
+- name: Check that the directories exist
   file:
     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{ vitam_struct.vitam_component }}"
     state: directory
@@ -95,7 +95,7 @@
     - tmp
     - run
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Ensure that the sysconfig sub-directory exists
   file:
@@ -105,7 +105,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Deploy script for ExecStart
   template:
@@ -117,7 +117,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Set Debian systemd directory
   set_fact:
@@ -143,8 +143,8 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
-    - daemon reload
+    - "vitam - restart service"
+    - "vitam - daemon reload"
 
 - name: Deploy common configuration files in sysconfig subdir
   template:
@@ -158,7 +158,7 @@
   tags:
     - update_jvmoptions_vitam
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Deploy common timer configuration files in sysconfig subdir
   template:
@@ -190,7 +190,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Cleanup old configuration files
   file:
@@ -202,7 +202,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - include_tasks: scheduler.yml
   when: vitam_struct.vitam_component == "scheduler"
@@ -210,8 +210,6 @@
 - import_tasks: storage.yml
   when: vitam_struct.vitam_component == "storage"
 
-# TODO: Explain the with_items and when line, or better find a cleaner way (split with separate command ?).
-# Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
     src: "{{ item }}"
@@ -225,7 +223,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Ensure that sub directories exists
   file:
@@ -237,7 +235,7 @@
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'directory'
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Copy files and directories recursively
   template:
@@ -249,7 +247,7 @@
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'file'
   notify:
-    - restart service
+    - "vitam - restart service"
 
 #### Certificates stores deployment ####
 
@@ -272,8 +270,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks truststore exists"
   stat:
@@ -295,8 +293,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks grantedstore exists"
   stat:
@@ -318,8 +316,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} client p12 keystore exists"
   stat:
@@ -341,8 +339,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if timestamp keystore exists"
   stat:
@@ -364,8 +362,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - import_tasks: consul.yml
 

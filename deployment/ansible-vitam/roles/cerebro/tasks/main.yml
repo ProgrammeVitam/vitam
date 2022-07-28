@@ -11,7 +11,7 @@
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
   apt:
@@ -26,7 +26,7 @@
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == false
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
   apt:
@@ -40,7 +40,7 @@
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: install vitam-elasticsearch-cerebro package
   package:
@@ -51,7 +51,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: apply cerebro custom configuration
   template:
@@ -61,7 +61,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: ensure cerebro sysconfig subdir is present
   file:
@@ -79,7 +79,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: Ensure cerebro log dir is present
   file:
@@ -97,7 +97,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: Enable logrotate for cerebro
   template:
@@ -119,7 +119,7 @@
     name: "vitam-elasticsearch-cerebro"
     enabled: "{{ cerebro.at_boot | default(service_at_boot) }}"
   notify:
-    - restart cerebro
+    - "cerebro - restart service"
 
 - name: Ensure consul config dir is OK
   file:
@@ -138,7 +138,7 @@
   tags:
     - consul_conf
   notify:
-   - reload consul configuration
+   - "cerebro - reload consul configuration"
 
 - name: Ensure consul service is started
   service:

@@ -8,14 +8,14 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: enable mongoc
   service:
     name: vitam-mongoc
     enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 #### Configuration ####
 
@@ -38,7 +38,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Create db directory
   file:
@@ -50,7 +50,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Create the mongoc configuration server file
   template:
@@ -62,7 +62,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - restart mongoc
+    - "mongoc - restart service"
 
 - name: Enable logrotate for vitam-mongoc
   template:
@@ -100,10 +100,9 @@
     - consul_conf
     - update_mongodb_configuration
   notify:
-   - reload consul configuration
+   - "mongoc - reload consul configuration"
 
-
-# Ensure that the installation is complete and consul up before contnuing...
+# Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
   tags:
     - update_mongodb_configuration

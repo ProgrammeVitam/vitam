@@ -49,7 +49,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 ## Logstash configuration
 
@@ -67,7 +67,7 @@
     - lib
     - tmp
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - name: ensure json conf extra directory exists
   file:
@@ -77,7 +77,7 @@
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - name: apply configuration files
   template:
@@ -91,7 +91,7 @@
     - "startup.options"
     - "logstash.yml"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - name: configure logstash parser
   template:
@@ -105,7 +105,7 @@
     - "02-logstash-vitam-filter.conf"
     - "03-logstash-vitam-output.conf"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - name: add vitam patterns conf
   template:
@@ -113,7 +113,7 @@
     dest: "/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version }}/patterns/vitam"
     owner: "{{ logstash.user }}"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - name: configure extra parser configuration
   template:
@@ -125,7 +125,7 @@
   with_items:
     - "elasticsearch-template.json"
   notify:
-    - restart logstash
+    - "logstash - restart service"
 
 - block:
   # related to https://github.com/elastic/logstash/issues/11107
@@ -141,12 +141,12 @@
       path: /etc/ssl/certs/java/cacerts
       state: absent
     notify:
-      - restart logstash
+      - "logstash - restart service"
 
   - name: recreate cacerts only on Debian
     shell: "update-ca-certificates -f"
     notify:
-      - restart logstash
+      - "logstash - restart service"
 
   when:
     - ansible_os_family == "Debian"
@@ -172,7 +172,7 @@
   tags:
     - consul_conf
   notify:
-   - reload consul configuration
+   - "logstash - reload consul configuration"
 
 - name: Ensure consul service is started
   service:

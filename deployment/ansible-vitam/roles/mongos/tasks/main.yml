@@ -8,14 +8,14 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart mongos
+    - "mongos - restart service"
 
 - name: enable mongos
   service:
     name: vitam-mongos
     enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
   notify:
-    - restart mongos
+    - "mongos - restart service"
 
 #### Configuration ####
 
@@ -36,7 +36,7 @@
     - script
     - tmp
   notify:
-    - restart mongos
+    - "mongos - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -63,7 +63,7 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart mongos
+    - "mongos - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -104,9 +104,9 @@
     - consul_conf
     - update_mongodb_configuration
   notify:
-   - reload consul configuration
+   - "mongos - reload consul configuration"
 
-# Ensure that the installation is complete and consul up before contnuing...
+# Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
   tags:
     - update_mongodb_configuration

@@ -10,7 +10,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart kibana
+    - "kibana - restart service"
 
 - name: Configure kibana autostart at boot
   systemd:
@@ -18,7 +18,7 @@
     daemon_reload: yes
     enabled: "{{ kibana.at_boot | default(service_at_boot) }}"
   notify:
-    - restart kibana
+    - "kibana - restart service"
 
 - name: Kibana configuration by templating
   template:
@@ -28,7 +28,7 @@
     group: root
     mode: 0644
   notify:
-    - restart kibana
+    - "kibana - restart service"
 
 - name: Ensure Kibana log dir is OK
   file:
@@ -79,4 +79,4 @@
   tags:
     - consul_conf
   notify:
-   - reload consul configuration
+    - "kibana - reload consul configuration"

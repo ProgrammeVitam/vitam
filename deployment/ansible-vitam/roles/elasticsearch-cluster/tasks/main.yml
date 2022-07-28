@@ -17,7 +17,6 @@
     java_package: "{{ java_prerequisites.debian }}"
   when: ansible_os_family == "Debian"
 
-
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
   set_fact:
     elasticsearch_memory: "{{ (ansible_memory_mb.real.total / 2) | int }}m"
@@ -31,7 +30,6 @@
   when:
     - ansible_memory_mb.real.total >= 65536
     - elasticsearch_memory == ""
-
 
 - name: Define temporary memory size & unit vars
   set_fact:
@@ -85,7 +83,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: apply java MBean security
   blockinfile:
@@ -137,7 +135,7 @@
     - lib
     - tmp
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: Ensure elasticsearch sysconfig directory exist
   file:
@@ -147,7 +145,7 @@
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: If already configured, remove limits max_open_files for Elasticsearch
   lineinfile:
@@ -156,7 +154,7 @@
     state: absent
   when: elasticsearch_max_open_files is defined
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: apply elasticsearch configuration yml
   template:
@@ -166,7 +164,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: apply logging for elasticsearch configuration file
   template:
@@ -179,7 +177,7 @@
     - "log4j2.properties"
     - "jvm.options"
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 - name: apply elasticsearch sysconfig default
   template:
@@ -189,7 +187,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart elasticsearch
+    - "elasticsearch-cluster - restart service"
 
 #### Elasticsearch systemd service configuration ####
 
@@ -202,7 +200,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: create systemd tmpfiles
+  notify: "elasticsearch-cluster - create systemd tmpfiles"
 
 - name: force user on file elasticsearch-keystore
   file:
@@ -231,7 +229,7 @@
   tags:
     - consul_conf
   notify:
-   - reload consul configuration
+   - "elasticsearch-cluster - reload consul configuration"
 
 # Force flush handlers to be sure previous role handlers have been run (for index templates)
 - meta: flush_handlers

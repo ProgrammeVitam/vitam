@@ -25,7 +25,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Check that storage_archives directory exists for storage component
   file:
@@ -35,4 +35,4 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart service
+    - "vitam - restart service"

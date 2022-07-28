@@ -1,8 +1,6 @@
 ---
 
-- debug:
-    msg: "Reload vitam-consul service"
-- name: reload consul
+- name: "Reload vitam-consul service"
   service:
     name: "vitam-consul"
     state: reloaded

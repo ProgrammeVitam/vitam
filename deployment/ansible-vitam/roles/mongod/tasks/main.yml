@@ -9,14 +9,14 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart mongod
+    - "mongod - restart service"
 
 - name: enable mongod
   service:
     name: vitam-mongod
     enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
   notify:
-    - restart mongod
+    - "mongod - restart service"
 
 #### Configuration ####
 
@@ -37,7 +37,7 @@
     - script
     - tmp
   notify:
-    - restart mongod
+    - "mongod - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -49,7 +49,7 @@
     mode: "{{ vitam_defaults.folder.folder_permission }}"
     state: directory
   notify:
-    - restart mongod
+    - "mongod - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -61,7 +61,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart mongod
+    - "mongod - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -103,10 +103,10 @@
     - consul_conf
     - update_mongodb_configuration
   notify:
-   - reload consul configuration
+   - "mongod - reload consul configuration"
 
 
-# Ensure that the installation is complete and consul up before contnuing...
+# Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
   tags:
     - update_mongodb_configuration

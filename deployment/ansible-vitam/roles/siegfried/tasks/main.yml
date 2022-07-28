@@ -9,7 +9,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart siegfried
+    - "siegfried - restart service"
 
 - name: Ensure siegfried is started on boot
   service:
@@ -17,4 +17,4 @@
     enabled: "{{ siegfried.at_boot | default(service_at_boot) }}"
     state: started
   notify:
-    - restart siegfried
+    - "siegfried - restart service"

@@ -1,11 +1,11 @@
 ---
 # handlers file for rsyslog
-- name: restart rsyslog
+- name: "rsyslog - restart service"
   service:
     name: rsyslog
     state: restarted
 
-- name: restart syslogng
+- name: "syslogng - restart service"
   service:
     name: syslog-ng
     state: restarted

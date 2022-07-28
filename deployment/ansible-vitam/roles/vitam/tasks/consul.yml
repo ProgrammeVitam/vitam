@@ -19,7 +19,7 @@
       tags:
         - consul_conf
       notify:
-       - reload consul configuration
+       - "vitam - reload consul configuration"
 
     - name: "Set correct SELinux file context for {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
       shell: "restorecon {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
