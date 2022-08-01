@@ -10,6 +10,15 @@
   delay: "{{ packages_install_retries_delay }}"
   tags: gatling
 
+- name: Check if gatling keystore exists
+  stat:
+    path: "{{ inventory_dir }}/keystores/client-external/keystore_gatling.p12"
+  delegate_to: localhost
+  register: gatling_keystore
+  tags:
+    - update_vitam_certificates
+    - gatling
+
 - name: Copy gatling p12 keystore
   copy:
     src: "{{ inventory_dir }}/keystores/client-external/keystore_gatling.p12"
@@ -17,7 +26,16 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-external/keystore_gatling.p12 || echo nofile') == \"\" }} )"
+  when: gatling_keystore.stat.exists
+  tags:
+    - update_vitam_certificates
+    - gatling
+
+- name: Check if external truststore exists
+  stat:
+    path: "{{ inventory_dir }}/keystores/client-external/truststore_external.jks"
+  delegate_to: localhost
+  register: external_truststore
   tags:
     - update_vitam_certificates
     - gatling
@@ -29,7 +47,7 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: " ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-external/truststore_external.jks || echo nofile') == \"\"}} )"
+  when: external_truststore.stat.exists
   tags:
     - update_vitam_certificates
     - gatling
@@ -44,4 +62,3 @@
   tags:
     - update_vitam_certificates
     - gatling
-

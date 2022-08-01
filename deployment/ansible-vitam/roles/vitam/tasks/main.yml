@@ -239,61 +239,105 @@
 
 #### Certificates stores deployment ####
 
-- name: "Copy {{ vitam_struct.vitam_component }} jks keystore (server)"
+- name: "Check if {{ vitam_struct.vitam_component }} server jks keystore exists"
+  stat:
+    path: "{{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks"
+  delegate_to: localhost
+  register: component_jks_keystore
+  tags:
+    - update_vitam_certificates
+
+- name: "Copy {{ vitam_struct.vitam_component }} server jks keystore"
   copy:
     src: "{{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks"
     dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks || echo nofile') == \"\" }}"
+  when: component_jks_keystore.stat.exists
   tags:
     - update_vitam_certificates
   notify:
     - restart service
     - reload consul configuration
 
-- name: "Copy truststore"
+- name: "Check if {{ vitam_struct.vitam_component }} jks truststore exists"
+  stat:
+    path: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/truststore_{{ vitam_certificate_client_type }}.jks"
+  delegate_to: localhost
+  register: component_truststore
+  when: vitam_certificate_client_type is defined
+  tags:
+    - update_vitam_certificates
+
+- name: "Copy {{ vitam_struct.vitam_component }} jks truststore"
   copy:
     src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/truststore_{{ vitam_certificate_client_type }}.jks"
     dest: "{{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/truststore_{{ vitam_certificate_client_type }}.jks || echo nofile') == \"\"}} )"
+  when: vitam_certificate_client_type is defined and component_truststore.stat.exists
   tags:
     - update_vitam_certificates
   notify:
     - restart service
     - reload consul configuration
 
-- name: "Copy server grantedstore"
+- name: "Check if {{ vitam_struct.vitam_component }} jks grantedstore exists"
+  stat:
+    path: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/grantedstore_{{ vitam_certificate_client_type }}.jks"
+  delegate_to: localhost
+  register: component_grantedstore
+  when: vitam_certificate_client_type is defined
+  tags:
+    - update_vitam_certificates
+
+- name: "Copy {{ vitam_struct.vitam_component }} jks grantedstore"
   copy:
     src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/grantedstore_{{ vitam_certificate_client_type }}.jks"
     dest: "{{ vitam_folder_conf }}/grantedstore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks || echo nofile') == \"\"}} ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/grantedstore_{{ vitam_certificate_client_type }}.jks || echo nofile') == \"\"}} )"
+  when: vitam_certificate_client_type is defined and component_jks_keystore.stat.exists and component_grantedstore.stat.exists
   tags:
     - update_vitam_certificates
   notify:
     - restart service
     - reload consul configuration
 
-- name: "Copy {{ vitam_struct.vitam_component }} p12 keystore (clients)"
+- name: "Check if {{ vitam_struct.vitam_component }} client p12 keystore exists"
+  stat:
+    path: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/keystore_{{ vitam_struct.vitam_component }}.p12"
+  delegate_to: localhost
+  register: component_p12_keystore
+  when: vitam_certificate_client_type is defined
+  tags:
+    - update_vitam_certificates
+
+- name: "Copy {{ vitam_struct.vitam_component }} client p12 keystore"
   copy:
     src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/keystore_{{ vitam_struct.vitam_component }}.p12"
     dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.p12"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/keystore_{{ vitam_struct.vitam_component }}.p12 || echo nofile') == \"\" }} )"
+  when: vitam_certificate_client_type is defined and component_p12_keystore.stat.exists
   tags:
     - update_vitam_certificates
   notify:
     - restart service
     - reload consul configuration
+
+- name: "Check if timestamp keystore exists"
+  stat:
+    path: "{{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12"
+  delegate_to: localhost
+  register: timestamp_keystore
+  when: vitam_timestamp_usage is defined
+  tags:
+    - update_vitam_certificates
 
 - name: "Copy timestamp keystore"
   copy:
@@ -302,7 +346,7 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_timestamp_usage is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12 || echo nofile') == \"\" }} )"
+  when: vitam_timestamp_usage is defined and timestamp_keystore.stat.exists
   tags:
     - update_vitam_certificates
   notify:
