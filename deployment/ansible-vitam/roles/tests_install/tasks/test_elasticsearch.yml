@@ -5,15 +5,14 @@
     method: GET
     url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cluster/health"
     body_format: "json"
-  register: result
+  register: test_elasticsearch
   until:
-    - result.json is defined
-    - result.json.status == "green"
+    - test_elasticsearch.json is defined
+    - test_elasticsearch.json.status == "green"
   retries: "{{ vitam_defaults.services.api_call_timeout }}"
   delay: 10
   delegate_to: "{{ groups['hosts_elasticsearch_data']|first }}"
   run_once: true
-  register: test_elasticsearch
   ignore_errors: yes
 
 - name: Update report in case of error
