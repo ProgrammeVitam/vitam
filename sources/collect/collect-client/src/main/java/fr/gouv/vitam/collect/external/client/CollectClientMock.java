@@ -142,4 +142,11 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
         throws VitamClientException {
         return null;
     }
+
+    @Override
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
+        throws VitamClientException {
+        return null;
+    }
+
 }
