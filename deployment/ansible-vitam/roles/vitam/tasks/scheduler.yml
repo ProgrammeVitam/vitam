@@ -6,7 +6,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Deploy configuration files in jobs subdir
   template:
@@ -20,4 +20,4 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"

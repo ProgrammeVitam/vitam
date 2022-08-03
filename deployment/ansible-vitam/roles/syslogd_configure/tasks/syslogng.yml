@@ -12,9 +12,12 @@
     - groups['hosts_logstash']|length > 0
     - consul_disabled is not defined or consul_disabled |lower != "true"
   notify:
-    - restart syslogng
+    - "syslogng - restart service"
 
-- name: Ensure service is started
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Ensure syslog-ng service is started
   service:
     name: "syslog-ng"
     state: started

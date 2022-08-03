@@ -26,11 +26,8 @@
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
 
-- import_tasks: tape_offer.yml
-
-- import_tasks: compute_offers.yml
-  tags:
-    - update_vitam_configuration
+- include_tasks: tape_offer.yml
+  when: vitam_struct.vitam_component == "offer"
 
 # state: latest to handle snapshot versions
 - name: Install {{ package_name }} package
@@ -44,7 +41,7 @@
   tags:
     - update_package_vitam
   notify:
-    - restart service
+    - "vitam - restart service"
   when: force_vitam_version is not defined
 
 # Force a specific version to install (even downgrade)
@@ -58,7 +55,7 @@
       tags:
         - update_package_vitam
       notify:
-        - restart service
+        - "vitam - restart service"
       when: ansible_os_family == "Debian"
 
     - name: Install {{ package_name }} package
@@ -73,14 +70,14 @@
       tags:
         - update_package_vitam
       notify:
-        - restart service
+        - "vitam - restart service"
       when: ansible_os_family == "RedHat"
 
   when: force_vitam_version is defined
 
 #### Configuration ####
 
-- name: Check that the directories exist (must be removed when the RPM plugin will be patched)
+- name: Check that the directories exist
   file:
     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{ vitam_struct.vitam_component }}"
     state: directory
@@ -98,7 +95,7 @@
     - tmp
     - run
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Ensure that the sysconfig sub-directory exists
   file:
@@ -108,7 +105,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Deploy script for ExecStart
   template:
@@ -120,7 +117,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Set Debian systemd directory
   set_fact:
@@ -146,8 +143,8 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
-    - daemon reload
+    - "vitam - restart service"
+    - "vitam - daemon reload"
 
 - name: Deploy common configuration files in sysconfig subdir
   template:
@@ -161,7 +158,7 @@
   tags:
     - update_jvmoptions_vitam
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Deploy common timer configuration files in sysconfig subdir
   template:
@@ -185,18 +182,15 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "java.security"
-    - "logbook-client.conf"
     - "server-identity.conf"
     - "logback.xml"
     - "logback-access.xml"
     - "jetty-config.xml"
     - "vitam.conf"
-  when: ( item != "logbook-client.conf" ) or
-        ( item == "logbook-client.conf" and vitam_struct.vitam_component != "ihm-demo" )
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Cleanup old configuration files
   file:
@@ -208,13 +202,14 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - include_tasks: scheduler.yml
   when: vitam_struct.vitam_component == "scheduler"
 
-# TODO: Explain the with_items and when line, or better find a cleaner way (split with separate command ?).
-# Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
+- include_tasks: storage.yml
+  when: vitam_struct.vitam_component == "storage"
+
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
     src: "{{ item }}"
@@ -228,7 +223,7 @@
   tags:
     - update_vitam_configuration
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Ensure that sub directories exists
   file:
@@ -240,7 +235,7 @@
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'directory'
   notify:
-    - restart service
+    - "vitam - restart service"
 
 - name: Copy files and directories recursively
   template:
@@ -252,14 +247,7 @@
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'file'
   notify:
-    - restart service
-
-- name: ensure external messages file is absent
-  file:
-    path: "{{ vitam_folder_conf }}/vitam-logbook-messages_fr.properties"
-    state: absent
-  notify:
-    - restart service
+    - "vitam - restart service"
 
 #### Certificates stores deployment ####
 
@@ -282,8 +270,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks truststore exists"
   stat:
@@ -305,8 +293,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks grantedstore exists"
   stat:
@@ -328,8 +316,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if {{ vitam_struct.vitam_component }} client p12 keystore exists"
   stat:
@@ -351,8 +339,8 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - name: "Check if timestamp keystore exists"
   stat:
@@ -374,17 +362,17 @@
   tags:
     - update_vitam_certificates
   notify:
-    - restart service
-    - reload consul configuration
+    - "vitam - restart service"
+    - "vitam - reload consul configuration"
 
 - import_tasks: consul.yml
 
 - import_tasks: selinux_contexts.yml
 
-- name: flush_handlers
+- name: Flush handlers
   meta: flush_handlers
 
-- name: ensure {{ package_name }} service is disabled and stopped
+- name: Ensure "{{ package_name }}" service is disabled and stopped on secondary site
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
     enabled: false
@@ -392,19 +380,40 @@
   when: ( primary_site | lower == "false" ) and
         ( vitam_struct.vitam_component not in vitam_secondary_site_components )
 
-- name: Ensure {{ package_name }} service is started
-  service:
-    name: "vitam-{{ vitam_struct.vitam_component }}"
-    state: started
-    enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
-  when: ( primary_site | lower == "true" ) or
-        ( vitam_struct.vitam_component in vitam_secondary_site_components )
+- block:
 
-- name: Check if {{ package_name }} is listening on service port {{ vitam_struct.port_service }}
-  wait_for:
-    host: "{{ ip_service }}"
-    port: "{{ vitam_struct.port_service }}"
-    state: started
-    timeout: "{{ vitam_defaults.services.start_timeout }}"
+  - name: Ensure "{{ package_name }}" service is started at boot
+    service:
+      name: "vitam-{{ vitam_struct.vitam_component }}"
+      state: started
+      enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
+
+  - name: Check if "{{ package_name }}" service is listening on service port (tcp check)
+    wait_for:
+      host: "{{ ip_service }}"
+      port: "{{ vitam_struct.port_service }}"
+      state: started
+      timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+  - name: Check if "{{ package_name }}" service is listening on service port (http check)
+    uri:
+      url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status"
+    register: result
+    until:
+      - result.status is defined
+      - result.status == 200
+    retries: "{{ vitam_defaults.services.status_retries_number }}"
+    delay: "{{ vitam_defaults.services.status_retries_delay }}"
+
+  - name: Check {{ vitam_struct.vitam_component }} service health in local consul agent
+    uri:
+      url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
+    register: result
+    until:
+      - result.status is defined
+      - result.status == 200
+    retries: "{{ vitam_defaults.services.status_retries_number }}"
+    delay: "{{ vitam_defaults.services.status_retries_delay }}"
+
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )

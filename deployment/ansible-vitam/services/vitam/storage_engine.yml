@@ -5,7 +5,6 @@
   roles:
     - vitam
     - timers
-    - storage
   vars:
     vitam_struct: "{{ vitam.storageengine }}"
     vitam_certificate_client_type: "storage"

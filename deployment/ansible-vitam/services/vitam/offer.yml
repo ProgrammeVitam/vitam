@@ -3,7 +3,6 @@
 - hosts: hosts_storage_offer_default
   any_errors_fatal: true
   roles:
-    - simulate_tape
     - vitam
     - offer
     - timers
