@@ -297,13 +297,6 @@
 							</sources>
 						</mapping>
 					</mappings>
-					<!-- Systemd hook scriptlets -->
-					<preremoveScriptlet>
-						<script>%systemd_preun vitam-storage-accesslog-backup.timer vitam-storage-accesslog-backup.service vitam-storage-log-backup.timer vitam-storage-log-backup.service vitam-storage-log-traceability.timer vitam-storage-log-traceability.service</script>
-					</preremoveScriptlet>
-					<postremoveScriptlet>
-						<script>%systemd_postun vitam-storage-accesslog-backup.timer vitam-storage-accesslog-backup.service vitam-storage-log-backup.timer vitam-storage-log-backup.service vitam-storage-log-traceability.timer vitam-storage-log-traceability.service</script>
-					</postremoveScriptlet>
 				</configuration>
 			</plugin>
 			<plugin>

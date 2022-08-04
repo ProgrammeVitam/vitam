@@ -168,7 +168,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
-                new StorageLogAdministration(storageLogService, configuration.getStorageLogBackupThreadPoolSize());
+                new StorageLogAdministration(storageLogService, configuration);
 
             traceabilityLogbookService = new TraceabilityStorageService(distribution);
 

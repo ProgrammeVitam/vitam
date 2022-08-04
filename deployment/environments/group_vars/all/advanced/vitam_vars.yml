@@ -101,12 +101,6 @@ vitam_timers:
         # Reconstruction (uniquement sur site secondaire)
           frequency_logbook_reconstruction: "0 0/5 * * * ?"
     storage:
-        # Sauvegarde des journaux d'accès
-        - name: vitam-storage-accesslog-backup
-          frequency: "*-*-* 0/4:10:00" # every 4 hours
-        # Sauvegarde des journaux des écritures
-        - name: vitam-storage-log-backup
-          frequency: "*-*-* 0/4:15:00" # every 4 hours
         # Sécurisation du journal des écritures
         - name: vitam-storage-log-traceability
           frequency: "*-*-* 0/4:40:00" # every 4 hours
@@ -377,6 +371,10 @@ vitam:
         storageLogBackupThreadPoolSize: 16
         # Storage write log traceability thread pool size
         storageLogTraceabilityThreadPoolSize: 16
+        # Storage log backup period per hours (default 4 hours)
+        storageLogBackupFrequency: 4
+        # Storage accesslog backup period per hours (default 4 hours)
+        storageAccessLogBackupFrequency: 4
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
         offerSyncThreadPoolSize: 32

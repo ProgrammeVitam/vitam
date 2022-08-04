@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.guid.GUID;
@@ -36,6 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -55,6 +57,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -72,26 +75,51 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Business class for Storage Log Administration (backup)
  */
 public class StorageLogAdministration {
 
-    //TODO : could be useful to create a Junit for this
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAdministration.class);
 
     public static final String STORAGE_WRITE_BACKUP = "STORAGE_BACKUP";
     public static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
 
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final StorageClientFactory storageClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     private final AlertService alertService = new AlertServiceImpl();
     private final StorageLog storageLogService;
     private final int storageLogBackupThreadPoolSize;
 
-    public StorageLogAdministration(StorageLog storageLogService, int storageLogBackupThreadPoolSize) {
+
+    public StorageLogAdministration(StorageLog storageLogService, StorageConfiguration configuration) {
+        this(storageLogService, configuration, WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public StorageLogAdministration(StorageLog storageLogService, StorageConfiguration configuration,
+        WorkspaceClientFactory workspaceClientFactory, StorageClientFactory storageClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.storageLogService = storageLogService;
-        this.storageLogBackupThreadPoolSize = storageLogBackupThreadPoolSize;
+        this.workspaceClientFactory = workspaceClientFactory;
+        this.storageClientFactory = storageClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.storageLogBackupThreadPoolSize = configuration.getStorageLogBackupThreadPoolSize();
+        final long storageLogBackupFrequency = configuration.getStorageLogBackupFrequency();
+        final long storageAccessLogBackupFrequency = configuration.getStorageAccessLogBackupFrequency();
+        final ScheduledExecutorService scheduledExecutorService =
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
+        scheduledExecutorService.scheduleAtFixedRate(new StorageLogBackupThread(this, alertService), storageLogBackupFrequency,
+            storageLogBackupFrequency, TimeUnit.HOURS);
+        scheduledExecutorService.scheduleAtFixedRate(new StorageAccessLogBackupThread(this, alertService),
+            storageAccessLogBackupFrequency, storageAccessLogBackupFrequency, TimeUnit.HOURS);
     }
 
     /**
@@ -195,7 +223,7 @@ public class StorageLogAdministration {
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
         } finally {
-            LogbookOperationsClientFactory.getInstance().getClient()
+            logbookOperationsClientFactory.getClient()
                 .bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
     }
@@ -212,7 +240,7 @@ public class StorageLogAdministration {
 
         try (InputStream inputStream =
             new BufferedInputStream(new FileInputStream(logInformation.getPath().toFile()));
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             String containerName = GUIDFactory.newGUID().toString();
 
@@ -222,7 +250,7 @@ public class StorageLogAdministration {
 
                 workspaceClient.putObject(containerName, fileName, inputStream);
 
-                try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                     final ObjectDescription description = new ObjectDescription();
                     description.setWorkspaceContainerGUID(containerName);
@@ -234,7 +262,7 @@ public class StorageLogAdministration {
                         fileName, description);
 
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                    StorageServerClientException e) {
+                         StorageServerClientException e) {
                     LOGGER.error("unable to store log file", e);
                     createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
                     throw new StorageLogException(e);
