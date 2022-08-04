@@ -56,6 +56,8 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     private static final String TRANSACTION_PATH = "/transactions";
     private static final String PROJECT_PATH = "/projects";
     private static final String UNITS_PATH = "/units";
+    private static final String OBJECTS_PATH = "/objects";
+    private static final String BINARY_PATH = "/binary";
 
     public CollectClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
@@ -305,6 +307,27 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
              return (RequestResponseOK<JsonNode>) result;
          }
      }
+
+    @Override
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
+        throws VitamClientException {
+        VitamRequestBuilder request = get()
+            .withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH + "/" + usage + "/" + version + BINARY_PATH)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonContentType()
+            .withOctetAccept();
+        Response response = null;
+        try {
+            response = make(request);
+            check(response);
+            return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
+        }
+    }
+
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
