@@ -40,6 +40,8 @@ import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -86,7 +88,6 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetadataType;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -105,11 +106,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
@@ -530,17 +533,31 @@ public class CollectService {
         return jsonNode;
     }
 
-    public JsonNode getUnitsByProjectId(String projectId) throws CollectException {
+    public JsonNode getUnitsByProjectId(String projectId, JsonNode queryDsl) throws CollectException {
         Optional<TransactionModel> projectTransaction =
             transactionService.findTransactionByProjectId(projectId);
         if (projectTransaction.isEmpty()) {
             throw new CollectException("No transactions found for project ID");
         }
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            SelectMultiQuery selectUnit = new SelectMultiQuery();
-            selectUnit.addQueries(QueryHelper.in(initialOperation(), projectTransaction.get().getId()));
-            selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
-            return client.selectUnits(selectUnit.getFinalSelect());
+
+            SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
+            selectParserMultiple.parse(queryDsl);
+
+            InQuery transactionsIdsInclusionQuery =
+                QueryHelper.in(initialOperation(), projectTransaction.get().getId());
+            List<Query> queryList = new ArrayList<>(selectParserMultiple.getRequest().getQueries());
+            if (queryList.isEmpty()) {
+                selectParserMultiple.getRequest().getQueries().add(transactionsIdsInclusionQuery);
+
+            } else {
+                Query lastQuery = queryList.get(queryList.size() - 1);
+                Query queryExistObject =
+                    and().add(lastQuery,transactionsIdsInclusionQuery);
+                selectParserMultiple.getRequest().getQueries().set(queryList.size() - 1, queryExistObject);
+            }
+
+            return client.selectUnits(selectParserMultiple.getRequest().getFinalSelect());
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Error when getting units in metadata: {}", e);
             throw new CollectException("Error when getting units in metadata: " + e);

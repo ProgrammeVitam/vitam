@@ -42,16 +42,24 @@ import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.collect.internal.helpers.builders.ProjectDtoBuilder;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.query.ExistsQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -72,8 +80,13 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY.EXISTS;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Ignore
@@ -87,6 +100,8 @@ public class CollectIT extends VitamRuleRunner {
     private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
     private static final String ACCESS_CONTRACT = "ContratTNR";
     private static final String ZIP_FILE = "collect/sampleStream.zip";
+    private static final String OPI = "#opi";
+
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
@@ -171,12 +186,16 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     private void getUnitsByProjectId()
-        throws VitamClientException, JsonProcessingException {
+        throws VitamClientException, JsonProcessingException, InvalidCreateOperationException {
         // Given
         ProjectDto projectDtoResult = getProjectDtoById();
 
         // When
-        RequestResponse<JsonNode> response = collectClient.getUnitsByProjectId(vitamContext, projectDtoResult.getId());
+        SelectMultiQuery selectUnit = new SelectMultiQuery();
+        selectUnit.getQueries().add(QueryHelper.exists(OPI));
+        selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
+        RequestResponse<JsonNode> response = collectClient.getUnitsByProjectId(vitamContext, projectDtoResult.getId(),
+            selectUnit.getFinalSelect());
 
         // Then
         assertThat(response.isOk());
@@ -260,7 +279,7 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
         assertThat(response.getFirstResult().get("#id").textValue()).isEqualTo(unitId);
-        assertThat(response.getFirstResult().get("#opi").textValue()).isEqualTo(transactionGuuid);
+        assertThat(response.getFirstResult().get(OPI).textValue()).isEqualTo(transactionGuuid);
     }
 
     public void getAttachementUnit(String transactionId) throws Exception {
