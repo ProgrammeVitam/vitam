@@ -24,9 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- * Provides logbook interface, factory and implementation for the Storage Engine
- * Server module in order to log every object written on different storage
- * offers
- */
-package fr.gouv.vitam.storage.log.backup;
+
+package fr.gouv.vitam.storage.engine.server.storagelog;
+
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
+public class StorageLogBackupThread implements Runnable {
+
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogBackupThread.class);
+
+    private final StorageLogAdministration storageLogAdministration;
+
+    private final AlertService alertService;
+
+    public StorageLogBackupThread(StorageLogAdministration storageLogAdministration, AlertService alertService) {
+        this.storageLogAdministration = storageLogAdministration;
+        this.alertService = alertService;
+    }
+
+    @Override
+    public void run() {
+        Thread.currentThread().setName(StorageLogBackupThread.class.getName());
+        try {
+            // One RequestId for all tenant
+            VitamThreadUtils.getVitamSession()
+                .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
+            storageLogAdministration.backupStorageLog(VitamConfiguration.getDefaultStrategy(), true,
+                VitamConfiguration.getTenants());
+        } catch (StorageLogException e) {
+            LOGGER.error("Cannot backup storage log", e);
+            alertService.createAlert(VitamLogLevel.ERROR, "Cannot backup storage access log", e);
+            throw new VitamRuntimeException(e);
+        }
+    }
+}

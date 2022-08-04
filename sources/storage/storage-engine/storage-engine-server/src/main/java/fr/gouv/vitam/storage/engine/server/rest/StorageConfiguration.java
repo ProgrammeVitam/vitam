@@ -50,6 +50,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int offerSyncAccessRequestCheckWaitingTime = 10;
     private int storageLogBackupThreadPoolSize = 16;
     private int storageLogTraceabilityThreadPoolSize = 16;
+    private long storageLogBackupFrequency = 4;
+    private long storageAccessLogBackupFrequency = 4;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -265,5 +267,21 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     public StorageConfiguration setMinBulkWriteTimeoutMsPerObject(int minBulkWriteTimeoutMsPerObject) {
         this.minBulkWriteTimeoutMsPerObject = minBulkWriteTimeoutMsPerObject;
         return this;
+    }
+
+    public long getStorageLogBackupFrequency() {
+        return storageLogBackupFrequency;
+    }
+
+    public void setStorageLogBackupFrequency(long storageLogBackupFrequency) {
+        this.storageLogBackupFrequency = storageLogBackupFrequency;
+    }
+
+    public long getStorageAccessLogBackupFrequency() {
+        return storageAccessLogBackupFrequency;
+    }
+
+    public void setStorageAccessLogBackupFrequency(long storageAccessLogBackupFrequency) {
+        this.storageAccessLogBackupFrequency = storageAccessLogBackupFrequency;
     }
 }
