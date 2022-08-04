@@ -138,7 +138,8 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext, String projectId)
+    public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext, String projectId,
+        JsonNode dslQuery)
         throws VitamClientException {
         return null;
     }

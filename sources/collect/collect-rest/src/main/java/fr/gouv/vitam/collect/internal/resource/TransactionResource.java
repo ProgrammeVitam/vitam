@@ -45,8 +45,10 @@ import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -78,6 +80,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
@@ -113,6 +116,9 @@ public class TransactionResource extends ApplicationStatusResource {
     private static final String ID = "#id";
     private static final String ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG =
         "Error when getting units by project ID in metadata : {}";
+
+    private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
+
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final TransactionService transactionService;
     private final ProjectService projectService;
@@ -592,18 +598,36 @@ public class TransactionResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_UNITS, description = "Récupére toutes les unités archivistique d'un projet")
-    public Response getUnitsByProjectId(@PathParam("projectId") String projectId) {
+    public Response getUnitsByProjectId(@PathParam("projectId") String projectId, JsonNode queryDsl) {
 
         try {
+
             SanityChecker.checkParameter(projectId);
-            JsonNode response = collectService.getUnitsByProjectId(projectId);
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+
+            // TODO : should we validate AU query with accessContract for collect metadata ??
+            JsonNode response = collectService.getUnitsByProjectId(projectId, queryDsl);
             return Response.status(Response.Status.OK).entity(response).build();
+
         } catch (CollectException e) {
             LOGGER.error(ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG, e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG, e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (BadRequestException e) {
+            LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
+            return CollectRequestResponse.toVitamError(GLOBAL_EMPTY_QUERY.getStatus(), e.getLocalizedMessage());
+        }
+    }
+
+    private void checkEmptyQuery(JsonNode queryDsl)
+        throws InvalidParseOperationException, BadRequestException {
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl.deepCopy());
+        if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
+            throw new BadRequestException("Query cant be empty");
         }
     }
 }
