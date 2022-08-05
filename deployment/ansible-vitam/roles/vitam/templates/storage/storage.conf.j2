@@ -17,8 +17,8 @@ offerSyncWaitingTime: {{ vitam.storageengine.offerSyncWaitingTime }}
 offerSyncAccessRequestCheckWaitingTime: {{ vitam.storageengine.offerSyncAccessRequestCheckWaitingTime }}
 storageLogBackupThreadPoolSize: {{ vitam.storageengine.storageLogBackupThreadPoolSize }}
 storageLogTraceabilityThreadPoolSize: {{ vitam.storageengine.storageLogTraceabilityThreadPoolSize }}
-storageLogBackupTriggerDelay: {{ vitam.storageengine.storageLogBackupTriggerDelay | default(4) }}
-storageAccessLogBackupTriggerDelay: {{ vitam.storageengine.storageAccessLogBackupTriggerDelay | default(4) }}
+storageLogBackupFrequency: {{ vitam.storageengine.storageLogBackupFrequency | default(4) }}
+storageAccessLogBackupFrequency: {{ vitam.storageengine.storageAccessLogBackupFrequency | default(4) }}
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
