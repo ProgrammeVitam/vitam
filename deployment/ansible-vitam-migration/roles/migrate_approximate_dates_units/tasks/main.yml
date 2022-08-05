@@ -1,0 +1,18 @@
+---
+
+- name: copy temporary script to update unit schema
+  template:
+    src: "migrate_approximate_dates_units.js.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/tmp/mongos/migrate_approximate_dates_units.js"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+- name: update in mongo unit schema.
+  shell: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/tmp/mongos/migrate_approximate_dates_units.js"
+  no_log: "{{ hide_passwords_during_deploy }}"
+
+- name: remove temporary script.
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/tmp/mongos/migrate_approximate_dates_units.js"
+    state: absent
