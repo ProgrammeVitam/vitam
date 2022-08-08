@@ -111,6 +111,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
@@ -181,7 +184,7 @@ public class CollectService {
             }
             return archiveUnitModel;
         } catch (CollectException | MetaDataExecutionException | MetaDataDocumentSizeException
-                 | InvalidParseOperationException | MetaDataClientServerException e) {
+            | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error("Error when fetching unit by id({}): {} ", unitId, e);
             throw new CollectException("Error when fetching unit by id(" + unitId + ") " + e);
         }
@@ -273,8 +276,8 @@ public class CollectService {
                 throw new CollectException("Update Unit with object group id : " + archiveUnitModel.getId());
             }
         } catch (final CollectException | MetaDataExecutionException | MetaDataNotFoundException
-                       | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
-                       | InvalidParseOperationException e) {
+            | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException
+            | InvalidParseOperationException e) {
             LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
             throw new CollectException("Error when saving new objectGroup in metadata: " + e);
         }
@@ -447,9 +450,9 @@ public class CollectService {
             return formatIdentificationModel;
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException
-                 | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException
-                 | FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
-                 FormatIdentifierTechnicalException e) {
+            | FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException
+            | FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
+            FormatIdentifierTechnicalException e) {
             LOGGER.error("Can't detect format for the object : {}", e);
             throw new CollectException("Can't detect format for the object : " + e);
         }
@@ -561,6 +564,61 @@ public class CollectService {
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Error when getting units in metadata: {}", e);
             throw new CollectException("Error when getting units in metadata: " + e);
+        }
+    }
+    /**
+     * delete transaction according to id
+     *
+     * @param id transaction to delete
+     * @throws CollectException exception thrown in case of error
+     */
+    public void deleteTransaction(String id) throws CollectException {
+        Map<String, String> unitGotGUID = findUnitGotGUIDByOperationId(id);
+        Set<String> listUnitGUID = unitGotGUID.keySet();
+        List<String> listGotGUID =
+            unitGotGUID.values().stream().filter(Predicate.not(String::isBlank)).collect(Collectors.toList());
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            client.deleteUnitsBulk(listUnitGUID);
+            client.deleteObjectGroupBulk(listGotGUID);
+        } catch (final MetaDataException | InvalidParseOperationException e) {
+            LOGGER.error("Error when delete units and objects in metadata: {}", e);
+            throw new CollectException("Error when delete units and objects in metadata: " + e);
+        }
+
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            if(workspaceClient.isExistingContainer(id)){
+                workspaceClient.deleteContainer(id, true);
+            }
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error("Error when trying to delete stream from workspace: {} ", e);
+            throw new CollectException("Error when trying to delete stream from workspace: " + e);
+        }
+        transactionService.deleteTransactionById(id);
+
+    }
+
+    public Map<String, String> findUnitGotGUIDByOperationId(String operationId) throws CollectException {
+        Map<String, String> unitGotGUID = new HashMap<>();
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            SelectMultiQuery selectUnit = new SelectMultiQuery();
+            selectUnit.addQueries(QueryHelper.in(initialOperation(), operationId));
+            selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
+            JsonNode response = client.selectUnits(selectUnit.getFinalSelect());
+            RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(response);
+            List<JsonNode> result = responseOK.getResults();
+            if (null != result && !result.isEmpty()) {
+                result.forEach(unit -> {
+                    if (null != unit.get("#object")) {
+                        unitGotGUID.put(unit.get("#id").asText(), unit.get("#object").asText());
+                    } else {
+                        unitGotGUID.put(unit.get("#id").asText(), "");
+                    }
+                });
+            }
+            return unitGotGUID;
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error("Error when getting units and objectGroups in metadata: {}", e);
+            throw new CollectException("Error when getting units and objectGroups in metadata: " + e);
         }
     }
 }

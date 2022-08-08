@@ -172,6 +172,8 @@ public enum SecurityProfilePermissions {
     PROJECT_ID_READ("project:id:read"),
     PROJECT_ID_BINARY("project:id:binary"),
     PROJECT_ID_UNITS("project:id:units"),
+    PROJECT_ID_DELETE("project:id:delete"),
+    TRANSACTION_ID_DELETE("transaction:id:delete"),
     JOB_READ("job:read");
 
 

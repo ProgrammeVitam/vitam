@@ -149,4 +149,15 @@ public class ProjectRepository {
             throw new CollectException("Error when fetching project : " + e);
         }
     }
+
+    /**
+     * delete a project model
+     *
+     * @param id project to delete
+     */
+    public void deleteProject(String id) {
+        LOGGER.debug("Project to delete Id: {}", id);
+        projectCollection.deleteOne(eq(ID, id));
+        LOGGER.debug("Project deleted Id: {}", id);
+    }
 }

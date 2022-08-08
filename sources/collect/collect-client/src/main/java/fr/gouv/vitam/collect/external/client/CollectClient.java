@@ -80,13 +80,33 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
+     * @param vitamContext
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
-     * @param vitamContext
      */
     RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException;
 
+    /**
+     * delete a collect transaction
+     *
+     * produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> deleteTransactionById(VitamContext vitamContext, String transactionId)
+        throws VitamClientException;
 
+    /**
+     * delete a collect project
+     *
+     * produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> deleteProjectById(VitamContext vitamContext, String projectId)
+        throws VitamClientException;
 
     /**
      * get an archive unit by Id
@@ -203,7 +223,8 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded) throws VitamClientException;
+    Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
+        throws VitamClientException;
 
 
     /**
@@ -218,7 +239,6 @@ public interface CollectClient extends MockOrRestClient {
 
     /**
      * Get all AU attached to transactions related to project Id param
-     *
      * @param vitamContext
      * @param projectId
      * @param dslQuery
@@ -230,6 +250,7 @@ public interface CollectClient extends MockOrRestClient {
 
     /**
      * Get all AU attached to transactions related to project Id param
+     *
      * @param vitamContext security context
      * @param unitId unit id
      * @param usage usage

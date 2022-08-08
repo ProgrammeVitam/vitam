@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
@@ -115,6 +116,39 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         }
     }
 
+
+    @Override
+    public RequestResponse<JsonNode> deleteProjectById(VitamContext vitamContext,
+        String projectId) throws VitamClientException {
+
+        VitamRequestBuilder request = delete()
+            .withPath(PROJECT_PATH + "/" + projectId)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> deleteTransactionById(VitamContext vitamContext,
+        String transactionId) throws VitamClientException {
+
+        VitamRequestBuilder request = delete()
+            .withPath(TRANSACTION_PATH + "/" + transactionId)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
     @Override
     public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException {
 
@@ -160,7 +194,7 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         try (Response response = make(request)) {
             check(response);
             RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-            return (RequestResponseOK<JsonNode>) result ;
+            return (RequestResponseOK<JsonNode>) result;
         }
     }
 
@@ -292,7 +326,7 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
             return (RequestResponseOK<JsonNode>) result;
         }
     }
-
+    
      @Override
      public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext,
          String projectId, JsonNode dslQuery) throws VitamClientException{

@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
@@ -83,6 +84,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
@@ -91,6 +93,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
@@ -241,6 +244,38 @@ public class TransactionResource extends ApplicationStatusResource {
     }
 
 
+    @Path("/projects/{projectId}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_ID_DELETE, description = "Supprime un projet par son id")
+    public Response deleteProjectById(@PathParam("projectId") String projectId) {
+        try {
+            SanityChecker.checkParameter(projectId);
+            Optional<ProjectModel> projectModel = projectService.findProject(projectId);
+
+            if (projectModel.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+
+            Optional<TransactionModel> transactionModel = transactionService.findTransactionByProjectId(projectId);
+
+            if (!transactionModel.isEmpty()) {
+                collectService.deleteTransaction(transactionModel.get().getId());
+            }
+            projectService.deleteProjectById(projectId);
+
+            return Response.status(Response.Status.OK).build();
+        } catch (CollectException e) {
+            LOGGER.error("Error when delete project by Id : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when delete project by Id : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+
     @Path("/projects")
     @GET
     @Consumes(APPLICATION_JSON)
@@ -280,6 +315,32 @@ public class TransactionResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/transactions/{transactionId}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_ID_DELETE, description = "Supprime une transaction par son id")
+    public Response deleteTransactionById(@PathParam("transactionId") String transactionId) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+
+            if (transactionModel.isEmpty()) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+
+            collectService.deleteTransaction(transactionModel.get().getId());
+            return Response.status(Response.Status.OK).build();
+        } catch (CollectException e) {
+            LOGGER.error("Error when delete transaction by Id : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when delete transaction by Id : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

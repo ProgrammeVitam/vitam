@@ -71,7 +71,18 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId) throws VitamClientException {
+    public RequestResponse<JsonNode> deleteTransactionById(VitamContext vitamContext, String transactionId) {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> deleteProjectById(VitamContext vitamContext, String projectId) {
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId)
+        throws VitamClientException {
         return null;
     }
 
@@ -128,12 +139,14 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded) throws VitamClientException {
+    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
+        throws VitamClientException {
         return null;
     }
 
     @Override
-    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery) throws VitamClientException {
+    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery)
+        throws VitamClientException {
         return null;
     }
 
