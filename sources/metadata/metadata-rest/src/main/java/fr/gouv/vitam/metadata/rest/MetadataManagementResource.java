@@ -115,6 +115,7 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService.DIP_CONTAINER;
 import static fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService.TRANSFERS_CONTAINER;
+import static javax.ws.rs.core.Response.Status.ACCEPTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -443,7 +444,7 @@ public class MetadataManagementResource {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
                 JsonNode dslQuery = getObsoleteComputedInheritedRulesDsl();
                 Response response = computedInheritedRulesCalculation(dslQuery);
-                if (!response.getStatusInfo().equals(Response.Status.OK)) {
+                if (!response.getStatusInfo().equals(Response.Status.ACCEPTED)) {
                     isError = true;
                 }
             }
@@ -451,7 +452,7 @@ public class MetadataManagementResource {
             if (isError) {
                 return Response.status(INTERNAL_SERVER_ERROR).build();
             }
-            return Response.status(OK).build();
+            return Response.status(ACCEPTED).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return Response.status(BAD_REQUEST)
