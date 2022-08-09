@@ -116,10 +116,10 @@ public class StorageLogAdministration {
         final long storageAccessLogBackupFrequency = configuration.getStorageAccessLogBackupFrequency();
         final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
-        scheduledExecutorService.scheduleAtFixedRate(new StorageLogBackupThread(this, alertService), storageLogBackupFrequency,
-            storageLogBackupFrequency, TimeUnit.HOURS);
+        scheduledExecutorService.scheduleAtFixedRate(new StorageLogBackupThread(this, alertService),
+            Math.min(15, storageLogBackupFrequency), storageLogBackupFrequency, TimeUnit.MINUTES);
         scheduledExecutorService.scheduleAtFixedRate(new StorageAccessLogBackupThread(this, alertService),
-            storageAccessLogBackupFrequency, storageAccessLogBackupFrequency, TimeUnit.HOURS);
+            Math.min(15, storageAccessLogBackupFrequency), storageAccessLogBackupFrequency, TimeUnit.MINUTES);
     }
 
     /**

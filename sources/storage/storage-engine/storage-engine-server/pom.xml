@@ -32,24 +32,6 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<!-- Required by systemd timers. Should be fixed when systemd timers are replaced with vitam-scheduler -->
-			<artifactId>storage-log-backup</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<!-- Required by systemd timers. Should be fixed when systemd timers are replaced with vitam-scheduler -->
-			<artifactId>storage-log-traceability</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<!-- Required by systemd timers. Should be fixed when systemd timers are replaced with vitam-scheduler -->
-			<artifactId>storage-access-log-backup</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-operations-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
