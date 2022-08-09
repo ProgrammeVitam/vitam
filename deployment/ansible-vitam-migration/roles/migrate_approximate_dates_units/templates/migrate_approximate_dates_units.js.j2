@@ -7,15 +7,12 @@ function bulkWriteUnits(idsUnit) {
 
             }
         },
-
         {
             _id: true,
             evDateTime: true,
             "events": {
                 $slice: -1
-            },
-
-            "events.evDateTime": 1
+            }
         }
     ).forEach(function(lfc) {
 
@@ -40,7 +37,7 @@ function bulkWriteUnits(idsUnit) {
     });
 
     db.getSiblingDB('metadata').Unit.bulkWrite(bulkUpdateOps,{ordered : false});
-    print("number of items processed: "+counter+"/"+ sum);
+    print("number of items processed: "+counter);
 
 
 }
@@ -56,23 +53,15 @@ var idsUnit = [];
 var units=db.getSiblingDB('metadata').Unit.find(
 
     {
-        $and: [{
-                "_acd": {
+        "_acd": {
                     $exists: false
-                }
-            },
-            {
-                "_aud": {
-                    $exists: false
-                }
-            }
-        ]
+        }
+        
     }, {
         _id: true
     }
 );
 
-var sum = units.count();
 
 units.forEach(function(unit) {
 
