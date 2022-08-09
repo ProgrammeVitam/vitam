@@ -4,6 +4,7 @@ org.quartz.scheduler.instanceId=AUTO
 org.quartz.scheduler.instanceIdGenerator.class=org.quartz.simpl.HostnameInstanceIdGenerator
 org.quartz.scheduler.interruptJobsOnShutdown=true
 
+org.quartz.threadPool.class=fr.gouv.vitam.scheduler.server.thread.VitamQuartzExecutorThreadPool
 org.quartz.threadPool.threadCount={{ vitam_scheduler_thread_count }}
 
 org.quartz.jobStore.class=com.novemberain.quartz.mongodb.MongoDBJobStore

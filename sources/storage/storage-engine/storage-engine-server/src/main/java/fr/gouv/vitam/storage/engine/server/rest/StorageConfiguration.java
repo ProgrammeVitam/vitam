@@ -50,8 +50,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int offerSyncAccessRequestCheckWaitingTime = 10;
     private int storageLogBackupThreadPoolSize = 16;
     private int storageLogTraceabilityThreadPoolSize = 16;
-    private long storageLogBackupFrequency = 4;
-    private long storageAccessLogBackupFrequency = 4;
+    private long storageLogBackupFrequency = 4 * 60;
+    private long storageAccessLogBackupFrequency = 4 * 60;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
