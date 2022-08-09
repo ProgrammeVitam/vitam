@@ -16,19 +16,11 @@
     apache_group: "root"
   when: ansible_os_family == "Debian"
 
-- name: Install vitam user for /vitam browser access rights
+- name: Install apache web server & vitam user for /vitam browser access rights
   package:
-    name: vitam-user-vitam
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-
-
-- name: install apache web server
-  package:
-    name: "{{ apache_service }}"
+    name:
+      - "{{ apache_service }}"
+      - vitam-user-vitam
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

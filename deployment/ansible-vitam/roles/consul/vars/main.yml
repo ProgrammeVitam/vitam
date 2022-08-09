@@ -1,6 +1,5 @@
 ---
 ## Variables internes au rôle ; à ne pas surcharger par des variables plus globales
-consul_service: "vitam-consul"
 
 consul_folder_log: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/log/consul"
 consul_folder_data: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/consul"

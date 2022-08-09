@@ -5,9 +5,9 @@
   fail: msg="{{ vitam_site_name }} not correctly configured"
   when: vitam_site_name|regex_search('[^a-zA-Z0-9\\-]')
 
-- name: Install Consul package
+- name: Install Consul packages
   package:
-    name: "{{ consul_service }}"
+    name: "{{ consul_package_list }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -15,20 +15,6 @@
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - "consul - restart service"
-
-- name: Install Consul-selinux package
-  package:
-    name: "{{ consul_service }}-selinux"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  notify:
-    - "consul - restart service"
-  when:
-    - selinux_state | lower in ["enforcing", "permissive"]
-    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
 
 #### Configuration ####
 
@@ -67,7 +53,7 @@
 
 - name: Ensure consul service is started at boot
   service:
-    name: "{{ consul_service }}"
+    name: vitam-consul
     enabled: "{{ consul.at_boot | default(service_at_boot) }}"
     state: started
 
@@ -85,15 +71,6 @@
 - block:
 
     # For Debian add nameserver 127.0.0.1 entry in /etc/resolvconf/resolv.conf.d/head
-    - name: Install resolvconf package
-      package:
-        name: "resolvconf"
-        state: latest
-      register: result
-      retries: "{{ packages_install_retries_number }}"
-      until: result is succeeded
-      delay: "{{ packages_install_retries_delay }}"
-
     - name: Add nameserver entry in /etc/resolvconf/resolv.conf.d/head
       blockinfile:
         backup: yes
@@ -113,17 +90,7 @@
 
 - block:
 
-    # For Centos Install a package which controls /etc/resolv.conf file
-    - name: Install vitam-resolvconf package
-      package:
-        name: "vitam-resolvconf"
-        state: latest
-      register: result
-      retries: "{{ packages_install_retries_number }}"
-      until: result is succeeded
-      delay: "{{ packages_install_retries_delay }}"
-
-    - name: Start the vitam-resolvconf service
+    - name: Start the vitam-resolvconf services
       systemd:
         name: "{{ item }}"
         enabled: yes

@@ -1,0 +1,9 @@
+---
+
+apache_service: "apache2"
+apache_conf_dir: "sites-available"
+apache_user: "root"
+apache_group: "root"
+mime_type_package: "mime-support"
+
+package_list: ["{{ mime_type_package }}", "{{ apache_service }}"]

@@ -38,45 +38,11 @@
 
 #### Elasticsearch installation ####
 
-# Only prerequisite for Debian : install openjdk from stretch-backports
-- name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian (prerequisite for elasticsearch package)"
-  apt:
-    name: "{{ java_package }}"
-    state: latest
-    default_release: "{{ ansible_distribution_release }}-backports"
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when:
-    - ansible_os_family == "Debian"
-    - disable_internet_repositories_install == false
-
-- name: "install openjdk only when Debian (prerequisite for elasticsearch package)"
-  apt:
-    name: "{{ java_package }}"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when:
-    - ansible_os_family == "Debian"
-    - disable_internet_repositories_install == true
-
-- name: install openjdk when CentOS (prerequisite for elasticsearch package)
-  package:
-    name: "{{ java_package }}"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when: ansible_os_family == "RedHat"
-
 - name: install vitam-{{ composant.cluster_name }} package
   package:
-    name: vitam-{{ composant.cluster_name }}
+    name:
+      - "vitam-{{ composant.cluster_name }}"
+      - "{{ java_package }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

@@ -1,41 +1,13 @@
 ---
 
-- name: Remove Consul package
+- name: Remove Consul packages
   package:
-    name: vitam-consul
+    name: "{{ consul_package_list }}"
     state: absent
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-
-# For Debian
-- block:
-
-  - name: Remove resolvconf package
-    package:
-      name: resolvconf
-      state: absent
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
-
-  when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
-
-# For Centos
-- block:
-
-  - name: Remove vitam-resolvconf package
-    package:
-      name: vitam-resolvconf
-      state: absent
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
-
-  when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
 
 - name: Remove 127.0.0.1 nameserver to resolv.conf
   blockinfile:
