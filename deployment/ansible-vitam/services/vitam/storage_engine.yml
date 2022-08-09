@@ -4,10 +4,8 @@
   any_errors_fatal: true
   roles:
     - vitam
-    - timers
   vars:
     vitam_struct: "{{ vitam.storageengine }}"
     vitam_certificate_client_type: "storage"
     vitam_timestamp_usage: secure-storage
-    timers_list: "{{ vitam_timers.storage }}"
   tags: storage_engine
