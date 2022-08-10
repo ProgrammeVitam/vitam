@@ -98,7 +98,7 @@ hosts_storage_offer_default
 hosts_mongodb_offer
 
 [hosts_storage_offer_default]
-localhost offer_conf=offer-fs-1
+
 
 [hosts_mongodb_offer:children]
 hosts_mongos_offer
