@@ -27,6 +27,11 @@ pipeline {
         SERVICE_GIT_URL = credentials("service-gitlab-url")
         SERVICE_PROXY_HOST = credentials("http-proxy-host")
         SERVICE_PROXY_PORT = credentials("http-proxy-port")
+        SERVICE_CX_SCA_USER = credentials("service-cx-sca-user")
+        SERVICE_CX_SCA_PASSWORD = credentials("service-cx-sca-password")
+        SERVICE_CX_SCA_ACCOUNT = credentials("service-cx-sca-account")
+        SERVICE_CX_SCA_SERVER = credentials("service-cx-sca-server")
+        SERVICE_CX_SCA_AUTH_SERVER = credentials("service-cx-sca-auth-server")
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
@@ -35,6 +40,7 @@ pipeline {
         MONGO_VERSION="4.2.5"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
+
     }
 
     options {
@@ -574,6 +580,41 @@ pipeline {
 //            }
 //        }
 
+
+        stage('Checkmarx SCA step') {
+           when {
+               anyOf {
+                    branch "develop"
+                    branch "master_*"
+                }
+           }
+           environment {
+                http_proxy="http://${env.SERVICE_PROXY_HOST}:${env.SERVICE_PROXY_PORT}"
+                https_proxy="http://${env.SERVICE_PROXY_HOST}:${env.SERVICE_PROXY_PORT}"
+                CX_NAME="vitam.${env.GIT_BRANCH}"
+           }
+           steps {
+                sh 'curl -O https://sca-downloads.s3.amazonaws.com/cli/latest/ScaResolver-linux64.tar.gz'
+                sh 'tar -xzvf  ScaResolver-linux64.tar.gz'
+                sh 'sudo ln -sf /usr/local/maven/bin/mvn /usr/local/bin/mvn'
+                sh './ScaResolver -n $CX_NAME -u $SERVICE_CX_SCA_USER -a $SERVICE_CX_SCA_ACCOUNT --server-url $SERVICE_CX_SCA_SERVER --authentication-server-url $SERVICE_CX_SCA_AUTH_SERVER -s sources -p "$SERVICE_CX_SCA_PASSWORD" --report-type Risk --report-extension Pdf '
+           }
+           post {
+                success {
+                    archiveArtifacts (
+                        artifacts: "reports/$CX_NAME/*.pdf",
+                        fingerprint: true
+                    )
+                }
+                failure {
+                    archiveArtifacts (
+                        artifacts: "logs/$CX_NAME/*.log",
+                        fingerprint: true
+                    )
+                }
+            }
+        }
+        
         stage("Information") {
             steps {
                 script {
