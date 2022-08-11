@@ -55,7 +55,7 @@
     - proxy_http.load
     - socache_shmcb.load
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: create DocumentRoot directory
   file:
@@ -64,7 +64,7 @@
     owner: root
     mode: 0755
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: create certificates directory
   file:
@@ -95,7 +95,7 @@
       - js
       - favicon.ico
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: copy index default page
   template:
@@ -107,7 +107,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 #OMA: if problem with apache2 restart due to absent pem, manually remove on reverse the above p12 file and relaunch playbook
 - name: copy certificate
@@ -138,7 +138,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: add js & css to mod_mime
   copy:
@@ -149,7 +149,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: limit info in reverse headers
   copy:
@@ -160,7 +160,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: remove default index page on Debian
   file:
@@ -170,7 +170,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: activate httpd configuration for debian
   file:
@@ -185,7 +185,7 @@
   tags:
     - update_package_vitam
   notify:
-     - reload apache
+     - "reverse - reload apache"
 
 - name: Ensure Apache autostart && Apache is started
   service:

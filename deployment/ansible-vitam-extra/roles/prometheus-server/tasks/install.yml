@@ -8,7 +8,7 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 #### Configuration ####
 - name: Check that the prometheus directories exist
@@ -29,7 +29,7 @@
   tags:
     - update_prometheus_configuration
     - generate_prometheus_conf
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 - name: Apply prometheus server sysconfig default
   template:
@@ -38,7 +38,7 @@
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 - name: Check that the prometheus rules directory exist
   file:
@@ -47,7 +47,7 @@
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 - name: Copy prometheus rules files
   copy:
@@ -58,7 +58,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   with_filetree: "{{ role_path }}/rules/"
   when: item.state == 'file'
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 - name: list prometheus rules files
   find:
@@ -78,7 +78,7 @@
   tags:
     - update_prometheus_configuration
     - generate_prometheus_conf
-  notify: restart prometheus server
+  notify: "prometheus-server - restart service"
 
 #### Consul configuration ####
 
@@ -101,7 +101,7 @@
     - consul_conf
     - update_prometheus_configuration
   notify:
-    - reload consul configuration
+    - "prometheus-server - reload consul configuration"
 
 # Ensure that the installation is complete and consul up
 - meta: flush_handlers

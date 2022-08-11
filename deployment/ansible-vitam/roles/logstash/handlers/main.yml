@@ -1,11 +1,12 @@
 ---
 
 - name: "logstash - restart service"
-  service:
+  systemd:
     name: logstash
     state: restarted
+    daemon_reload: yes
 
 - name: "logstash - reload consul configuration"
-  service:
+  systemd:
     name: vitam-consul
     state: reloaded

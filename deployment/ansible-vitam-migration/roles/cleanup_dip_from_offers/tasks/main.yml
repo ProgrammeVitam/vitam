@@ -1,18 +1,17 @@
 ---
 
-- name: Ensure service is started
+- name: Ensure vitam-metadata is started
   service:
-    name: "vitam-metadata"
+    name: vitam-metadata
     state: started
 
-- name: "Wait until service metadata is up"
+- name: Wait until service vitam-metadata is up
   wait_for:
       host: "{{ hostvars[groups['hosts_metadata'][0]]['ip_admin'] }}"
       port: "{{ vitam.metadata.port_admin }}"
       state: "started"
       timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
-
 
 - name: Cleanup DIP from offers
   uri:
@@ -25,4 +24,3 @@
     headers:
       Accept: application/json
   run_once: true
-

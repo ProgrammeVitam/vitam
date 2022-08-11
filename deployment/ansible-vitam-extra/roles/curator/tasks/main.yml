@@ -11,7 +11,6 @@
     - "delete_index_metricbeat.yml"
     - "delete_index_packetbeat.yml"
 
-
 - name: copy the systemd unit & timer files for curator on CentOS environment
   template:
     src: "{{ item }}"

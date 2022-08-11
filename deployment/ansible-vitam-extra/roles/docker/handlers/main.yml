@@ -1,7 +1,6 @@
 ---
 
-# handlers file for dev-tools
-- name: restart docker
+- name: "docker - restart service"
   systemd:
     name: docker
     state: restarted

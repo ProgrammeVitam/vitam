@@ -8,7 +8,7 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
-  notify: restart prometheus elasticsearch exporter
+  notify: "prometheus-elasticsearch-exporter - restart service"
 
 - name: Check that elasticsearch_exporter directories exist
   file:
@@ -25,7 +25,7 @@
     - log
     - data
     - tmp
-  notify: restart prometheus elasticsearch exporter
+  notify: "prometheus-elasticsearch-exporter - restart service"
 
 - name: Apply elasticsearch_exporter sysconfig settings
   template:
@@ -36,7 +36,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - update_elasticsearch_exporter_configuration
-  notify: restart prometheus elasticsearch exporter
+  notify: "prometheus-elasticsearch-exporter - restart service"
 
 - name: Ensure consul config dir is OK
   file:
@@ -56,7 +56,7 @@
   tags:
     - consul_conf
     - update_elasticsearch_exporter_configuration
-  notify: reload consul configuration
+  notify: "prometheus-elasticsearch-exporter - reload consul configuration"
 
 - meta: flush_handlers
   tags:

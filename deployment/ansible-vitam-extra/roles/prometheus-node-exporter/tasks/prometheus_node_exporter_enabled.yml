@@ -8,7 +8,7 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
-  notify: restart prometheus node exporter
+  notify: "prometheus-node-exporter - restart service"
 
 #### Configuration ####
 - name: Check that node_exporter directories exist
@@ -26,7 +26,7 @@
     - log
     - data
     - tmp
-  notify: restart prometheus node exporter
+  notify: "prometheus-node-exporter - restart service"
 
 - name: Apply node_exporter sysconfig settings
   template:
@@ -37,7 +37,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - update_node_exporter_configuration
-  notify: restart prometheus node exporter
+  notify: "prometheus-node-exporter - restart service"
 
 - name: Add directory for textfile_collector
   file:
@@ -68,7 +68,7 @@
   tags:
     - consul_conf
     - update_node_exporter_configuration
-  notify: reload consul configuration
+  notify: "prometheus-node-exporter - reload consul configuration"
 
 # Ensure that the installation is complete
 - meta: flush_handlers

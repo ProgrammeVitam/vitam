@@ -12,14 +12,6 @@
   notify:
     - "kibana - restart service"
 
-- name: Configure kibana autostart at boot
-  systemd:
-    name: kibana
-    daemon_reload: yes
-    enabled: "{{ kibana.at_boot | default(service_at_boot) }}"
-  notify:
-    - "kibana - restart service"
-
 - name: Kibana configuration by templating
   template:
     src: kibana.yml.j2
@@ -73,10 +65,9 @@
   notify:
     - "kibana - reload consul configuration"
 
-- name: Flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
-- name: Make sure kibana is started at boot
+- name: Make sure kibana is started & at boot
   systemd:
     name: kibana
     enabled: "{{ composant.at_boot | default(service_at_boot) }}"
