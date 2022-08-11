@@ -201,32 +201,6 @@
 								</source>
 							</sources>
 						</mapping>
-						<mapping>
-							<directory>/vitam/script/${unix.name}</directory>
-<!-- OMA : change to 750 and change directive if not correct
-							<defaultFileMode>640</defaultFileMode>
--->
-							<filemode>750</filemode>
-							<username>${unix.user}</username>
-							<groupname>${unix.user}</groupname>
-							<sources>
-								<source>
-									<location>${project.build.directory}/script</location>
-								</source>
-							</sources>
-						</mapping>
-						<mapping>
-							<directory>/usr/lib/systemd/system/</directory>
-							<filemode>644</filemode>
-							<username>root</username>
-							<groupname>root</groupname>
-							<directoryIncluded>false</directoryIncluded>
-							<sources>
-								<source>
-									<location>${project.build.directory}/systemd</location>
-								</source>
-							</sources>
-						</mapping>
 					</mappings>
 				</configuration>
 			</plugin>
