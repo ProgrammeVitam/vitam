@@ -267,17 +267,6 @@
 								<prefix>/vitam/conf/${unix.name}</prefix>
 							</mapper>
 						</data>
-						<data>
-							<src>${project.build.directory}/systemd/</src>
-							<type>directory</type>
-							<mapper>
-								<type>perm</type>
-								<user>${unix.user}</user>
-								<group>${unix.group}</group>
-								<filemode>0755</filemode>
-								<prefix>/lib/systemd/system/</prefix>
-							</mapper>
-						</data>
 					</dataSet>
 				</configuration>
 			</plugin>
