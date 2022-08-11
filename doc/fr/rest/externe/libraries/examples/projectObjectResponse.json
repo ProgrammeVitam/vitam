@@ -1,0 +1,26 @@
+{
+    "httpCode": 200,
+    "$hits": {
+        "total": 1,
+        "offset": 0,
+        "limit": 0,
+        "size": 1
+    },
+    "$results": [
+        {
+            "transactionId": "aeeaaaaaachguhgcabg2kambzy6k3cqaaaaq",
+            "id": "aeeaaaaaachguhgcabg2kambzy6k2rqaaaaq",
+            "ArchivalAgreement": "IC-000001",
+            "MessageIdentifier": "20220302-000005",
+            "ArchivalAgencyIdentifier": "Identifier0",
+            "TransferingAgencyIdentifier": "Identifier3",
+            "OriginatingAgencyIdentifier": "FRAN_NP_009915",
+            "SubmissionAgencyIdentifier": "FRAN_NP_005061",
+            "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
+            "tenant": 0,
+            "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
+        }
+    ],
+    "$facetResults": [],
+    "$context": {}
+}

@@ -1,5 +1,5 @@
 Collect
-######
+########
 
 .. toctree::
    :maxdepth: 2

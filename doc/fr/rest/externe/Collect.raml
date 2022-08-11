@@ -32,10 +32,99 @@ documentation:
   - title: API Collect
     content: API Collect
 
+/projects:
+  displayName: Projects
+  description: |
+    API de collecte. Ce point d'entrée permet d'initialiser et de gérer un projet de versement.
+
+    Création d'un projet :
+    - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
+      - ArchivalAgencyIdentifier
+      - TransferingAgencyIdentifier
+      - OriginatingAgencyIdentifier
+      - SubmissionAgencyIdentifier
+      - MessageIdentifier
+      - ArchivalAgreement
+      - unitUp
+      - Comment
+  post:
+    description: |
+      - request body : JSON object
+      - response : JSON of saved project / HTTP CODE 200
+    is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    headers:
+     x-tenant-id:
+        required: true
+    body:
+       application/json:
+          type: object
+          example: !include libraries/examples/projectObjectRequest.json
+    responses:
+       200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/projectObjectResponse.json
+  put:
+        description: |
+          - request body : JSON object
+          - response : JSON of saved project / HTTP CODE 200
+        is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        body:
+           application/json:
+              type: object
+              example: !include libraries/examples/projectObjectPutRequest.json
+        responses:
+           200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/projectObjectResponse.json
+  get:
+    description: |
+      - request body : JSON object
+      - response : JSON of saved project / HTTP CODE 200
+    is: [StandardTraits.StandardOptionalHeader,
+         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    headers:
+     x-tenant-id:
+        required: true
+    responses:
+       200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/listProjectsObjectResponse.json
+  /{id}/binary:
+    displayName: upload d'une archive Zip
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    post:
+     description: |
+       Permet de soumettre un ensemble de binaire au format Zip
+     body:
+      application/zip:
+     headers:
+      X-tenant-Id:
+       required: true
+     responses:
+        200:
+          body:
+            application/json:
+
 /transactions:
   displayName: Transactions
   description: |
-    API de collecte. Ce point d'entrée permet de créer une transaction de versement.
+    API de collecte. Ce point d'entrée permet de créer et gérer une transaction de versement.
 
     Crée une transaction d'entrée :
     - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
@@ -55,14 +144,6 @@ documentation:
      x-tenant-id:
         required: true
 
-/transaction:
-  # root endpoint request
-  displayName: Operations
-  description: |
-    Ajouter une unité archivistique.
-  is: [ StandardTraits.StandardOptionalHeader,
-  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
   /{id}/units:
     displayName: Ajout d'une unité archivistique
     is: [ StandardTraits.StandardOptionalHeader,
@@ -83,7 +164,7 @@ documentation:
           body:
             application/json:
               type: object
-              example: !include ../interne/libraries/examples/transactionInitObjectResponse.json
+              example: !include libraries/examples/CollectUnitObjectResponse.json
 
   /{id}/close:
         displayName: Fermer une transaction -> statut Close
@@ -126,18 +207,51 @@ documentation:
                       example: !include libraries/examples/CollectIngestObjectResponse.json
 
 /units:
-  # root endpoint request
-  displayName: Operations
+  displayName: Units
   description: |
-    Ajouter un groupe d'objects.
+    API de collecte. Ce point d'entrée permet de gérer une unité archivistique et les groupe d'objets.
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+
+  get:
+     description: |
+       Permet de récuperer une ou plusieurs unité archivistique par DSL QUERY
+     body:
+      application/json:
+        type: object
+        example: !include libraries/examples/getCollectUnitByDslQuery.json
+     headers:
+      X-tenant-Id:
+       required: true
+     responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/CollectUnitResponse.json
+  /{id}:
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           Permet de retourner une unité archivistique par son id
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectUnitObjectResponse.json
+
   /{id}/objects//{usage}//{version}:
     displayName: Ajout d'un groupe d'objects
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
     post:
      description: |
        Permet de rajouter un groupe d'objects
@@ -159,7 +273,7 @@ documentation:
         displayName: Ajout d'un binaire
         is: [ StandardTraits.StandardOptionalHeader,
               StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
         post:
          description: |
            Permet de rajouter un binaire

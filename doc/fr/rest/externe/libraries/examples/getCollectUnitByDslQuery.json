@@ -1,0 +1,15 @@
+{
+    "$roots": [],
+    "$query": [
+        {
+            "$eq": {
+                "#opi": "aeeaaaaaacggvocrabzt6ama3soizdqaaaaq"
+            }
+        }
+    ],
+    "$filter": {
+        "$offset": 0,
+        "$limit": 100
+    },
+    "$projection": {}
+}

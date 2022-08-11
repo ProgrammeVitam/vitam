@@ -1,6 +1,6 @@
 
 Jobs de functional-administration VITAM
-**********************************
+****************************************
 
 Liste des classes implémentant les jobs
 --------
@@ -12,7 +12,7 @@ Liste des classes implémentant les jobs
 
   ....
 ReconstructionAccessionRegisterJob.java
-########################
+########################################
 
 Ce job permet de faire la reconstruction des données concernant AccessionRegisterSymbolic et AccessionRegisterDetail portées par le composant functional-administration uniquement sur le site secondaire:
 
@@ -20,7 +20,7 @@ Ce job permet de faire la reconstruction des données concernant AccessionRegist
 
   ....
 ReconstructionReferentialJob.java
-########################
+###################################
 
 Ce job permet de faire la reconstruction des données portées par le composant functional-administration uniquement sur le site secondaire:
 
@@ -28,7 +28,7 @@ Ce job permet de faire la reconstruction des données portées par le composant 
 
   ....
 ReferentialCreateSymblolicAccessionRegisterJob.java
-########################
+####################################################
 
 Ce job permet de déclencher une commande qui va calculer le registre des fonds symbolique et les ajoute dans les bases de données  uniquement sur le site primaire:
 
@@ -36,7 +36,7 @@ Ce job permet de déclencher une commande qui va calculer le registre des fonds 
 
   ....
 RuleManagementAuditJob.java
-########################
+################################
 
 Ce job permet de faire la validation de la cohérence des règles de gestion entre les offres de stockage et les bases de données uniquement sur le site primaire:
 
