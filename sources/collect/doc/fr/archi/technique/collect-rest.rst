@@ -1,5 +1,5 @@
 collect-rest
-###########
+#############
 
 Présentation
 ************
@@ -39,7 +39,7 @@ Rest API
 | https://vitam/collect/v1/transactions/send
 
 -TransactionResource.java
-########################
+##########################
 
 classe controlleur REST
 La classe contient actuellement 6 méthodes :

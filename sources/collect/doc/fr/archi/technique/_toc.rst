@@ -6,9 +6,6 @@ Architecture Technique
    :maxdepth: 2
 
    introduction.rst
-   access-api.rst
-   access-client.rst
-   access-common.rst
-   access-core.rst
-   access-rest.rst
+   collect-client.rst
+   collect-rest.rst
 
