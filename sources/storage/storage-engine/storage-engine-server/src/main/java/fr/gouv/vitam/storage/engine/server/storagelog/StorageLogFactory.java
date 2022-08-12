@@ -111,8 +111,7 @@ public class StorageLogFactory implements StorageLog {
 
     @VisibleForTesting
     public static synchronized StorageLog getInstanceForTest(List<Integer> tenants, Path basePath) throws IOException {
-        instance = new StorageLogFactory(tenants, basePath);
-        return instance;
+        return new StorageLogFactory(tenants, basePath);
     }
 
     /**
