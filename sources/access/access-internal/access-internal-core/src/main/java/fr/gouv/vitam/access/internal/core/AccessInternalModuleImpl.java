@@ -397,7 +397,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final SelectMultiQuery request = new SelectMultiQuery();
         request.addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
-        request.addUsedProjection("#qualifiers.versions", "#id");
+        request.addUsedProjection("#qualifiers.versions", "#qualifiers.qualifier");
 
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
