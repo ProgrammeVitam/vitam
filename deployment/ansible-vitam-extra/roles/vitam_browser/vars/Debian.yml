@@ -1,0 +1,6 @@
+---
+
+apache_service: apache2
+apache_conf_dir: sites-available
+apache_user: www-data
+apache_group: root
