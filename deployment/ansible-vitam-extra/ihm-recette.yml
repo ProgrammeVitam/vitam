@@ -3,11 +3,10 @@
 - hosts: hosts_ihm_recette
   any_errors_fatal: true
   roles:
-    - ihm-recette-data-sets
     - elasticsearch-mapping
     - vitam
-    - {role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url is defined) and (vitam_tests_gitrepo_url != '') and (vitam_tests_branch is not defined or vitam_tests_branch != "")}
-    - {role: gatling, when: gatling_install|lower == 'true'}
+    - { role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url | default('') | length > 0) and (vitam_tests_branch | default('') | length > 0) }
+    - { role: gatling, when: gatling_install | lower == 'true' }
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"
     password_keystore: "{{ keystores.server.ihm_recette }}"

@@ -231,8 +231,7 @@
   notify:
    - "elasticsearch-cluster - reload consul configuration"
 
-- name: Flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: Ensure service {{ composant.cluster_name }} is started at boot
   service:

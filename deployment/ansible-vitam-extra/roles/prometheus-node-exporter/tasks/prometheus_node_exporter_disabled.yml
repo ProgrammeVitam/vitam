@@ -16,4 +16,4 @@
   tags:
     - consul_conf
     - update_node_exporter_configuration
-  notify: reload consul configuration
+  notify: "prometheus-node-exporter - reload consul configuration"

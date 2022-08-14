@@ -9,7 +9,7 @@
         owner: "{{ vitam_defaults.users.vitam }}"
         group: "{{ vitam_defaults.users.group }}"
 
-    - name: Deploy consul agent service declaration for {{ package_name }} service
+    - name: "Deploy consul agent service declaration for {{ package_name }} service"
       template:
         src: "service-componentid.json.j2"
         dest: "{{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"

@@ -72,7 +72,7 @@
   register: result
   until: result.rc == 0
   notify:
-    - restart kibana
+    - "metricbeat - restart kibana"
 
 - name: restart metricbeat
   service:

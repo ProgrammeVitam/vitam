@@ -1,11 +1,6 @@
 ---
-# handlers file for topbeat
-- name: restart topbeat
-  service:
-    name: topbeat
-    state: restarted
 
-- name: restart kibana
+- name: "metricbeat - restart kibana"
   service:
     name: kibana
     state: restarted

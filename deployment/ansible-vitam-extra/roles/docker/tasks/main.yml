@@ -117,7 +117,6 @@
   when: ansible_os_family == "RedHat"
   # End docker centos
 
-
 # OMA : add for unity
 # KWA : check if really useful (potential security problem)
 - name: create docker group
@@ -130,7 +129,7 @@
 - name: Ensure systemd docker service drop-in folder is there
   file:
     name: "/etc/systemd/system/docker.service.d"
-    state: "directory"
+    state: directory
 
 # KWA : add root folders for data / conf / ... directories here ?
 # KWA : configure docker login for repo
@@ -140,7 +139,7 @@
     src: "http_proxy.conf.j2"
     dest: /etc/systemd/system/docker.service.d/http_proxy.conf
   notify:
-   - restart docker
+   - "docker - restart service"
   when: http_proxy_environnement is defined
 
 # Note : we force the restart here, as mongo-express must be restarted when mongodb is restarted...
@@ -149,5 +148,4 @@
   systemd:
     name: docker
     state: restarted
-    daemon_reload: yes
     enabled: yes

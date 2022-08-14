@@ -1,5 +1,7 @@
 ---
+
 - name: "consul - restart service"
-  service:
+  systemd:
     name: "{{ consul_service }}"
     state: restarted
+    daemon_reload: yes

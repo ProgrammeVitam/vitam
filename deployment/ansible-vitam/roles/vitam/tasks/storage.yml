@@ -36,3 +36,20 @@
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - "vitam - restart service"
+  when: vitam_struct.vitam_component == "storage"
+
+- name: create directories for ihm-recette
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/data/{{ vitam_struct.vitam_component }}/{{ item }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - report/performance
+    - report/system
+    - test-data/performance
+    - test-data/system
+  notify:
+    - "vitam - restart service"
+  when: vitam_struct.vitam_component == "ihm-recette"

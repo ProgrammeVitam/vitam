@@ -39,8 +39,7 @@
     environment:
         http_proxy: "{{ http_proxy_environnement }}"
         https_proxy: "{{ http_proxy_environnement }}"
-    notify:
-      - restart grafana
+    notify: "grafana - restart service"
     ignore_errors: true
   when: grafana.proxy | d(false)
 
@@ -181,7 +180,7 @@
       chdir: "{{ grafana_data_dir }}/plugins"
     with_items: "{{ grafana_plugins_to_be_installed }}"
     notify:
-    - restart grafana
+    - "grafana - restart service"
     when: not grafana.proxy | d(false)
 
   - name: set owner and group grafana

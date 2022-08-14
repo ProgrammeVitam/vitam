@@ -1,11 +1,13 @@
 ---
-# handlers file for rsyslog
+
 - name: "rsyslog - restart service"
-  service:
+  systemd:
     name: rsyslog
     state: restarted
+    daemon_reload: yes
 
 - name: "syslogng - restart service"
-  service:
+  systemd:
     name: syslog-ng
     state: restarted
+    daemon_reload: yes

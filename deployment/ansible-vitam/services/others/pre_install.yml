@@ -6,4 +6,3 @@
     - normalize-host
     - selinux_conf
     - syslogd
-    - syslogd_configure

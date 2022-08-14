@@ -1,11 +1,12 @@
 ---
-# handlers file for cerebro
+
 - name: "cerebro - restart service"
-  service:
+  systemd:
     name: vitam-elasticsearch-cerebro
     state: restarted
+    daemon_reload: yes
 
 - name: "cerebro - reload consul configuration"
-  service:
+  systemd:
     name: vitam-consul
     state: reloaded

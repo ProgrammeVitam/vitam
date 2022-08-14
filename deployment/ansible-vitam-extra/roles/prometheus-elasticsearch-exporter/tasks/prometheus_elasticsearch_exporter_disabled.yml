@@ -16,4 +16,4 @@
   tags:
     - consul_conf
     - update_elasticsearch_exporter_configuration
-  notify: reload consul configuration
+  notify: "prometheus-elasticsearch-exporter - reload consul configuration"
