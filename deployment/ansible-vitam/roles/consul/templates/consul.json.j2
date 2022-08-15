@@ -21,13 +21,15 @@
 
   "bootstrap_expect": {{ groups['hosts_consul_server']|length }},
   "server": true,
-  "ui": true,
+  "ui_config": {
+    "enabled": true
+  },
   "addresses" : {
       "http": "{{ ip_admin }}"
   },
 {% endif %}
 
-  "enable_script_checks": true,
+  "enable_local_script_checks": true,
   "disable_remote_exec": true,
   "disable_update_check": true,
   "encrypt": "{{ consul_encrypt }}",
