@@ -1,5 +1,7 @@
 ---
 
+- import_tasks: selinux.yml
+
 # Epel is needed only for clamav
 - name: Install epel-release repository
   package:

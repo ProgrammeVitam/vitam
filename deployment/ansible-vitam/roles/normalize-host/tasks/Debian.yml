@@ -1,5 +1,7 @@
 ---
 
+- import_tasks: apparmor.yml
+
 # Backports are need for openjdk8 & clamav
 - name: "check {{ ansible_distribution_release }}-backports repo are present"
   apt_repository:
