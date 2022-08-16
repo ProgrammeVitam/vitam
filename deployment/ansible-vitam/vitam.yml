@@ -5,18 +5,17 @@
 #   1. Network check
 #   2. Stop Vitam timers
 #   3. Normalize
-#   4. Check ontology (when upgrade)
-#   5. Consul
-#   6. Prometheus node exporter
-#   7. Elasticsearch Log
-#   8. Log server
-#   9. Syslog
-#  10. Elasticsearch Data
-#  11. Kibana Data
-#  12. Mongo
-#  13. Vitam applications
-#  14. Start Vitam timers
-#  13. IHM Demo
+#   4. Consul
+#   5. Prometheus node exporter
+#   6. Elasticsearch Log
+#   7. Log server
+#   8. Syslog
+#   9. Elasticsearch Data
+#  10. Kibana Data
+#  11. Mongo
+#  12. Vitam applications
+#  13. Start Vitam timers
+#  14. IHM Demo
 
 ### CONFIRM PLAYBOOK LAUNCH ###
 - hosts: localhost
@@ -50,15 +49,6 @@
     - normalize-host
     - selinux_conf
     - syslogd
-
-### CHECK VITAM ONTOLOGY WHEN UPGRADE ###
-- hosts: hosts_functional_administration
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - check_ontologies
-  vars:
-    vitam_struct: "{{ vitam.functional_administration }}"
 
 ### CONSUL INSTALLATION ###
 - hosts: hosts_consul_server
