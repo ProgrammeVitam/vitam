@@ -2,6 +2,14 @@
 
 - block:
 
+    - name: "Wait until service functional-admin is up"
+      wait_for:
+          host: "{{ hostvars[groups['hosts_functional_administration'][0]]['ip_admin'] }}"
+          port: "{{ vitam.functional_administration.port_admin }}"
+          state: "started"
+          timeout: "{{ vitam_defaults.services.start_timeout }}"
+      run_once: true
+
     - name: Check Import Ontology
       uri:
         method: POST
@@ -39,7 +47,7 @@
         dest: "{{ inventory_dir }}/backups/{{ backup_file_name }}"
         flat: yes
 
-    - name: Import/update Internal ontologies to functionnal-admin
+    - name: Import/update Internal ontology to functionnal-admin
       uri:
         method: POST
         body: "{{ lookup('file', '{{ inventory_dir }}/ontology/VitamOntology.json')}}"

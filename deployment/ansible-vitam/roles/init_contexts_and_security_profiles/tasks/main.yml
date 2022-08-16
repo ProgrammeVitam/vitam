@@ -35,5 +35,3 @@
 - import_tasks: "init_context_and_certificates.yml"
   when: (securityprofile_check_json.hits.total == 0) or
         (delete_security_profiles | default(false) | bool == true)
-
-- import_tasks: "init_ontologies.yml"
