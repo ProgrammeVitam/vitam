@@ -59,6 +59,7 @@ import org.mockito.junit.MockitoRule;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
 @Ignore
@@ -104,7 +105,7 @@ public class TransactionResourceTest {
         sampleInitTransaction =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
         given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
-        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class));
+        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class), anyString());
         // When
         //        RequestResponseOK result = transactionResource.initTransaction(null);
         // Then
@@ -117,7 +118,7 @@ public class TransactionResourceTest {
         sampleInitTransaction =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
         given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d764");
-        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class));
+        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class), anyString());
         // When
         //        RequestResponseOK result = transactionResource.initTransaction(null);
         // Then

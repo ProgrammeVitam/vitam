@@ -28,6 +28,8 @@ package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.builders.ProjectModelBuilder;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
@@ -56,14 +58,21 @@ public class TransactionServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private ProjectService projectService;
+
     @Test
     public void createCollectTest() throws CollectException {
         // Given
         TransactionDto transactionDto =
             new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null);
 
+
+
         // When
-        transactionService.createTransaction(transactionDto);
+        ProjectModel project = new ProjectModelBuilder().withId("id").build();
+        doReturn(Optional.of(project)).when(projectService).findProject("id");
+        transactionService.createTransaction(transactionDto, "id");
 
         // Then
         ArgumentCaptor<TransactionModel> collectModelCaptor = ArgumentCaptor.forClass(TransactionModel.class);

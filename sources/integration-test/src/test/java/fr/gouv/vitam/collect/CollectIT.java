@@ -38,8 +38,10 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.collect.internal.helpers.builders.ProjectDtoBuilder;
+import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -49,17 +51,13 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.query.ExistsQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -80,13 +78,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY.EXISTS;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Ignore
@@ -183,6 +176,23 @@ public class CollectIT extends VitamRuleRunner {
         closeTransaction();
         ingest();
         updateProject();
+
+        createTransactionByProject();
+    }
+
+    private void createTransactionByProject() throws VitamClientException, JsonProcessingException {
+
+        TransactionDto transaction = new TransactionDtoBuilder()
+            .withComment("comment")
+            .build();
+
+        RequestResponse<JsonNode> response =
+            collectClient.initTransaction(vitamContext, transaction, projectGuuid);
+        Assertions.assertThat(response.getStatus()).isEqualTo(200);
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        TransactionDto transactionDtoResult =
+            mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+        assertThat(transactionDtoResult.getComment()).isEqualTo("comment");
     }
 
     private void getUnitsByProjectId()

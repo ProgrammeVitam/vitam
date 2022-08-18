@@ -183,16 +183,15 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
 
     @Override
     public RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
-        TransactionDto transactionDto)
+        TransactionDto transactionDto, String projectId)
         throws VitamClientException {
 
         VitamRequestBuilder request = post()
-            .withPath(TRANSACTION_PATH)
+            .withPath(PROJECT_PATH + "/" + projectId + TRANSACTION_PATH)
             .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(transactionDto)
-            .withJsonContentType()
-            .withJsonAccept();
+            .withJson();
 
         try (Response response = make(request)) {
             check(response);
