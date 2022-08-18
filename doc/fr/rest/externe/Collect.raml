@@ -121,10 +121,10 @@ documentation:
           body:
             application/json:
 
-/transactions:
+/projects/{projectId}/transactions:
   displayName: Transactions
   description: |
-    API de collecte. Ce point d'entrée permet de créer et gérer une transaction de versement.
+    API de collecte. Ce point d'entrée permet de créer une transaction de versement par project.
 
     Crée une transaction d'entrée :
     - une requête unique, avec un 'body' contenant toutes les informations au format JSON :

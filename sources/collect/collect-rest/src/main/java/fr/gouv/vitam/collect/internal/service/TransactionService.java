@@ -32,6 +32,7 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.TransactionModelBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
+import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
@@ -45,9 +46,11 @@ public class TransactionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
     private final TransactionRepository transactionRepository;
+    private final ProjectService projectService;
 
-    public TransactionService(TransactionRepository transactionRepository) {
+    public TransactionService(TransactionRepository transactionRepository, ProjectService projectService) {
         this.transactionRepository = transactionRepository;
+        this.projectService = projectService;
     }
 
     /**
@@ -55,7 +58,13 @@ public class TransactionService {
      *
      * @throws CollectException exception thrown in case of error
      */
-    public void createTransaction(TransactionDto transactionDto) throws CollectException {
+    public void createTransaction(TransactionDto transactionDto, String projectId) throws CollectException {
+
+
+        Optional<ProjectModel> projectOpt = projectService.findProject(projectId);
+        if (projectOpt.isEmpty()) {
+            throw new CollectException("project with id " + projectId + "not found");
+        }
         ManifestContext manifestContext = new ManifestContextBuilder()
             .withArchivalAgreement(transactionDto.getArchivalAgreement())
             .withMessageIdentifier(transactionDto.getMessageIdentifier())
@@ -71,6 +80,7 @@ public class TransactionService {
             .withManifestContext(manifestContext)
             .withStatus(TransactionStatus.OPEN)
             .withTenant(transactionDto.getTenant())
+            .withProjectId(projectId)
             .build();
         transactionRepository.createTransaction(transactionModel);
     }

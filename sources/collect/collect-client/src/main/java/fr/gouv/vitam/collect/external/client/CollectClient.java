@@ -134,7 +134,7 @@ public interface CollectClient extends MockOrRestClient {
      * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
-        TransactionDto transactionDto)
+        TransactionDto transactionDto, String projectId)
         throws VitamClientException;
 
     /**

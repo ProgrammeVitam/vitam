@@ -43,6 +43,7 @@ public class TransactionModel {
 
     private TransactionStatus status;
 
+    @JsonProperty("ProjectId")
     private String projectId;
 
     @JsonProperty("_tenant")

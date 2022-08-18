@@ -89,7 +89,7 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
 
     @Override
     public RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
-        TransactionDto transactionDto) throws VitamClientException {
+        TransactionDto transactionDto, String projectId) throws VitamClientException {
         transactionDto.setId(UUID.randomUUID().toString());
         return new RequestResponseOK<JsonNode>()
             .setHttpCode(Response.Status.OK.getStatusCode())

@@ -96,7 +96,7 @@ X-Access-Contract-Id: {{access-contract}}
 
 
 ### Création d'une nouvelle transaction
-POST  {{url-collect}}/collect-external/v1/transactions
+POST  {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

@@ -83,9 +83,10 @@ public class BusinessApplication extends ConfigurationApplication {
             SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
-            TransactionService transactionService = new TransactionService(transactionRepository);
+
             ProjectRepository projectRepository = new ProjectRepository(mongoDbAccess);
             ProjectService projectService = new ProjectService(projectRepository);
+            TransactionService transactionService = new TransactionService(transactionRepository, projectService);
             SipService sipService = new SipService(configuration);
             CollectService collectService = new CollectService(transactionService, configuration);
             FluxService fluxService =

@@ -264,20 +264,21 @@ public class TransactionResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/transactions")
+    @Path("/projects/{projectId}/transactions")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = TRANSACTION_CREATE, description = "Crée une transaction")
-    public Response initTransaction(TransactionDto transactionDto) {
+    public Response initTransaction(TransactionDto transactionDto, @PathParam("projectId") String projectId) {
         try {
             ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
+            SanityChecker.checkParameter(projectId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(transactionDto));
             Integer tenantId = ParameterHelper.getTenantParameter();
             String requestId = CollectService.createRequestId();
             transactionDto.setId(requestId);
             transactionDto.setTenant(tenantId);
-            transactionService.createTransaction(transactionDto);
+            transactionService.createTransaction(transactionDto, projectId);
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
