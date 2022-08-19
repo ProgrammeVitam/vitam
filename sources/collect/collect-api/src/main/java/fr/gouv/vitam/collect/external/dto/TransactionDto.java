@@ -48,8 +48,8 @@ public class TransactionDto implements Serializable {
     @JsonProperty(value = "ArchivalAgencyIdentifier", required = true)
     private String archivalAgencyIdentifier;
 
-    @JsonProperty(value = "TransferingAgencyIdentifier", required = true)
-    private String transferingAgencyIdentifier;
+    @JsonProperty(value = "TransferringAgencyIdentifier", required = true)
+    private String transferringAgencyIdentifier;
 
     @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
     private String originatingAgencyIdentifier;
@@ -66,6 +66,18 @@ public class TransactionDto implements Serializable {
     @JsonProperty("tenant")
     private Integer tenant;
 
+    @JsonProperty(value = "AcquisitionInformation")
+    private String acquisitionInformation;
+
+    @JsonProperty(value = "LegalStatus")
+    private String legalStatus;
+
+    @JsonProperty(value = "CreationDate")
+    private String creationDate;
+
+    @JsonProperty(value = "LastUpdate")
+    private String lastUpdate;
+
     public TransactionDto() {
         //Empty constructor for serialization
     }
@@ -75,19 +87,23 @@ public class TransactionDto implements Serializable {
     }
 
     public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
-        String archivalAgencyIdentifier,
-        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment, Integer tenant) {
+        String archivalAgencyIdentifier, String transferringAgencyIdentifier, String originatingAgencyIdentifier,
+        String submissionAgencyIdentifier, String archivalProfile, String comment, Integer tenant,
+        String acquisitionInformation, String legalStatus, String creationDate, String lastUpdate) {
         this.id = id;
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        this.transferringAgencyIdentifier = transferringAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
         this.comment = comment;
         this.tenant = tenant;
+        this.acquisitionInformation = acquisitionInformation;
+        this.legalStatus = legalStatus;
+        this.creationDate = creationDate;
+        this.lastUpdate = lastUpdate;
     }
 
     public String getId() {
@@ -122,12 +138,12 @@ public class TransactionDto implements Serializable {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
     }
 
-    public String getTransferingAgencyIdentifier() {
-        return transferingAgencyIdentifier;
+    public String getTransferringAgencyIdentifier() {
+        return transferringAgencyIdentifier;
     }
 
-    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    public void setTransferringAgencyIdentifier(String transferringAgencyIdentifier) {
+        this.transferringAgencyIdentifier = transferringAgencyIdentifier;
     }
 
     public String getOriginatingAgencyIdentifier() {
@@ -168,6 +184,38 @@ public class TransactionDto implements Serializable {
 
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
+    }
+
+    public String getAcquisitionInformation() {
+        return acquisitionInformation;
+    }
+
+    public void setAcquisitionInformation(String acquisitionInformation) {
+        this.acquisitionInformation = acquisitionInformation;
+    }
+
+    public String getLegalStatus() {
+        return legalStatus;
+    }
+
+    public void setLegalStatus(String legalStatus) {
+        this.legalStatus = legalStatus;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     @Override

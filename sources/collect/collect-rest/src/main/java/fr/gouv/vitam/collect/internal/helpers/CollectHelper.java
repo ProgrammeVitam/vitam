@@ -36,7 +36,6 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
-import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -63,14 +62,6 @@ public class CollectHelper {
 
     private CollectHelper() throws IllegalAccessException {
         throw new IllegalAccessException("Utility class!");
-    }
-
-    public static String readMessageDigestReturn(byte[] theDigestResult) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : theDigestResult) {
-            sb.append(String.format("%02X", b));
-        }
-        return sb.toString().toLowerCase();
     }
 
     public static DataObjectVersionType fetchUsage(String usageString) throws CollectException {
@@ -142,17 +133,14 @@ public class CollectHelper {
     }
 
     public static List<BulkUnitInsertEntry> fetchBulkUnitInsertEntries(ObjectNode unitJson) {
-        List<BulkUnitInsertEntry> units;
         if (null != unitJson.get(UP) && unitJson.get(UP).size() != 0) {
             Set<String> parentUnitIds = StreamSupport
                 .stream(unitJson.get(UP).spliterator(), false)
                 .map(JsonNode::asText)
                 .collect(Collectors.toSet());
-            units = Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
-        } else {
-            units = Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
+            return Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
         }
-        return units;
+        return Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
     }
 
     public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel) {
@@ -207,11 +195,15 @@ public class CollectHelper {
             .withArchivalAgreement(transactionDto.getArchivalAgreement())
             .withMessageIdentifier(transactionDto.getMessageIdentifier())
             .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
-            .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
+            .withTransferingAgencyIdentifier(transactionDto.getTransferringAgencyIdentifier())
             .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
             .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
             .withArchivalProfile(transactionDto.getArchivalProfile())
             .withComment(transactionDto.getComment())
+            .withAcquisitionInformation(transactionDto.getAcquisitionInformation())
+            .withLegalStatus(transactionDto.getLegalStatus())
+            .withCreationDate(transactionDto.getCreationDate())
+            .withlastUpdate(transactionDto.getLastUpdate())
             .build();
     }
 }

@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.collect.internal.model;
 
-import java.util.Date;
-
 public class ManifestContext {
 
     private String name;
