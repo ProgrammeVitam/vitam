@@ -31,8 +31,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
+import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -151,19 +155,63 @@ public class CollectHelper {
         return units;
     }
 
-    public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel){
+    public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel) {
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId(projectModel.getId());
-        projectDto.setArchivalAgreement(projectModel.getManifestContext().getArchivalAgreement());
-        projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
-        projectDto.setArchivalAgencyIdentifier(projectModel.getManifestContext().getArchivalAgencyIdentifier());
-        projectDto.setTransferingAgencyIdentifier(projectModel.getManifestContext().getTransferingAgencyIdentifier());
-        projectDto.setOriginatingAgencyIdentifier(projectModel.getManifestContext().getOriginatingAgencyIdentifier());
-        projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
-        projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
-        projectDto.setComment(projectModel.getManifestContext().getComment());
-        projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
         projectDto.setTenant(projectModel.getTenant());
+        if (projectModel.getManifestContext() != null) {
+            projectDto.setArchivalAgreement(projectModel.getManifestContext().getArchivalAgreement());
+            projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
+            projectDto.setArchivalAgencyIdentifier(projectModel.getManifestContext().getArchivalAgencyIdentifier());
+            projectDto.setTransferingAgencyIdentifier(
+                projectModel.getManifestContext().getTransferringAgencyIdentifier());
+            projectDto.setOriginatingAgencyIdentifier(
+                projectModel.getManifestContext().getOriginatingAgencyIdentifier());
+            projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
+            projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
+            projectDto.setComment(projectModel.getManifestContext().getComment());
+            projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
+            projectDto.setName(projectModel.getManifestContext().getName());
+            projectDto.setCreationDate(projectModel.getManifestContext().getCreationDate());
+            projectDto.setLastUpdate(projectModel.getManifestContext().getLastUpdate());
+            projectDto.setAcquisitionInformation(projectModel.getManifestContext().getAcquisitionInformation());
+            projectDto.setLegalStatus(projectModel.getManifestContext().getLegalStatus());
+            projectDto.setStatus(projectModel.getManifestContext().getStatus());
+        }
+
         return projectDto;
+    }
+
+    public static ManifestContext mapProjectDtoToManifestContext(ProjectDto projectDto) {
+        return new ManifestContextBuilder()
+            .withArchivalAgreement(projectDto.getArchivalAgreement())
+            .withMessageIdentifier(projectDto.getMessageIdentifier())
+            .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
+            .withTransferingAgencyIdentifier(projectDto.getTransferingAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(projectDto.getArchivalProfile())
+            .withComment(projectDto.getComment())
+            .withUnitUp(projectDto.getUnitUp())
+            .withName(projectDto.getName())
+            .withAcquisitionInformation(projectDto.getAcquisitionInformation())
+            .withLegalStatus(projectDto.getLegalStatus())
+            .withCreationDate(projectDto.getCreationDate())
+            .withlastUpdate(projectDto.getLastUpdate())
+            .withStatus(projectDto.getStatus())
+            .build();
+    }
+
+    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto) {
+        return new ManifestContextBuilder()
+            .withArchivalAgreement(transactionDto.getArchivalAgreement())
+            .withMessageIdentifier(transactionDto.getMessageIdentifier())
+            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
+            .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(transactionDto.getArchivalProfile())
+            .withComment(transactionDto.getComment())
+            .build();
     }
 }

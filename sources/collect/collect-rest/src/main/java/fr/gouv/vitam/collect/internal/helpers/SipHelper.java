@@ -56,7 +56,7 @@ public class SipHelper {
         exportRequestParameters.setComment(transactionModel.getManifestContext().getComment());
         exportRequestParameters.setArchivalAgreement((transactionModel.getManifestContext() != null ?  transactionModel.getManifestContext().getArchivalAgreement() : null));
         exportRequestParameters
-            .setTransferringAgency(transactionModel.getManifestContext().getTransferingAgencyIdentifier());
+            .setTransferringAgency(transactionModel.getManifestContext().getTransferringAgencyIdentifier());
         return exportRequestParameters;
     }
 

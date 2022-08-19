@@ -26,15 +26,23 @@
  */
 package fr.gouv.vitam.collect.internal.model;
 
+import java.util.Date;
+
 public class ManifestContext {
 
+    private String name;
+    private String acquisitionInformation;
+    private String legalStatus;
+    private String creationDate;
+    private String lastUpdate;
+    private String status;
     private String archivalAgreement;
 
     private String messageIdentifier;
 
     private String archivalAgencyIdentifier;
 
-    private String transferingAgencyIdentifier;
+    private String transferringAgencyIdentifier;
 
     private String originatingAgencyIdentifier;
 
@@ -50,13 +58,34 @@ public class ManifestContext {
     public ManifestContext() {
     }
 
+    public ManifestContext(String name, String acquisitionInformation, String legalStatus, String creationDate,
+        String lastUpdate, String status, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
+        String archivalProfile, String comment, String unitUp) {
+        this.name = name;
+        this.acquisitionInformation = acquisitionInformation;
+        this.legalStatus = legalStatus;
+        this.creationDate = creationDate;
+        this.status = status;
+        this.lastUpdate = lastUpdate;
+        this.archivalAgreement = archivalAgreement;
+        this.messageIdentifier = messageIdentifier;
+        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+        this.transferringAgencyIdentifier = transferingAgencyIdentifier;
+        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
+        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
+        this.archivalProfile = archivalProfile;
+        this.comment = comment;
+        this.unitUp = unitUp;
+    }
+
     public ManifestContext(String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment, String unitUp) {
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        this.transferringAgencyIdentifier = transferingAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
@@ -88,12 +117,12 @@ public class ManifestContext {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
     }
 
-    public String getTransferingAgencyIdentifier() {
-        return transferingAgencyIdentifier;
+    public String getTransferringAgencyIdentifier() {
+        return transferringAgencyIdentifier;
     }
 
-    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    public void setTransferringAgencyIdentifier(String transferringAgencyIdentifier) {
+        this.transferringAgencyIdentifier = transferringAgencyIdentifier;
     }
 
     public String getOriginatingAgencyIdentifier() {
@@ -134,5 +163,53 @@ public class ManifestContext {
 
     public void setUnitUp(String unitUp) {
         this.unitUp = unitUp;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAcquisitionInformation() {
+        return acquisitionInformation;
+    }
+
+    public void setAcquisitionInformation(String acquisitionInformation) {
+        this.acquisitionInformation = acquisitionInformation;
+    }
+
+    public String getLegalStatus() {
+        return legalStatus;
+    }
+
+    public void setLegalStatus(String legalStatus) {
+        this.legalStatus = legalStatus;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

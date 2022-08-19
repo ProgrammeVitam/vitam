@@ -1,8 +1,8 @@
 ### Configuration
 @transaction-id = aeeaaaaaachlf3tiaa2i6amb3wdtx4aaaaaq
-@project-id = aeeaaaaaachlf3tiaa2i6amb3wdtxpyaaaaq
+@project-id = aeeaaaaaaghcnbfoabiccamcwbaa2taaaaaq
 @unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
-@tenant = 0
+@tenant = 1
 @access-contract = ContratTNR
 
 ### Création d'un nouveau projet
@@ -15,10 +15,13 @@ X-Access-Contract-Id: {{access-contract}}
 
 {
   "ArchivalAgencyIdentifier": "Identifier0",
-  "TransferingAgencyIdentifier": "Identifier3",
+  "TransferringAgencyIdentifier": "Identifier3",
   "OriginatingAgencyIdentifier": "FRAN_NP_009915",
   "SubmissionAgencyIdentifier": "FRAN_NP_005061",
   "MessageIdentifier": "20220302-000005",
+  "Name": "This is my Name",
+  "LegalStatus": "Archives privées",
+  "AcquisitionInformation": "Versement",
   "ArchivalAgreement":"IC-000001",
   "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
   "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
@@ -80,6 +83,27 @@ Content-Length: 143
         "$offset": 0,
         "$limit": 100
     },
+    "$projection": {}
+}
+
+### Recherche d'unités archivistique par projectId et dsl query
+GET {{url-collect}}/collect-external/v1/projects/{{project-id}}/units
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+Content-Length: 143
+
+{
+    "$roots": [],
+    "$query": [
+        {
+            "$match": {
+                "Title": "our"
+            }
+        }
+    ],
+    "$filter": {},
     "$projection": {}
 }
 

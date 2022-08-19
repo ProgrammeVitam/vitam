@@ -249,12 +249,8 @@ public class TransactionResource extends ApplicationStatusResource {
     public Response getProjects() {
         try {
             Integer tenantId = ParameterHelper.getTenantParameter();
-            List<ProjectModel> listProjects = projectService.findProjectsByTenant(tenantId);
-            List<ProjectDto> projectDtoList =
-                listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
-                    .collect(Collectors.toList());
-
-            return CollectRequestResponse.toResponseOK(projectDtoList);
+            List<ProjectDto> listProjects = projectService.findProjectsByTenant(tenantId);
+            return CollectRequestResponse.toResponseOK(listProjects);
         } catch (CollectException e) {
             LOGGER.error("Error when fetching projects by tenant Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
