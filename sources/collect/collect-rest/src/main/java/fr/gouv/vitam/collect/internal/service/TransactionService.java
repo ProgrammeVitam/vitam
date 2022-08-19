@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.service;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.TransactionModelBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
@@ -59,25 +60,13 @@ public class TransactionService {
      * @throws CollectException exception thrown in case of error
      */
     public void createTransaction(TransactionDto transactionDto, String projectId) throws CollectException {
-
-
         Optional<ProjectModel> projectOpt = projectService.findProject(projectId);
         if (projectOpt.isEmpty()) {
             throw new CollectException("project with id " + projectId + "not found");
         }
-        ManifestContext manifestContext = new ManifestContextBuilder()
-            .withArchivalAgreement(transactionDto.getArchivalAgreement())
-            .withMessageIdentifier(transactionDto.getMessageIdentifier())
-            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
-            .withTransferingAgencyIdentifier(transactionDto.getTransferingAgencyIdentifier())
-            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
-            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(transactionDto.getArchivalProfile())
-            .withComment(transactionDto.getComment())
-            .build();
         TransactionModel transactionModel = new TransactionModelBuilder()
             .withId(transactionDto.getId())
-            .withManifestContext(manifestContext)
+            .withManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto))
             .withStatus(TransactionStatus.OPEN)
             .withTenant(transactionDto.getTenant())
             .withProjectId(projectId)

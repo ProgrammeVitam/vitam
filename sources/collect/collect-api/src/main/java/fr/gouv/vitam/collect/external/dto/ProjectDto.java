@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -38,6 +39,24 @@ public class ProjectDto implements Serializable {
 
     @JsonProperty(value = "id")
     private String id;
+
+    @JsonProperty(value = "Name", required = true)
+    private String name;
+
+    @JsonProperty(value = "AcquisitionInformation")
+    private String acquisitionInformation;
+
+    @JsonProperty(value = "LegalStatus")
+    private String legalStatus;
+
+    @JsonProperty(value = "CreationDate")
+    private String creationDate;
+
+    @JsonProperty(value = "LastUpdate")
+    private String lastUpdate;
+
+    @JsonProperty(value = "Status")
+    private String status;
 
     @JsonProperty(value = "ArchivalAgreement", required = true)
     private String archivalAgreement;
@@ -48,7 +67,7 @@ public class ProjectDto implements Serializable {
     @JsonProperty(value = "ArchivalAgencyIdentifier", required = true)
     private String archivalAgencyIdentifier;
 
-    @JsonProperty(value = "TransferingAgencyIdentifier", required = true)
+    @JsonProperty(value = "TransferringAgencyIdentifier", required = true)
     private String transferingAgencyIdentifier;
 
     @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
@@ -63,12 +82,13 @@ public class ProjectDto implements Serializable {
     @JsonProperty(value = "Comment")
     private String comment;
 
-    @JsonProperty("tenant")
+    @JsonProperty(value = "tenant")
     private Integer tenant;
 
+    @JsonProperty(value = "transactionId")
     private String transactionId;
 
-    @JsonProperty("unitUp")
+    @JsonProperty(value = "unitUp")
     private String unitUp;
 
     public ProjectDto() {
@@ -79,15 +99,21 @@ public class ProjectDto implements Serializable {
         this.id = id;
     }
 
-    public ProjectDto(String id, String archivalAgreement, String messageIdentifier,
-        String archivalAgencyIdentifier,
-        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment, Integer tenant, String unitUp) {
+    public ProjectDto(String id, String name, String acquisitionInformation, String legalStatus, String creationDate,
+        String lastUpdate, String status, String archivalAgreement, String messageIdentifier,
+        String archivalAgencyIdentifier, String transferringAgencyIdentifier, String originatingAgencyIdentifier,
+        String submissionAgencyIdentifier, String archivalProfile, String comment, Integer tenant, String unitUp) {
         this.id = id;
+        this.name = name;
+        this.acquisitionInformation = acquisitionInformation;
+        this.legalStatus = legalStatus;
+        this.creationDate = creationDate;
+        this.lastUpdate = lastUpdate;
+        this.status = status;
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+        this.transferingAgencyIdentifier = transferringAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
@@ -190,6 +216,54 @@ public class ProjectDto implements Serializable {
 
     public void setUnitUp(String unitUp) {
         this.unitUp = unitUp;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAcquisitionInformation() {
+        return acquisitionInformation;
+    }
+
+    public void setAcquisitionInformation(String acquisitionInformation) {
+        this.acquisitionInformation = acquisitionInformation;
+    }
+
+    public String getLegalStatus() {
+        return legalStatus;
+    }
+
+    public void setLegalStatus(String legalStatus) {
+        this.legalStatus = legalStatus;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

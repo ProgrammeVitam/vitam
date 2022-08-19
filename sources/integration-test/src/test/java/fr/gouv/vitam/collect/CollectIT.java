@@ -29,7 +29,6 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
@@ -40,9 +39,9 @@ import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
-import fr.gouv.vitam.collect.internal.helpers.builders.ProjectDtoBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -52,6 +51,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -75,12 +75,15 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @Ignore
 public class CollectIT extends VitamRuleRunner {
@@ -119,7 +122,8 @@ public class CollectIT extends VitamRuleRunner {
     private static Integer version = 1;
     private static CollectClient collectClient;
     private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
-    private ObjectMapper mapper = new ObjectMapper();
+
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private VitamContext vitamContext = new VitamContext(tenantId)
         .setApplicationSessionId(APPLICATION_SESSION_ID)
         .setAccessContract(ACCESS_CONTRACT);
@@ -144,23 +148,14 @@ public class CollectIT extends VitamRuleRunner {
     @Test
     public void should_perform_collect_operation() throws Exception {
 
-        ProjectDto projectDto = new ProjectDtoBuilder()
-            .withArchivalAgencyIdentifier("Vitam")
-            .withTransferingAgencyIdentifier("AN")
-            .withOriginatingAgencyIdentifier("MICHEL_MERCIER")
-            .withSubmissionAgencyIdentifier("MICHEL_MERCIER")
-            .withMessageIdentifier("20220302-000005")
-            .withArchivalAgreement("IC-000001")
-            .withArchivalProfile("ArchiveProfile")
-            .withComment("Versement du service producteur : Cabinet de Michel Mercier")
-            .withUnitUp(ATTACHEMENT_UNIT_ID)
-            .build();
+        ProjectDto projectDto = initProjectData();
 
         RequestResponse<JsonNode> response = collectClient.initProject(vitamContext, projectDto);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
-        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+
         ProjectDto projectDtoResult =
-            mapper.readValue(requestResponseOK.getFirstResult().toString(), ProjectDto.class);
+            JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(((RequestResponseOK) response).getFirstResult()),
+                ProjectDto.class);
         transactionGuuid = projectDtoResult.getTransactionId();
         projectGuuid = projectDtoResult.getId();
         getProjectById();
@@ -180,7 +175,8 @@ public class CollectIT extends VitamRuleRunner {
         createTransactionByProject();
     }
 
-    private void createTransactionByProject() throws VitamClientException, JsonProcessingException {
+    private void createTransactionByProject()
+        throws VitamClientException, JsonProcessingException, InvalidParseOperationException {
 
         TransactionDto transaction = new TransactionDtoBuilder()
             .withComment("comment")
@@ -191,14 +187,30 @@ public class CollectIT extends VitamRuleRunner {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         TransactionDto transactionDtoResult =
-            mapper.readValue(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+            JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
         assertThat(transactionDtoResult.getComment()).isEqualTo("comment");
     }
 
+    private static ProjectDto initProjectData() {
+        ProjectDto projectDto = new ProjectDto();
+        projectDto.setArchivalAgencyIdentifier("Vitam");
+        projectDto.setTransferingAgencyIdentifier("AN");
+        projectDto.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
+        projectDto.setSubmissionAgencyIdentifier("MICHEL_MERCIER");
+        projectDto.setMessageIdentifier("20220302-000005");
+        projectDto.setArchivalAgencyIdentifier("IC-000001");
+        projectDto.setArchivalProfile("ArchiveProfile");
+        projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
+        projectDto.setUnitUp(ATTACHEMENT_UNIT_ID);
+        projectDto.setName("This is my Name !");
+        return projectDto;
+    }
+
     private void getUnitsByProjectId()
-        throws VitamClientException, JsonProcessingException, InvalidCreateOperationException {
+        throws VitamClientException, JsonProcessingException, InvalidCreateOperationException,
+        InvalidParseOperationException {
         // Given
-        ProjectDto projectDtoResult = getProjectDtoById();
+        ProjectDto projectDtoResult = getProjectDtoById(projectGuuid);
 
         // When
         SelectMultiQuery selectUnit = new SelectMultiQuery();
@@ -214,11 +226,12 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(units.get(0).get("Title")).isNotNull();
     }
 
-    private ProjectDto getProjectDtoById() throws VitamClientException, JsonProcessingException {
-        RequestResponse<JsonNode> response = collectClient.getProjectById(vitamContext, projectGuuid);
+    private ProjectDto getProjectDtoById(String projectId)
+        throws VitamClientException, JsonProcessingException, InvalidParseOperationException {
+        RequestResponse<JsonNode> response = collectClient.getProjectById(vitamContext, projectId);
         assertThat(response.isOk()).isTrue();
-        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
-        return mapper.readValue(requestResponseOK.getFirstResult().toString(), ProjectDto.class);
+        return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(((RequestResponseOK) response).getFirstResult()),
+            ProjectDto.class);
     }
 
     public void uploadUnit() throws Exception {
@@ -267,7 +280,7 @@ public class CollectIT extends VitamRuleRunner {
 
 
     public void getProjectById() throws Exception {
-        ProjectDto projectDtoResult = getProjectDtoById();
+        ProjectDto projectDtoResult = getProjectDtoById(projectGuuid);
 
         assertThat(projectDtoResult).isNotNull();
         assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
@@ -318,25 +331,33 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult().get("_id").textValue()).isEqualTo(objectGroupGuuid);
     }
 
-    public void updateProject() throws VitamClientException, JsonProcessingException {
-        ProjectDto projectDto = new ProjectDtoBuilder()
-            .withId(projectGuuid)
-            .withArchivalAgencyIdentifier("Vitam")
-            .withTransferingAgencyIdentifier("AN")
-            .withOriginatingAgencyIdentifier("MICHEL_MERCIER")
-            .withSubmissionAgencyIdentifier("MICHEL_MERCIER")
-            .withMessageIdentifier("20220302-000005")
-            .withArchivalAgreement("IC-000001")
-            .withArchivalProfile("ArchiveProfile")
-            .withComment("New Comment")
-            .withUnitUp(ATTACHEMENT_UNIT_ID)
-            .build();
+    public void updateProject()
+        throws VitamClientException, JsonProcessingException, InvalidParseOperationException, ParseException {
 
-        collectClient.updateProject(vitamContext, projectDto);
-        ProjectDto projectDtoResult = getProjectDtoById();
+        // GIVEN
+        ProjectDto projectDto = initProjectData();
+        RequestResponse<JsonNode> createdProject = collectClient.initProject(vitamContext, projectDto);
+        projectDto = JsonHandler.getFromString(((RequestResponseOK) createdProject).getFirstResult().toString(),
+            ProjectDto.class);
+
+        ProjectDto projectDtoResult = getProjectDtoById(projectDto.getId());
         assertThat(projectDtoResult).isNotNull();
-        assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
-        assertThat(projectDtoResult.getComment()).isEqualTo(projectDto.getComment());
+        assertThat(projectDtoResult.getCreationDate()).isNotNull();
+        assertThat(projectDtoResult.getId()).isEqualTo(projectDto.getId());
+        assertThat(LocalDateUtil.getDate(projectDtoResult.getCreationDate())).isEqualTo(
+            LocalDateUtil.getDate(projectDtoResult.getLastUpdate()));
+
+        // WHEN
+        projectDtoResult.setComment("COMMENT AFTER UPDATE");
+        collectClient.updateProject(vitamContext, projectDtoResult);
+        ProjectDto projectDtoResultAfterUpdate = getProjectDtoById(projectDtoResult.getId());
+
+        // THEN
+        assertThat(projectDtoResultAfterUpdate.getComment()).isNotEqualTo(projectDto.getComment());
+        assertThat(projectDtoResultAfterUpdate.getComment()).isEqualTo("COMMENT AFTER UPDATE");
+        assertThat(projectDtoResultAfterUpdate.getLastUpdate()).isNotNull();
+        assertTrue(LocalDateUtil.getDate(projectDtoResultAfterUpdate.getLastUpdate())
+            .after(LocalDateUtil.getDate(projectDtoResultAfterUpdate.getCreationDate())));
     }
 
     public void uploadProjectZip() throws Exception {
