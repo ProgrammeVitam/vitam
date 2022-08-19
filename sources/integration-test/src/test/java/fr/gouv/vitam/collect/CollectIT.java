@@ -39,7 +39,6 @@ import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
-import fr.gouv.vitam.collect.internal.helpers.builders.TransactionDtoBuilder;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -175,12 +174,12 @@ public class CollectIT extends VitamRuleRunner {
         createTransactionByProject();
     }
 
-    private void createTransactionByProject()
-        throws VitamClientException, JsonProcessingException, InvalidParseOperationException {
+    private void createTransactionByProject() throws VitamClientException, InvalidParseOperationException {
 
-        TransactionDto transaction = new TransactionDtoBuilder()
-            .withComment("comment")
-            .build();
+        TransactionDto transaction =
+            new TransactionDto("XXXX00000111111", null, null, null,
+                null, null, null, null,
+                "comment", null, null, null, null, null);
 
         RequestResponse<JsonNode> response =
             collectClient.initTransaction(vitamContext, transaction, projectGuuid);

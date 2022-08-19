@@ -65,7 +65,7 @@ public class TransactionServiceTest {
     public void createCollectTest() throws CollectException {
         // Given
         TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null);
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null, null, null);
 
 
 
@@ -88,7 +88,7 @@ public class TransactionServiceTest {
         final String idCollect = "XXXX000002222222";
         // Given
         TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null);
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null, null, null);
         doReturn(Optional.of(transactionDto)).when(transactionRepository).findTransaction(any());
 
         // When
