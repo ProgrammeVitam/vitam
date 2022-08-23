@@ -1897,5 +1897,11 @@ public class StorageResourceTest {
         public String getReferentOffer(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
             throw new UnsupportedOperationException("UnsupportedOperationException");
         }
+
+        @Override
+        public Response launchOfferLogCompaction(String offerReferenceId, Integer tenantId)
+            throws StorageException {
+            throw new UnsupportedOperationException("UnsupportedOperationException");
+        }
     }
 }

@@ -1,0 +1,20 @@
+[
+  {
+    "id" : "default",
+    "baseUrl" : "http://workspaceOfferService:9092",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "default2",
+    "baseUrl" : "http://workspaceOfferService:9000",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "inactiveOffer",
+    "baseUrl" : "/vitam/data/offer"
+  }
+]

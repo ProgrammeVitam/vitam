@@ -101,6 +101,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildContainerName;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
@@ -788,6 +789,19 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
+    @POST
+    @Path("/compaction")
+    @Consumes(APPLICATION_JSON)
+    public void launchOfferLogCompaction() throws Exception {
+        try {
+            LOGGER.info("Starting offer compaction.");
+            defaultOfferService.compactOfferLogs();
+            LOGGER.info("End offer compaction.");
+        } catch (Exception e) {
+            LOGGER.error("An internal error occurred during offer log compaction", e);
+        }
+    }
+
     /**
      * Add error response using with vitamCode
      *
@@ -796,24 +810,24 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
         return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
-                new VitamError(VitamCodeHelper.getCode(vitamCode))
-                    .setContext(vitamCode.getService().getName())
-                    .setHttpCode(vitamCode.getStatus().getStatusCode())
-                    .setState(vitamCode.getDomain().getName())
-                    .setMessage(vitamCode.getMessage())
-                    .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
+            new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName())
+                .setHttpCode(vitamCode.getStatus().getStatusCode())
+                .setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage())
+                .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
     }
 
     private Response buildCustomErrorResponse(CustomVitamHttpStatusCode customStatusCode, String message) {
         return Response.status(customStatusCode.getStatusCode())
             .entity(new RequestResponseError().setError(
-                    new VitamError(customStatusCode.toString())
-                        .setContext(ServiceName.STORAGE.getName())
-                        .setHttpCode(customStatusCode.getStatusCode())
-                        .setState(DomainName.STORAGE.getName())
-                        .setMessage(customStatusCode.getMessage())
-                        .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
+                new VitamError(customStatusCode.toString())
+                    .setContext(ServiceName.STORAGE.getName())
+                    .setHttpCode(customStatusCode.getStatusCode())
+                    .setState(DomainName.STORAGE.getName())
+                    .setMessage(customStatusCode.getMessage())
+                    .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
                 .toString()).build();
     }
 }

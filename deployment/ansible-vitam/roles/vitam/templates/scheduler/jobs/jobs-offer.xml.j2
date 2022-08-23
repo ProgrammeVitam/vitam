@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data
+        xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData https://www.quartz-scheduler.org/xml/job_scheduling_data_1_8.xsd"
+        version="1.8">
+
+    <processing-directives>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), overwrite them -->
+        <overwrite-existing-data>false</overwrite-existing-data>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), and over-write is false, ignore them rather then generating an error -->
+        <ignore-duplicates>true</ignore-duplicates>
+    </processing-directives>
+    {% if primary_site | lower == "true" %}
+    {% for item in all_used_offers %}
+        <schedule>
+            <job>
+                <name>OfferLogCompactionJob_{{ item.name }}</name>
+                <group>offer</group>
+                <description>Job for launching Offer Log Compaction</description>
+                <job-class>fr.gouv.vitam.scheduler.server.job.OfferLogCompactionJob</job-class>
+                <job-data-map>
+                    <entry>
+                        <key>offer_storage_id</key>
+                        <value>{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}</value>
+                    </entry>
+                </job-data-map>
+            </job>
+            <trigger>
+                <cron>
+                    <name>OfferLogCompaction_{{ item.name }}</name>
+                    <group>offer</group>
+                    <job-name>OfferLogCompactionJob_{{ item.name }}</job-name>
+                    <job-group>offer</job-group>
+                    <cron-expression>{{ vitam_timers.offer.frequency_offerlog_compaction | default('0 10/30 * * * ?') }}</cron-expression>
+                </cron>
+            </trigger>
+
+        </schedule>
+    {% endfor %}
+    {% endif %}
+</job-scheduling-data>

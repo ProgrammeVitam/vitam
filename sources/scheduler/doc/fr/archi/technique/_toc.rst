@@ -9,3 +9,4 @@ Architecture Technique
    logbook.rst
    metadata.rst
    functional-administration.rst
+   offer.rst

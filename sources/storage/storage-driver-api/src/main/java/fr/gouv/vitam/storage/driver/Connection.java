@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.driver;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 
@@ -214,6 +216,15 @@ public interface Connection extends AutoCloseable {
      */
     RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest request) throws StorageDriverException;
 
+
+    /**
+     * launch Offer Log Compaction
+     *
+     * @return RequestResponse
+     * @throws StorageDriverException to be thrown in case of any driver exception
+     */
+    Response launchOfferLogCompaction(VitamContext vitamContext) throws StorageDriverException;
+
     /**
      * Override AutoCloseable implementation to specify the exception
      *
@@ -221,4 +232,5 @@ public interface Connection extends AutoCloseable {
      */
     @Override
     void close() throws StorageDriverException;
+
 }

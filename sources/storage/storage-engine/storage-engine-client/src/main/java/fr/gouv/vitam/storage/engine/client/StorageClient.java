@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -398,4 +399,6 @@ public interface StorageClient extends BasicClient {
      * @return
      */
     String getReferentOffer(String strategy) throws StorageNotFoundClientException, StorageServerClientException;
+
+    Response launchOfferLogCompaction(VitamContext vitamContext, String offerId) throws StorageServerClientException;
 }

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -850,6 +851,27 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             throw new StorageServerClientException(errorMessage, e);
         }
     }
+
+    @Override
+    public Response launchOfferLogCompaction(VitamContext vitamContext, String offerId)
+        throws StorageServerClientException {
+        VitamRequestBuilder requestBuilder = post()
+            .withPath("/compaction")
+            .withHeader(GlobalDataRest.X_TENANT_ID, vitamContext.getTenantId())
+            .withJson()
+            .withBody(offerId);
+
+        try (Response response = make(requestBuilder)) {
+            check(response);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+
 
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();

@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -562,6 +563,23 @@ public class ConnectionImpl extends AbstractConnection {
             return RequestResponse.parseFromResponse(response, OfferLog.class);
         } catch (Exception exc) {
             throw new StorageDriverException(getDriverName(), true, exc);
+        }
+    }
+
+
+    @Override
+    public Response launchOfferLogCompaction(VitamContext vitamContext)
+        throws StorageDriverException {
+        VitamRequestBuilder requestBuilder = post()
+            .withPath("/compaction")
+            .withHeader(GlobalDataRest.X_TENANT_ID, vitamContext.getTenantId())
+            .withJson();
+
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 }
