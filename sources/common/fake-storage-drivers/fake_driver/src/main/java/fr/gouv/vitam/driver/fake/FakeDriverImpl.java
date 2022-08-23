@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -72,6 +73,7 @@ import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -411,6 +413,11 @@ public class FakeDriverImpl extends AbstractDriver {
             requestResponseOK.addResult(offerLog);
 
             return requestResponseOK;
+        }
+
+        @Override
+        public Response launchOfferLogCompaction(VitamContext vitamContext) {
+            return Response.status(Response.Status.OK).build();
         }
     }
 

@@ -103,10 +103,10 @@ vitam_timers:
     storage:
         # Sécurisation du journal des écritures
           frequency_traceability_log: "0 40 0/4 * * ?" # every 4 hours
-    functional_administration: 
+    functional_administration:
           frequency_create_accession_register_symbolic: "0 50 0 * * ?"
-          frequency_accession_register_reconstruction: "0 0/5 * * * ?" 
-          frequency_rule_management_audit: "0 40 * * * ?" 
+          frequency_accession_register_reconstruction: "0 0/5 * * * ?"
+          frequency_rule_management_audit: "0 40 * * * ?"
           frequency_reconstruction: "0 0/5 * * * ?"
     metadata:
           frequency_store_graph: "0 10/30 * * * ?"
@@ -115,11 +115,9 @@ vitam_timers:
           frequency_purge_dip: "0 0 * * * ?"
           frequency_purge_transfers_sip: "0 25 2 * * ?"
           frequency_audit_mongodb_es: "0 0 0 1 JAN ? 2020"
-    
     offer:
-      # Compaction offer logs
-      - name: vitam-offer-log-compaction
-        frequency: "*-*-* *:40:00" # every hour
+        # Compaction offer logs
+          frequency_offerlog_compaction: "0 40 * * * ?"
 
 ### consul ###
 # WARNING: consul_domain should be a supported domain name for your organization

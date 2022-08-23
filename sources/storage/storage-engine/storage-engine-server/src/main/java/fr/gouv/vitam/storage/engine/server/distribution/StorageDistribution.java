@@ -301,4 +301,6 @@ public interface StorageDistribution extends VitamAutoCloseable {
         List<String> objectsNames) throws StorageException;
 
     String getReferentOffer(String strategyId) throws StorageTechnicalException, StorageNotFoundException;
+
+    Response launchOfferLogCompaction(String offerReferenceId, Integer tenantId) throws StorageException;
 }

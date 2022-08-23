@@ -51,7 +51,6 @@ public class AdminOfferApplication extends ConfigurationApplication {
         singletons = new HashSet<>();
         singletons.add(new GenericExceptionMapper());
         singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
-        singletons.add(new AdminOfferResource(service));
 
         if (StorageProvider.TAPE_LIBRARY.getValue()
             .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {

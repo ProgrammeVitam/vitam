@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -679,6 +680,22 @@ public class StorageDistributionImpl implements StorageDistribution {
         return chooseReferentOffer(storageStrategy).getId();
     }
 
+    @Override
+    public Response launchOfferLogCompaction(String offerReferenceId, Integer tenantId) throws StorageException {
+        final Driver driver = retrieveDriverInternal(offerReferenceId);
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReferenceId);
+        try (Connection connection = driver.connect(offer.getId())) {
+            return connection.launchOfferLogCompaction(new VitamContext(tenantId));
+        } catch (StorageDriverException | RuntimeException e) {
+            if (e instanceof StorageDriverPreconditionFailedException) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_BAD_REQUEST), e);
+                throw new IllegalArgumentException(e);
+            }
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
+            throw new StorageTechnicalException(e);
+        }
+    }
+
     private OfferReference selectFirstOffer(String strategyId, String optionalOfferId)
         throws StorageTechnicalException, StorageNotFoundException, StorageDriverNotFoundException {
 
@@ -1092,6 +1109,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             throw new StorageTechnicalException(e);
         }
     }
+
+
 
     private List<OfferReference> getOfferListFromHotStrategy(StorageStrategy storageStrategy) throws
         StorageTechnicalException {
@@ -1510,6 +1529,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         deleteObject(context, offerReferencesToDelete);
     }
+
 
 
     private void deleteObject(DataContext context, List<OfferReference> offerReferences)

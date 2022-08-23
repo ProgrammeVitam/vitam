@@ -99,7 +99,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     private static final String STRATEGY = "default";
     private static final String OFFER_ID = "default";
-    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER_ADMIN;
+    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER;
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(

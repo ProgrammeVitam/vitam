@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -335,6 +336,11 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     public String getReferentOffer(String strategy)
         throws StorageNotFoundClientException, StorageServerClientException {
         return DEFAULT_OFFER;
+    }
+
+    @Override
+    public Response launchOfferLogCompaction(VitamContext vitamContext, String offerId) throws StorageServerClientException {
+        return null;
     }
 
 }

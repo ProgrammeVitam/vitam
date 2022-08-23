@@ -178,7 +178,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 timeStampSignature =
                     new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
             } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-                     NoSuchAlgorithmException e) {
+                NoSuchAlgorithmException e) {
                 LOGGER.error("unable to instantiate TimeStampGenerator", e);
                 throw new RuntimeException(e);
             }
@@ -540,7 +540,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
         return Response.status(Status.OK).entity(
-                new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
+            new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
             .build();
     }
 
@@ -2053,6 +2053,17 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+    @POST
+    @Path("/compaction")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void launchOfferLogCompaction(String offerId, @Context HttpHeaders headers) throws StorageException {
+        LOGGER.info("Starting offer compaction for offer "+ offerId);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        distribution.launchOfferLogCompaction(offerId, tenantId);
+        LOGGER.info("End offer compaction for offer "+ offerId);
+    }
+
+
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
@@ -2064,12 +2075,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private Response buildCustomErrorResponse(CustomVitamHttpStatusCode customStatusCode, String message) {
         return Response.status(customStatusCode.getStatusCode())
             .entity(new RequestResponseError().setError(
-                    new VitamError(customStatusCode.toString())
-                        .setContext(ServiceName.STORAGE.getName())
-                        .setHttpCode(customStatusCode.getStatusCode())
-                        .setState(DomainName.STORAGE.getName())
-                        .setMessage(customStatusCode.getMessage())
-                        .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
+                new VitamError(customStatusCode.toString())
+                    .setContext(ServiceName.STORAGE.getName())
+                    .setHttpCode(customStatusCode.getStatusCode())
+                    .setState(DomainName.STORAGE.getName())
+                    .setMessage(customStatusCode.getMessage())
+                    .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
                 .toString()).build();
     }
 
