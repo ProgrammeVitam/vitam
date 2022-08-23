@@ -219,7 +219,6 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
 memory_opts="-Xms1024m -Xmx1024m"
-timer_memory_opts="-Xms64m -Xmx128m"
 
 vitam_site_name=small
 primary_site=true
