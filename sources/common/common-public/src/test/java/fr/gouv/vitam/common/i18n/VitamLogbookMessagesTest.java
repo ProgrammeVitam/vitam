@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.i18n;
 
 import fr.gouv.vitam.common.model.StatusCode;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -38,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -56,8 +58,8 @@ public class VitamLogbookMessagesTest {
         assertTrue(VitamLogbookMessages.getLabelOp(STEP_OR_HANDLER).startsWith(LABEL));
         assertTrue(
             VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.STARTED).startsWith(StatusCode.STARTED.name()));
-        assertTrue(VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.OK)
-            .equals("!" + STEP_OR_HANDLER + "." + StatusCode.OK + "!"));
+        Assert.assertEquals(VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.OK),
+            "!" + STEP_OR_HANDLER + "." + StatusCode.OK + "!");
         assertTrue(
             VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.WARNING).startsWith(StatusCode.WARNING.name()));
         assertTrue(
@@ -114,6 +116,7 @@ public class VitamLogbookMessagesTest {
     public void validPropertyFile() throws IOException, URISyntaxException {
         // For the moment valid only that all ' are doubles
         URL url = VitamLogbookMessages.class.getResource("/vitam-logbook-messages_fr.properties");
+        assertNotNull(url);
         File file = new File(url.toURI());
         file = new File(file.getParentFile().getParentFile(), "classes/vitam-logbook-messages_fr.properties");
         InputStream input = new FileInputStream(file);
