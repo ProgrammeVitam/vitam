@@ -1,7 +1,7 @@
 # Configuration
 @access-contract = ContratTNR
 @tenant = 0
-@unit-id = aeaqaaaaaahnh5o2aal76aln3teqq4qaaaba
+@unit-id = aeaqaaaaaahkl6ueabinsamclk7orsaaaacq
 
 ### Ajout de règles d'accès
 POST {{url-access}}/access-external/v1/units/rules
@@ -12,9 +12,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
@@ -45,9 +43,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
@@ -81,9 +77,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
@@ -118,9 +112,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
@@ -147,9 +139,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -178,9 +168,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -214,9 +202,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -244,9 +230,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -268,17 +252,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -302,17 +276,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
@@ -339,24 +303,14 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [
       {
-        "DisseminationRule": {
-          "PreventInheritance": false,
-          "PreventRulesId": ["DIS-00001"]
+        "AppraisalRule": {
+          "PreventRulesId": ["APP-00001"],
+          "FinalAction": "Destroy"
         }
       }
     ],
@@ -376,17 +330,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -394,7 +338,7 @@ X-Tenant-Id: {{tenant}}
     "delete": [
       {
         "DisseminationRule": {
-            "PreventInheritance" : null
+          "PreventInheritance" : null
         }
       }
     ],
@@ -412,17 +356,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -448,17 +382,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -484,17 +408,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -523,17 +437,7 @@ X-Tenant-Id: {{tenant}}
 
 {
   "dslRequest": {
-    "$roots": [],
-    "$query": [
-      {
-        "$in": {
-          "#id": [
-            "{{unit-id}}"
-          ]
-        }
-      }
-    ],
-    "$threshold": 10000
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
   },
   "ruleActions": {
     "add": [],
@@ -546,6 +450,113 @@ X-Tenant-Id: {{tenant}}
       }
     ],
     "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Blockage d'héritage d'une règle de getion (en mode add)
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "AppraisalRule": {
+          "PreventRulesIdToAdd": ["APP-00001", "APP-00002", "APP-00003" ],
+          "FinalAction": "Keep"
+        }
+      }
+    ],
+    "update": [],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Déblockage d'héritage d'une règle de getion (en mode remove)
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "AppraisalRule": {
+          "PreventRulesIdToRemove": [ "APP-00001", "APP-00002" ]
+        }
+      }
+    ],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Suppression blockage des règles de gestion héritées
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
+  },
+  "ruleActions": {
+    "add": [
+      
+    ],
+    "update": [],
+    "delete": [
+      {
+        "AppraisalRule": {
+          "PreventRulesId": []
+        }
+      }
+    ],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Supression complète d'une catégorie de règle de gestion
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ]
+  },
+  "ruleActions": {
+    "add": [
+      
+    ],
+    "update": [],
+    "delete": [
+      {
+        "AppraisalRule": { }
+      }
+    ],
     "addOrUpdateMetadata": {},
     "deleteMetadata": {}
   }

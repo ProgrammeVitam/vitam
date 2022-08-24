@@ -11,6 +11,9 @@
       },
       "StorageRule" : {
         "PreventRulesIdToAdd": ["STO-00005", "STO-00006"]
+      },
+      "HoldRule" : {
+        "PreventRulesIdToAdd": ["HOL-00001"]
       }
     }
   ]

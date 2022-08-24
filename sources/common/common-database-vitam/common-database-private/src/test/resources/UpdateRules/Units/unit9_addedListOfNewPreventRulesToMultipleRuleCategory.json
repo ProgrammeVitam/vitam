@@ -56,6 +56,13 @@
           "STO-00002"
         ]
       }
+    },
+    "HoldRule":{
+      "Inheritance":{
+        "PreventRulesId":[
+          "HOL-00001"
+        ]
+      }
     }
   }
 }

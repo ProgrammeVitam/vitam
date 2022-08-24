@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.server;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -59,8 +58,8 @@ import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -231,7 +230,8 @@ public class MongoDbInMemory {
     }
 
     private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
-        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
+        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration)
+        throws RuleUpdateException, InvalidParseOperationException {
         if (ruleActions == null || ruleActions.isEmpty())
             return;
 
@@ -245,7 +245,7 @@ public class MongoDbInMemory {
                 handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
                 handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
                 handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
-                handlePreventRulesProperties(initialRuleCategory, ruleCategoryAction);
+                handleAddPreventRulesProperties(initialRuleCategory, ruleCategoryAction);
 
                 // add rules
                 if (!ruleCategoryAction.getRules().isEmpty()) {
@@ -365,7 +365,13 @@ public class MongoDbInMemory {
             inheritance.put(PREVENT_INHERITANCE, category.getPreventInheritance().get());
         }
 
-        if(!CollectionUtils.isEmpty(category.getPreventRulesIdToRemove()) && CollectionUtils.isEmpty(category.getPreventRulesId())) {
+        if(CollectionUtils.isNotEmpty(category.getPreventRulesIdToRemove())) {
+            if(CollectionUtils.isNotEmpty(category.getPreventRulesId())) {
+                LOGGER.error("Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId. " +
+                    JsonHandler.unprettyPrint(category));
+                throw new IllegalStateException("Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId.");
+            }
+
             List<String> preventRulesToDelete =
                 new ArrayList<>(category.getPreventRulesIdToRemove());
             ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
@@ -492,39 +498,32 @@ public class MongoDbInMemory {
 
     }
 
-    private void handlePreventRulesProperties(ObjectNode initialRuleCategory,
-        RuleCategoryAction ruleCategoryAction) {
+    private void handleAddPreventRulesProperties(ObjectNode initialRuleCategory,
+        RuleCategoryAction ruleCategoryAction) throws InvalidParseOperationException {
 
-        ObjectMapper mapper = new ObjectMapper();
-        boolean updatedInheritance = false;
+        if (CollectionUtils.isEmpty(ruleCategoryAction.getPreventRulesIdToAdd())) {
+            return;
+        }
+
+        if (CollectionUtils.isNotEmpty(ruleCategoryAction.getPreventRulesId())) {
+            LOGGER.error("Invalid request. Cannot set both PreventRulesIdToAdd & PreventRulesId. " +
+                JsonHandler.unprettyPrint(ruleCategoryAction));
+            throw new IllegalStateException("Invalid request. Cannot set both PreventRulesIdToAdd & PreventRulesId.");
+        }
+
         ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
-
         if (inheritance == null) {
             inheritance = JsonHandler.createObjectNode();
         }
 
-        Boolean preventInheritance = ruleCategoryAction.getPreventInheritance();
+        Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesIdToAdd();
+        JsonNode initialRules =
+            getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
+        preventRuleIds.addAll(JsonHandler.getFromJsonNode(initialRules, new TypeReference<List<String>>() {
+        }));
+        inheritance.set(PREVENT_RULES_ID, preventRulesToNode(preventRuleIds));
 
-        if (preventInheritance != null) {
-            updatedInheritance = true;
-            inheritance.put(PREVENT_INHERITANCE, preventInheritance);
-        }
-
-        if (!CollectionUtils.isEmpty(ruleCategoryAction.getPreventRulesIdToAdd()) &&
-           CollectionUtils.isEmpty(ruleCategoryAction.getPreventRulesId()))
-        {
-            Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesIdToAdd();
-            JsonNode initialRules =
-                getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
-            preventRuleIds.addAll(mapper.convertValue(initialRules, new TypeReference<List<String>>() {
-            }));
-
-            inheritance.set(PREVENT_RULES_ID, preventRulesToNode(preventRuleIds));
-
-        }
-        if (updatedInheritance) {
-            initialRuleCategory.set(INHERITANCE, inheritance);
-        }
+        initialRuleCategory.set(INHERITANCE, inheritance);
     }
 
     private void handleInheritanceProperties(ObjectNode initialRuleCategory,
