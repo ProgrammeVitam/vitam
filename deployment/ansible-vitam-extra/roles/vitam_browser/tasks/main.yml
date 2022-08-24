@@ -1,34 +1,13 @@
 ---
 
-- name: Set apache service name for CentOS
-  set_fact:
-    apache_service: "httpd"
-    apache_conf_dir: "conf.d"
-    apache_user: "apache"
-    apache_group: "apache"
-  when: ansible_os_family == "RedHat"
+- name: include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
 
-- name: Set apache service name for Debian
-  set_fact:
-    apache_service: "apache2"
-    apache_conf_dir: "sites-available"
-    apache_user: "www-data"
-    apache_group: "root"
-  when: ansible_os_family == "Debian"
-
-- name: Install vitam user for /vitam browser access rights
+- name: Install apache web server & vitam user for /vitam browser access rights
   package:
-    name: vitam-user-vitam
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-
-
-- name: install apache web server
-  package:
-    name: "{{ apache_service }}"
+    name:
+      - "{{ apache_service }}"
+      - vitam-user-vitam
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

@@ -5,19 +5,32 @@
     manager: auto
   tags: griffins
 
-- name: Remove useless griffins
-  package:
-    name: "{{ item }}"
-    state: absent
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
+- name: Compute useless griffins
+  set_fact:
+    useless_griffins: "{{ useless_griffins | default([]) + [ item ] }}"
   when:
     - item is match("vitam-\S*-griffin")
     - item not in vitam_griffins
   loop: "{{ ansible_facts.packages |list }}"
   tags: griffins
+
+- name: Remove useless griffins
+  package:
+    name: "{{ useless_griffins }}"
+    state: absent
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  when: useless_griffins | default([]) | length > 0
+
+- name: Compute griffins-selinux to install
+  set_fact:
+    griffin_selinux_list: "{{ vitam_griffins + [ item + '-selinux' ] }}"
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+  loop: "{{ vitam_griffins }}"
 
 # vitam_griffins var is a list
 - name: Install griffins packages
@@ -29,17 +42,4 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   tags: griffins
-
-- name: Install selinux packages 
-  package:
-    name: "{{ item }}-selinux"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  tags: griffins
-  when:
-    - selinux_state | lower in ["enforcing", "permissive"]
-    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
-  loop: "{{ vitam_griffins }}"
+  when: vitam_griffins | default([]) | length > 0

@@ -18,16 +18,17 @@
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
-    when: ansible_os_family == "RedHat"
 
   when: ansible_os_family == "RedHat"
 
 - block:
 
-  - name: install curl
+  - name: install curl & apt-transport-https
     apt:
-      name: curl
-      state: present
+      name:
+        - curl
+        - apt-transport-https
+      state: latest
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
@@ -40,15 +41,6 @@
       owner: root
       group: root
       mode: 0640
-
-  - name: install package on Debian
-    package:
-      name: apt-transport-https
-      state: latest
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
 
   - name: add GPG key
     shell: "export https_proxy={{ http_proxy_environnement }} && curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"

@@ -2,42 +2,17 @@
 
 - import_tasks: mongo_compute.yml
 
-- name: Set apache service name for CentOS
-  set_fact:
-    apache_service: "httpd"
-    apache_conf_dir: "conf.d"
-    apache_user: "apache"
-    apache_group: "apache"
-    mime_type_package: "mailcap"
-  when: ansible_os_family == "RedHat"
+- name: include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
 
-- name: Set apache service name for Debian
-  set_fact:
-    apache_service: "apache2"
-    apache_conf_dir: "sites-available"
-    apache_user: "root"
-    apache_group: "root"
-    mime_type_package: "mime-support"
-  when: ansible_os_family == "Debian"
-
-- name: install {{ mime_type_package }} & {{ apache_service }} packages
+- name: install packages for reverse
   package:
-    name: ["{{ mime_type_package }}","{{ apache_service }}"]
+    name: "{{ package_list }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-
-- name: Ensure mod_ssl is installed (CentOS)
-  package:
-    name: mod_ssl
-    state: present
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when: ansible_os_family == "RedHat"
 
 # TODO: We could use apache2_module of ansible but it is currently flagged as preview
 - name: Enable mod_ssl & mod_proxy (Debian)

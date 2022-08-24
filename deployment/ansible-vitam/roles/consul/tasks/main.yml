@@ -1,5 +1,25 @@
 ---
 
+- name: include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Compute consul package to install
+  set_fact:
+    consul_package_list: [ 'vitam-consul' ]
+
+- name: Compute consul-selinux package to install
+  set_fact:
+    consul_package_list: "{{ consul_package_list + [ 'vitam-consul-selinux' ] }}"
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+
+- name: Compute resolvconf package to install
+  set_fact:
+    consul_package_list: "{{ consul_package_list + [ resolvconf_package ] }}"
+  when:
+    - ansible_virtualization_type != "docker"
+
 - include_tasks: consul_enabled.yml
   when: consul_disabled is not defined or consul_disabled | lower != "true"
 

@@ -1,50 +1,20 @@
 ---
 
-# tasks file for cerebro
-- name: Install java 11 (prerequisite for cerebro) only when CentOS
-  yum:
-    name: "{{ java_prerequisites.redhat }}"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
+- name: Set java_package for RedHat family
+  set_fact:
+    java_package: "{{ java_prerequisites.redhat }}"
   when: ansible_os_family == "RedHat"
-  notify:
-    - "cerebro - restart service"
 
-- name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
-  apt:
-    name: "{{ java_prerequisites.debian }}"
-    state: latest
-    default_release: "{{ ansible_distribution_release }}"
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when:
-    - ansible_os_family == "Debian"
-    - disable_internet_repositories_install == false
-  notify:
-    - "cerebro - restart service"
-
-- name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
-  apt:
-    name: "{{ java_prerequisites.debian }}"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"
-  when:
-    - ansible_os_family == "Debian"
-    - disable_internet_repositories_install == true
-  notify:
-    - "cerebro - restart service"
+- name: Set java_package for Debian
+  set_fact:
+    java_package: "{{ java_prerequisites.debian }}"
+  when: ansible_os_family == "Debian"
 
 - name: install vitam-elasticsearch-cerebro package
   package:
-    name: vitam-elasticsearch-cerebro
+    name:
+      - vitam-elasticsearch-cerebro
+      - "{{ java_package }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

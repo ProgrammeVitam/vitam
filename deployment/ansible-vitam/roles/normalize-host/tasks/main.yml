@@ -1,9 +1,5 @@
 ---
 
-- import_tasks: selinux.yml
-
-- import_tasks: apparmor.yml
-
 - name: check whether VITAM parent dir already exists
   stat:
     path: "{{ vitam_defaults.folder.root_path }}"
@@ -40,9 +36,8 @@
     - tmp
     - run
 
-- include_tasks: centos.yml
-  when: ansible_os_family == "RedHat"
+- include_tasks: RedHat.yml
+  when: ansible_os_family == 'RedHat'
 
-# No openjdk8 without jessie-backports with debian
-- include_tasks: debian.yml
-  when: ansible_os_family == "Debian"
+- include_tasks: Debian.yml
+  when: ansible_os_family == 'Debian'
