@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -91,7 +92,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     private static final String HOLD_OWNER = "HoldOwner";
     private static final String HOLD_END_DATE = "HoldEndDate";
     private static final String HOLD_REASSESSING_DATE = "HoldReassessingDate";
-    private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND = "Error while get the ArchiveUnitProfile in Referential";
+    private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND =
+        "Error while get the ArchiveUnitProfile in Referential";
 
     /**
      * AdminManagementClientFactory
@@ -140,12 +142,13 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         }
 
         try {
-            JsonNode errorEvDetData = getErrorFromActionQuery(queryActions);
-            if (errorEvDetData != null) {
-                LOGGER.error("Rule update request validation failed \n" + JsonHandler.unprettyPrint(errorEvDetData));
+            Optional<JsonNode> errorEvDetData = getErrorFromActionQuery(queryActions);
+            if (errorEvDetData.isPresent()) {
+                LOGGER.error(
+                    "Rule update request validation failed \n" + JsonHandler.unprettyPrint(errorEvDetData.get()));
                 itemStatus.increment(StatusCode.KO);
                 itemStatus.setMessage(VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorEvDetData));
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorEvDetData.get()));
                 return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
                     .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
             }
@@ -159,33 +162,39 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
     }
 
-    private JsonNode getErrorFromActionQuery(JsonNode queryActions) throws InvalidParseOperationException {
+    private Optional<JsonNode> getErrorFromActionQuery(JsonNode queryActions) throws InvalidParseOperationException {
         RuleActions ruleActions = JsonHandler.getFromJsonNode(queryActions, RuleActions.class);
 
         Optional<JsonNode> potentialErrorInManagement = computeErrorsForManagementMetadata(ruleActions);
         if (potentialErrorInManagement.isPresent()) {
-            return potentialErrorInManagement.get();
+            return potentialErrorInManagement;
         }
 
-        Optional<JsonNode> checkError = ruleActions.getUpdate().stream()
+        Optional<JsonNode> updateError = ruleActions.getUpdate().stream()
             .flatMap(x -> x.entrySet().stream())
             .map(this::computeErrorsForUpdate)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
-        if (checkError.isPresent())
-            return checkError.get();
+        if (updateError.isPresent())
+            return updateError;
 
-        checkError = ruleActions.getAdd().stream()
+        Optional<JsonNode> addError = ruleActions.getAdd().stream()
             .flatMap(x -> x.entrySet().stream())
             .map(this::computeErrorsForAdd)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
-        if (checkError.isPresent())
-            return checkError.get();
+        if (addError.isPresent())
+            return addError;
 
-        return checkError.orElse(null);
+        Optional<JsonNode> deleteError = ruleActions.getDelete().stream()
+            .flatMap(x -> x.entrySet().stream())
+            .map(this::computeErrorsForDelete)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst();
+        return deleteError;
     }
 
     private Optional<JsonNode> computeErrorsForManagementMetadata(RuleActions ruleActions) {
@@ -227,7 +236,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put(ERROR, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
                 errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
-                errorInfo.put(INFO,  ARCHIVE_UNIT_PROFILE + aupId + " havn't a valid Control Schema");
+                errorInfo.put(INFO, ARCHIVE_UNIT_PROFILE + aupId + " havn't a valid Control Schema");
                 errorInfo.put("Code", "CHECK_UNIT_PROFILE_CONSISTENCY");
                 return Optional.of(errorInfo);
             }
@@ -402,7 +411,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         }
 
         Optional<JsonNode> checkHoldReassessingDateResponse =
-            checkDateFormat( HOLD_REASSESSING_DATE, ruleAction.getHoldReassessingDate(), entry.getKey(), false);
+            checkDateFormat(HOLD_REASSESSING_DATE, ruleAction.getHoldReassessingDate(), entry.getKey(), false);
         if (checkHoldReassessingDateResponse.isPresent()) {
             return checkHoldReassessingDateResponse;
         }
@@ -541,7 +550,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldOwner()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldReason()) &&
             !Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate()) &&
-                !Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement());
+            !Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement());
     }
 
     private Optional<JsonNode> reportUnexpectedField(Map.Entry<String, RuleCategoryAction> entry, String fieldName) {
@@ -575,9 +584,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     }
 
     private Optional<JsonNode> computeErrorsForCategory(Map.Entry<String, RuleCategoryAction> entry) {
-        JsonNode rulesIDErrors = computeOnlyRulesID(entry);
-        if (rulesIDErrors != null) {
-            return Optional.of(rulesIDErrors);
+        Optional<JsonNode> rulesIDErrors = computeOnlyRulesID(entry);
+        if (rulesIDErrors.isPresent()) {
+            return rulesIDErrors;
         }
 
         String categoryName = entry.getKey();
@@ -598,7 +607,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         return Optional.empty();
     }
 
-    private JsonNode computeOnlyRulesID(Map.Entry<String, RuleCategoryAction> entry) {
+    private Optional<JsonNode> computeOnlyRulesID(Map.Entry<String, RuleCategoryAction> entry) {
         String categoryName = entry.getKey();
         RuleCategoryAction category = entry.getValue();
 
@@ -620,7 +629,14 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         if (category.getPreventRulesId() != null) {
             rulesToCheck.addAll(category.getPreventRulesId());
         }
+        if (category.getPreventRulesIdToAdd() != null) {
+            rulesToCheck.addAll(category.getPreventRulesIdToAdd());
+        }
 
+        return validateRuleIds(categoryName, rulesToCheck);
+    }
+
+    private Optional<JsonNode> validateRuleIds(String categoryName, Set<String> rulesToCheck) {
         for (String ruleID : rulesToCheck) {
             JsonNode ruleResponseInReferential;
 
@@ -632,7 +648,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put(MESSAGE, VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
                 errorInfo.put(INFO, "Rule " + ruleID + " is not in database");
                 errorInfo.put("Code", "UNITS_RULES_UNKNOWN");
-                return errorInfo;
+                return Optional.of(errorInfo);
             } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
                 throw new IllegalStateException("Error while get the rule in Referential");
             }
@@ -645,11 +661,25 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put(INFO, "Rule " + ruleID + " is not in category " + categoryName + " but " +
                     ruleInReferential.get("RuleType").asText());
                 errorInfo.put("Code", "UNITS_RULES_INCONSISTENCY");
-                return errorInfo;
+                return Optional.of(errorInfo);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
+    private Optional<JsonNode> computeErrorsForDelete(
+        Map.Entry<String, RuleCategoryActionDeletion> ruleCategoryActionDeletionEntry) {
+        String categoryName = ruleCategoryActionDeletionEntry.getKey();
+        RuleCategoryActionDeletion ruleCategoryActionDeletion = ruleCategoryActionDeletionEntry.getValue();
+
+        if(ruleCategoryActionDeletion == null) {
+            return Optional.empty();
+        }
+
+        if (ruleCategoryActionDeletion.getPreventRulesIdToRemove() != null) {
+            return validateRuleIds(categoryName, ruleCategoryActionDeletion.getPreventRulesIdToRemove());
+        }
+        return Optional.empty();
+    }
 }

@@ -67,6 +67,10 @@ import static org.mockito.Mockito.doThrow;
 
 public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
+    public static final String DELETE_PREVENT_RULES_ID_TO_REMOVE_WRONG_RULE_CATEGORY_JSON =
+        "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemoveWrongRuleCategory.json";
+    public static final String DELETE_PREVENT_RULES_ID_TO_REMOVE_UNKNOWN_RULE_ID_JSON =
+        "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemoveUnknownRuleId.json";
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -871,7 +875,7 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     }
 
     @Test
-    public void testDeletePreventRulesIdOK() throws Exception {
+    public void givenPreventRuleIdsToRemoveWithValidRuleIdsThenOK() throws Exception {
 
         // Given
         givenRuleActions(PREVENT_RULES_ID_TO_REMOVE);
@@ -882,6 +886,38 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    public void givenPreventRuleIdsToRemoveWithUnknownRuleIdsThenKO() throws Exception {
+
+        // Given
+        givenRuleActions(DELETE_PREVENT_RULES_ID_TO_REMOVE_UNKNOWN_RULE_ID_JSON);
+
+        // When
+        ItemStatus itemStatus =
+            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
+            .get("Code").asText()).isEqualTo("UNITS_RULES_UNKNOWN");
+    }
+
+    @Test
+    public void givenPreventRuleIdsToRemoveWithWrongRuleCategoryThenKO() throws Exception {
+
+        // Given
+        givenRuleActions(DELETE_PREVENT_RULES_ID_TO_REMOVE_WRONG_RULE_CATEGORY_JSON);
+
+        // When
+        ItemStatus itemStatus =
+            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
+            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
     }
 
     private JsonNode givenRuleActions(String queryFile)

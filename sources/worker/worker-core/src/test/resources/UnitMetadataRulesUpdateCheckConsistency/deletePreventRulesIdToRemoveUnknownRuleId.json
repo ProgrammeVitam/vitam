@@ -1,0 +1,11 @@
+{
+  "delete": [
+    {
+      "AppraisalRule": {
+        "PreventRulesIdToRemove": ["APP-UNKNOWN"]
+      }
+    }
+  ],
+  "update": [],
+  "add": []
+}
