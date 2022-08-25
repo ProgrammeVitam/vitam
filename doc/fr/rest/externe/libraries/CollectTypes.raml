@@ -26,6 +26,45 @@ types:
       Comment:
         type: string
 
+  ProjectRequest:
+    displayName: Project Request Information
+    description: Description of one Project Request
+    type: object
+    properties:
+      id:
+        type: string
+      Name:
+        type: string
+      AcquisitionInformation:
+        type: string
+      LegalStatus:
+        type: string
+      CreationDate:
+        type: string
+      LastUpdate:
+        type: string
+      Status:
+        type: string
+      ArchivalAgreement:
+        type: string
+      MessageIdentifier:
+        type: string
+      ArchivalAgencyIdentifier:
+        type: string
+      TransferringAgencyIdentifier:
+        type: string
+      OriginatingAgencyIdentifier:
+        type: string
+      SubmissionAgencyIdentifier:
+        type: string
+      ArchiveProfile:
+        type: string
+      Comment:
+        type: string
+      tenant:
+        type: string
+
+
   TransactionResponse:
     displayName: Transaction Response Information
     description: Description of one Transaction Response
@@ -37,16 +76,16 @@ types:
       $hits:
         properties:
           total:
-            description: Total estimated possible answears
+            description: Total estimated possible answers
             type: integer
           offset:
-            description: Offset on possible answears
+            description: Offset on possible answers
             type: integer
           limit:
             description: Limit specified in the request (or implicit) from Offset
             type: integer
           size:
-            description: Number of currently returned answears
+            description: Number of currently returned answers
             type: integer
           time_out?:
             description: True means the request was too long and so only partial result could be retrieved
@@ -62,3 +101,41 @@ types:
         type: TransactionRequest[]
 
     example: !include ../../interne/libraries/examples/transactionInitObjectResponse.json
+
+
+  ProjectResponse:
+    displayName: Project Response Information
+    description: Description of one Project Response
+    type: object
+    properties:
+      httpCode:
+        description: Short code as in RFC 7231 (Http Status Codes).
+        type: integer
+      $hits:
+        properties:
+          total:
+            description: Total estimated possible answers
+            type: integer
+          offset:
+            description: Offset on possible answers
+            type: integer
+          limit:
+            description: Limit specified in the request (or implicit) from Offset
+            type: integer
+          size:
+            description: Number of currently returned answers
+            type: integer
+          time_out?:
+            description: True means the request was too long and so only partial result could be retrieved
+            type: boolean
+      $context:
+        required: true
+        description: Contains Request related to this to reply
+        type: object
+
+      $results:
+        required: true
+        description: Contains list of items
+        type: TransactionRequest[]
+
+    example: !include ../../interne/libraries/examples/ProjectInitObjectResponse.json

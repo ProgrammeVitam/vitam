@@ -25,3 +25,13 @@ traits:
           application/json:
             description: Saved transaction
             type: CollectTypes.TransactionResponse
+
+  ProjectResponse:
+    description: Request that will return the response model for a collect project
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.PaginationRequestHeader,StandardTraits.StandardHeader401,
+       StandardTraits.StandardHeader404, StandardTraits.StandardHeader412,  ]
+    responses:
+      200:
+        description: get selected project
+        type: CollectTypes.ProjectResponse
