@@ -34,3 +34,8 @@ Le client propose actuellement plusieurs méthodes :
   addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded);
   closeTransaction(String transactionId);
   ingest(String transactionId);
+  uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded);
+  selectUnits(VitamContext vitamContext, JsonNode jsonQuery);
+  getUnitsByProjectId(VitamContext vitamContext, String projectId, JsonNode dslQuery)
+  getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
+

@@ -37,6 +37,8 @@ Rest API
 | https://vitam/collect/v1/objects/{usage}/{version}/binary
 | https://vitam/collect/v1/transactions/close
 | https://vitam/collect/v1/transactions/send
+| https://vitam/collect/v1/projects/{projectId}/binary
+| https://vitam/collect/v1/projects/{projectId}/units
 
 -TransactionResource.java
 ##########################

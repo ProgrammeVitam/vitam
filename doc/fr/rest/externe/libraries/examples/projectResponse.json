@@ -1,0 +1,31 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "id": "aeeaaaaaaghh2pswab2nuamcz4h4niqaaaaq",
+      "Name": "ceci est un intitulé du projet",
+      "AcquisitionInformation": "Protocole",
+      "LegalStatus": "Archives publiques",
+      "CreationDate": "2022-08-24T08:54:53.888",
+      "LastUpdate": "2022-08-24T08:55:51.545",
+      "Status": "OPEN",
+      "ArchivalAgreement": "CA expl",
+      "MessageIdentifier": "ceci est un intitulé du projet",
+      "ArchivalAgencyIdentifier": "SA expl",
+      "TransferringAgencyIdentifier": "SRT expl",
+      "OriginatingAgencyIdentifier": "SP expl",
+      "SubmissionAgencyIdentifier": "SV expl",
+      "ArchiveProfile": "PROFIL ARCH. expl",
+      "Comment": "my description",
+      "tenant": 1,
+      "transactionId": "aeeaaaaaaghh2pswab2nuamcz4h4pwyaaaaq"
+    }
+  ],
+  "$context": {}
+}
