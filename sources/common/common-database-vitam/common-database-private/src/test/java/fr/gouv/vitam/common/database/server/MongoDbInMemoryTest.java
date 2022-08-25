@@ -58,6 +58,7 @@ import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.Vit
 import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamType.text;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -200,17 +201,18 @@ public class MongoDbInMemoryTest {
     private static final String UNIT1 = "UpdateRules/Units/unit1.json";
     private static final String UNIT2 = "UpdateRules/Units/unit2.json";
     private static final String UNIT3 = "UpdateRules/Units/unit3.json";
-    private static final String DELETED_RULES_ID_FOR_APPRAISAL_CATEGORY = "UpdateRules/RuleActions/deleteRulesIdForAppraisalCategory.json";
+    private static final String DELETED_RULES_ID_FOR_APPRAISAL_CATEGORY =
+        "UpdateRules/RuleActions/deleteRulesIdForAppraisalCategory.json";
     private static final String BAD_UPDATE_MGT_RULE_REQUEST = "UpdateRules/RuleActions/badUpdateMgtRuleRequest.json";
     private static final String UNIT7_DELETED_LIST_PREVENT_RULES_ID =
         "UpdateRules/Units/unit7_deleted_ListOfPreventRulesId.json";
     private static final String UNIT9_DELETED_LIST_PREVENT_RULES_ID_FOR_MULTIPLE_CATEGORY =
         "UpdateRules/Units/unit9_deletedListOfPreventRulesForMultipleCategory.json";
     private static final String BAD_ADD_MGT_RULE_REQUEST = "UpdateRules/RuleActions/badAddMgtRuleRequest.json";
-    private static final String DELETE_PREVENT_RULES_MGT_REQUEST = "UpdateRules/RuleActions/deletePreventRulesInMgtRulesRequest.json";
-    private static final String DELETE_PREVENT_RULES_FOR_MULTIPLE_CATEGORY = "UpdateRules/RuleActions/deletePreventRulesForMultipleRuleCategory.json";
-    private static final String UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST =
-        "UpdateRules/Units/unit8_expected-mgt_rules_after_bad_request.json";
+    private static final String DELETE_PREVENT_RULES_MGT_REQUEST =
+        "UpdateRules/RuleActions/deletePreventRulesInMgtRulesRequest.json";
+    private static final String DELETE_PREVENT_RULES_FOR_MULTIPLE_CATEGORY =
+        "UpdateRules/RuleActions/deletePreventRulesForMultipleRuleCategory.json";
     private static final String UNIT7_ADD_PREVENT_RULES_TO_HOLD_CATEGORY =
         "UpdateRules/Units/unit7_addedNewPreventRulesToHoldCategory.json";
     private static final String ADD_NEW_PREVENT_RULES_TO_HOLD_CATEGORY =
@@ -1193,13 +1195,9 @@ public class MongoDbInMemoryTest {
             BAD_UPDATE_MGT_RULE_REQUEST);
         Map<String, DurationData> durations = getTestRuleDurations();
 
-        // When
-        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
-
-        // Then
-        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST);
-        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+        // When / Then
+        assertThatThrownBy(() -> mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations))
+            .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -1284,13 +1282,9 @@ public class MongoDbInMemoryTest {
             BAD_ADD_MGT_RULE_REQUEST);
         Map<String, DurationData> durations = getTestRuleDurations();
 
-        // When
-        JsonNode updatedJson = mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
-
-        // Then
-        String expectedUnitAfterUpdates = PropertiesUtils.getResourceAsString(
-            UNIT8_EXPECTED_RULES_AFTER_BAD_REQUEST);
-        JsonAssert.assertJsonEquals(expectedUnitAfterUpdates, JsonHandler.unprettyPrint(updatedJson));
+        // When / Then
+        assertThatThrownBy(() -> mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations))
+            .isInstanceOf(IllegalStateException.class);
     }
 
 
