@@ -4,7 +4,7 @@ org.quartz.scheduler.instanceId=AUTO
 org.quartz.scheduler.instanceIdGenerator.class=org.quartz.simpl.HostnameInstanceIdGenerator
 org.quartz.scheduler.interruptJobsOnShutdown=true
 
-org.quartz.threadPool.class=fr.gouv.vitam.scheduler.server.thread.VitamQuartzExecutorThreadPool
+org.quartz.threadPool.class=fr.gouv.vitam.scheduler.server.util.VitamQuartzExecutorThreadPool
 org.quartz.threadPool.threadCount={{ vitam_scheduler_thread_count }}
 
 org.quartz.jobStore.class=com.novemberain.quartz.mongodb.MongoDBJobStore
@@ -14,8 +14,12 @@ org.quartz.jobStore.isClustered=true
 org.quartz.jobStore.dbName=scheduler
 org.quartz.jobStore.collectionPrefix=vitam
 
-org.quartz.plugin.jobInitializer.class = org.quartz.plugins.xml.XMLSchedulingDataProcessorPlugin
-org.quartz.plugin.jobInitializer.fileNames = {% for file in lookup('fileglob', '{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/jobs/*.xml.j2', wantlist=True) %}{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/jobs/{{  file |  basename | regex_replace('\\.j2$') }}{% if not loop.last %},{% endif %}{% endfor %}
+org.quartz.jobStore.checkInErrorHandler=com.novemberain.quartz.mongodb.cluster.NoOpErrorHandler
 
-org.quartz.plugin.jobInitializer.failOnFileNotFound = true
-org.quartz.plugin.jobInitializer.wrapInUserTransaction = false
+{% if inventory_hostname == groups['hosts_scheduler'] | first %}
+org.quartz.plugin.jobInitializer.class=fr.gouv.vitam.scheduler.server.util.VitamXMLSchedulingDataProcessorPlugin
+org.quartz.plugin.jobInitializer.fileNames=*.xml
+{% endif %}
+
+org.quartz.plugin.jobInitializer.failOnFileNotFound=true
+org.quartz.plugin.jobInitializer.wrapInUserTransaction=false

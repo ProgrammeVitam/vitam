@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.scheduler.server.thread;
+package fr.gouv.vitam.scheduler.server.util;
 
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.quartz.simpl.SimpleThreadPool;
