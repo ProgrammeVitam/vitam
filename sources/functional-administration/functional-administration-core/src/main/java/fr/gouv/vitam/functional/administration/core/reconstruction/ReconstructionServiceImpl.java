@@ -177,13 +177,32 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 .getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
 
         switch (collection) {
+            case RULES:
+            case INGEST_CONTRACT:
+            case ACCESS_CONTRACT:
+            case MANAGEMENT_CONTRACT:
+            case PROFILE:
+            case ARCHIVE_UNIT_PROFILE:
+            case AGENCIES:
+            case GRIFFIN:
+            case PRESERVATION_SCENARIO:
+                // Keep reconstruction process by specified Tenant
+                break;
+
             case CONTEXT:
             case FORMATS:
             case SECURITY_PROFILE:
-            case VITAM_SEQUENCE:
-                // TODO: 1/3/18 admin tenant must be request from configuration
+            case ONTOLOGY:
+                // Admin tenant ONLY
                 tenants = new Integer[] {ADMIN_TENANT};
                 break;
+
+            case ACCESSION_REGISTER_SUMMARY:
+            case ACCESSION_REGISTER_DETAIL:
+            case ACCESSION_REGISTER_SYMBOLIC:
+            case VITAM_SEQUENCE:
+            default:
+                throw new IllegalArgumentException("Collection not supported in this service!");
         }
         try {
             for (Integer tenant : tenants) {
