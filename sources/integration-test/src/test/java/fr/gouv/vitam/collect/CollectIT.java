@@ -170,8 +170,9 @@ public class CollectIT extends VitamRuleRunner {
         closeTransaction();
         ingest();
         updateProject();
-
         createTransactionByProject();
+        deleteTransactionById(transactionGuuid);
+        deleteProjectById(projectGuuid);
     }
 
     private void createTransactionByProject() throws VitamClientException, InvalidParseOperationException {
@@ -367,6 +368,13 @@ public class CollectIT extends VitamRuleRunner {
         }
     }
 
+    public void deleteTransactionById(String transactionId) throws Exception {
+        RequestResponse<JsonNode> response = collectClient.deleteTransactionById(vitamContext, transactionId);
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
 
-
+    public void deleteProjectById(String projectId) throws Exception {
+        RequestResponse<JsonNode> response = collectClient.deleteProjectById(vitamContext, projectId);
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
 }

@@ -127,6 +127,15 @@ public class TransactionService {
         return transactionRepository.findTransactionByProjectId(id);
     }
 
+    /**
+     * delete transaction according to id
+     *
+     * @param id transaction to delete
+     */
+    public void deleteTransactionById(String id) {
+        transactionRepository.deleteTransaction(id);
+    }
+
 
     public void closeTransaction(String transactionId) throws CollectException {
         Optional<TransactionModel> transactionModel = findTransaction(transactionId);

@@ -75,7 +75,7 @@ public class TransactionRepository {
         LOGGER.debug("Transaction to create: {}", transactionModel);
         try {
             String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
-            transactionCollection.insertOne(Document.parse(transactionModelAsString));
+                transactionCollection.insertOne(Document.parse(transactionModelAsString));
         } catch (InvalidParseOperationException e) {
             throw new CollectException("Error when creating transaction: " + e);
         }
@@ -136,6 +136,18 @@ public class TransactionRepository {
         } catch (InvalidParseOperationException e) {
             throw new CollectException("Error when searching transaction by project id: " + e);
         }
+    }
+
+
+    /**
+     * delete a transaction model
+     *
+     * @param id transaction to delete
+     */
+    public void deleteTransaction(String id) {
+        LOGGER.debug("Transaction to delete Id: {}", id);
+        transactionCollection.deleteOne(eq(ID, id));
+        LOGGER.debug("Transaction deleted Id: {}", id);
     }
 }
 

@@ -103,4 +103,13 @@ public class ProjectService {
             .collect(Collectors.toList());
     }
 
+    /**
+     * delete project according to id
+     *
+     * @param id project to delete
+     */
+    public void deleteProjectById(String id) {
+        projectRepository.deleteProject(id);
+    }
+
 }
