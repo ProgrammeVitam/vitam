@@ -16,10 +16,8 @@ org.quartz.jobStore.collectionPrefix=vitam
 
 org.quartz.jobStore.checkInErrorHandler=com.novemberain.quartz.mongodb.cluster.NoOpErrorHandler
 
-{% if inventory_hostname == groups['hosts_scheduler'] | first %}
-org.quartz.plugin.jobInitializer.class=fr.gouv.vitam.scheduler.server.util.VitamXMLSchedulingDataProcessorPlugin
-org.quartz.plugin.jobInitializer.fileNames=*.xml
-{% endif %}
+org.quartz.plugin.jobInitializer.class=org.quartz.plugins.xml.XMLSchedulingDataProcessorPlugin
+org.quartz.plugin.jobInitializer.fileNames = {% for file in lookup('fileglob', '{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/jobs/*.xml.j2', wantlist=True) %}{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/jobs/{{  file |  basename | regex_replace('\\.j2$') }}{% if not loop.last %},{% endif %}{% endfor %}
 
 org.quartz.plugin.jobInitializer.failOnFileNotFound=true
 org.quartz.plugin.jobInitializer.wrapInUserTransaction=false
