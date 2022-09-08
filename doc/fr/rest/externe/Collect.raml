@@ -40,13 +40,15 @@ documentation:
     Création d'un projet :
     - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
       - ArchivalAgencyIdentifier
-      - TransferingAgencyIdentifier
+      - TransferringAgencyIdentifier
       - OriginatingAgencyIdentifier
       - SubmissionAgencyIdentifier
       - MessageIdentifier
       - ArchivalAgreement
       - unitUp
       - Comment
+      - LegalStatus
+      - Name
   post:
     description: |
       - request body : JSON object
@@ -120,30 +122,60 @@ documentation:
         200:
           body:
             application/json:
+  /{id}/transactions:
+       displayName: upload d'une archive Zip
+       is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+              StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+       post:
+        description: |
+          Permet de soumettre un ensemble de binaire au format Zip
+        body:
+         application/zip:
+        headers:
+         X-tenant-Id:
+          required: true
+        responses:
+           200:
+             body:
+               application/json:
+  /{id}/transaction:
+      description: |
+        API de collecte. Ce point d'entrée permet de créer une transaction de versement par project.
 
-/projects/{projectId}/transactions:
+        Crée une transaction d'entrée :
+        - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
+          - ArchivalAgencyIdentifier
+          - TransferingAgencyIdentifier
+          - OriginatingAgencyIdentifier
+          - ArchiveProfile
+          - Comment
+      post:
+        description: |
+          - request body : JSON object
+          - response : JSON of saved transaction / HTTP CODE 200
+        is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+
+  /{id}:
+      description: |
+        API de collecte. Ce point d'entrée permet de supprimer un project de versement.
+      delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
+
+/transactions:
   displayName: Transactions
-  description: |
-    API de collecte. Ce point d'entrée permet de créer une transaction de versement par project.
-
-    Crée une transaction d'entrée :
-    - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
-      - ArchivalAgencyIdentifier
-      - TransferingAgencyIdentifier
-      - OriginatingAgencyIdentifier
-      - ArchiveProfile
-      - Comment
-  post:
-    description: |
-      - request body : JSON object
-      - response : JSON of saved transaction / HTTP CODE 200
-    is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
-         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-    headers:
-     x-tenant-id:
-        required: true
-
   /{id}/units:
     displayName: Ajout d'une unité archivistique
     is: [ StandardTraits.StandardOptionalHeader,
@@ -205,6 +237,18 @@ documentation:
                     application/json:
                       type: object
                       example: !include libraries/examples/CollectIngestObjectResponse.json
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer une transaction.
+    delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
 
 /units:
   displayName: Units

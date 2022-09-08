@@ -121,6 +121,7 @@ public class CollectIT extends VitamRuleRunner {
     private static Integer version = 1;
     private static CollectClient collectClient;
     private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
+    private static String vitamOperationId;
 
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private VitamContext vitamContext = new VitamContext(tenantId)
@@ -274,8 +275,8 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
-        String operationId = response.getFirstResult().get("id").textValue();
-        Assertions.assertThat(operationId).isNotNull();
+        vitamOperationId = response.getFirstResult().get("id").textValue();
+        Assertions.assertThat(vitamOperationId).isNotNull();
     }
 
 

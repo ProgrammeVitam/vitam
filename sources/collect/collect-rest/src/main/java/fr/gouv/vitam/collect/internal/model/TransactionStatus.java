@@ -28,8 +28,10 @@ package fr.gouv.vitam.collect.internal.model;
 
 public enum TransactionStatus {
     OPEN,
-    CLOSE,
+    READY,
     SENT,
+    SENDING,
+    KO,
     WAITING_ACK,
     ACK_OK,
     ACK_ERROR;

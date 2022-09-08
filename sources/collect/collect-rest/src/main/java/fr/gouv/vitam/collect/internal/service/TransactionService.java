@@ -142,9 +142,7 @@ public class TransactionService {
         if (transactionModel.isEmpty() || !checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
             throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
         }
-        TransactionModel currentTransactionModel = transactionModel.get();
-        currentTransactionModel.setStatus(TransactionStatus.CLOSE);
-        replaceTransaction(currentTransactionModel);
+        changeStatusTransaction(TransactionStatus.READY, transactionModel.get());
     }
 
     public void replaceTransaction(TransactionModel transactionModel) throws CollectException {
@@ -153,6 +151,12 @@ public class TransactionService {
 
     public boolean checkStatus(TransactionModel transactionModel, TransactionStatus... transactionStatus) {
         return Arrays.stream(transactionStatus).anyMatch(tr -> transactionModel.getStatus().equals(tr));
+    }
+
+    public void changeStatusTransaction(TransactionStatus transactionStatus, TransactionModel transactionModel)
+        throws CollectException {
+        transactionModel.setStatus(transactionStatus);
+        replaceTransaction(transactionModel);
     }
 
 }

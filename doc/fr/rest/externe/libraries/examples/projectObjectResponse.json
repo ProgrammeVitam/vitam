@@ -8,16 +8,22 @@
     },
     "$results": [
         {
-            "transactionId": "aeeaaaaaachguhgcabg2kambzy6k3cqaaaaq",
-            "id": "aeeaaaaaachguhgcabg2kambzy6k2rqaaaaq",
+            "id": "aeeaaaaaachhpyi5abzbgamc7vhjluqaaaaq",
+            "Name": "Project Name",
+            "AcquisitionInformation": "Versement",
+            "LegalStatus": "Archives privées",
+            "CreationDate": "2022-09-02T08:26:02.090",
+            "LastUpdate": "2022-09-02T08:26:02.090",
+            "Status": "OPEN",
             "ArchivalAgreement": "IC-000001",
             "MessageIdentifier": "20220302-000005",
             "ArchivalAgencyIdentifier": "Identifier0",
-            "TransferingAgencyIdentifier": "Identifier3",
+            "TransferringAgencyIdentifier": "Identifier3",
             "OriginatingAgencyIdentifier": "FRAN_NP_009915",
             "SubmissionAgencyIdentifier": "FRAN_NP_005061",
             "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
             "tenant": 0,
+            "transactionId": "aeeaaaaaachhpyi5abzbgamc7vhjsxyaaaaq",
             "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
         }
     ],

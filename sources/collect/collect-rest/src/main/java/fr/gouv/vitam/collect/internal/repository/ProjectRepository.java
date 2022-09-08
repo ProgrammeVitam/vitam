@@ -29,7 +29,6 @@ package fr.gouv.vitam.collect.internal.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -38,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -114,7 +114,9 @@ public class ProjectRepository {
     public Optional<ProjectModel> findProjectById(String id) throws CollectException {
         LOGGER.debug("Project id to find : {}", id);
         try {
-            Document first = projectCollection.find(Filters.eq(ID, id)).first();
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Bson query = and(eq(ID, id), eq(TENANT_ID, tenantId));
+            Document first = projectCollection.find(query).first();
             if (first == null) {
                 return Optional.empty();
             }

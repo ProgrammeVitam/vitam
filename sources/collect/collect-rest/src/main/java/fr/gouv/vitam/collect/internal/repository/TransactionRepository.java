@@ -28,7 +28,6 @@ package fr.gouv.vitam.collect.internal.repository;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -37,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -53,6 +53,7 @@ public class TransactionRepository {
     public static final String TRANSACTION_COLLECTION = "Transaction";
     public static final String ID = "_id";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionRepository.class);
+    public static final String TENANT_ID = "_tenant";
 
     private final MongoCollection<Document> transactionCollection;
 
@@ -108,7 +109,9 @@ public class TransactionRepository {
     public Optional<TransactionModel> findTransaction(String id) throws CollectException {
         LOGGER.debug("Transaction id to find : {}", id);
         try {
-            Document first = transactionCollection.find(Filters.eq(ID, id)).first();
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Bson query = and(eq(ID, id), eq(TENANT_ID, tenantId));
+            Document first = transactionCollection.find(query).first();
             if (first == null) {
                 return Optional.empty();
             }
@@ -128,7 +131,9 @@ public class TransactionRepository {
     public Optional<TransactionModel> findTransactionByProjectId(String id) throws CollectException {
         LOGGER.debug("Transaction id to find : {}", id);
         try {
-            Document first = transactionCollection.find(Filters.eq("ProjectId", id)).first();
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Bson query = and(eq("ProjectId", id), eq(TENANT_ID, tenantId));
+            Document first = transactionCollection.find(query).first();
             if (first == null) {
                 return Optional.empty();
             }
