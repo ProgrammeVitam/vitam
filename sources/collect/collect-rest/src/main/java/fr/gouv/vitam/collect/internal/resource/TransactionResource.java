@@ -79,7 +79,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
@@ -574,41 +573,44 @@ public class TransactionResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
-    public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
-
+    public Response generateAndSendSip(@PathParam("transactionId") String transactionId) throws CollectException {
+        TransactionModel transaction = null;
         try {
             SanityChecker.checkParameter(transactionId);
 
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
             if (transactionModel.isEmpty() ||
-                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.CLOSE)) {
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.READY)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
-
-            String digest = sipService.generateSip(transactionModel.get());
+            transaction = transactionModel.get();
+            transactionService.changeStatusTransaction(TransactionStatus.SENDING, transaction);
+            String digest = sipService.generateSip(transaction);
             if (digest == null) {
                 LOGGER.error(SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
+                transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
             }
 
-            final String operationGuiid = sipService.ingest(transactionModel.get(), digest);
+            final String operationGuiid = sipService.ingest(transaction, digest);
             if (operationGuiid == null) {
                 LOGGER.error(SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
+                transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR,
                     SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUIID);
             }
-
-            TransactionModel currentTransactionModel = transactionModel.get();
-            currentTransactionModel.setStatus(TransactionStatus.SENT);
-            transactionService.replaceTransaction(currentTransactionModel);
+            transaction.setVitamOperationId(operationGuiid);
+            transactionService.changeStatusTransaction(TransactionStatus.SENT, transaction);
 
             return CollectRequestResponse.toResponseOK(new IngestDto(operationGuiid));
         } catch (CollectException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
+            transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
+            transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

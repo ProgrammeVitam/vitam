@@ -123,7 +123,7 @@ public class TransactionServiceTest {
 
         // When
         boolean checkStatus =
-            transactionService.checkStatus(transactionModel, TransactionStatus.CLOSE, TransactionStatus.ACK_ERROR);
+            transactionService.checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_ERROR);
 
         // Then
         Assertions.assertThat(checkStatus).isFalse();

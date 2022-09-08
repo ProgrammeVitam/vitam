@@ -49,6 +49,9 @@ public class TransactionModel {
     @JsonProperty("_tenant")
     private Integer tenant;
 
+    @JsonProperty("VitamOperationId")
+    private String vitamOperationId;
+
     public TransactionModel() {
     }
 
@@ -99,6 +102,14 @@ public class TransactionModel {
 
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
+    }
+
+    public String getVitamOperationId() {
+        return vitamOperationId;
+    }
+
+    public void setVitamOperationId(String vitamOperationId) {
+        this.vitamOperationId = vitamOperationId;
     }
 
     @Override
