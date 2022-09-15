@@ -55,6 +55,19 @@ X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 
+
+### Recherche d'un project par criteria
+GET {{url-collect}}/collect-external/v1/projects/search
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+Content-Length: 143
+
+{
+    "$query":"search"
+}
+
 ### Récuperation d'un projet par id
 GET {{url-collect}}/collect-external/v1/projects/{{project-id}}
 accept: application/json
@@ -130,7 +143,7 @@ X-Access-Contract-Id: {{access-contract}}
   "ArchivalAgreement": "IC-000001",
   "MessageIdentifier": "Transaction de test",
   "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
-  "TransferingAgencyIdentifier": "TransferingAgencyIdentifier5",
+  "TransferringAgencyIdentifier": "TransferingAgencyIdentifier5",
   "OriginatingAgencyIdentifier": "FRAN_NP_009913",
   "SubmissionAgencyIdentifier": "FRAN_NP_005761",
   "ArchiveProfile": "ArchiveProfile5",

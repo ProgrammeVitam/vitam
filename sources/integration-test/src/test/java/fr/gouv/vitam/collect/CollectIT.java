@@ -36,6 +36,7 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
+import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
@@ -84,6 +85,7 @@ import java.util.stream.StreamSupport;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+
 @Ignore
 public class CollectIT extends VitamRuleRunner {
 
@@ -96,6 +98,9 @@ public class CollectIT extends VitamRuleRunner {
     private static final String ACCESS_CONTRACT = "ContratTNR";
     private static final String ZIP_FILE = "collect/sampleStream.zip";
     private static final String OPI = "#opi";
+    private static final String SUBMISSION_AGENCY_IDENTIFIER = "MICHEL_MERCIER";
+    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
+
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -171,9 +176,46 @@ public class CollectIT extends VitamRuleRunner {
         closeTransaction();
         ingest();
         updateProject();
+
         createTransactionByProject();
+        searchProjectById();
+        searchProjectByMessageIdentifier();
+        searchProjectBySubmissionAgencyIdentifier();
         deleteTransactionById(transactionGuuid);
         deleteProjectById(projectGuuid);
+
+
+    }
+
+    private void searchProjectBySubmissionAgencyIdentifier()
+        throws VitamClientException, InvalidParseOperationException {
+        List<ProjectDto> projectsDtoResults = searchValue(SUBMISSION_AGENCY_IDENTIFIER.substring(2));
+        assertThat(projectsDtoResults.get(0).getSubmissionAgencyIdentifier()).isEqualTo(SUBMISSION_AGENCY_IDENTIFIER);
+    }
+
+    private void searchProjectByMessageIdentifier() throws VitamClientException, InvalidParseOperationException {
+        List<ProjectDto> projectsDtoResults = searchValue(MESSAGE_IDENTIFIER.substring(2));
+        assertThat(projectsDtoResults.get(0).getMessageIdentifier()).isEqualTo(MESSAGE_IDENTIFIER);
+    }
+
+
+
+    private void searchProjectById() throws VitamClientException, InvalidParseOperationException {
+
+
+
+        List<ProjectDto> projectsDtoResults = searchValue(projectGuuid);
+        assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectGuuid);
+
+    }
+
+    private List<ProjectDto> searchValue(String query) throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<JsonNode> response =
+            collectClient.searchProject(vitamContext, new CriteriaProjectDto(query));
+        Assertions.assertThat(response.getStatus()).isEqualTo(200);
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        return
+            Arrays.asList(JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), ProjectDto[].class));
     }
 
     private void createTransactionByProject() throws VitamClientException, InvalidParseOperationException {
@@ -197,10 +239,11 @@ public class CollectIT extends VitamRuleRunner {
         projectDto.setArchivalAgencyIdentifier("Vitam");
         projectDto.setTransferingAgencyIdentifier("AN");
         projectDto.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
-        projectDto.setSubmissionAgencyIdentifier("MICHEL_MERCIER");
-        projectDto.setMessageIdentifier("20220302-000005");
+        projectDto.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
+        projectDto.setMessageIdentifier(MESSAGE_IDENTIFIER);
         projectDto.setArchivalAgencyIdentifier("IC-000001");
         projectDto.setArchivalProfile("ArchiveProfile");
+        projectDto.setLegalStatus("OPEN");
         projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
         projectDto.setUnitUp(ATTACHEMENT_UNIT_ID);
         projectDto.setName("This is my Name !");

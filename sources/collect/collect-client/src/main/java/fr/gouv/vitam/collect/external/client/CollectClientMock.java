@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -35,6 +36,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import org.apache.commons.lang3.NotImplementedException;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -161,6 +163,11 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
         throws VitamClientException {
         return null;
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> searchProject(VitamContext vitamContext, CriteriaProjectDto criteriaProjectDto) {
+        throw new NotImplementedException("Not implemented");
     }
 
 }

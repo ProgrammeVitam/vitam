@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.internal.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.IngestDto;
 import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
@@ -86,6 +87,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_QUERY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_READ;
@@ -120,6 +122,7 @@ public class TransactionResource extends ApplicationStatusResource {
         "Error when getting units by project ID in metadata : {}";
 
     private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
+
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final TransactionService transactionService;
@@ -240,6 +243,28 @@ public class TransactionResource extends ApplicationStatusResource {
             LOGGER.error("Error when fetching project by Id : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
+    }
+
+    @Path("/projects")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_QUERY_READ, description = "Récupérer une liste des projets par query")
+    public Response searchProject(CriteriaProjectDto criteriaProjectDto) {
+
+        try {
+            ParametersChecker.checkParameter("You must supply criteria of Project!", criteriaProjectDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteriaProjectDto));
+            List<ProjectDto> listProjects = projectService.searchProject(criteriaProjectDto.getQuery());
+            return CollectRequestResponse.toResponseOK(listProjects);
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching projects by query : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+
     }
 
 
