@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -259,6 +260,20 @@ public interface CollectClient extends MockOrRestClient {
      * @throws VitamClientException Thrown exception
      */
     Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
+        throws VitamClientException;
+
+
+    /**
+     * get all projects by criteria
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @param vitamContext
+     * @param criteria
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponseOK<JsonNode> searchProject(VitamContext vitamContext, CriteriaProjectDto criteria)
         throws VitamClientException;
 
 }

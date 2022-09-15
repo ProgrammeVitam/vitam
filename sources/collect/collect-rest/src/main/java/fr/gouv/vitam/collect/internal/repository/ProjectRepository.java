@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -161,5 +163,41 @@ public class ProjectRepository {
         LOGGER.debug("Project to delete Id: {}", id);
         projectCollection.deleteOne(eq(ID, id));
         LOGGER.debug("Project deleted Id: {}", id);
+    }
+
+
+    /**
+     * return projects according to criteria
+     *
+     * @param searchValue value Of search
+     * @param keys Keys of search criteria
+     * @return List<ProjectModel>
+     * @throws CollectException exception thrown in case of error
+     */
+    public List<ProjectModel> searchProject(String searchValue, List<String> keys) throws CollectException {
+
+        try {
+            List<ProjectModel> listProjects = new ArrayList<>();
+            List<Bson> filters = new ArrayList<>();
+            keys.forEach(key -> {
+                if (ID.equals(key)) {
+                    filters.add(Filters.eq(key, searchValue));
+                } else {
+                    filters.add(Filters.regex(key, searchValue));
+                }
+            });
+
+            MongoCursor<Document> projectsCursor = projectCollection
+                .find(Filters.and(Filters.or(filters), Filters.eq(TENANT_ID, ParameterHelper.getTenantParameter())))
+                .cursor();
+            while (projectsCursor.hasNext()) {
+                Document doc = projectsCursor.next();
+                listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
+            }
+            return listProjects;
+
+        } catch (InvalidParseOperationException e) {
+            throw new CollectException("Error when fetching projects : " + e);
+        }
     }
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -359,6 +360,20 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
             if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
                 response.close();
             }
+        }
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> searchProject(VitamContext vitamContext, CriteriaProjectDto criteria)
+        throws VitamClientException {
+        try (Response response = make(
+            get().withPath(PROJECT_PATH)
+                .withHeaders(vitamContext.getHeaders())
+                .withBody(criteria)
+                .withJson())) {
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
         }
     }
 

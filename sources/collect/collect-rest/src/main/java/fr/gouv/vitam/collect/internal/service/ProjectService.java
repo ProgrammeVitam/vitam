@@ -37,14 +37,15 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ProjectService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProjectService.class);
+    private static final String ID = "_id";
+    private static final String SUBMISSION_AGENCY_IDENTIFIER = "context.SubmissionAgencyIdentifier";
+    private static final String MESSAGE_IDENTIFIER = "context.MessageIdentifier";
     private final ProjectRepository projectRepository;
 
     public ProjectService(ProjectRepository projectRepository) {
@@ -103,6 +104,13 @@ public class ProjectService {
             .collect(Collectors.toList());
     }
 
+    public List<ProjectDto> searchProject(String key) throws CollectException {
+        List<ProjectModel> listProjects =
+            projectRepository.searchProject(key, List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER));
+        return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
+            .collect(Collectors.toList());
+    }
+
     /**
      * delete project according to id
      *
@@ -111,5 +119,4 @@ public class ProjectService {
     public void deleteProjectById(String id) {
         projectRepository.deleteProject(id);
     }
-
 }
