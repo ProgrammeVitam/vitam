@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
@@ -121,7 +120,6 @@ public class BusinessApplication extends Application {
             singletons.add(metadataRawResource);
             singletons.add(metadataReconstruction);
             singletons.add(metadataAuditResource);
-            singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
         } catch (IOException e) {
             throw new VitamRuntimeException(e);
