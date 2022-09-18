@@ -27,7 +27,6 @@
 package fr.gouv.vitam.workspace.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 
@@ -66,7 +65,6 @@ public class BusinessApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new WorkspaceResource(workspaceConfiguration));
-            singletons.add(new SanityCheckerCommonFilter());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
