@@ -42,6 +42,7 @@ public class CollectVarNameAdapter extends VarNameAdapter {
     public static final String MGT_APPRAISAL_RULE_RULES_RULE = "_mgt.AppraisalRule.Rules.Rule";
     public static final String ID = "_id";
     public static final String UP = "_up";
+    public static final String UNIT_TYPE = "_unitType";
 
     @Override
     public void setVarsValue(ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {
@@ -84,6 +85,8 @@ public class CollectVarNameAdapter extends VarNameAdapter {
                         return OPI;
                     case ID:
                         return ID;
+                    case UNITTYPE:
+                        return UNIT_TYPE;
                     case UNITUPS:
                         return UP;
                     case MANAGEMENT:
