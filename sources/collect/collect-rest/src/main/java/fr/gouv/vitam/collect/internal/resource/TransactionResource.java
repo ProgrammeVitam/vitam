@@ -118,6 +118,8 @@ public class TransactionResource extends ApplicationStatusResource {
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
     private static final String OPI = "#opi";
     private static final String ID = "#id";
+    private static final String UNIT_TYPE = "#unitType";
+    private static final String INGEST = "INGEST";
     private static final String ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG =
         "Error when getting units by project ID in metadata : {}";
 
@@ -391,6 +393,7 @@ public class TransactionResource extends ApplicationStatusResource {
             ObjectNode unitObjectNode = JsonHandler.getFromJsonNode(unitJsonNode, ObjectNode.class);
             unitObjectNode.put(ID, CollectService.createRequestId());
             unitObjectNode.put(OPI, transactionId);
+            unitObjectNode.put(UNIT_TYPE, INGEST);
             JsonNode savedUnitJsonNode = collectService.saveArchiveUnitInMetaData(unitObjectNode);
 
             if (savedUnitJsonNode == null) {

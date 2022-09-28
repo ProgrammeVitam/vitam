@@ -78,6 +78,8 @@ public class FluxService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
     private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
     private static final String ATTACHEMENT_AU = "AttachementAu";
+    private static final String UNIT_TYPE = "#unitType";
+    private static final String INGEST = "INGEST";
     private final CollectService collectService;
 
     public FluxService(CollectService collectService, CollectConfiguration collectConfiguration) {
@@ -162,6 +164,7 @@ public class FluxService {
         ObjectNode unitObjectNode = JsonHandler.createObjectNode();
         unitObjectNode.put(ID, CollectService.createRequestId());
         unitObjectNode.put(OPI, transactionId);
+        unitObjectNode.put(UNIT_TYPE, INGEST);
         if (null != attachementUnitId) {
             ManagementModel managementModel = new ManagementModel();
             UpdateOperationType updateOperationType = new UpdateOperationType();
