@@ -108,8 +108,10 @@
         - "mongo-data/init-metadata-collect-database.js.j2"
         - "mongo-data/users-collect.js.j2"
         - "mongo-data/users-metadata-collect.js.j2"
-      when:
-        - "mongo_cluster_name == 'mongo-data'"
+      when: >
+        mongo_cluster_name == 'mongo-data' and
+        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration
 
@@ -150,14 +152,16 @@
       tags:
         - update_mongodb_configuration
 
-    - name: Create collect module user
+    - name: Create collect module users
       command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
       with_items:
         - collect
         - metadata-collect
       no_log: "{{ hide_passwords_during_deploy }}"
-      when:
-        - "mongo_cluster_name == 'mongo-data'"
+      when: >
+        mongo_cluster_name == 'mongo-data' and
+        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration
 
@@ -176,7 +180,7 @@
     - name: Activate security on mongos instances
       blockinfile:
         dest: "{{ mongos_config_path }}/mongos.conf"
-        insertafter: "# ansible managed security conf"
+        insertafter: EOF
         block: |
           security:
             clusterAuthMode: keyFile
@@ -191,7 +195,7 @@
     - name: Activate security on mongod instances
       blockinfile:
         dest: "{{ mongod_config_path }}/mongod.conf"
-        insertafter: "# ansible managed security conf"
+        insertafter: EOF
         block: |
           security:
             authorization: enabled
@@ -207,7 +211,7 @@
     - name: Activate security on mongoc instances
       blockinfile:
         dest: "{{ mongoc_config_path }}/mongoc.conf"
-        insertafter: "# ansible managed security conf"
+        insertafter: EOF
         block: |
           security:
             authorization: enabled
@@ -224,9 +228,9 @@
 
     - name: restart mongod
       service:
-         name: vitam-mongod
-         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-         state: restarted
+        name: vitam-mongod
+        enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+        state: restarted
       delegate_to: "{{ item }}"
       when:
         - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
@@ -236,9 +240,9 @@
 
     - name: restart mongoc
       service:
-         name: vitam-mongoc
-         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-         state: restarted
+        name: vitam-mongoc
+        enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+        state: restarted
       delegate_to: "{{ item }}"
       when:
         - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
@@ -248,9 +252,9 @@
 
     - name: restart mongos
       service:
-         name: vitam-mongos
-         enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-         state: restarted
+        name: vitam-mongos
+        enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+        state: restarted
       delegate_to: "{{ item }}"
       when:
         - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
@@ -275,7 +279,6 @@
         - metadata
         - identity
         - report
-        - collect
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"
       tags:
@@ -287,8 +290,10 @@
         - collect
         - metadata-collect
       no_log: "{{ hide_passwords_during_deploy }}"
-      when:
-        - "mongo_cluster_name == 'mongo-data'"
+      when: >
+        mongo_cluster_name == 'mongo-data' and
+        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration
 

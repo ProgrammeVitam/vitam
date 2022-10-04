@@ -25,3 +25,6 @@ net:
 
 sharding:
   configDB: configsvr/{% for item in mongoc_list %}{{ hostvars[item]['ip_service'] }}:{{ mongodb.mongoc_port }}{% if not loop.last %},{% endif %}{% endfor %}
+
+# During (re)initialization, authentication is temporarily disabled to ensure replica-set & user creation/update.
+# Authentication will be (re)enabled during mongo_configure role execution

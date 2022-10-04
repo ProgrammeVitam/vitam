@@ -144,8 +144,6 @@
 # Now let's initiate the replica set
 # Do this only on the first node of the current shard
 # We have to wait for all the node to be up
-
-# FIXME : Is it really OK to re-initiate mongod replica set during upgrades?
 - block:
 
     - name: Wait for the service port to be open on all members of the replica
@@ -185,20 +183,6 @@
       tags:
         - update_mongodb_configuration
 
-    - name: Copy the script which fine tunes usage (PSsmin)
-      template:
-        src: "tune-usage.js.j2"
-        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js"
-        owner: "{{ vitam_defaults.users.vitamdb }}"
-        group: "{{ vitam_defaults.users.group }}"
-        mode: "{{ vitam_defaults.folder.conf_permission }}"
-      tags:
-        - update_mongodb_configuration
-
-    - name: Apply tuning PSSmin
-      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js"
-      tags:
-        - update_mongodb_configuration
     # Create the local shard admin user
 
     - name: Copy the script which create the local users
