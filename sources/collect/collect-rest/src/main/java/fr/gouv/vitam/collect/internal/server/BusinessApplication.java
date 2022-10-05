@@ -33,6 +33,7 @@ import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.collect.internal.service.CollectThreadRunner;
 import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
@@ -93,12 +94,12 @@ public class BusinessApplication extends ConfigurationApplication {
             FluxService fluxService =
                 new FluxService(collectService, configuration);
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
-
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
+            singletons.add(new CollectThreadRunner(configuration, transactionService, collectService));
             singletons.add(
                 new TransactionResource(secureEndpointRegistry, transactionService, collectService, sipService, projectService, fluxService));
             singletons.add(secureEndpointScanner);

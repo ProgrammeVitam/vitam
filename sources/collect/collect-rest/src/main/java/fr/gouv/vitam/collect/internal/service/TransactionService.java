@@ -176,4 +176,7 @@ public class TransactionService {
         replaceTransaction(transactionModel);
     }
 
+    public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectException {
+        return transactionRepository.getListTransactionToDeleteByTenant(tenantId);
+    }
 }

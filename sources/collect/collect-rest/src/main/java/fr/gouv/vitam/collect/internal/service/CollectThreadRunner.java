@@ -24,16 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
+package fr.gouv.vitam.collect.internal.service;
 
-public enum TransactionStatus {
-    OPEN,
-    READY,
-    SENT,
-    SENDING,
-    KO,
-    WAITING_ACK,
-    ACK_OK,
-    ABORTED,
-    ACK_ERROR;
+import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class CollectThreadRunner {
+
+    public CollectThreadRunner(CollectConfiguration configuration, TransactionService transactionService,
+        CollectService collectService) {
+        final ScheduledExecutorService scheduledExecutorService =
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
+        scheduledExecutorService.scheduleAtFixedRate(
+            new PurgeTransactionThread(configuration, transactionService, collectService),
+            configuration.getPurgeTransactionThreadFrequency(), configuration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
+    }
 }

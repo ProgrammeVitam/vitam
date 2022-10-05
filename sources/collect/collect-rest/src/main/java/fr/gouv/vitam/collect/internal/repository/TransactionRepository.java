@@ -49,6 +49,7 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 
 /**
  * repository for collect entities  management in mongo.
@@ -189,6 +190,29 @@ public class TransactionRepository {
         LOGGER.debug("Transaction deleted Id: {}", id);
     }
 
-
+    /**
+     * delete Transaction according to tenant and delay and status
+     *
+     * @param tenantId tenant id to find
+     * @return Optional<ProjectModel>
+     * @throws CollectException exception thrown in case of error
+     */
+    public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectException {
+        LOGGER.debug("Transactions to delete : {}");
+        try {
+            Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_ERROR", "ABORTED") );
+            List<TransactionModel> listTransactionToDelete = new ArrayList<>();
+            MongoCursor<Document> transactionCursor =
+                transactionCollection.find(query).cursor();
+            while (transactionCursor.hasNext()) {
+                Document doc = transactionCursor.next();
+                listTransactionToDelete.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
+            }
+            return listTransactionToDelete;
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching transaction to delete: ", e);
+            throw new CollectException("Error when fetching transaction to delete : " + e);
+        }
+    }
 }
 

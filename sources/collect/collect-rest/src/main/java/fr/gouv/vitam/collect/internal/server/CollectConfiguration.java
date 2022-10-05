@@ -29,9 +29,17 @@ package fr.gouv.vitam.collect.internal.server;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
+import java.util.Map;
+
 public class CollectConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
+
+    private Map<Integer, Integer> purgeTransactionDelayInMinutes;
+
+    private int purgeTransactionThreadPoolSize = 3;
+
+    private int purgeTransactionThreadFrequency = 60;
 
     /**
      * Must return the value of a 'workspaceUrl' attribute
@@ -40,6 +48,31 @@ public class CollectConfiguration extends DbConfigurationImpl {
      */
     public String getWorkspaceUrl() {
         return workspaceUrl;
+    }
+
+    public Map<Integer, Integer> getPurgeTransactionDelayInMinutes() {
+        return purgeTransactionDelayInMinutes;
+    }
+
+    public void setPurgeTransactionDelayInMinutes(
+        Map<Integer, Integer> purgeTransactionDelayInMinutes) {
+        this.purgeTransactionDelayInMinutes = purgeTransactionDelayInMinutes;
+    }
+
+    public int getPurgeTransactionThreadPoolSize() {
+        return purgeTransactionThreadPoolSize;
+    }
+
+    public void setPurgeTransactionThreadPoolSize(int purgeTransactionThreadPoolSize) {
+        this.purgeTransactionThreadPoolSize = purgeTransactionThreadPoolSize;
+    }
+
+    public int getPurgeTransactionThreadFrequency() {
+        return purgeTransactionThreadFrequency;
+    }
+
+    public void setPurgeTransactionThreadFrequency(int purgeTransactionThreadFrequency) {
+        this.purgeTransactionThreadFrequency = purgeTransactionThreadFrequency;
     }
 
     /**

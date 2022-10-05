@@ -18,3 +18,10 @@ jettyConfig: jetty-config.xml
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
+
+purgeTransactionThreadFrequency: 60
+purgeTransactionThreadPoolSize: 3
+purgeTransactionDelayInMinutes:
+{% for tenant in vitam_tenant_ids %}
+   {{ tenant }} : 60
+{% endfor %}

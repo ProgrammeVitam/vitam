@@ -573,6 +573,12 @@ public class CollectService {
      * @throws CollectException exception thrown in case of error
      */
     public void deleteTransaction(String id) throws CollectException {
+        deleteTransactionContent(id);
+        transactionService.deleteTransactionById(id);
+
+    }
+
+    public void deleteTransactionContent(String id) throws CollectException {
         Map<String, String> unitGotGUID = findUnitGotGUIDByOperationId(id);
         Set<String> listUnitGUID = unitGotGUID.keySet();
         List<String> listGotGUID =
@@ -593,8 +599,6 @@ public class CollectService {
             LOGGER.error("Error when trying to delete stream from workspace: {} ", e);
             throw new CollectException("Error when trying to delete stream from workspace: " + e);
         }
-        transactionService.deleteTransactionById(id);
-
     }
 
     public Map<String, String> findUnitGotGUIDByOperationId(String operationId) throws CollectException {
