@@ -272,18 +272,6 @@
                             </mapper>
                         </data>
                         <data>
-                            <src>${project.build.directory}/script</src>
-                            <type>directory</type>
-                            <missingSrc>ignore</missingSrc>
-                            <mapper>
-                                <type>perm</type>
-                                <user>${unix.user}</user>
-                                <group>${unix.group}</group>
-                                <filemode>0755</filemode>
-                                <prefix>/vitam/script/${unix.name}</prefix>
-                            </mapper>
-                        </data>
-                        <data>
                             <src>${project.build.directory}/conf</src>
                             <type>directory</type>
                             <missingSrc>ignore</missingSrc>
