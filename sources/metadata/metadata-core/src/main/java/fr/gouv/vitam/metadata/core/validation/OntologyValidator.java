@@ -60,9 +60,14 @@ import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 public class OntologyValidator {
 
-    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
-        .appendPattern("u-MM-dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]")
-        .toFormatter();
+    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER =
+        new DateTimeFormatterBuilder()
+            .appendOptional(DateTimeFormatter
+                .ofPattern("u-MM-dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]"))
+            .appendOptional(DateTimeFormatter
+                .ofPattern("u/MM/dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]"))
+            .toFormatter();
+
 
     private static float MAX_UTF8_BYTES_PER_CHAR = StandardCharsets.UTF_8.newEncoder().maxBytesPerChar();
 
