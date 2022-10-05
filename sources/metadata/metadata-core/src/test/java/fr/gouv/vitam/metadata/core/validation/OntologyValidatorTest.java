@@ -1051,14 +1051,14 @@ public class OntologyValidatorTest {
             Collections.singletonList(new OntologyModel().setType(OntologyType.DATE).setIdentifier("MyDate"));
         final OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         JsonNode jsonArcUnit = JsonHandler.getFromString(
-            "{\"MyField\":[{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00Z\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"12045-01-01\"},{\"MyDate\":\"2004-04-12-05:00\"},{\"MyDate\":\"2004-04-12Z\"}]}");
+            "{\"MyField\":[{\"MyDate\":\"2016/10/12\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00Z\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"12045-01-01\"},{\"MyDate\":\"2004-04-12-05:00\"},{\"MyDate\":\"2004-04-12Z\"}]}");
 
         // When
         ObjectNode result = ontologyValidator.verifyAndReplaceFields(jsonArcUnit);
 
         // Then
         JsonNode expected = JsonHandler.getFromString(
-            "{\"MyField\":[{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"+12045-01-01\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"2004-04-12\"}]}");
+            "{\"MyField\":[{\"MyDate\":\"2016-10-12\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"+12045-01-01\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"2004-04-12\"}]}");
         JsonAssert.assertJsonEquals(expected, result);
     }
 
