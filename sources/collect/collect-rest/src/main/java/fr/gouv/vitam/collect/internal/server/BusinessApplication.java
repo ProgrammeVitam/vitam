@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
@@ -85,6 +86,7 @@ public class BusinessApplication extends ConfigurationApplication {
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 
             singletons.addAll(commonBusinessApplication.getResources());
+            singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
