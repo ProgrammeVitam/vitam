@@ -538,7 +538,7 @@ public class CollectService {
 
     public JsonNode getUnitsByProjectId(String projectId, JsonNode queryDsl) throws CollectException {
         Optional<TransactionModel> projectTransaction =
-            transactionService.findTransactionByProjectId(projectId);
+            transactionService.findLastTransactionByProjectId(projectId);
         if (projectTransaction.isEmpty()) {
             throw new CollectException("No transactions found for project ID");
         }

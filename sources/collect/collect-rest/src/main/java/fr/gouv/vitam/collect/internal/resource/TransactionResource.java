@@ -80,12 +80,14 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_TRANSACTIONS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_QUERY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
@@ -95,6 +97,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_BINARY_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_DELETE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
@@ -124,7 +127,6 @@ public class TransactionResource extends ApplicationStatusResource {
         "Error when getting units by project ID in metadata : {}";
 
     private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
-
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final TransactionService transactionService;
@@ -227,7 +229,7 @@ public class TransactionResource extends ApplicationStatusResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
 
-            Optional<TransactionModel> transactionModel = transactionService.findTransactionByProjectId(projectId);
+            Optional<TransactionModel> transactionModel = transactionService.findLastTransactionByProjectId(projectId);
 
             if (transactionModel.isEmpty()) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
@@ -270,6 +272,35 @@ public class TransactionResource extends ApplicationStatusResource {
     }
 
 
+    @Path("/projects/{projectId}/transactions")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = PROJECT_ID_TRANSACTIONS, description = "Récupérer les transactions par un projectId")
+    public Response getTransactionsByProjectId(@PathParam("projectId") String projectId) {
+        try {
+            SanityChecker.checkParameter(projectId);
+            List<TransactionModel> transactionsModel = transactionService.findTransactionsByProjectId(projectId);
+            if (transactionsModel.isEmpty()) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+            List<TransactionDto> transactionsDto = transactionsModel.stream()
+                .map(CollectHelper::convertTransactionModelToTransactionDto)
+                .collect(
+                    Collectors.toList());
+
+            return CollectRequestResponse.toResponseOK(transactionsDto);
+        } catch (CollectException e) {
+            LOGGER.error("Error when fetching transactions by projectId : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching transactions by projectId : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+
     @Path("/projects/{projectId}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
@@ -284,7 +315,7 @@ public class TransactionResource extends ApplicationStatusResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
 
-            Optional<TransactionModel> transactionModel = transactionService.findTransactionByProjectId(projectId);
+            Optional<TransactionModel> transactionModel = transactionService.findLastTransactionByProjectId(projectId);
 
             if (!transactionModel.isEmpty()) {
                 collectService.deleteTransaction(transactionModel.get().getId());
@@ -341,6 +372,35 @@ public class TransactionResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/transactions/{transactionId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_ID_READ, description = "retourner la transaction par son id")
+    public Response getTransactionById(@PathParam("transactionId") String transactionId) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+
+            if (transactionModel.isEmpty()) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+
+            TransactionDto transactionDto =
+                CollectHelper.convertTransactionModelToTransactionDto(transactionModel.get());
+
+
+            return CollectRequestResponse.toResponseOK(transactionDto);
+        } catch (CollectException e) {
+            LOGGER.error("Error when get transaction by Id : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error("Error when get transaction by Id : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
@@ -660,7 +720,7 @@ public class TransactionResource extends ApplicationStatusResource {
             ProjectDto projectDto = CollectHelper.convertProjectModeltoProjectDto(projectModel.get());
 
             Optional<TransactionModel> transactionModel =
-                transactionService.findTransactionByProjectId(projectDto.getId());
+                transactionService.findLastTransactionByProjectId(projectDto.getId());
 
             if (transactionModel.isEmpty() ||
                 !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {

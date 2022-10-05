@@ -40,6 +40,7 @@ import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.CollectMain;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -169,6 +170,7 @@ public class CollectIT extends VitamRuleRunner {
         getUnitById(unitGuuid);
         getUnitByDslQuery();
         getAttachementUnit(transactionGuuid);
+        getTransactionById(transactionGuuid);
         getUnitsByProjectId();
         uploadGot();
         getObjectById(objectGroupGuuid);
@@ -187,6 +189,15 @@ public class CollectIT extends VitamRuleRunner {
 
     }
 
+    private void getTransactionById(String transactionGuuid) throws VitamClientException {
+        RequestResponse<JsonNode> response = collectClient.getTransactionById(vitamContext, transactionGuuid);
+        assertThat(response.isOk()).isEqualTo(true);
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        assertThat(requestResponseOK.getFirstResult().get("id").textValue()).isEqualTo(transactionGuuid);
+        assertThat(requestResponseOK.getFirstResult().get("LegalStatus").textValue())
+            .isEqualTo(TransactionStatus.OPEN.name());
+    }
+
     private void searchProjectBySubmissionAgencyIdentifier()
         throws VitamClientException, InvalidParseOperationException {
         List<ProjectDto> projectsDtoResults = searchValue(SUBMISSION_AGENCY_IDENTIFIER.substring(2));
@@ -201,12 +212,8 @@ public class CollectIT extends VitamRuleRunner {
 
 
     private void searchProjectById() throws VitamClientException, InvalidParseOperationException {
-
-
-
         List<ProjectDto> projectsDtoResults = searchValue(projectGuuid);
         assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectGuuid);
-
     }
 
     private List<ProjectDto> searchValue(String query) throws VitamClientException, InvalidParseOperationException {
@@ -216,6 +223,23 @@ public class CollectIT extends VitamRuleRunner {
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         return
             Arrays.asList(JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), ProjectDto[].class));
+    }
+
+    private void getTransactionByProjectId() throws VitamClientException, InvalidParseOperationException {
+        TransactionDto transactionDtoResult = getTransactionByProjectId(projectGuuid);
+
+        assertThat(transactionDtoResult).isNotNull();
+        assertThat(transactionDtoResult.getId()).isEqualTo(transactionGuuid);
+    }
+
+
+
+    private TransactionDto getTransactionByProjectId(String projectId)
+        throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<JsonNode> response = collectClient.getTransactionByProjectId(vitamContext, projectId);
+        assertThat(response.isOk()).isTrue();
+        return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(((RequestResponseOK) response).getFirstResult()),
+            TransactionDto.class);
     }
 
     private void createTransactionByProject() throws VitamClientException, InvalidParseOperationException {
@@ -243,7 +267,7 @@ public class CollectIT extends VitamRuleRunner {
         projectDto.setMessageIdentifier(MESSAGE_IDENTIFIER);
         projectDto.setArchivalAgencyIdentifier("IC-000001");
         projectDto.setArchivalProfile("ArchiveProfile");
-        projectDto.setLegalStatus("OPEN");
+        projectDto.setLegalStatus(TransactionStatus.OPEN.name());
         projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
         projectDto.setUnitUp(ATTACHEMENT_UNIT_ID);
         projectDto.setName("This is my Name !");

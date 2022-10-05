@@ -77,6 +77,29 @@ public interface CollectClient extends MockOrRestClient {
     RequestResponse<JsonNode> getProjectById(VitamContext vitamContext, String projectId) throws VitamClientException;
 
     /**
+     * get a collect transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> getTransactionByProjectId(VitamContext vitamContext, String projectId)
+        throws VitamClientException;
+
+
+    /**
+     * get a collect transaction by ID
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+     RequestResponse<JsonNode> getTransactionById(VitamContext vitamContext,
+        String transactionId) throws VitamClientException;
+
+    /**
      * get all collect project by tenant
      *
      * Consume and produce MediaType.APPLICATION_JSON
