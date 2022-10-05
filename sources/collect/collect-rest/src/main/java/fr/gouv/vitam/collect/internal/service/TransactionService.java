@@ -41,11 +41,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class TransactionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private static final String PROJECT_ID = "ProjectId";
     private final TransactionRepository transactionRepository;
     private final ProjectService projectService;
 
@@ -117,14 +121,27 @@ public class TransactionService {
     }
 
     /**
+     * return transaction according to project id
+     *
+     * @param id model id to find
+     * @return Optional<TransactionModel>
+     * @throws CollectException exception thrown in case of error
+     */
+    public Optional<TransactionModel> findLastTransactionByProjectId(String id) throws CollectException {
+        LOGGER.debug("Project id to find : {}", id);
+        return transactionRepository.findTransactionByQuery(eq(PROJECT_ID, id));
+    }
+
+    /**
      * return transaction according to id
      *
      * @param id model id to find
      * @return Optional<TransactionModel>
      * @throws CollectException exception thrown in case of error
      */
-    public Optional<TransactionModel> findTransactionByProjectId(String id) throws CollectException {
-        return transactionRepository.findTransactionByProjectId(id);
+    public List<TransactionModel> findTransactionsByProjectId(String id) throws CollectException {
+        LOGGER.debug("Transaction id to find : {}", id);
+        return transactionRepository.findTransactionsByQuery(eq(PROJECT_ID, id));
     }
 
     /**

@@ -27,7 +27,10 @@
 package fr.gouv.vitam.collect.internal.repository;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -40,6 +43,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
@@ -54,6 +59,7 @@ public class TransactionRepository {
     public static final String ID = "_id";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionRepository.class);
     public static final String TENANT_ID = "_tenant";
+    public static final String CREATION_DATE = "context.CreationDate";
 
     private final MongoCollection<Document> transactionCollection;
 
@@ -121,25 +127,53 @@ public class TransactionRepository {
         }
     }
 
+
+
     /**
-     * return transaction according to id
+     * return transaction according to query
      *
-     * @param id transaction id to find
+     * @param query transaction query to find
      * @return Optional<TransactionModel>
      * @throws CollectException exception thrown in case of error
      */
-    public Optional<TransactionModel> findTransactionByProjectId(String id) throws CollectException {
-        LOGGER.debug("Transaction id to find : {}", id);
+    public Optional<TransactionModel> findTransactionByQuery(Bson query) throws CollectException {
+
         try {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            Bson query = and(eq("ProjectId", id), eq(TENANT_ID, tenantId));
-            Document first = transactionCollection.find(query).first();
+            Document first =
+                getIterableTransactionsByQuery(query).sort(new BasicDBObject(CREATION_DATE, -1)).first();
             if (first == null) {
                 return Optional.empty();
             }
             return Optional.of(BsonHelper.fromDocumentToObject(first, TransactionModel.class));
         } catch (InvalidParseOperationException e) {
             throw new CollectException("Error when searching transaction by project id: " + e);
+        }
+    }
+
+
+    private FindIterable<Document> getIterableTransactionsByQuery(Bson query) {
+
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Bson finalQuery = and(query, eq(TENANT_ID, tenantId));
+        return transactionCollection.find(finalQuery);
+
+    }
+
+
+    public List<TransactionModel> findTransactionsByQuery(Bson query) throws CollectException {
+
+        try {
+            List<TransactionModel> listTransactions = new ArrayList<>();
+            MongoCursor<Document> transactions = this.getIterableTransactionsByQuery(query).cursor();
+            while (transactions.hasNext()) {
+                Document doc = transactions.next();
+                listTransactions.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
+            }
+            return listTransactions;
+
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when fetching transactions: ", e);
+            throw new CollectException("Error when fetching transactions : " + e);
         }
     }
 
@@ -154,5 +188,7 @@ public class TransactionRepository {
         transactionCollection.deleteOne(eq(ID, id));
         LOGGER.debug("Transaction deleted Id: {}", id);
     }
+
+
 }
 

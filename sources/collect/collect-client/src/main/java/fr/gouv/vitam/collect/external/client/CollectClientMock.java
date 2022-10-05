@@ -68,6 +68,18 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
+    public RequestResponse<JsonNode> getTransactionByProjectId(VitamContext vitamContext, String projectId)
+        throws VitamClientException {
+        return null;
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getTransactionById(VitamContext vitamContext, String transactionId)
+        throws VitamClientException {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
     public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException {
         return null;
     }

@@ -119,6 +119,39 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
 
 
     @Override
+    public RequestResponse<JsonNode> getTransactionById(VitamContext vitamContext,
+        String transactionId) throws VitamClientException {
+
+        VitamRequestBuilder request = get()
+            .withPath(TRANSACTION_PATH + "/" + transactionId)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getTransactionByProjectId(VitamContext vitamContext,
+        String projectId) throws VitamClientException {
+
+        VitamRequestBuilder request = get()
+            .withPath(PROJECT_PATH + "/" + projectId + TRANSACTION_PATH)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+
+    @Override
     public RequestResponse<JsonNode> deleteProjectById(VitamContext vitamContext,
         String projectId) throws VitamClientException {
 

@@ -36,6 +36,7 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
+import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -168,6 +169,15 @@ public class CollectHelper {
         }
 
         return projectDto;
+    }
+
+    public static TransactionDto convertTransactionModelToTransactionDto(TransactionModel transactionModel) {
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setId(transactionModel.getId());
+        transactionDto.setTenant(transactionModel.getTenant());
+        transactionDto.setLegalStatus(transactionModel.getStatus().toString());
+
+        return transactionDto;
     }
 
     public static ManifestContext mapProjectDtoToManifestContext(ProjectDto projectDto) {
