@@ -141,8 +141,6 @@
 # Now let's initiate the replica set
 # Do this only on the first node of the current shard
 # We have to wait for all the node to be up
-
-# FIXME : Is it really OK to re-initiate mongoc replica set during upgrades?
 - block:
 
     - name: Wait for the service port to be open on all members of the replica

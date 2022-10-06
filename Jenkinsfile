@@ -37,7 +37,7 @@ pipeline {
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         ES_VERSION="7.16.3"
-        MONGO_VERSION="5.0.9"
+        MONGO_VERSION="5.0.13"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
 

@@ -41,3 +41,6 @@ replication:
 
 sharding:
   clusterRole: shardsvr # role du shard
+
+# During (re)initialization, authentication is temporarily disabled to ensure replica-set & user creation/update.
+# Authentication will be (re)enabled during mongo_configure role execution

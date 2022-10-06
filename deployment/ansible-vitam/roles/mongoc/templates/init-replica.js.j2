@@ -1,26 +1,148 @@
+/*
+ * IMPORTANT :
+ * - This script creates mongoc replica set on first Vitam installation.
+ * - If mongoc replica set already exists, it only checks for members configuration (idempotency). Adding / removing nodes is risky and is NOT supported.
+ * - No need for authentication since "security.authorization" absent / removed from server configuration before script execution.
+ * - Some commands fail with exception (e.g. rs.config()), while others might return an error code (e.g. rs.status()). Please handle errors carefully.
+ * - Once replica set initialize, we need to wait for primary node election AND for primary node to become "Writable"
+ * - ArbiterOnly & PSSmin modes are not supported for mongoc
+ */
 
-rs.initiate(
-    {
-        _id: "configsvr",
-        configsvr: true,
-        members:
-        [
-            { _id: 0, host: "{{ ip_service }}:{{ mongodb.mongoc_port }}" }
-        ]
+function checkExistingReplicaSet() {
+
+    var rsStatus = rs.status();
+
+    if(!rsStatus.ok) {
+
+        if(rsStatus.codeName === "NotYetInitialized") {
+            print("INFO : No mongoc replica set found");
+            return false;
+        }
+
+        printjson(rsStatus);
+        throw "ERROR : Cannot check mongoc replica set status";
     }
-)
 
-// Beurk FIXME: Try a while with rs.status()...
-sleep(10000)
+    print("INFO : Exiting mongoc replica set found");
 
+    return true;
+}
+
+function checkExistingReplicaSetMembers() {
+
+    var rsConfig = rs.config();
+
+    let targetMembers = buildTargetReplicaSetMemberConfiguration();
+    let rsConfigMembers = rsConfig.members;
+
+    for (const targetMember of targetMembers) {
+        let rsConfigMember = rsConfigMembers.find(member => member.host === targetMember.host);
+        if(rsConfigMember) {
+            print("INFO : host " + targetMember.host + " found in mongoc replica set");
+        } else {
+            printjson(rsConfig);
+            throw "ERROR : Host " + targetMember.host + " not found in mongoc replica set";
+        }
+    }
+
+    if(targetMembers.length != rsConfigMembers.length) {
+        printjson(rsConfig);
+        throw "ERROR : Found unexpected / unknown mongoc ReplicaSet members";
+    }
+}
+
+
+function buildTargetReplicaSetMemberConfiguration() {
+    var idCpt = 0;
+    let members = [ { _id: idCpt++, host: "{{ ip_service }}:{{ mongodb.mongoc_port }}" } ];
 {% for host in groups[group_name] %}
     {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
-    {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
-        {% if hostvars[host]['mongo_arbiter'] is defined and hostvars[host]['mongo_arbiter']|lower == "true" %}
-            rs.addArb("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongoc_port }}")
-        {% else %}
-            rs.add("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongoc_port }}")
+        {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
+    members.push({
+        _id: idCpt++,
+        host: "{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongoc_port }}"
+    });
         {% endif %}
     {% endif %}
-    {% endif %}
 {% endfor %}
+    return members;
+}
+
+function initReplicaSetPrimary() {
+
+    let members = buildTargetReplicaSetMemberConfiguration();
+
+    let rsInit = rs.initiate(
+        {
+            _id: "configsvr",
+            configsvr: true,
+            members: members
+        }
+    )
+
+    if(!rsInit.ok) {
+        printjson(rsInit);
+        throw "ERROR : Cannot initialize mongoc replica set";
+    }
+}
+
+function waitForReplicaSetPrimaryElection() {
+
+    var status;
+    for (let i = 0; i < 60; i++) {
+
+        status = rs.status();
+
+        if(!status.ok) {
+            printjson(status);
+            throw "ERROR : Cannot get mongoc replica set status";
+        }
+
+        if(status.myState === 1) {
+            print("OK : mongoc replica set elected primary node");
+            return;
+        }
+
+        // Retry later
+        sleep(1000);
+    }
+
+    printjson(status);
+    throw "ERROR : Timeout - NO PRIMARY NODE FOUND";
+}
+
+function waitForWritablePrimary() {
+
+    var instanceStatus;
+    for (let i = 0; i < 60; i++) {
+
+        instanceStatus = db.hello();
+
+        if(!instanceStatus.ok) {
+            printjson(instanceStatus);
+            throw "ERROR : Cannot get db instance status";
+        }
+
+        if(instanceStatus.isWritablePrimary) {
+            print("OK : Primary node is writable");
+            return;
+        }
+
+        // Retry later
+        sleep(1000);
+    }
+
+    printjson(instanceStatus);
+    throw "ERROR : Timeout - NO PRIMARY NODE FOUND";
+}
+
+if(checkExistingReplicaSet()) {
+    checkExistingReplicaSetMembers();
+    print("INFO : Mongoc replica set already configured.");
+} else {
+    print("INFO : Initializing mongoc replica set");
+    initReplicaSetPrimary();
+    waitForReplicaSetPrimaryElection();
+    waitForWritablePrimary();
+    print("INFO : Mongoc replica set intitialization OK");
+}
