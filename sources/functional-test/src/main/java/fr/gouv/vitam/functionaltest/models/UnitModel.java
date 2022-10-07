@@ -27,12 +27,17 @@
 
 package fr.gouv.vitam.functionaltest.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class UnitModel {
     @JsonProperty("ArchiveUnit")
@@ -41,9 +46,16 @@ public class UnitModel {
     @JsonProperty("Content")
     Map<String, JsonNode> content = new HashMap<>();
 
+    @JsonIgnore
+    public static final Comparator<UnitModel> UNIT_MODEL_COMPARATOR = (o1, o2) -> CharSequence.compare(
+        Objects.requireNonNullElse(o1.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText(),
+        Objects.requireNonNullElse(o2.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText());
+
 
     public UnitModel(List<UnitModel> archiveUnit, Map<String, JsonNode> content) {
-        archiveUnit.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
+        if (Objects.nonNull(archiveUnit)) {
+            archiveUnit.sort(UNIT_MODEL_COMPARATOR);
+        }
         this.archiveUnit = archiveUnit;
         this.content = content;
     }
@@ -56,7 +68,9 @@ public class UnitModel {
     }
 
     public void setArchiveUnit(List<UnitModel> archiveUnit) {
-        archiveUnit.sort((o1, o2) -> Integer.compare(o2.getContent().size(), o1.getContent().size()));
+        if (Objects.nonNull(archiveUnit)) {
+            archiveUnit.sort(UNIT_MODEL_COMPARATOR);
+        }
         this.archiveUnit = archiveUnit;
     }
 
