@@ -131,6 +131,8 @@ public class PurgeTransactionThread implements Runnable {
         } catch (ExecutionException e) {
             LOGGER.error("Error when executing threads: {}", e);
             throw new CollectException("Error when executing threads: " + e);
+        } finally {
+            executorService.shutdown();
         }
     }
 }
