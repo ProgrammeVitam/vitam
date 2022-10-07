@@ -59,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
@@ -69,7 +70,7 @@ import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 
 public class FluxService {
 
-    private static final String LINUX_PATH_SEPARATOR = "/";
+    private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
     private static final String OPI = "#opi";
     private static final String ID = "#id";
     private static final String MGT = "#management";
@@ -144,8 +145,7 @@ public class FluxService {
             JsonNode unitItem = uploadArchiveUnit(projectDto.getTransactionId(), "Item", fileName,
                 unitParentEntry != null ? unitParentEntry.getValue() : null, null);
             uploadObjectGroup(unitItem.get(ID).asText(), fileName);
-            uploadBinary(unitItem.get(ID).asText(), unitParentEntry != null ? unitParentEntry.getKey() : null,
-                entryInputStream);
+            uploadBinary(unitItem.get(ID).asText(), entryInputStream);
         }
     }
 
@@ -192,7 +192,7 @@ public class FluxService {
 
     public AbstractMap.SimpleEntry<String, String> getUnitParentByPath(Map<String, String> unitMap,
         String entryName, boolean isAttachmentAuExist) {
-        int sepPos = entryName.lastIndexOf(LINUX_PATH_SEPARATOR);
+        int sepPos = entryName.lastIndexOf(FILE_SEPARATOR);
         if (sepPos == -1) {
             if (isAttachmentAuExist) {
                 return new AbstractMap.SimpleEntry<>(null, unitMap.get(ATTACHEMENT_AU));
@@ -217,15 +217,14 @@ public class FluxService {
     }
 
 
-    public void uploadBinary(String unitId, String fileUri, InputStream uploadedInputStream)
+    public void uploadBinary(String unitId, InputStream uploadedInputStream)
         throws CollectException {
         JsonNode unitResponse = collectService.getUnitByIdInMetaData(unitId);
         ArchiveUnitModel archiveUnitModel =
             objectMapper.convertValue(unitResponse.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
         DbObjectGroupModel dbObjectGroupModel = collectService.getDbObjectGroup(archiveUnitModel);
         collectService
-            .addBinaryInfoToQualifier(dbObjectGroupModel, DataObjectVersionType.BINARY_MASTER, 1, uploadedInputStream,
-                fileUri);
+            .addBinaryInfoToQualifier(dbObjectGroupModel, DataObjectVersionType.BINARY_MASTER, 1, uploadedInputStream);
     }
 
 

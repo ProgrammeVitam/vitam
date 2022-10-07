@@ -103,6 +103,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -126,6 +127,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 
 public class CollectService {
 
+    private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
     public static final String UNABLE_TO_FIND_ARCHIVE_UNIT_ID = "Unable to find archiveUnit Id";
     private static final String TAG_STATUS = "#status";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
@@ -336,7 +338,7 @@ public class CollectService {
     }
 
     public void addBinaryInfoToQualifier(DbObjectGroupModel dbObjectGroupModel, DataObjectVersionType usage,
-        int version, InputStream uploadedInputStream, String fileUri) throws CollectException {
+        int version, InputStream uploadedInputStream) throws CollectException {
 
         DbQualifiersModel qualifierModelToUpdate =
             CollectHelper.findQualifier(dbObjectGroupModel.getQualifiers(), usage);
@@ -357,11 +359,10 @@ public class CollectService {
 
         String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
         String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
-        String fileCompletePath = fileUri != null ? fileUri + "/" + fileName : fileName;
         CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
-        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileCompletePath);
+        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileName);
         DbFormatIdentificationModel formatIdentifierResponse =
-            getFormatIdentification(dbObjectGroupModel.getOpi(), fileName, fileCompletePath);
+            getFormatIdentification(dbObjectGroupModel.getOpi(), fileName, fileName);
 
         if (null != formatIdentifierResponse) {
             dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
@@ -370,7 +371,7 @@ public class CollectService {
         int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
         int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
         dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
-        dbVersionsModel.setUri(CONTENT_FOLDER + "/" + fileCompletePath);
+        dbVersionsModel.setUri(CONTENT_FOLDER + FILE_SEPARATOR + fileName);
         dbVersionsModel.setMessageDigest(digest);
         dbVersionsModel.setAlgorithm(DigestType.SHA512.getName());
         dbVersionsModel.setSize(countingInputStream.getByteCount());
@@ -401,7 +402,7 @@ public class CollectService {
             }
             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
             InputStream digestInputStream = digest.getDigestInputStream(uploadedInputStream);
-            workspaceClient.putObject(containerName, CONTENT_FOLDER.concat("/").concat(fileName), digestInputStream);
+            workspaceClient.putObject(containerName, CONTENT_FOLDER.concat(FILE_SEPARATOR).concat(fileName), digestInputStream);
             LOGGER.debug("Push stream to workspace finished");
             return digest.digestHex();
         } catch (ContentAddressableStorageException e) {
@@ -431,7 +432,7 @@ public class CollectService {
                 return null;
             }
             InputStream is =
-                workspaceClient.getObject(transactionId, CONTENT_FOLDER + "/" + fileUri)
+                workspaceClient.getObject(transactionId, CONTENT_FOLDER + FILE_SEPARATOR + fileUri)
                     .readEntity(InputStream.class);
             Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName);
             Files.copy(is, path);

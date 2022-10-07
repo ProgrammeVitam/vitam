@@ -593,7 +593,7 @@ public class TransactionResource extends ApplicationStatusResource {
             collectService.checkParameters(unitId, usage, version);
             ArchiveUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
             DbObjectGroupModel dbObjectGroupModel = collectService.getDbObjectGroup(archiveUnitModel);
-            collectService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream, null);
+            collectService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream);
 
             return Response.status(OK).build();
         } catch (CollectException e) {
