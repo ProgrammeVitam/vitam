@@ -36,11 +36,21 @@ import java.util.concurrent.TimeUnit;
 public class CollectThreadRunner {
 
     public CollectThreadRunner(CollectConfiguration configuration, TransactionService transactionService,
-        CollectService collectService) {
+        CollectService collectService
+    ) {
         final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
         scheduledExecutorService.scheduleAtFixedRate(
             new PurgeTransactionThread(configuration, transactionService, collectService),
-            configuration.getPurgeTransactionThreadFrequency(), configuration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
+            configuration.getPurgeTransactionThreadFrequency(), configuration.getPurgeTransactionThreadFrequency(),
+            TimeUnit.MINUTES);
+
+
+        final ScheduledExecutorService scheduledTransactionStatus =
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
+        scheduledTransactionStatus.scheduleAtFixedRate(
+            new ManageStatusThread(transactionService, configuration),
+            configuration.getStatusTransactionThreadFrequency(), configuration.getStatusTransactionThreadFrequency(),
+            TimeUnit.MINUTES);
     }
 }
