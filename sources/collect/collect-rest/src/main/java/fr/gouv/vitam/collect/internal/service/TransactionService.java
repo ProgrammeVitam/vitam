@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
@@ -37,25 +42,66 @@ import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 
 public class TransactionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
     private static final String PROJECT_ID = "ProjectId";
+    private static final String STATUS = "Status";
+    private static final String PROCESS_SIP_UNITARY = "PROCESS_SIP_UNITARY";
+
+    private static final Map<String, String> statusTrasactionsMap = getStatusTransactionsMap();
+
+
     private final TransactionRepository transactionRepository;
+    private final AccessExternalClientFactory accessExternalClientFactory;
+    private final AdminExternalClientFactory adminExternalClientFactory;
     private final ProjectService projectService;
 
     public TransactionService(TransactionRepository transactionRepository, ProjectService projectService) {
         this.transactionRepository = transactionRepository;
         this.projectService = projectService;
+        this.accessExternalClientFactory = AccessExternalClientFactory.getInstance();
+        this.adminExternalClientFactory = AdminExternalClientFactory.getInstance();
+    }
+
+
+    private static Map<String, String> getStatusTransactionsMap() {
+        Map<String, String> statusTrasactionsMap = new HashMap<>();
+        statusTrasactionsMap.put(StatusCode.OK.name(), TransactionStatus.ACK_OK.name());
+        statusTrasactionsMap.put(StatusCode.KO.name(), TransactionStatus.ACK_KO.name());
+        statusTrasactionsMap.put(StatusCode.FATAL.name(), TransactionStatus.ACK_KO.name());
+        statusTrasactionsMap.put(StatusCode.WARNING.name(), TransactionStatus.ACK_WARNING.name());
+        return statusTrasactionsMap;
     }
 
     /**
@@ -179,4 +225,142 @@ public class TransactionService {
     public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectException {
         return transactionRepository.getListTransactionToDeleteByTenant(tenantId);
     }
+
+    private Map<String, String> mapStatusOperations(List<LogbookOperation> results) {
+        return results.stream()
+            .map(logbookOperation -> logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1))
+            .filter(eventLogBook -> PROCESS_SIP_UNITARY.equals(eventLogBook.getEvType()))
+            .collect(Collectors.toMap(LogbookEvent::getEvIdProc, eventLogBook ->
+                statusTrasactionsMap.containsKey(eventLogBook.getOutcome()) ?
+                    statusTrasactionsMap.get(eventLogBook.getOutcome()) :
+                    TransactionStatus.SENT.name()
+            ));
+
+
+    }
+
+    private Map<String, String> mapStatusOperationsFromProcess(List<ProcessDetail> results) {
+
+        return results.stream().collect(Collectors.toMap(ProcessDetail::getOperationId, processDetail ->
+            statusTrasactionsMap.containsKey(processDetail.getStepStatus()) ?
+                statusTrasactionsMap.get(processDetail.getStepStatus()) :
+                TransactionStatus.SENT.name()
+        ));
+    }
+
+
+    private List<TransactionModel> getTransactionsToUpdate(Map<String, String> statusOperation,
+        List<TransactionModel> transactions) {
+
+        List<TransactionModel> transactionsToUpdate = new ArrayList<>();
+        for (TransactionModel transaction : transactions) {
+            if (statusOperation.containsKey(transaction.getVitamOperationId())) {
+                if (!TransactionStatus.SENT.name().equals(statusOperation.get(transaction.getId()))) {
+                    transaction.setStatus(
+                        TransactionStatus.valueOf(statusOperation.get(transaction.getVitamOperationId())));
+                    transactionsToUpdate.add(transaction);
+                }
+            }
+        }
+
+        return transactionsToUpdate;
+
+    }
+
+
+    private JsonNode getDslForSelectOperation(List<String> vitamOperationsIds) throws CollectException {
+        Select select = new Select();
+        try {
+            InQuery in = QueryHelper.in(id(), vitamOperationsIds.toArray(new String[0]));
+            select.setQuery(in);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Error when generate DSL for get Operations: {}", e);
+            throw new CollectException(e);
+        }
+        return select.getFinalSelect();
+    }
+
+
+
+    private Map<String, String> getOperationsStatusFromProcess(List<TransactionModel> transactions)
+        throws CollectException {
+
+        ProcessQuery processQuery = new ProcessQuery();
+        processQuery.setListProcessTypes(List.of(LogbookTypeProcess.INGEST.toString()));
+        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamContext vitamcontext = new VitamContext(tenantId);
+            RequestResponse<ProcessDetail> requestResponse =
+                client.listOperationsDetails(vitamcontext, processQuery);
+            if (!requestResponse.isOk()) {
+                LOGGER.error("Error from access client: {}", requestResponse.toString());
+                throw new CollectException("Error from access client: " + requestResponse);
+            } else {
+                RequestResponseOK<ProcessDetail> requestResponseOK =
+                    (RequestResponseOK<ProcessDetail>) requestResponse;
+                List<ProcessDetail> results = requestResponseOK.getResults();
+                return mapStatusOperationsFromProcess(results);
+            }
+        } catch (VitamClientException e) {
+            LOGGER.error("Error when select operation: {}", e);
+            throw new CollectException(e);
+        }
+
+
+    }
+
+
+    private Map<String, String> getOperationsStatusFromLogbook(List<TransactionModel> transactions)
+        throws CollectException {
+
+        JsonNode select = getDslForSelectOperation(
+            transactions.stream().map(TransactionModel::getVitamOperationId).collect(
+                Collectors.toList()));
+
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamContext vitamcontext = new VitamContext(tenantId);
+            RequestResponse<LogbookOperation> requestResponse =
+                client.selectOperations(vitamcontext, select);
+            if (!requestResponse.isOk()) {
+                LOGGER.error("Error from access client: {}", requestResponse.toString());
+                throw new CollectException("Error from access client: " + requestResponse);
+            } else {
+                RequestResponseOK<LogbookOperation> requestResponseOK =
+                    (RequestResponseOK<LogbookOperation>) requestResponse;
+                List<LogbookOperation> results = requestResponseOK.getResults();
+                return mapStatusOperations(results);
+            }
+        } catch (VitamClientException e) {
+            LOGGER.error("Error when select operation: {}", e);
+            throw new CollectException(e);
+        }
+
+
+    }
+
+    public void manageTransactionsStatus() throws CollectException {
+        List<TransactionModel> transactions =
+            this.transactionRepository.findTransactionsByQuery(eq(STATUS, TransactionStatus.SENT.name()));
+        Map<String, String> statusOperation;
+        List<TransactionModel> transactionsToUpdate;
+        if (CollectionUtils.isNotEmpty(transactions)) {
+            statusOperation = getOperationsStatusFromProcess(transactions);
+            transactionsToUpdate = getTransactionsToUpdate(statusOperation, transactions);
+            this.transactionRepository.replaceTransactions(transactionsToUpdate);
+            transactions.removeAll(transactionsToUpdate);
+
+            if (CollectionUtils.isNotEmpty(transactions)) {
+                statusOperation = getOperationsStatusFromLogbook(transactions);
+                transactionsToUpdate.addAll(getTransactionsToUpdate(statusOperation, transactions));
+                this.transactionRepository.replaceTransactions(transactionsToUpdate);
+            }
+
+        }
+
+
+    }
+
+
+
 }

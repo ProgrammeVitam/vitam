@@ -32,8 +32,9 @@ public enum TransactionStatus {
     SENT,
     SENDING,
     KO,
-    WAITING_ACK,
+    ACK_WAITING,
     ACK_OK,
+    ACK_WARNING,
     ABORTED,
-    ACK_ERROR;
+    ACK_KO;
 }

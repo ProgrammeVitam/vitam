@@ -31,6 +31,9 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -61,6 +64,8 @@ public class TransactionRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionRepository.class);
     public static final String TENANT_ID = "_tenant";
     public static final String CREATION_DATE = "context.CreationDate";
+    public static final String SET = "$set";
+    public static final String STATUS = "Status";
 
     private final MongoCollection<Document> transactionCollection;
 
@@ -105,6 +110,36 @@ public class TransactionRepository {
             throw new CollectException("Error when replacing transaction: " + e);
         }
     }
+
+    public UpdateOneModel<Document> getUpdateOneModel(TransactionModel transactionModel) {
+
+        Document documentToUpdate =
+            new Document().append(SET, new BasicDBObject(STATUS, transactionModel.getStatus().name()));
+        return new UpdateOneModel<>(eq(ID, transactionModel.getId()), documentToUpdate,
+            new UpdateOptions().upsert(true)
+        );
+
+    }
+
+    /**
+     * replace a transaction model
+     *
+     * @param transactionsModel list des transactions model to replace
+     * @throws CollectException exception thrown in case of error
+     */
+    public void replaceTransactions(List<TransactionModel> transactionsModel) throws CollectException {
+
+        BulkWriteOptions options = new BulkWriteOptions().ordered(false);
+
+            List<UpdateOneModel<Document>> listUpdate = new ArrayList<>();
+            for (TransactionModel item : transactionsModel) {
+                listUpdate.add(getUpdateOneModel((item)));
+            }
+            transactionCollection.bulkWrite(listUpdate, options);
+
+
+    }
+
 
     /**
      * return transaction according to id

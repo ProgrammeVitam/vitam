@@ -35,6 +35,12 @@ public class CollectConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
 
+    private Map<Integer, Integer> statusTransactionDelayInMinutes;
+
+    private int  statusTransactionThreadFrequency = 5;
+
+    private Integer transactionStatusThreadPoolSize = 3;
+
     private Map<Integer, Integer> purgeTransactionDelayInMinutes;
 
     private int purgeTransactionThreadPoolSize = 3;
@@ -85,5 +91,30 @@ public class CollectConfiguration extends DbConfigurationImpl {
             workspaceUrl);
         this.workspaceUrl = workspaceUrl;
         return this;
+    }
+
+    public Map<Integer, Integer> getStatusTransactionDelayInMinutes() {
+        return statusTransactionDelayInMinutes;
+    }
+
+    public void setStatusTransactionDelayInMinutes(
+        Map<Integer, Integer> statusTransactionDelayInMinutes) {
+        this.statusTransactionDelayInMinutes = statusTransactionDelayInMinutes;
+    }
+
+    public Integer getTransactionStatusThreadPoolSize() {
+        return transactionStatusThreadPoolSize;
+    }
+
+    public void setTransactionStatusThreadPoolSize(Integer transactionStatusThreadPoolSize) {
+        this.transactionStatusThreadPoolSize = transactionStatusThreadPoolSize;
+    }
+
+    public int getStatusTransactionThreadFrequency() {
+        return statusTransactionThreadFrequency;
+    }
+
+    public void setStatusTransactionThreadFrequency(int statusTransactionThreadFrequency) {
+        this.statusTransactionThreadFrequency = statusTransactionThreadFrequency;
     }
 }
