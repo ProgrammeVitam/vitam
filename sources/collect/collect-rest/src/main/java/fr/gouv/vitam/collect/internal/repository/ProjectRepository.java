@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -46,6 +45,8 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -171,28 +172,29 @@ public class ProjectRepository {
      *
      * @param searchValue value Of search
      * @param keys Keys of search criteria
+     * @param tenant tenant
      * @return List<ProjectModel>
      * @throws CollectException exception thrown in case of error
      */
-    public List<ProjectModel> searchProject(String searchValue, List<String> keys) throws CollectException {
+    public List<ProjectModel> searchProject(String searchValue, List<String> keys, Integer tenant)
+        throws CollectException {
 
         try {
             List<ProjectModel> listProjects = new ArrayList<>();
-            List<Bson> filters = new ArrayList<>();
-            keys.forEach(key -> {
+            List<Bson> filters = keys.stream().map(key -> {
                 if (ID.equals(key)) {
-                    filters.add(Filters.eq(key, searchValue));
-                } else {
-                    filters.add(Filters.regex(key, searchValue));
+                    return Filters.eq(key, searchValue);
                 }
-            });
+                return Filters.regex(key, Pattern.quote(searchValue), "i");
+            }).collect(Collectors.toList());
 
-            MongoCursor<Document> projectsCursor = projectCollection
-                .find(Filters.and(Filters.or(filters), Filters.eq(TENANT_ID, ParameterHelper.getTenantParameter())))
-                .cursor();
-            while (projectsCursor.hasNext()) {
-                Document doc = projectsCursor.next();
-                listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
+            try (MongoCursor<Document> projectsCursor = projectCollection
+                .find(Filters.and(Filters.or(filters), Filters.eq(TENANT_ID, tenant)))
+                .cursor()) {
+                while (projectsCursor.hasNext()) {
+                    Document doc = projectsCursor.next();
+                    listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
+                }
             }
             return listProjects;
 

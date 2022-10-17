@@ -36,6 +36,7 @@ import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,7 +107,8 @@ public class ProjectService {
 
     public List<ProjectDto> searchProject(String key) throws CollectException {
         List<ProjectModel> listProjects =
-            projectRepository.searchProject(key, List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER));
+            projectRepository.searchProject(key, List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER),
+                ParameterHelper.getTenantParameter());
         return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
             .collect(Collectors.toList());
     }
