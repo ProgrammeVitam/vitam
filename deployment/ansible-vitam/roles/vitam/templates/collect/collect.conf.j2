@@ -19,10 +19,9 @@ adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
 
-statusTransactionDelayInMinutes:
-{% for tenant in vitam_tenant_ids %}
-   {{ tenant }} : 60
-{% endfor %}
+
+statusTransactionThreadFrequency: {{ vitam.collect.statusTransactionThreadFrequency | default(5) }}
+transactionStatusThreadPoolSize: {{ vitam.collect.transactionStatusThreadPoolSize | default(4) }}
 
 
 purgeTransactionThreadFrequency: 60

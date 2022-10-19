@@ -50,7 +50,8 @@ public class CollectThreadRunner {
             Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
         scheduledTransactionStatus.scheduleAtFixedRate(
             new ManageStatusThread(transactionService, configuration),
-            configuration.getStatusTransactionThreadFrequency(), configuration.getStatusTransactionThreadFrequency(),
+            Math.min(5, configuration.getStatusTransactionThreadFrequency()),
+            configuration.getStatusTransactionThreadFrequency(),
             TimeUnit.MINUTES);
     }
 }

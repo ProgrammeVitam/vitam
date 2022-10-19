@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +48,6 @@ public class ManageStatusThread implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManageStatusThread.class);
     private final TransactionService transactionService;
-    private final Map<Integer, Integer> statusTransactionDelayInMinutes;
     CollectConfiguration collectConfiguration;
     private final static String ERROR_THREAD_EXECUTING = "Error when executing threads:";
 
@@ -57,7 +55,6 @@ public class ManageStatusThread implements Runnable {
     public ManageStatusThread(
         TransactionService transactionService, CollectConfiguration collectConfiguration) {
         this.transactionService = transactionService;
-        this.statusTransactionDelayInMinutes = collectConfiguration.getStatusTransactionDelayInMinutes();
         this.collectConfiguration = collectConfiguration;
     }
 
@@ -77,16 +74,17 @@ public class ManageStatusThread implements Runnable {
         Thread.currentThread().setName(ManageStatusThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
+        List<Integer> tenants = VitamConfiguration.getTenants();
         int threadPoolSize = Math.min(this.collectConfiguration.getTransactionStatusThreadPoolSize(),
-            statusTransactionDelayInMinutes.entrySet().size());
+            tenants.size());
         ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
         try {
             List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
-            for (var entry : statusTransactionDelayInMinutes.entrySet()) {
+            for (var tenant : tenants) {
                 CompletableFuture<Void> traceabilityCompletableFuture =
                     CompletableFuture.runAsync(() -> {
-                        Thread.currentThread().setName(ManageStatusThread.class.getName() + "-" + entry.getKey());
-                        VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
+                        Thread.currentThread().setName(ManageStatusThread.class.getName() + "-" + tenant);
+                        VitamThreadUtils.getVitamSession().setTenantId(tenant);
                         try {
                             this.transactionService.manageTransactionsStatus();
                         } catch (CollectException e) {

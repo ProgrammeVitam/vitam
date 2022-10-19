@@ -453,6 +453,8 @@ vitam:
         baseuri: "collect-external"
         https_enabled: true
         secret_platform: "false"
+        transactionStatusThreadPoolSize: 4
+        statusTransactionThreadFrequency: 5
     metadata_collect:
         vitam_component: metadata-collect
         host: "metadata-collect.service.{{ consul_domain }}"
