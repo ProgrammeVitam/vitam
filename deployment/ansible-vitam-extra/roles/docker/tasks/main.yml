@@ -112,7 +112,7 @@
     sysctl:
       name: net.ipv4.ip_forward
       sysctl_set: yes
-      value: 1
+      value: '1'
 
   when: ansible_os_family == "RedHat"
   # End docker centos
