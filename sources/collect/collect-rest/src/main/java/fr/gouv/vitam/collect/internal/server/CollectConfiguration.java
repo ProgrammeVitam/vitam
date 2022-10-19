@@ -29,13 +29,12 @@ package fr.gouv.vitam.collect.internal.server;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
+import java.util.List;
 import java.util.Map;
 
 public class CollectConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
-
-    private Map<Integer, Integer> statusTransactionDelayInMinutes;
 
     private int  statusTransactionThreadFrequency = 5;
 
@@ -93,14 +92,7 @@ public class CollectConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-    public Map<Integer, Integer> getStatusTransactionDelayInMinutes() {
-        return statusTransactionDelayInMinutes;
-    }
 
-    public void setStatusTransactionDelayInMinutes(
-        Map<Integer, Integer> statusTransactionDelayInMinutes) {
-        this.statusTransactionDelayInMinutes = statusTransactionDelayInMinutes;
-    }
 
     public Integer getTransactionStatusThreadPoolSize() {
         return transactionStatusThreadPoolSize;
