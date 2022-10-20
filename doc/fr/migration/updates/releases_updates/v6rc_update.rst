@@ -3,6 +3,56 @@ Notes et procédures spécifiques V6RC
 
 .. caution:: Pour une montée de version depuis la V5RC de Vitam, veuillez appliquer les procédures spécifiques de la V5 en complément des procédures suivantes. Pour une montée de version depuis la V5, vous pouvez appliquer la procédure suivante directement.
 
+####################################
+
+Montée de version vers mongo 4.4
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée avant la montée de version vers la V6RC et si la version Mongodb est inférieure à une version 4.4 (ex: 4.2)
+
+.. caution:: Sans cette opération, la montée de version d'une version existante vers une v6rc sera bloquée au démarrage des instances mongod par une incompatibilité.
+
+Executez le playbook suivant:
+
+.. code-block:: bash
+
+     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_44.yml --ask-vault-pass
+
+Ce playbook effectue la montée de version de mongodb d'une version 4.2 vers une version 4.4 selon la procédure indiquée dans la documentation Mongodb
+https://www.mongodb.com/docs/v4.4/release-notes/4.4-upgrade-replica-set/ . Cette procédure n'a pas été testée avec une version mongodb inférieure à 4.2.
+
+
+Montée de version vers mongo 5.0.9
+-----------------------------------
+
+.. caution:: Cette montée de version doit être effectuée avant la montée de version V6RC de vitam et après la montée de version en mongodb 4.4 ci dessus.
+
+Executez le playbook suivant:
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_50.yml --ask-vault-pass
+
+Ce playbook change le "Read and write Concern" des replicaset par reconfiguration, il désinstalle et réinstalle les binaires et . Il change également le paramètre
+"SetFeatureCompatibility" à 5.0.
+
+Une fois ces montées de version de Mongodb réalisées la montée de version Vitam classique peut être réalisée.
+
+
+Nettoyage des fichiers timers, services et conf suite à la migration vers le scheduler
+--------------------------------------------------------------------------------------
+
+.. caution:: Cette étape doit être effectuée avant la montée de version V6RC de vitam et après l'arrêt des Timers.
+
+Executez le playbook suivant :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_files_for_scheduler_migration.yml --ask-vault-pass
+
+Ce playbook supprime les fichiers .service, .sh, .timers et .conf suite au passage vers le scheduler Quartz sur les hosts concernés.
+
+
 Migration des groupes d'objets
 -----------------------------------
 
@@ -29,38 +79,3 @@ Puis redémarrer les externals qui ont été coupés durant la migration :
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
-
-####################################
-
-Montée de version vers mongo 4.4
-----------------------------------------------
-
-.. caution:: Cette opération doit être effectuée avant la montée de version vers la V6RC et si la version Mongodb est inférieure à une version 4.4 (ex: 4.2)
-
-.. caution:: Sans cette opération, la montée de version d'une version existante vers une v6rc sera bloquée au démarrage des instances mongod par une incompatibilité.
-
-Executez le playbook suivant:
-
-.. code-block:: bash
-
-     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_44.yml --ask-vault-pass
-
-Ce playbook effectue la montée de version de mongodb d'une version 4.2 vers une version 4.4 selon la procédure indiquée dans la documentation Mongodb
-https://www.mongodb.com/docs/v4.4/release-notes/4.4-upgrade-replica-set/ . Cette procédure n'a pas été testée avec une version mongodb inférieure à 4.2.
-
-
-Montée de version vers mongo 5.0.9 
------------------------------------
-
-.. caution:: Cette montée de version doit être effectuée avant la montée de version V6RC de vitam et après la montée de version en mongodb 4.4 ci dessus.
-
-Executez le playbook suivant:
-
-.. code-block:: bash
-
-    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_50.yml --ask-vault-pass
-
-Ce playbook change le "Read and write Concern" des replicaset par reconfiguration, il désinstalle et réinstalle les binaires et . Il change également le paramètre
-"SetFeatureCompatibility" à 5.0.
-
-Une fois ces montées de version de Mongodb réalisées la montée de version Vitam classique peut être réalisée.

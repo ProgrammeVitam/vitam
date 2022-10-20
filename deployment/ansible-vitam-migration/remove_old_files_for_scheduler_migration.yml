@@ -1,0 +1,140 @@
+---
+
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "/!\\ WARNING : This playbook will cleanup old timers and services and config files.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+
+- hosts: hosts_functional_administration
+  pre_tasks:
+    - name: Define path for systemd scripts in hosts-functional-administration
+      set_fact:
+        path_file: "{{'/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}"
+  roles:
+    - role: cleanup_scheduler
+      vars:
+        files:
+          - /vitam/script/functional-administration/reconstruction.sh
+          - /vitam/script/functional-administration/accession_register_reconstruction.sh
+          - /vitam/script/functional-administration/reconstruction_payload.json
+          - /vitam/conf/functional-administration/reconstruction.conf
+          - /vitam/conf/functional-administration/sysconfig/timer_java_opts
+          - /vitam/script/functional-administration/launchRuleAudit.sh
+          - /vitam/script/functional-administration/vitam-create-accession-register-symbolic.sh
+          - "{{ path_file }}/vitam-create-accession-register-symbolic.service"
+          - "{{ path_file }}/vitam-create-accession-register-symbolic.timer"
+          - "{{ path_file }}/vitam-functional-administration-accession-register-reconstruction.service"
+          - "{{ path_file }}/vitam-functional-administration-accession-register-reconstruction.timer"
+          - "{{ path_file }}/vitam-functional-administration-reconstruction.service"
+          - "{{ path_file }}/vitam-functional-administration-reconstruction.timer"
+          - "{{ path_file }}/vitam-rule-management-audit.service"
+          - "{{ path_file }}/vitam-rule-management-audit.timer"
+
+- hosts: hosts_logbook
+  pre_tasks:
+    - name: Define path for systemd scripts in hosts-logbook
+      set_fact:
+        path_file: "{{'/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}"
+  roles:
+    - role: cleanup_scheduler
+      vars:
+        files:
+          - /vitam/script/logbook/reconstruction.sh
+          - /vitam/script/logbook/reconstruction_payload.json
+          - /vitam/conf/logbook/reconstruction.conf
+          - /vitam/conf/logbook/securisationDaemon.conf
+          - /vitam/conf/logbook/traceabilityAudit.conf
+          - /vitam/conf/logbook/sysconfig/timer_java_opts
+          - /vitam/script/logbook/launchUnitLfcTraceability.sh
+          - /vitam/script/logbook/launchTraceabilityOperations.sh
+          - /vitam/script/logbook/launchTraceabilityAudit.sh
+          - /vitam/script/logbook/launchObjectGroupLfcTraceability.sh
+          - "{{ path_file }}/vitam-logbook-reconstruction.service"
+          - "{{ path_file }}/vitam-logbook-reconstruction.timer"
+          - "{{ path_file }}/vitam-traceability-audit.service"
+          - "{{ path_file }}/vitam-traceability-audit.timer"
+          - "{{ path_file }}/vitam-traceability-lfc-objectgroup.service"
+          - "{{ path_file }}/vitam-traceability-lfc-objectgroup.timer"
+          - "{{ path_file }}/vitam-traceability-lfc-unit.service"
+          - "{{ path_file }}/vitam-traceability-lfc-unit.timer"
+          - "{{ path_file }}vitam-traceability-operations.service"
+          - "{{ path_file }}/vitam-traceability-operations.timer"
+
+- hosts: hosts_metadata
+  pre_tasks:
+    - name: Define path for systemd scripts in hosts-metadata
+      set_fact:
+        path_file: "{{'/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}"
+  roles:
+    - role: cleanup_scheduler
+      vars:
+        files:
+          - /vitam/script/metadata/reconstruction.sh
+          - /vitam/script/metadata/storegraph.sh
+          - /vitam/script/metadata/computed_inherited_rules.sh
+          - /vitam/script/metadata/purge_dip.sh
+          - /vitam/script/metadata/purge_transfers_sip.sh
+          - /vitam/script/metadata/reconstruction_payload.json
+          - /vitam/script/metadata/audit_data_consistency.sh
+          - /vitam/conf/metadata/reconstruction.conf
+          - "{{ path_file }}/vitam-metadata-audit-mongodb-es.service"
+          - "{{ path_file }}/vitam-metadata-audit-mongodb-es.timer"
+          - "{{ path_file }}/vitam-metadata-computed-inherited-rules.service"
+          - "{{ path_file }}/vitam-metadata-computed-inherited-rules.timer"
+          - "{{ path_file }}/vitam-metadata-purge-dip.service"
+          - "{{ path_file }}/vitam-metadata-purge-dip.timer"
+          - "{{ path_file }}/vitam-metadata-purge-transfers-SIP.service"
+          - "{{ path_file }}/vitam-metadata-purge-transfers-SIP.timer"
+          - "{{ path_file }}/vitam-metadata-reconstruction.service"
+          - "{{ path_file }}/vitam-metadata-reconstruction.timer"
+          - "{{ path_file }}/vitam-metadata-store-graph.service"
+          - "{{ path_file }}/vitam-metadata-store-graph.timer"
+
+
+- hosts: hosts_storage_offer_default
+  pre_tasks:
+    - name: Define path for systemd scripts in hosts-storage-offer-default
+      set_fact:
+        path_file: "{{'/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}"
+  roles:
+    - role: cleanup_scheduler
+      vars:
+        files:
+          - /vitam/script/offer/simulate_mt.sh
+          - /vitam/script/offer/simulate_dd.sh
+          - /vitam/script/offer/simulate_mtx.sh
+          - /vitam/script/offer/vitam-offer-log-compaction.sh
+          - "{{ path_file }}/vitam-offer-log-compaction.service"
+          - "{{ path_file }}/vitam-offer-log-compaction.timer"
+
+- hosts: hosts_storage_engine
+  pre_tasks:
+    - name: hosts-storage-offer-default in hosts-storage-engine
+      set_fact:
+        path_file: "{{'/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}"
+  roles:
+    - role: cleanup_scheduler
+      vars:
+        files:
+          - /vitam/conf/storage/storage-access-log-backup.conf
+          - /vitam/conf/storage/storage/storage-log-backup.conf
+          - /vitam/conf/storage/storage-log-traceability.conf
+          - /vitam/conf/storage/sysconfig/timer_java_opts
+          - /vitam/script/storage/launchStorageAccessLogBackup.sh
+          - /vitam/script/storage/launchStorageLogBackup.sh
+          - /vitam/script/storage/launchStorageLogTraceability.sh
+          - "{{ path_file }}/vitam-storage-accesslog-backup.service"
+          - "{{ path_file }}/vitam-storage-accesslog-backup.timer"
+          - "{{ path_file }}/vitam-storage-log-backup.service"
+          - "{{ path_file }}/vitam-storage-log-backup.timer"
+          - "{{ path_file }}/vitam-storage-log-traceability.service"
+          - "{{ path_file }}/vitam-storage-log-traceability.timer"
