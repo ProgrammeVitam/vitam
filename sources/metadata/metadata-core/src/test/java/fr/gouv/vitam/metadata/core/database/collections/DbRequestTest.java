@@ -120,6 +120,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
@@ -350,6 +351,66 @@ public class DbRequestTest {
         MetadataCollectionsTestUtils.afterTest(indexManager);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testExecRequestWithAllSedaFields() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
+        try {
+            final DbRequest dbRequest = new DbRequest();
+            // INSERT
+            final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
+            // Now considering insert request and parsing it as in Data Server (POST command)
+            final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+            insertParser.parse(insertRequest);
+            LOGGER.debug("InsertParser: {}", insertParser);
+            // Now execute the request
+            dbRequest.execInsertUnitRequest(insertParser);
+
+            // SELECT
+            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            // Now considering select request and parsing it as in Data Server (GET command)
+            final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+            selectParser.parse(selectRequest);
+            LOGGER.debug("SelectParser: {}", selectParser);
+            // Now execute the request
+            executeRequest(dbRequest, selectParser);
+
+            // UPDATE
+            final JsonNode unit =
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("generated_archive_unit.json"));
+            final JsonNode updateRequest = createUnitUpdateRequestWithUUID(uuid, unit);
+
+            // Now considering update request and parsing it as in Data Server (PATCH command)
+            final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
+            updateParser.parse(updateRequest);
+            LOGGER.debug("UpdateParser: {}", updateParser);
+
+
+            // Now execute the request
+            OntologyValidator ontologyValidator = mock(OntologyValidator.class);
+            doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
+
+            dbRequest.execUpdateRequest(updateParser, uuid.toString(), UNIT, ontologyValidator,
+                mock(UnitValidator.class), Collections.emptyList(), true);
+
+            // SELECT ALL
+            final SelectMultiQuery select = new SelectMultiQuery();
+            select.addUsedProjection(all())
+                .addQueries(eq(id(), uuid.toString()));
+            LOGGER.debug("SelectAllString: " + select.getFinalSelect());
+            selectRequest = select.getFinalSelect();
+            // Now considering select request and parsing it as in Data Server (GET command)
+            selectParser.parse(selectRequest);
+            LOGGER.debug("SelectParser: {}", selectParser);
+            // Now execute the request
+            executeRequest(dbRequest, selectParser);
+        } finally {
+            // clean
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+        }
+    }
+
     /**
      * Test method for execRequest
      * .
@@ -410,7 +471,7 @@ public class DbRequestTest {
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             final DeleteParserMultiple deleteParser = new DeleteParserMultiple(mongoDbVarNameAdapter);
             deleteParser.parse(deleteRequest);
-            LOGGER.debug("DeleteParser: " + deleteParser.toString());
+            LOGGER.debug("DeleteParser: " + deleteParser);
             // Now execute the request
             executeRequest(dbRequest, deleteParser);
         } finally {
@@ -519,13 +580,13 @@ public class DbRequestTest {
 
             final ObjectNode insertReq2 =
                 (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
-            insertReq2.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent)));
+            insertReq2.set(ROOTS, JsonHandler.toJsonNode(Arrays.asList(guidParent)));
             ObjectNode uds = JsonHandler.createObjectNode().put("1", guidParent);
             ((ObjectNode) insertReq2.get(DATA)).set(_UDS, uds);
 
             final ObjectNode insertReq3 =
                 (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
-            insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
+            insertReq3.set(ROOTS, JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
             ObjectNode uds1 = JsonHandler.createObjectNode().put("2", guidParent).put("1", guidChild1);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds1);
 
@@ -628,7 +689,7 @@ public class DbRequestTest {
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
                 RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            LOGGER.debug("DeleteParser: " + requestParser);
 
             executeRequest(dbRequest, requestParser);
         } finally {
@@ -710,7 +771,7 @@ public class DbRequestTest {
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
                 RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            LOGGER.debug("DeleteParser: " + requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
@@ -825,14 +886,14 @@ public class DbRequestTest {
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
                 RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            LOGGER.debug("DeleteParser: " + requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
             deleteRequest = createDeleteRequestWithUUID(uuid);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
                 RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            LOGGER.debug("DeleteParser: " + requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
@@ -1131,8 +1192,8 @@ public class DbRequestTest {
             assertEquals(2L, result0.getNbResult());
             final List<MetadataDocument<?>> list = result0.getFinal();
             LOGGER.warn(list.toString());
-            assertEquals("mon titreB Complet", ((Document) list.get(0)).getString(TITLE));
-            assertEquals("mon titreA Complet", ((Document) list.get(1)).getString(TITLE));
+            assertEquals("mon titreB Complet", list.get(0).getString(TITLE));
+            assertEquals("mon titreA Complet", list.get(1).getString(TITLE));
 
             // select with desc sort on title and two queries
             selectRequest = new SelectMultiQuery();
@@ -1146,8 +1207,8 @@ public class DbRequestTest {
             final Result result1 = dbRequest.execRequest(selectParser, Collections.emptyList());
             assertEquals(2L, result1.getNbResult());
             final List<MetadataDocument<?>> list1 = result1.getFinal();
-            assertEquals("mon titreB Complet", ((Document) list1.get(0)).getString(TITLE));
-            assertEquals("mon titreA Complet", ((Document) list1.get(1)).getString(TITLE));
+            assertEquals("mon titreB Complet", list1.get(0).getString(TITLE));
+            assertEquals("mon titreA Complet", list1.get(1).getString(TITLE));
 
             // select with desc sort on title and two queries and elastic search
             selectRequest = new SelectMultiQuery();
@@ -1312,7 +1373,7 @@ public class DbRequestTest {
     private JsonNode createDeleteRequestWithUUID(GUID uuid) throws Exception {
         final DeleteMultiQuery delete = new DeleteMultiQuery();
         delete.addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("DeleteString: " + delete.getFinalDelete().toString());
+        LOGGER.debug("DeleteString: " + delete.getFinalDelete());
         return delete.getFinalDelete();
     }
 
@@ -1325,7 +1386,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(all())
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("SelectAllString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectAllString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1337,7 +1398,19 @@ public class DbRequestTest {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"))
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
+        LOGGER.debug("UpdateString: " + update.getFinalUpdate());
+        return update.getFinalUpdate();
+    }
+
+    private JsonNode createUnitUpdateRequestWithUUID(GUID uuid, JsonNode unit) throws Exception {
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+
+        Map<String, JsonNode> map = new HashMap<>();
+        unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
+
+        update.addActions(set(map));
+        update.addQueries(eq(id(), uuid.toString()));
+        LOGGER.debug("UpdateString: " + update.getFinalUpdate());
         return update.getFinalUpdate();
     }
 
@@ -1350,7 +1423,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1361,7 +1434,7 @@ public class DbRequestTest {
     private JsonNode createSelectRequestWithOnlyUUID(GUID uuid) throws InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(id(), uuid.toString()).setDepthLimit(10));
-        LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1385,7 +1458,7 @@ public class DbRequestTest {
         data.putArray(ARRAY2_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         return insert.getFinalInsert();
     }
 
@@ -1400,7 +1473,7 @@ public class DbRequestTest {
             .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data).addRoots(parent.toString());
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         return insert.getFinalInsert();
     }
 
@@ -1418,7 +1491,7 @@ public class DbRequestTest {
                 gt(MY_INT, 1), lt(MY_INT, 100),
                 ne(MY_BOOLEAN, true), range(MY_FLOAT, 0.0, false, 100.0, true),
                 term(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("SelectAllString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectAllString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1432,7 +1505,7 @@ public class DbRequestTest {
                 unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
                 add(ARRAY2_VAR, "val2"))
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
-        LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
+        LOGGER.debug("UpdateString: " + update.getFinalUpdate());
         return update.getFinalUpdate();
     }
 
@@ -1445,7 +1518,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
             .addQueries(eq(id(), uuid.toString()).setDepthLimit(2));
-        LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1460,7 +1533,7 @@ public class DbRequestTest {
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
             .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)),
                 eq(id(), uuid2.toString()));
-        LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
+        LOGGER.debug("SelectString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
 
@@ -1471,7 +1544,7 @@ public class DbRequestTest {
     private JsonNode clientDelete2Build(GUID uuid) throws InvalidCreateOperationException {
         final DeleteMultiQuery delete = new DeleteMultiQuery();
         delete.addQueries(path(uuid.toString()));
-        LOGGER.debug("DeleteString: " + delete.getFinalDelete().toString());
+        LOGGER.debug("DeleteString: " + delete.getFinalDelete());
         return delete.getFinalDelete();
     }
 
@@ -1892,7 +1965,7 @@ public class DbRequestTest {
             dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
-            resultSelectRel5.getCurrentIds().iterator().next().toString());
+            resultSelectRel5.getCurrentIds().iterator().next());
 
         // Check for "France.pdf"
         select = new SelectMultiQuery();
@@ -1979,7 +2052,8 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         String requestInsertTestEsUpdate =
-            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE),
+                StandardCharsets.UTF_8);
         insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -2118,7 +2192,8 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         String requestInsertTestEsUpdate =
-            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE),
+                StandardCharsets.UTF_8);
         insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -2243,7 +2318,7 @@ public class DbRequestTest {
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addData(data);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         return insert.getFinalInsert();
     }
 
@@ -2288,7 +2363,7 @@ public class DbRequestTest {
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         ObjectNode insertNode = insert.getFinalInsert();
         requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(requestParser);
@@ -2302,7 +2377,7 @@ public class DbRequestTest {
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data2);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         insertNode = insert.getFinalInsert();
         requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(requestParser);
@@ -2316,7 +2391,7 @@ public class DbRequestTest {
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data3);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         insertNode = insert.getFinalInsert();
         requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(requestParser);
@@ -2330,7 +2405,7 @@ public class DbRequestTest {
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data4);
-        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
         insertNode = insert.getFinalInsert();
         requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(requestParser);
@@ -2423,7 +2498,7 @@ public class DbRequestTest {
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
                 RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            LOGGER.debug("DeleteParser: " + requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
