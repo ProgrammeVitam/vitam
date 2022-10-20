@@ -1,0 +1,11 @@
+---
+
+- name: Clean old files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ files }}"
+
+- name: force systemd to reread configs
+  ansible.builtin.systemd:
+    daemon_reload: yes
