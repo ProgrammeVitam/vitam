@@ -35,9 +35,8 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -72,6 +71,7 @@ import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
@@ -120,8 +120,6 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static javax.ws.rs.core.Response.Status.OK;
-import static org.apache.commons.io.FileUtils.cleanDirectory;
-import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
@@ -136,18 +134,11 @@ import static org.junit.Assert.assertTrue;
  */
 public class StorageTwoOffersIT {
 
-    /**
-     * Vitam logger.
-     */
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StorageTwoOffersIT.class);
-    static final String WORKSPACE_CONF = "storage-test/workspace.conf";
-    static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
-    static final String DEFAULT_SECOND_CONF = "storage-test/storage-default-offer2-ssl.conf";
-    static final String STORAGE_CONF = "storage-test/storage-engine.conf";
-    static final int PORT_SERVICE_WORKSPACE = 8987;
-    static final int PORT_SERVICE_STORAGE = 8583;
-    static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
+    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
+    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
+    private static final String DEFAULT_SECOND_CONF = "storage-test/storage-default-offer2-ssl.conf";
+    private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
+    private static final String DEFAULT_STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 0;
@@ -160,18 +151,12 @@ public class StorageTwoOffersIT {
 
     static StorageClient storageClient;
     static WorkspaceClient workspaceClient;
-    static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
     @ClassRule
     public static TempFolderRule tempFolder = new TempFolderRule();
-
-    static String OFFER_FOLDER;
-
-    static String SECOND_FOLDER;
-
 
     @ClassRule
     public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, MongoDbAccess.getMongoClientSettingsBuilder());
@@ -186,11 +171,10 @@ public class StorageTwoOffersIT {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static SetupStorageAndOffers setupStorageAndOffers;
+
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        OFFER_FOLDER = tempFolder.newFolder().getAbsolutePath();
-        SECOND_FOLDER = tempFolder.newFolder().getAbsolutePath();
-
         OfferCollections.OFFER_LOG.setPrefix(GUIDFactory.newGUID().getId());
         OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
         mongoRuleOffer1.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
@@ -201,7 +185,10 @@ public class StorageTwoOffersIT {
 
         VitamConfiguration.setRestoreBulkSize(15);
 
-        SetupStorageAndOffers.setupStorageAndTwoOffer();
+        setupStorageAndOffers = new SetupStorageAndOffers();
+        setupStorageAndOffers.setupStorageAndTwoOffer(StorageTwoOffersIT.tempFolder, DEFAULT_STORAGE_CONF_FILE_NAME,
+            WORKSPACE_CONF,
+            STORAGE_CONF, DEFAULT_OFFER_CONF, DEFAULT_SECOND_CONF);
 
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
@@ -211,43 +198,39 @@ public class StorageTwoOffersIT {
             .build();
         Retrofit retrofit =
             new Retrofit.Builder().client(okHttpClient)
-                .baseUrl("http://localhost:" + SetupStorageAndOffers.storageEngineAdminPort)
+                .baseUrl("http://localhost:" + SetupStorageAndOffers.PORT_ADMIN_STORAGE)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         offerSyncAdminResource = retrofit.create(OfferSyncAdminResource.class);
         offerDiffAdminResource = retrofit.create(OfferDiffAdminResource.class);
+
+        storageClient = StorageClientFactory.getInstance().getClient();
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws VitamApplicationServerException {
+        setupStorageAndOffers.close();
         mongoRuleOffer1.handleAfterClass();
         mongoRuleOffer2.handleAfterClass();
+        if (storageClient != null) {
+            storageClient.close();
+        }
+        if (workspaceClient != null) {
+            workspaceClient.close();
+        }
         VitamClientFactory.resetConnections();
     }
 
     @Before
     public void init() throws IOException {
-        cleanOffer(OFFER_FOLDER);
-        cleanOffer(SECOND_FOLDER);
+        setupStorageAndOffers.cleanOffers();
     }
 
     @After
     public void cleanup() throws IOException {
-        cleanOffer(OFFER_FOLDER);
-        cleanOffer(SECOND_FOLDER);
+        setupStorageAndOffers.cleanOffers();
         mongoRuleOffer1.handleAfter();
         mongoRuleOffer2.handleAfter();
-    }
-
-    private void cleanOffer(String offerFolder) throws IOException {
-        File offerDir = new File(offerFolder);
-        if (offerDir.exists()) {
-            File[] containerDirs = offerDir.listFiles(File::isDirectory);
-            if (containerDirs != null) {
-                for (File container : containerDirs) {
-                    FileUtils.cleanDirectory(container);
-                }
-            }
-        }
     }
 
     private void storeObjectInAllOffers(String id, DataCategory category, InputStream inputStream) throws Exception {
@@ -338,7 +321,8 @@ public class StorageTwoOffersIT {
 
     // write directly in file of second offer
     private void alterFileInSecondOffer(String id) throws IOException {
-        String path = SECOND_FOLDER + File.separator + "0_object" + File.separator + id;
+        String path =
+            setupStorageAndOffers.getSecondStorageFolder() + File.separator + "0_object" + File.separator + id;
         try (Writer writer = new BufferedWriter(new FileWriter(path))) {
             writer.write(id + "test");
         }
@@ -1377,27 +1361,6 @@ public class StorageTwoOffersIT {
         }
         if (isRunning) {
             fail("Offer diff took too long");
-        }
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-
-        SetupStorageAndOffers.close();
-
-        cleanOffer(new File(OFFER_FOLDER));
-        cleanOffer(new File(SECOND_FOLDER));
-    }
-
-    private static void cleanOffer(File folder) {
-        if (folder.exists()) {
-            try {
-                cleanDirectory(folder);
-                deleteDirectory(folder);
-            } catch (Exception e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleaning offer:", e);
-            }
-
         }
     }
 
