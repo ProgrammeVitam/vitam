@@ -39,7 +39,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -79,7 +79,7 @@ public class AdminStorageApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
 
-            final StorageLog storageLogService = StorageLogService.getInstance(storageConfiguration);
+            final StorageLog storageLogService = StorageLogFactory.getInstance(storageConfiguration);
 
             // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
             final StorageDistribution distribution = StorageDistributionFactory.createStorageDistribution(

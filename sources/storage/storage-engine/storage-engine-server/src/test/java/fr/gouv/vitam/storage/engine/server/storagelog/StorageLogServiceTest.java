@@ -92,7 +92,7 @@ public class StorageLogServiceTest {
     public void appendTest() throws Exception {
 
         File workingDir = folder.newFolder();
-        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = new StorageLogService(tenants, Paths.get(workingDir.getAbsolutePath()));
         storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param1"));
         storageLogService.appendWriteLog(1, buildStorageParameters("tenant1-param1"));
         storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param2"));
@@ -121,7 +121,7 @@ public class StorageLogServiceTest {
     public void rotateLogsTest() throws IOException {
         File workingDir = folder.newFolder();
 
-        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = new StorageLogService(tenants, Paths.get(workingDir.getAbsolutePath()));
 
         // Given / when
         LocalDateTime date1 = LocalDateUtil.now();
@@ -175,8 +175,7 @@ public class StorageLogServiceTest {
          * Wait for "TEST_DURATION_IN_MILLISECONDS" and stop threads
          * Ensure that all messages have been logged
          */
-
-        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = new StorageLogService(tenants, Paths.get(workingDir.getAbsolutePath()));
 
         int TEST_DURATION_IN_MILLISECONDS = 1500;
         int INTERVAL_BETWEEN_LOG_ROTATION = 30;
