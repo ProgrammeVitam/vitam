@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.DomainName;
@@ -86,6 +87,8 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.ReadOnlyShieldStorageDistribution;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionFactory;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtection;
@@ -162,7 +165,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     StorageResource(StorageConfiguration configuration) {
         try {
             storageLogService = StorageLogService.getInstance(configuration);
-            distribution = new StorageDistributionImpl(configuration, storageLogService);
+
+            // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
+            distribution = StorageDistributionFactory.createStorageDistribution(
+                configuration, storageLogService, new AlertServiceImpl());
+
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
                 new StorageLogAdministration(storageLogService, configuration);
