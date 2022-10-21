@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory.WRITE_LOG_DIR;
+import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService.WRITE_LOG_DIR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,7 +92,7 @@ public class StorageLogServiceTest {
     public void appendTest() throws Exception {
 
         File workingDir = folder.newFolder();
-        storageLogService = StorageLogFactory.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
         storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param1"));
         storageLogService.appendWriteLog(1, buildStorageParameters("tenant1-param1"));
         storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param2"));
@@ -121,7 +121,7 @@ public class StorageLogServiceTest {
     public void rotateLogsTest() throws IOException {
         File workingDir = folder.newFolder();
 
-        storageLogService = StorageLogFactory.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
 
         // Given / when
         LocalDateTime date1 = LocalDateUtil.now();
@@ -176,7 +176,7 @@ public class StorageLogServiceTest {
          * Ensure that all messages have been logged
          */
 
-        storageLogService = StorageLogFactory.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
+        storageLogService = StorageLogService.getInstanceForTest(tenants, Paths.get(workingDir.getAbsolutePath()));
 
         int TEST_DURATION_IN_MILLISECONDS = 1500;
         int INTERVAL_BETWEEN_LOG_ROTATION = 30;

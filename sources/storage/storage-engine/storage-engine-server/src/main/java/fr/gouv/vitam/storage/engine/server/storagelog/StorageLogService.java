@@ -29,8 +29,10 @@ package fr.gouv.vitam.storage.engine.server.storagelog;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogStructure;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -54,9 +57,9 @@ import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getDateTimeFormatterForFileNames;
 
-public class StorageLogFactory implements StorageLog {
+public class StorageLogService implements StorageLog {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogFactory.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogService.class);
 
     private static final String FILENAME_PATTERN_CREATION_DATE_GROUP = "CreationDate";
     private static final Pattern FILENAME_PATTERN = Pattern.compile("^\\d+_(?<CreationDate>\\d+)_.*$");
@@ -83,7 +86,7 @@ public class StorageLogFactory implements StorageLog {
      * @param basePath
      * @throws IOException
      */
-    private StorageLogFactory(List<Integer> tenants, Path basePath) throws IOException {
+    private StorageLogService(List<Integer> tenants, Path basePath) throws IOException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, tenants, basePath);
         this.tenants = tenants;
 
@@ -102,16 +105,17 @@ public class StorageLogFactory implements StorageLog {
      *
      * @return the instance.
      */
-    public static synchronized StorageLog getInstance(List<Integer> tenants, Path basePath) throws IOException {
+    public static synchronized StorageLog getInstance(StorageConfiguration storageConfiguration) throws IOException {
         if (instance == null) {
-            instance = new StorageLogFactory(tenants, basePath);
+            instance = new StorageLogService(VitamConfiguration.getTenants(),
+                Paths.get(storageConfiguration.getLoggingDirectory()));
         }
         return instance;
     }
 
     @VisibleForTesting
     public static synchronized StorageLog getInstanceForTest(List<Integer> tenants, Path basePath) throws IOException {
-        return new StorageLogFactory(tenants, basePath);
+        return new StorageLogService(tenants, basePath);
     }
 
     /**

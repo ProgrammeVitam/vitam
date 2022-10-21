@@ -91,7 +91,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -123,7 +123,6 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -163,8 +162,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     StorageResource(StorageConfiguration configuration) {
         try {
-            storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
-                Paths.get(configuration.getLoggingDirectory()));
+            storageLogService = StorageLogService.getInstance(configuration);
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
