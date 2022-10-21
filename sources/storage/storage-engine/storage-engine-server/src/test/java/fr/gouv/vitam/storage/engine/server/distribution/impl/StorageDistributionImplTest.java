@@ -151,7 +151,7 @@ public class StorageDistributionImplTest {
 
         folder.create();
         StorageLog storageLogService =
-            StorageLogService.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
+            new StorageLogService(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(workspaceClientFactory, DigestType.SHA1, storageLogService,
             bulkStorageDistribution);

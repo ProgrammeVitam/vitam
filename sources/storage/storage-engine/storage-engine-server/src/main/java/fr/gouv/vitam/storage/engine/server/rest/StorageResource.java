@@ -85,7 +85,7 @@ import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtection;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -154,7 +154,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     StorageResource(StorageConfiguration configuration) {
         try {
-            storageLogService = StorageLogService.getInstance(configuration);
+            storageLogService = StorageLogFactory.getInstance(configuration);
 
             // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
             distribution = StorageDistributionFactory.createStorageDistribution(
