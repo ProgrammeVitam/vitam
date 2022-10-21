@@ -6,6 +6,7 @@ db = db.getSiblingDB('collect')
 // A single collection can have no more than 64 indexes.
 
 db.Project.createIndex({
+    "Context.MessageIdentifier": 1,
     "Context.SubmissionAgencyIdentifier": 1,
     "Context.ArchivalAgencyIdentifier": 1
 });

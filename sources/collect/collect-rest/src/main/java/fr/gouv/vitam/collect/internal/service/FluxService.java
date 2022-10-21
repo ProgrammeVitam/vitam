@@ -126,6 +126,9 @@ public class FluxService {
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
+                    if (entry.getName().equals(File.separator)) {
+                        continue;
+                    }
                     String fileName = Paths.get(entry.getName()).getFileName().toString();
                     if (!entry.isDirectory() && fileName.equals(METADATA_CSV_FILE)) {
                         // save file in workspace
@@ -147,8 +150,7 @@ public class FluxService {
             if (isExtraMetadataExist) {
                 try (final InputStream is = collectService.getInputStreamFromWorkspace(projectDto.getTransactionId(),
                     METADATA_CSV_FILE)) {
-                    Map<String, String> unitsByURI = buildGraphFromExistingUnits(projectDto.getTransactionId());
-                    populateMetadata(is, unitsByURI, isAttachmentAuExist);
+                    updateUnits(projectDto.getTransactionId(), is, isAttachmentAuExist);
                 }
             }
 
@@ -156,6 +158,12 @@ public class FluxService {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             throw new CollectException("An error occurs when try to upload the ZIP: {}");
         }
+    }
+
+    public void updateUnits(String transactionId, InputStream is, boolean isAttachmentAuExist)
+        throws CollectException, IOException {
+            Map<String, String> unitsByURI = buildGraphFromExistingUnits(transactionId);
+            populateMetadata(is, unitsByURI, isAttachmentAuExist);
     }
 
     private Map<String, String> buildGraphFromExistingUnits(String transactionId) throws CollectException {
@@ -224,6 +232,7 @@ public class FluxService {
                         throw new CollectException("Error when trying to update units metadata");
                     }
                 } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+                    LOGGER.error("Could not create update query", e);
                     throw new CollectException(e);
                 }
             }
@@ -231,12 +240,15 @@ public class FluxService {
     }
 
     private List<JsonNode> convertToQuery(Map<String, JsonNode> unitsByURI, Map<String, String> unitsIdByURI,
-        boolean isAttachmentAuExist) throws InvalidCreateOperationException, InvalidParseOperationException {
+        boolean isAttachmentAuExist)
+        throws InvalidCreateOperationException, InvalidParseOperationException, CollectException {
         List<JsonNode> listQueries = new ArrayList<>();
         for (Map.Entry<String, JsonNode> unit : unitsByURI.entrySet()) {
-            String unitId = (isAttachmentAuExist) ?
-                unitsIdByURI.get(DUMMY_ARCHIVE_UNIT_TITLE + "/" + unit.getKey()) :
-                unitsIdByURI.get(unit.getKey());
+            String path = (isAttachmentAuExist) ? DUMMY_ARCHIVE_UNIT_TITLE + "/" + unit.getKey() : unit.getKey();
+            String unitId = unitsIdByURI.get(path);
+            if (unitId == null) {
+                throw new CollectException("Cannot find unit with path " + path);
+            }
             UpdateMultiQuery query = new UpdateMultiQuery();
             query.addRoots(unitId);
             final Map<String, JsonNode> metadataMap = jsonToMap(unit.getValue());

@@ -182,4 +182,10 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
         throw new NotImplementedException("Not implemented");
     }
 
+    @Override
+    public RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
+        throws VitamClientException {
+        throw new NotImplementedException("Not implemented");
+    }
+
 }

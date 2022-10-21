@@ -1,0 +1,221 @@
+[
+  {
+    "Title": "monSIP",
+    "DescriptionLevel": "RecordGrp",
+    "Agent": [{ "Role": ["Ajout SEDA 2.2"], "Function": ["Ajout SEDA 2.2"] }],
+    "Description": "Sed placerat sapien a arcu venenatis ultrices. Sed a eleifend odio, ac tincidunt sem. Fusce luctus in augue nec volutpat. Integer libero elit, aliquet nec dapibus at, dictum feugiat sapien. Quisque feugiat purus id sapien facilisis, nec sodales diam semper. Mauris pretium luctus malesuada",
+    "Addressee": [
+      { "FirstName": "Jules", "FullName": "Iulius Caesar Divus", "Nationality": ["Italien"] },
+      { "BirthPlace": { "City": "Pella", "Country": "Mac\u00E9doine" }, "GivenName": "Alexandre" }
+    ],
+    "Transmitter": [{ "Function": ["Service de transmission"] }],
+    "DateLitteral": "XX\u00E8me si\u00E8cle",
+    "EndDate": "2016-06-03T15:28:00",
+    "Sender": [
+      {
+        "GivenName": "Alexander",
+        "BirthDate": "1970-06-03",
+        "Position": ["CEO"],
+        "Mandate": ["Mandataire_1", "Mandataire_2"]
+      }
+    ],
+    "StartDate": "2016-06-03T15:28:00",
+    "RelatedObjectReference": { "Replaces": [{ "ExternalReference": "ID_Fictif" }] },
+    "Signature": [
+      {
+        "Signer": [
+          { "BirthName": "Henry", "SigningTime": "2016-06-03T15:28:00" },
+          { "Nationality": ["Monaco"], "SigningTime": "2016-06-03T15:28:00" }
+        ],
+        "Validator": {
+          "FirstName": "ValidatorFirstName",
+          "FullName": "ValidatorFullName",
+          "ValidationTime": "2016-06-03T15:28:00"
+        },
+        "ReferencedObject": {
+          "SignedObjectId": "ID17",
+          "SignedObjectDigest": {
+            "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+            "Algorithm": "SHA-512"
+          }
+        }
+      }
+    ],
+    "Event": [
+      { "evDateTime": "2016-06-03T15:28:00" },
+      {
+        "evDateTime": "2016-06-03T15:28:00",
+        "evDetData": "EventDetail_content0",
+        "evTypeDetail": "EventDetailData_content0",
+        "evId": "EventIdentifier_content0",
+        "evType": "EventType_content0",
+        "evTypeProc": "EventTypeCode_content0",
+        "linkingAgentIdentifier": [
+          {
+            "LinkingAgentIdentifierType": "Preservation system",
+            "LinkingAgentIdentifierValue": "SAE",
+            "LinkingAgentRole": "Role"
+          }
+        ],
+        "outcome": "Outcome0",
+        "outDetail": "OutcomeDetail_content0",
+        "outMessg": "OutcomeDetailMessage_content0"
+      }
+    ],
+    "OriginatingSystemIdReplyTo": "Syst\u00E8me source",
+    "TextContent": ["Contenu du message"],
+    "Writer": [{ "Nationality": ["Sealand"] }],
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+    "#tenant": 0,
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
+    "#min": 1,
+    "#max": 2,
+    "#allunitups": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
+    "#management": {
+      "AppraisalRule": { "FinalAction": "Keep" },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00002",
+            "StartDate": "2000-01-01",
+            "HoldEndDate": "2010-01-01",
+            "HoldOwner": "Owner",
+            "HoldReassessingDate": "2005-01-01",
+            "HoldReason": "Reason",
+            "PreventRearrangement": false
+          }
+        ]
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-26T09:06:24.248",
+    "#approximate_update_date": "2022-10-26T13:41:19.777"
+  },
+  {
+    "Title": "dossier1",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2016-06-03T15:28:00",
+    "Description": "Sed pellentesque augue tellus, at ultricies ex viverra ut. Vivamus sed orci leo. Phasellus gravida ex quis velit pretium, at hendrerit urna elementum. Nam placerat leo in magna mattis consectetur. Fusce convallis efficitur imperdiet. Phasellus ac interdum dui. Nunc ullamcorper placerat metus",
+    "OriginatingSystemId": ["OriginatingSystemId_02"],
+    "EndDate": "2016-06-03T15:28:00",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+    "#tenant": 0,
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq", "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-26T09:06:25.114",
+    "#approximate_update_date": "2022-10-26T13:41:20.091"
+  },
+  {
+    "Title": "AU de Rattachement",
+    "DescriptionLevel": "Series",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+    "#tenant": 0,
+    "#unitups": [],
+    "#min": 1,
+    "#max": 1,
+    "#allunitups": [],
+    "#management": { "UpdateOperation": { "SystemId": "aeeaaaaaaceevqftaammeamaqvje33aaaaaq" } },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 0,
+    "#approximate_creation_date": "2022-10-26T09:06:24.070",
+    "#approximate_update_date": "2022-10-26T09:06:24.070"
+  },
+  {
+    "Title": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
+    "DescriptionLevel": "Item",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofph4iaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaabasglmamecofpjvyaaaaq",
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq", "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-26T09:06:24.376",
+    "#approximate_update_date": "2022-10-26T09:06:24.706"
+  },
+  {
+    "Title": "BAD0431E2C5E80E5BD42D547A3ED596444446.odt",
+    "DescriptionLevel": "Item",
+    "Description": "Integer lectus elit, maximus eu gravida et, sagittis eu est. Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros. Aenean efficitur felis massa, id viverra est pharetra nec. Aenean eros libero, efficitur quis auctor ut, ornare eu risus",
+    "TransactedDate": "2016-06-03T15:28:00",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpn3iaaaaq",
+    "#tenant": 0,
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+    "#min": 1,
+    "#max": 4,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-26T09:06:25.139",
+    "#approximate_update_date": "2022-10-26T13:41:19.709"
+  },
+  {
+    "Title": "dossier2",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2016-06-03T15:28:00",
+    "Description": "Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum",
+    "EndDate": "2016-06-03T15:28:00",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpmjyaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaabasglmamecofpmziaaaba",
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq", "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 2,
+    "#approximate_creation_date": "2022-10-26T09:06:24.941",
+    "#approximate_update_date": "2022-10-26T13:41:20.147"
+  },
+  {
+    "Title": "BAD0431E2C5E80E5BD42D547zzzzzA3ED5966.odt",
+    "DescriptionLevel": "Item",
+    "Description": "Aliquam pharetra diam nec ex sodales varius. Nulla quam lacus, viverra in vulputate vel, lobortis aliquam nulla. Mauris laoreet sem vel accumsan placerat. In ultricies risus id leo viverra, sed tempor elit elementum. Maecenas ac odio et nunc aliquam volutpat",
+    "TransactedDate": "2016-06-03T15:28:00",
+    "#id": "aeaqaaaaaaeaaaabasglmamecofpowqaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaabasglmamecofpo6aaaaba",
+    "#unitups": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+    "#min": 1,
+    "#max": 4,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabawxqwamecsdjbnqaaaaq",
+    "#originating_agencies": [],
+    "#version": 2,
+    "#approximate_creation_date": "2022-10-26T09:06:25.248",
+    "#approximate_update_date": "2022-10-26T13:41:20.200"
+  }
+]

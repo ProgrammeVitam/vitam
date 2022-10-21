@@ -1,0 +1,207 @@
+[
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {
+      "UpdateOperation": { "SystemId": "aeeaaaaaaceevqftaammeamaqvje33aaaaaq" }
+    },
+    "Title": "AU de Rattachement",
+    "DescriptionLevel": "Series",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_sps": [],
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2022-10-26T09:06:24.070",
+    "_acd": "2022-10-26T09:06:24.070",
+    "_aud": "2022-10-26T09:06:24.070",
+    "_v": 0,
+    "_av": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "monSIP",
+    "DescriptionLevel": "RecordGrp",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
+    "_us": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"
+    ],
+    "_sps": [],
+    "_uds": { "1": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"] },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2022-10-26T09:06:24.248",
+    "_acd": "2022-10-26T09:06:24.248",
+    "_aud": "2022-10-26T09:06:24.248",
+    "_v": 0,
+    "_av": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofph4iaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
+    "DescriptionLevel": "Item",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "_us": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofph4iaaaaq/aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+      "2": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"]
+    },
+    "_min": 1,
+    "_max": 3,
+    "_glpd": "2022-10-26T09:06:24.376",
+    "_acd": "2022-10-26T09:06:24.376",
+    "_aud": "2022-10-26T09:06:24.706",
+    "_v": 1,
+    "_av": 1,
+    "_tenant": 0,
+    "_og": "aebaaaaaaaeaaaabasglmamecofpjvyaaaaq"
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpmjyaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
+    "DescriptionLevel": "Item",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "_us": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofpmjyaaaaq/aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+      "2": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"]
+    },
+    "_min": 1,
+    "_max": 3,
+    "_glpd": "2022-10-26T09:06:24.941",
+    "_acd": "2022-10-26T09:06:24.941",
+    "_aud": "2022-10-26T09:06:25.036",
+    "_v": 1,
+    "_av": 1,
+    "_tenant": 0,
+    "_og": "aebaaaaaaaeaaaabasglmamecofpmziaaaba"
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "dossier1",
+    "DescriptionLevel": "RecordGrp",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+    "_us": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq/aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+      "2": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"]
+    },
+    "_min": 1,
+    "_max": 3,
+    "_glpd": "2022-10-26T09:06:25.114",
+    "_acd": "2022-10-26T09:06:25.114",
+    "_aud": "2022-10-26T09:06:25.114",
+    "_v": 0,
+    "_av": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpn3iaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "BAD0431E2C5E80E5BD42D547A3ED5964",
+    "DescriptionLevel": "RecordGrp",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+    "_us": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofpn3iaaaaq/aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq/aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+      "2": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+      "3": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"]
+    },
+    "_min": 1,
+    "_max": 4,
+    "_glpd": "2022-10-26T09:06:25.139",
+    "_acd": "2022-10-26T09:06:25.139",
+    "_aud": "2022-10-26T09:06:25.139",
+    "_v": 0,
+    "_av": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaaeaaaabasglmamecofpowqaaaaq",
+    "_opi": "aeeaaaaaaceaaaabasglmamecofpdfaaaaaq",
+    "_unitType": "INGEST",
+    "_mgt": {},
+    "Title": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
+    "DescriptionLevel": "Item",
+    "_up": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+    "_us": [
+      "aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq/aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq/aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq",
+      "aeaqaaaaaaeaaaabasglmamecofpowqaaaaq/aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
+      "2": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
+      "3": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"]
+    },
+    "_min": 1,
+    "_max": 4,
+    "_glpd": "2022-10-26T09:06:25.248",
+    "_acd": "2022-10-26T09:06:25.248",
+    "_aud": "2022-10-26T09:06:25.307",
+    "_v": 1,
+    "_av": 1,
+    "_tenant": 0,
+    "_og": "aebaaaaaaaeaaaabasglmamecofpo6aaaaba"
+  }
+]
