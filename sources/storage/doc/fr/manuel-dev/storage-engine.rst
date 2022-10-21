@@ -1,6 +1,12 @@
 Storage Engine
 ##############
 
+Modes ReadOnly / Write Protection
+#################################
+
+Le storage engine peut être déployé sur site primaire (ReadWrite) ou sur site secondaire (ReadOnly)
+L'annotation @WriteProtection est obligatoire pour toutes les ressources du Storage Engine.
+
 Storage Engine Client
 #####################
 
