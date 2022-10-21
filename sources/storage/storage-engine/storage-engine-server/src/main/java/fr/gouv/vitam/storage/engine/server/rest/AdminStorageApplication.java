@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionFactory;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
@@ -78,8 +78,9 @@ public class AdminStorageApplication extends Application {
 
             final StorageLog storageLogService = StorageLogService.getInstance(storageConfiguration);
 
-            final StorageDistribution distribution =
-                new StorageDistributionImpl(storageConfiguration, storageLogService);
+            // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
+            final StorageDistribution distribution = StorageDistributionFactory.createStorageDistribution(
+                storageConfiguration, storageLogService, new AlertServiceImpl());
 
             singletons.add(new AdminOfferSyncResource(distribution, storageConfiguration));
             singletons.add(new AdminOfferDiffResource(new OfferDiffService(distribution)));
