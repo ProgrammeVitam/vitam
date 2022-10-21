@@ -119,6 +119,9 @@ public enum VitamCode {
         "A duplicated or missing" +
             " rank have been detected in offers configuration."),
 
+    STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE(ServiceName.VITAM, DomainName.STORAGE, "24", Status.UNAUTHORIZED,
+        "Illegal Write API invocation on secondary site"),
+
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
     WORKSPACE_BAD_REQUEST(ServiceName.WORKSPACE, DomainName.STORAGE, "15", Status.BAD_REQUEST,
