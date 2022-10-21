@@ -1,3 +1,4 @@
+readOnly: {{ primary_site | lower == "false" }}
 urlWorkspace: {{ vitam.workspace | client_url }}
 timeoutMsPerKB: {{ vitam.storageengine.timeoutMsPerKB }}
 minWriteTimeoutMs: {{ vitam.storageengine.minWriteTimeoutMs }}
