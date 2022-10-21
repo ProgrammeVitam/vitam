@@ -227,7 +227,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param configuration the configuration of the storage
      * @param storageLogService service that allow write and access log
      */
-    public StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService)
+    StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService)
         throws StorageTechnicalException {
         ParametersChecker.checkParameter(STORAGE_SERVICE_CONFIGURATION_IS_MANDATORY, configuration);
         urlWorkspace = configuration.getUrlWorkspace();
