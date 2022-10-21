@@ -10,7 +10,7 @@ Vitam's Unit Tests execution requires the presence of multiple COTS services:
 
 Having docker-engine CE and docker-compose installed (with docker group rights on your user)
 
-## Execute vitam's unit tests
+## Execute vitam's unit tests (full)
 
 You need to execute `docker-compose.sh`.
 
@@ -25,3 +25,15 @@ This script will configure and launch all mandatory containers :
     * check : https://127.0.0.1:9000/
 * openio without ssl using ports 6000,6001,6006,6009,6011,6014,6017,6110,6120,6200,6300 and 6007
     * check : https://127.0.0.1:6007/ (should return a 404 error)
+* openstack swift + keystone using ports 5000, 35357 and 8080
+    * check : http://127.0.0.1:35357/v3
+
+## Execute vitam's unit tests (db only)
+
+To run integration tests only depending on databases (mongodb + es), you can execute `docker-compose-db-only.sh`.
+
+This script will configure and run the following containers :
+* mongodb using port 27017
+  * check : http://127.0.0.1:27017/
+* elasticsearch using ports 9200 and 9300
+  * check : http://127.0.0.1:9200/
