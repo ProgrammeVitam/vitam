@@ -161,11 +161,6 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public boolean existsContainer(String strategyId) throws StorageServerClientException {
-        return true;
-    }
-
-    @Override
     public Map<String, Boolean> exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         return offerIds.stream().collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.TRUE));

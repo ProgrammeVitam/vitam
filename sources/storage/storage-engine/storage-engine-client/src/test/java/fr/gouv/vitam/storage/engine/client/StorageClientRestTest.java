@@ -488,28 +488,6 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         return description;
     }
-
-    @RunWithCustomExecutor
-    @Test
-    public void existsOK() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        assertTrue(client.existsContainer("idStrategy"));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList()));
-
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void existsKO() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        assertFalse(client.existsContainer("idStrategy"));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList()));
-    }
-
     @RunWithCustomExecutor
     @Test
     public void existsWithTenantIllegalArgumentException() throws Exception {
@@ -538,28 +516,6 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> {
             client.exists("idStrategy", DataCategory.OBJECT, "", Collections.emptyList());
         }).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void existsServerError() {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        try {
-            client.existsContainer("idStrategy");
-            fail("Should rise an exception");
-        } catch (final VitamClientException e) {
-            // nothing to do
-        }
-
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
-        try {
-            client.existsContainer("idStrategy");
-            fail("Should rise an exception");
-        } catch (final VitamClientException e) {
-            // nothing to do
-        }
     }
 
     @RunWithCustomExecutor
