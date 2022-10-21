@@ -1205,7 +1205,7 @@ public class StorageDistributionImplTest {
         folder.create();
 
         StorageLog storageLogService =
-            StorageLogService.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
+            new StorageLogService(list, Paths.get(folder.getRoot().getAbsolutePath()));
 
         return Pair.of(configuration, storageLogService);
     }
