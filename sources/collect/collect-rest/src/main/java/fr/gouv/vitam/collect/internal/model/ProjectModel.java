@@ -38,8 +38,20 @@ public class ProjectModel {
     @JsonProperty("_id")
     private String id;
 
-    @JsonProperty("context")
+    @JsonProperty("Name")
+    private String name;
+
+    @JsonProperty("Context")
     private ManifestContext manifestContext;
+
+    @JsonProperty("Status")
+    private ProjectStatus status;
+
+    @JsonProperty("CreationDate")
+    private String creationDate;
+
+    @JsonProperty("LastUpdate")
+    private String lastUpdate;
 
     @JsonProperty("_tenant")
     private Integer tenant;
@@ -48,9 +60,15 @@ public class ProjectModel {
     public ProjectModel() {
     }
 
-    public ProjectModel(String id, ManifestContext manifestContext, Integer tenant) {
+
+    public ProjectModel(String id, String name, ManifestContext manifestContext, ProjectStatus status,
+        String creationDate, String lastUpdate, Integer tenant) {
         this.id = id;
+        this.name = name;
         this.manifestContext = manifestContext;
+        this.status = status;
+        this.creationDate = creationDate;
+        this.lastUpdate = lastUpdate;
         this.tenant = tenant;
     }
 
@@ -62,12 +80,44 @@ public class ProjectModel {
         this.id = id;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public ManifestContext getManifestContext() {
         return manifestContext;
     }
 
     public void setManifestContext(ManifestContext manifestContext) {
         this.manifestContext = manifestContext;
+    }
+
+    public ProjectStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProjectStatus status) {
+        this.status = status;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     public Integer getTenant() {

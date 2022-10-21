@@ -27,31 +27,19 @@
 package fr.gouv.vitam.collect.internal.helpers.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbQualifiersModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbVersionsModelBuilder;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,38 +54,32 @@ public class QueryHandler {
         throw new IllegalAccessException("Utility class!");
     }
 
-    public static UpdateMultiQuery getQualifiersAddMultiQuery(DataObjectVersionType usage, int version,
-        List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String objectGroupVersionId, int nbc)
+    public static UpdateMultiQuery getQualifiersAddMultiQuery(DbObjectGroupModel objectGroupModel,
+        DataObjectVersionType usage, int version, ObjectDto objectDto)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        DbQualifiersModel newQualifier = new DbQualifiersModelBuilder()
-            .withUsage(usage)
-            .withVersion(objectGroupVersionId, objectGroupDto.getFileInfo().getFileName(), usage, version)
-            .withNbc(1)
-            .build();
+        DbQualifiersModel newQualifier = new DbQualifiersModelBuilder().withUsage(usage)
+            .withVersion(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).withNbc(1).build();
 
-        qualifiers.add(newQualifier);
+        objectGroupModel.getQualifiers().add(newQualifier);
 
         Map<String, JsonNode> action = new HashMap<>();
-        action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
+        action.put(QUALIFIERS.exactToken(), toJsonNode(objectGroupModel.getQualifiers()));
         SetAction setQualifier = new SetAction(action);
 
         UpdateMultiQuery query = new UpdateMultiQuery();
         query.addHintFilter(OBJECTGROUPS.exactToken());
-        query.addActions(
-            setQualifier,
-            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), nbc + 1L)
-        );
+        query.addActions(setQualifier,
+            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroupModel.getNbc() + 1L));
         return query;
     }
 
     public static UpdateMultiQuery getQualifiersUpdateMultiQuery(DbQualifiersModel qualifierModelToUpdate,
-        DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers,
-        ObjectGroupDto objectGroupDto, String versionId, int nbc)
+        DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers, ObjectDto objectDto, int nbc)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         int index = qualifiers.indexOf(qualifierModelToUpdate);
-        DbVersionsModel dbversion = new DbVersionsModelBuilder()
-            .build(versionId, objectGroupDto.getFileInfo().getFileName(), usage, version);
+        DbVersionsModel dbversion =
+            new DbVersionsModelBuilder().build(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage,
+                version);
 
         qualifierModelToUpdate.getVersions().add(dbversion);
         qualifierModelToUpdate.setNbc(qualifierModelToUpdate.getNbc() + 1);
@@ -107,30 +89,7 @@ public class QueryHandler {
         action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
 
         UpdateMultiQuery query = new UpdateMultiQuery();
-        query.addActions(
-            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), nbc + 1L),
-            new SetAction(action)
-        );
+        query.addActions(UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), nbc + 1L), new SetAction(action));
         return query;
-    }
-
-    public static ObjectNode insertObjectMultiQuery(DbObjectGroupModel dbObjectGroupModel)
-        throws InvalidParseOperationException {
-        final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.resetFilter();
-        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        insert.addData((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
-        return insert.getFinalInsert();
-    }
-
-    public static JsonNode updateUnitMultiQuery(ArchiveUnitModel archiveUnitModel, MetaDataClient client,
-        String objectGroupId)
-        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
-        UpdateMultiQuery multiQuery = new UpdateMultiQuery();
-        multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), objectGroupId));
-        multiQuery.resetRoots().addRoots(archiveUnitModel.getId());
-        RequestResponse<JsonNode> requestResponse = client.updateUnitBulk(multiQuery.getFinalUpdate());
-        return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
     }
 }

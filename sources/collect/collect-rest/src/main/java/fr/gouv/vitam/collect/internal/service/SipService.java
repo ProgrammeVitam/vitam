@@ -28,7 +28,6 @@ package fr.gouv.vitam.collect.internal.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -36,7 +35,6 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.SipHelper;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
-import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -57,6 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.manifest.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
+import fr.gouv.vitam.common.mapping.dip.UnitMapper;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -69,17 +68,10 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.ingest.external.client.IngestRequestParameters;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.client.MetadataType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceType;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import org.apache.commons.io.FileUtils;
 
@@ -103,7 +95,6 @@ import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
-import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
@@ -116,15 +107,13 @@ public class SipService {
 
     private final IngestExternalClientFactory ingestExternalClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final ObjectMapper objectMapper;
+    private final MetadataService metadataService;
 
-    public SipService(CollectConfiguration collectConfiguration) {
-        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl(), WorkspaceType.COLLECT);
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
-        this.metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
-        this.ingestExternalClientFactory = IngestExternalClientFactory.getInstance();
-        this.objectMapper = buildObjectMapper();
+    public SipService(IngestExternalClientFactory ingestExternalClientFactory,
+        WorkspaceClientFactory workspaceClientFactory, MetadataService metadataService) {
+        this.ingestExternalClientFactory = ingestExternalClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
+        this.metadataService = metadataService;
     }
 
     public String generateSip(TransactionModel transactionModel) throws CollectException {
@@ -139,8 +128,7 @@ public class SipService {
             throw new CollectException("An error occurs when trying to create manifest parent directory");
         }
 
-        try (MetaDataClient client = metaDataClientFactory.getClient();
-            OutputStream outputStream = new FileOutputStream(manifestFile);
+        try (OutputStream outputStream = new FileOutputStream(manifestFile);
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
             ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
@@ -160,8 +148,7 @@ public class SipService {
             parser.parse(exportRequest.getDslRequest());
             SelectMultiQuery request = parser.getRequest();
 
-            ScrollSpliterator<JsonNode> scrollRequest =
-                ScrollSpliteratorHelper.createUnitScrollSplitIterator(client, request);
+            ScrollSpliterator<JsonNode> scrollRequest = metadataService.selectUnits(request, transactionModel.getId());
 
             StreamSupport.stream(scrollRequest, false)
                 .forEach(item -> CollectHelper.createGraph(multimap, originatingAgencies, ogs, item));
@@ -179,7 +166,7 @@ public class SipService {
 
                 select.setQuery(in);
 
-                JsonNode response = client.selectObjectGroups(select.getFinalSelect());
+                JsonNode response = metadataService.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
                 ArrayNode objects = (ArrayNode) response.get(RequestResponseOK.TAG_RESULTS);
                 for (JsonNode object : objects) {
                     List<String> linkedUnits =
@@ -191,23 +178,13 @@ public class SipService {
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-            scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
-                query -> {
-                    try {
-                        JsonNode node = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(node);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException
-                        | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-                VitamConfiguration.getElasticSearchScrollLimit());
+            scrollRequest = metadataService.selectUnits(initialQueryParser.getRequest(), transactionModel.getId());
 
 
             StreamSupport.stream(scrollRequest, false)
                 .forEach(result -> {
                     try {
-                        ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
+                        ArchiveUnitModel archiveUnitModel = UnitMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
                         manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                     } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
                         e.printStackTrace();
@@ -228,9 +205,8 @@ public class SipService {
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
 
-        } catch (IOException | InvalidCreateOperationException | ExportException | MetaDataExecutionException
-            | InternalServerException | MetaDataClientServerException | MetaDataDocumentSizeException
-            | InvalidParseOperationException | JAXBException | XMLStreamException e) {
+        } catch (IOException | InvalidCreateOperationException | ExportException | InternalServerException |
+                 InvalidParseOperationException | JAXBException | XMLStreamException e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectException(e);
         }

@@ -29,8 +29,8 @@ package fr.gouv.vitam.collect.internal.service;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
-import fr.gouv.vitam.collect.internal.helpers.builders.ProjectModelBuilder;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
+import fr.gouv.vitam.collect.internal.model.ProjectStatus;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -44,9 +44,6 @@ import java.util.stream.Collectors;
 
 public class ProjectService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProjectService.class);
-    private static final String ID = "_id";
-    private static final String SUBMISSION_AGENCY_IDENTIFIER = "context.SubmissionAgencyIdentifier";
-    private static final String MESSAGE_IDENTIFIER = "context.MessageIdentifier";
     private final ProjectRepository projectRepository;
 
     public ProjectService(ProjectRepository projectRepository) {
@@ -55,21 +52,14 @@ public class ProjectService {
 
     /**
      * create a project model
-     *
-     * @throws CollectException exception thrown in case of error
      */
     public void createProject(ProjectDto projectDto) throws CollectException {
         // Set project initials
-        final String initialDate = LocalDateUtil.now().toString();
-        projectDto.setStatus(TransactionStatus.OPEN.name());
-        projectDto.setCreationDate(initialDate);
-        projectDto.setLastUpdate(initialDate);
+        final String creationDate = LocalDateUtil.now().toString();
 
-        ProjectModel projectModel = new ProjectModelBuilder()
-            .withId(projectDto.getId())
-            .withManifestContext(CollectHelper.mapProjectDtoToManifestContext(projectDto))
-            .withTenant(projectDto.getTenant())
-            .build();
+        ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
+            CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.OPEN,
+            creationDate, creationDate, projectDto.getTenant());
 
         projectRepository.createProject(projectModel);
     }
@@ -79,38 +69,33 @@ public class ProjectService {
      *
      * @param id model id to find
      * @return Optional<ProjectModel>
-     * @throws CollectException exception thrown in case of error
      */
-    public Optional<ProjectModel> findProject(String id) throws CollectException {
-        return projectRepository.findProjectById(id);
+    public Optional<ProjectDto> findProject(String id) throws CollectException {
+        return projectRepository.findProjectById(id).map(CollectHelper::convertProjectModeltoProjectDto);
     }
 
 
-    public void replaceProject(ProjectDto projectDto) throws CollectException {
+    public void updateProject(ProjectDto projectDto) throws CollectException {
         // Update project initials
         projectDto.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : TransactionStatus.OPEN.name());
-        projectDto.setLastUpdate(LocalDateUtil.now().toString());
+        final String lastUpdate = LocalDateUtil.now().toString();
 
-        ProjectModel projectModel = new ProjectModelBuilder()
-            .withId(projectDto.getId())
-            .withManifestContext(CollectHelper.mapProjectDtoToManifestContext(projectDto))
-            .withTenant(projectDto.getTenant())
-            .build();
+        ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
+            CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.valueOf(projectDto.getStatus()),
+            projectDto.getCreationDate(), lastUpdate, projectDto.getTenant());
+
         projectRepository.replaceProject(projectModel);
     }
 
-    public List<ProjectDto> findProjectsByTenant(Integer tenant) throws CollectException {
-        List<ProjectModel> listProjects = projectRepository.findProjectsByTenant(tenant);
-        return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
-            .collect(Collectors.toList());
+    public List<ProjectDto> findProjects() throws CollectException {
+        List<ProjectModel> listProjects = projectRepository.findProjectsByTenant(ParameterHelper.getTenantParameter());
+        return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto).collect(Collectors.toList());
     }
 
-    public List<ProjectDto> searchProject(String key) throws CollectException {
+    public List<ProjectDto> searchProject(String searchValue) throws CollectException {
         List<ProjectModel> listProjects =
-            projectRepository.searchProject(key, List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER),
-                ParameterHelper.getTenantParameter());
-        return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto)
-            .collect(Collectors.toList());
+            projectRepository.searchProject(searchValue, ParameterHelper.getTenantParameter());
+        return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto).collect(Collectors.toList());
     }
 
     /**

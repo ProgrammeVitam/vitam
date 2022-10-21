@@ -27,98 +27,129 @@
 package fr.gouv.vitam.collect.internal.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.collect.external.dto.FileInfoDto;
-import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.helpers.builders.ObjectMapperBuilder;
-import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.collect.internal.helpers.CsvMetadataMapper;
+import fr.gouv.vitam.collect.internal.model.CollectUnitModel;
+import fr.gouv.vitam.collect.internal.model.DescriptionLevel;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceType;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 
 public class FluxService {
 
-    private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
     private static final String OPI = "#opi";
     private static final String ID = "#id";
     private static final String MGT = "#management";
     private static final String TITLE = "Title";
     private static final String DESCRIPTION_LEVEL = "DescriptionLevel";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
-    private static final ObjectMapper objectMapper = ObjectMapperBuilder.buildObjectMapper();
     private static final String ATTACHEMENT_AU = "AttachementAu";
+    private static final String DUMMY_ARCHIVE_UNIT_TITLE = "AU de Rattachement";
     private static final String UNIT_TYPE = "#unitType";
     private static final String INGEST = "INGEST";
+
+    static final String METADATA_CSV_FILE = "metadata.csv";
+
     private final CollectService collectService;
+    private final MetadataService metadataService;
 
-    public FluxService(CollectService collectService, CollectConfiguration collectConfiguration) {
+    public FluxService(CollectService collectService, MetadataService metadataService) {
         this.collectService = collectService;
-        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl(), WorkspaceType.COLLECT);
-    }
-
-    @VisibleForTesting
-    public FluxService(CollectService collectService) {
-        this.collectService = collectService;
+        this.metadataService = metadataService;
     }
 
     public void processStream(InputStream inputStreamObject, ProjectDto projectDto) throws CollectException {
-        try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
-            final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                .createArchiveInputStream(CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
+        final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
+        try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory().createArchiveInputStream(
+            CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
-            boolean isAttachmentAuExist = false;
+            HashMap<String, String> savedGuidUnits = new HashMap<>();
+            boolean isAttachmentAuExist = isAttachmentAuExist(projectDto, savedGuidUnits);
+            boolean isExtraMetadataExist = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
-            HashMap<String, String> savedGuuidUnits = new HashMap<>();
-            if (projectDto.getUnitUp() != null) {
-                addRattachementArchiveUnit(projectDto, savedGuuidUnits);
-                isAttachmentAuExist = true;
-            }
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
                     String fileName = Paths.get(entry.getName()).getFileName().toString();
-                    convertEntryToAu(projectDto, entry, isAttachmentAuExist, entryInputStream, savedGuuidUnits,
-                        fileName);
+                    if (!entry.isDirectory() && fileName.equals(METADATA_CSV_FILE)) {
+                        // save file in workspace
+                        collectService.pushStreamToWorkspace(projectDto.getTransactionId(), entryInputStream,
+                            METADATA_CSV_FILE);
+                        isExtraMetadataExist = true;
+                    } else {
+                        convertEntryToAu(projectDto, entry, isAttachmentAuExist, entryInputStream, savedGuidUnits,
+                            fileName);
+                    }
                     isEmpty = false;
-
                 }
                 entryInputStream.setClosed(false);
             }
             if (isEmpty) {
                 throw new CollectException("File is empty");
+            }
+
+            if (isExtraMetadataExist) {
+                try (final InputStream is = collectService.getInputStreamFromWorkspace(projectDto.getTransactionId(),
+                    METADATA_CSV_FILE)) {
+                    Map<String, String> unitsByURI = buildGraphFromExistingUnits(projectDto.getTransactionId());
+                    populateMetadata(is, unitsByURI, isAttachmentAuExist);
+                }
             }
 
         } catch (IOException | ArchiveException e) {
@@ -127,72 +158,169 @@ public class FluxService {
         }
     }
 
-    private void convertEntryToAu(ProjectDto projectDto, ArchiveEntry entry, boolean isAttachmentAuExist,
-        ArchiveEntryInputStream entryInputStream, HashMap<String, String> savedGuuidUnits, String fileName)
+    private Map<String, String> buildGraphFromExistingUnits(String transactionId) throws CollectException {
+        try {
+            SelectMultiQuery select = buildQuery(transactionId);
+            final ScrollSpliterator<JsonNode> unitScrollSpliterator =
+                metadataService.selectUnits(select, transactionId);
+            final List<JsonNode> units = new ArrayList<>();
+            unitScrollSpliterator.forEachRemaining(units::add);
+            units.sort(Comparator.comparingInt(a -> a.get(VitamFieldsHelper.allunitups()).size()));
+
+            BiMap<String, String> hash = HashBiMap.create();
+            units.forEach(u -> {
+                final ArrayNode parentUnit = (ArrayNode) u.get(VitamFieldsHelper.unitups());
+                if (parentUnit.size() > 0) {
+                    hash.put(hash.inverse().getOrDefault(parentUnit.get(0).asText(), parentUnit.get(0).asText()) + "/" +
+                        u.get(TITLE).asText(), u.get(VitamFieldsHelper.id()).asText());
+                } else {
+                    hash.put(u.get(TITLE).asText(), u.get(VitamFieldsHelper.id()).asText());
+                }
+            });
+            return hash;
+        } catch (Exception e) {
+            throw new CollectException(e);
+        }
+    }
+
+    private SelectMultiQuery buildQuery(String transactionId) throws InvalidCreateOperationException {
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
+        final ObjectNode projection = JsonHandler.createObjectNode();
+        projection.set("$fields", JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1).put(TITLE, 1)
+            .put(VitamFieldsHelper.unitups(), 1).put(VitamFieldsHelper.allunitups(), 1));
+        select.addProjection(projection);
+        return select;
+    }
+
+    private void populateMetadata(InputStream is, Map<String, String> unitsByURI, boolean isAttachmentAuExist)
+        throws IOException, CollectException {
+        try (final InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
+            CSVParser parser = new CSVParser(reader,
+                CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false).withDelimiter(';'))) {
+            List<String> headerNames = parser.getHeaderNames();
+
+            final Iterator<Map<String, JsonNode>> iterator =
+                IteratorUtils.transformedIterator(Iterators.partition(parser.iterator(), 1000),
+                    list -> list.stream().map(e -> CsvMetadataMapper.map(e, headerNames))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
+            while (iterator.hasNext()) {
+                try {
+                    var unitsIdByURI = iterator.next();
+                    // update unit with list
+                    final List<JsonNode> updateMultiQueries =
+                        convertToQuery(unitsIdByURI, unitsByURI, isAttachmentAuExist);
+                    final RequestResponse<JsonNode> result = metadataService.atomicBulkUpdate(updateMultiQueries);
+
+                    final boolean thereIsError =
+                        ((RequestResponseOK<JsonNode>) result).getResults().stream().map(e -> e.get("$results"))
+                            .map(e -> e.get(0))
+                            .map(e -> e.get("#status"))
+                            .map(JsonNode::asText).anyMatch(e -> !e.equals(
+                                "OK"));
+
+                    if (thereIsError) {
+                        throw new CollectException("Error when trying to update units metadata");
+                    }
+                } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+                    throw new CollectException(e);
+                }
+            }
+        }
+    }
+
+    private List<JsonNode> convertToQuery(Map<String, JsonNode> unitsByURI, Map<String, String> unitsIdByURI,
+        boolean isAttachmentAuExist) throws InvalidCreateOperationException, InvalidParseOperationException {
+        List<JsonNode> listQueries = new ArrayList<>();
+        for (Map.Entry<String, JsonNode> unit : unitsByURI.entrySet()) {
+            String unitId = (isAttachmentAuExist) ?
+                unitsIdByURI.get(DUMMY_ARCHIVE_UNIT_TITLE + "/" + unit.getKey()) :
+                unitsIdByURI.get(unit.getKey());
+            UpdateMultiQuery query = new UpdateMultiQuery();
+            query.addRoots(unitId);
+            final Map<String, JsonNode> metadataMap = jsonToMap(unit.getValue());
+            query.addActions(new SetAction(metadataMap));
+            listQueries.add(query.getFinalUpdate());
+        }
+        return listQueries;
+    }
+
+    private Map<String, JsonNode> jsonToMap(JsonNode unit) {
+        Map<String, JsonNode> map = new HashMap<>();
+        unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
+        return map;
+    }
+
+    private boolean isAttachmentAuExist(ProjectDto projectDto, HashMap<String, String> savedGuidUnits)
         throws CollectException {
-        AbstractMap.SimpleEntry<String, String> unitParentEntry;
+        boolean isAttachmentAuExist = false;
+        if (projectDto.getUnitUp() != null) {
+            JsonNode savedUnit = uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.SERIES.getValue(),
+                DUMMY_ARCHIVE_UNIT_TITLE, null, projectDto.getUnitUp());
+            savedGuidUnits.put(ATTACHEMENT_AU, savedUnit.get(ID).asText());
+            isAttachmentAuExist = true;
+        }
+        return isAttachmentAuExist;
+    }
+
+    private void convertEntryToAu(ProjectDto projectDto, ArchiveEntry entry, boolean isAttachmentAuExist,
+        ArchiveEntryInputStream entryInputStream, HashMap<String, String> savedGuidUnits, String fileName)
+        throws CollectException {
+        Map.Entry<String, String> unitParentEntry;
         JsonNode unitRecord;
         if (entry.isDirectory()) {
-            unitParentEntry = getUnitParentByPath(savedGuuidUnits, StringUtils
-                .chop(entry.getName()), isAttachmentAuExist);
-            unitRecord = uploadArchiveUnit(projectDto.getTransactionId(),
-                "RecordGrp", fileName,
-                unitParentEntry != null ? unitParentEntry.getValue() : null, null);
-            savedGuuidUnits.put(StringUtils
-                .chop(entry.getName()), unitRecord.get(ID).asText());
+            unitParentEntry =
+                getUnitParentByPath(savedGuidUnits, StringUtils.chop(entry.getName()), isAttachmentAuExist);
+            unitRecord =
+                uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.RECORD_GRP.getValue(), fileName,
+                    unitParentEntry != null ? unitParentEntry.getValue() : null, null);
+            savedGuidUnits.put(StringUtils.chop(entry.getName()), unitRecord.get(ID).asText());
         } else {
-            unitParentEntry = getUnitParentByPath(savedGuuidUnits, entry.getName(), isAttachmentAuExist);
-            JsonNode unitItem = uploadArchiveUnit(projectDto.getTransactionId(), "Item", fileName,
-                unitParentEntry != null ? unitParentEntry.getValue() : null, null);
+            unitParentEntry = getUnitParentByPath(savedGuidUnits, entry.getName(), isAttachmentAuExist);
+            JsonNode unitItem =
+                uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.ITEM.getValue(), fileName,
+                    unitParentEntry != null ? unitParentEntry.getValue() : null, null);
             uploadObjectGroup(unitItem.get(ID).asText(), fileName);
             uploadBinary(unitItem.get(ID).asText(), entryInputStream);
         }
     }
 
-    private void addRattachementArchiveUnit(ProjectDto projectDto,
-        HashMap<String, String> savedGuuidUnits) throws CollectException {
-        JsonNode savedUnit = uploadArchiveUnit(projectDto.getTransactionId(),
-            "Series", "AU de Rattachement", null, projectDto.getUnitUp());
-        savedGuuidUnits.put(ATTACHEMENT_AU, savedUnit.get(ID).asText());
-
-    }
-
     public ObjectNode uploadArchiveUnit(String transactionId, String descriptionLevel, String title, String unitParent,
-        String attachementUnitId)
-        throws CollectException {
+        String attachementUnitId) throws CollectException {
 
-        ObjectNode unitObjectNode = JsonHandler.createObjectNode();
-        unitObjectNode.put(ID, CollectService.createRequestId());
-        unitObjectNode.put(OPI, transactionId);
-        unitObjectNode.put(UNIT_TYPE, INGEST);
+        ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put(ID, GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId());
+        unit.put(OPI, transactionId);
+        unit.put(UNIT_TYPE, INGEST);
         if (null != attachementUnitId) {
             ManagementModel managementModel = new ManagementModel();
             UpdateOperationType updateOperationType = new UpdateOperationType();
             updateOperationType.setSystemId(attachementUnitId);
             managementModel.setUpdateOperationType(updateOperationType);
             try {
-                unitObjectNode.replace(MGT, JsonHandler.toJsonNode(managementModel));
+                unit.replace(MGT, JsonHandler.toJsonNode(managementModel));
             } catch (InvalidParseOperationException e) {
                 throw new CollectException("Error while trying to add management to unit");
             }
         } else {
-            unitObjectNode.replace(MGT, JsonHandler.createObjectNode());
+            unit.replace(MGT, JsonHandler.createObjectNode());
         }
-        unitObjectNode.put(TITLE, title);
-        unitObjectNode.put(DESCRIPTION_LEVEL, descriptionLevel);
+        unit.put(TITLE, title);
+        unit.put(DESCRIPTION_LEVEL, descriptionLevel);
         if (unitParent != null) {
-            unitObjectNode.put("#unitups", JsonHandler.createArrayNode().add(unitParent));
+            unit.set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add(unitParent));
         }
-        JsonNode savedUnitJsonNode = collectService.saveArchiveUnitInMetaData(unitObjectNode);
+        JsonNode savedUnitJsonNode = metadataService.saveArchiveUnit(unit);
         if (savedUnitJsonNode == null) {
             throw new CollectException("Error while trying to save units");
         }
-        return unitObjectNode;
+        return unit;
     }
 
-    public AbstractMap.SimpleEntry<String, String> getUnitParentByPath(Map<String, String> unitMap,
-        String entryName, boolean isAttachmentAuExist) {
-        int sepPos = entryName.lastIndexOf(FILE_SEPARATOR);
+    public Map.Entry<String, String> getUnitParentByPath(Map<String, String> unitMap, String entryName,
+        boolean isAttachmentAuExist) {
+        int sepPos = entryName.lastIndexOf(File.separator);
         if (sepPos == -1) {
             if (isAttachmentAuExist) {
                 return new AbstractMap.SimpleEntry<>(null, unitMap.get(ATTACHEMENT_AU));
@@ -204,28 +332,41 @@ public class FluxService {
             unitMap.get(entryName.substring(0, sepPos)));
     }
 
-    public void uploadObjectGroup(String unitId, String fileName)
-        throws CollectException {
-        FileInfoDto fileInfoDto =
-            new FileInfoDto(fileName, LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
-        ObjectGroupDto objectGroupDto = new ObjectGroupDto(CollectService.createRequestId(), fileInfoDto);
-        JsonNode unitResponse = collectService.getUnitByIdInMetaData(unitId);
-        ArchiveUnitModel archiveUnitModel =
-            objectMapper.convertValue(unitResponse.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
-        collectService
-            .saveObjectGroupInMetaData(archiveUnitModel, DataObjectVersionType.BINARY_MASTER, 1, objectGroupDto);
+    public void uploadObjectGroup(String unitId, String fileName) throws CollectException {
+        try {
+            FileInfoDto fileInfoDto =
+                new FileInfoDto(fileName, LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+            ObjectDto objectDto =
+                new ObjectDto(GUIDFactory.newObjectGUID(ParameterHelper.getTenantParameter()).getId(), fileInfoDto);
+            JsonNode unitResponse = metadataService.selectUnitById(unitId);
+            CollectUnitModel unitModel =
+                JsonHandler.getFromJsonNode(unitResponse.get(TAG_RESULTS).get(0), CollectUnitModel.class);
+            collectService.updateOrSaveObjectGroup(unitModel, DataObjectVersionType.BINARY_MASTER, 1, objectDto);
+
+        } catch (InvalidParseOperationException e) {
+            throw new CollectException(e);
+        }
     }
 
 
-    public void uploadBinary(String unitId, InputStream uploadedInputStream)
-        throws CollectException {
-        JsonNode unitResponse = collectService.getUnitByIdInMetaData(unitId);
-        ArchiveUnitModel archiveUnitModel =
-            objectMapper.convertValue(unitResponse.get(TAG_RESULTS).get(0), ArchiveUnitModel.class);
-        DbObjectGroupModel dbObjectGroupModel = collectService.getDbObjectGroup(archiveUnitModel);
-        collectService
-            .addBinaryInfoToQualifier(dbObjectGroupModel, DataObjectVersionType.BINARY_MASTER, 1, uploadedInputStream);
+    private void uploadBinary(String unitId, InputStream uploadedInputStream) throws CollectException {
+        try {
+            JsonNode unitResponse = metadataService.selectUnitById(unitId);
+            CollectUnitModel unitModel =
+                JsonHandler.getFromJsonNode(unitResponse.get(TAG_RESULTS).get(0), CollectUnitModel.class);
+            if (unitModel.getOg() == null) {
+                LOGGER.debug("Cannot found any got attached to unit with id({}))", unitModel.getId());
+                throw new IllegalArgumentException(
+                    "Cannot found any object attached to unit with id(" + unitModel.getId() + ")");
+            }
+            final RequestResponseOK<JsonNode> result =
+                RequestResponseOK.getFromJsonNode(metadataService.selectObjectGroupById(unitModel.getOg(), true));
+            final DbObjectGroupModel dbObjectGroupModel =
+                JsonHandler.getFromJsonNode(result.getResults().get(0), DbObjectGroupModel.class);
+            collectService.addBinaryInfoToQualifier(dbObjectGroupModel, DataObjectVersionType.BINARY_MASTER, 1,
+                uploadedInputStream);
+        } catch (InvalidParseOperationException e) {
+            throw new CollectException(e);
+        }
     }
-
-
 }

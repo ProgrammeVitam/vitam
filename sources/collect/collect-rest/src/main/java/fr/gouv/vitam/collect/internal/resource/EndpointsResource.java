@@ -24,38 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+package fr.gouv.vitam.collect.internal.resource;
 
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.Unsecured;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-public class CollectRequestResponse {
+@Path("/collect-external/v1")
+public class EndpointsResource extends ApplicationStatusResource {
+    private final SecureEndpointRegistry secureEndpointRegistry;
 
-    public static final String COLLECT = "Collect";
-
-    private CollectRequestResponse() throws IllegalAccessException {
-        throw new IllegalAccessException("Utility class!");
+    public EndpointsResource(SecureEndpointRegistry secureEndpointRegistry) {
+        this.secureEndpointRegistry = secureEndpointRegistry;
     }
 
-    public static Response toResponseOK(Object entity) {
-        RequestResponseOK<Object> requestResponse = new RequestResponseOK<>();
-        requestResponse.setHttpCode(Response.Status.OK.getStatusCode());
-        if (entity instanceof List) {
-            requestResponse.addAllResults((List<Object>) entity);
-        } else {
-            requestResponse.addResult(entity);
-        }
-        return Response.status(Response.Status.OK).entity(requestResponse).build();
-    }
-
-    public static Response toVitamError(Response.Status status, String message) {
-        VitamError<Object> vitamError = new VitamError<>(status.name()).setContext(COLLECT)
-            .setMessage(message)
-            .setDescription(message)
-            .setHttpCode(status.getStatusCode());
-        return Response.status(status).entity(vitamError).build();
+    /**
+     * Récupère la liste des endpoints de la resource
+     *
+     * @return response
+     */
+    @Path("/")
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured()
+    public Response listResourceEndpoints() {
+        String resourcePath = TransactionResource.class.getAnnotation(Path.class).value();
+        List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
+        return Response.status(Response.Status.OK).entity(securedEndpointList).build();
     }
 }

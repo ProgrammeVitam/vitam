@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class ManageStatusThread implements Runnable {
@@ -52,10 +55,13 @@ public class ManageStatusThread implements Runnable {
     private final static String ERROR_THREAD_EXECUTING = "Error when executing threads:";
 
 
-    public ManageStatusThread(
-        TransactionService transactionService, CollectConfiguration collectConfiguration) {
+    public ManageStatusThread(CollectConfiguration collectConfiguration, TransactionService transactionService) {
         this.transactionService = transactionService;
         this.collectConfiguration = collectConfiguration;
+
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
+            .scheduleAtFixedRate(this, Math.min(5, collectConfiguration.getStatusTransactionThreadFrequency()),
+                collectConfiguration.getStatusTransactionThreadFrequency(), TimeUnit.MINUTES);
     }
 
     @Override
@@ -65,12 +71,9 @@ public class ManageStatusThread implements Runnable {
         } catch (CollectException e) {
             LOGGER.error("Error when executing threads: {}", e);
         }
-
-
     }
 
     private void process() throws CollectException {
-
         Thread.currentThread().setName(ManageStatusThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
@@ -95,8 +98,7 @@ public class ManageStatusThread implements Runnable {
                 completableFuturesList.add(traceabilityCompletableFuture);
             }
             CompletableFuture<Void> combinedFuture =
-                CompletableFuture
-                    .allOf(completableFuturesList.toArray(new CompletableFuture[0]));
+                CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
             combinedFuture.get();
         } catch (InterruptedException e) {
             LOGGER.error(ERROR_THREAD_EXECUTING + " {}", e);

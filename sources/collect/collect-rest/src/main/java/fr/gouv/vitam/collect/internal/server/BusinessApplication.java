@@ -28,19 +28,27 @@ package fr.gouv.vitam.collect.internal.server;
 
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.client.MongoClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.collect.internal.resource.CollectMetadataResource;
+import fr.gouv.vitam.collect.internal.resource.EndpointsResource;
+import fr.gouv.vitam.collect.internal.resource.ProjectResource;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
-import fr.gouv.vitam.collect.internal.service.CollectThreadRunner;
 import fr.gouv.vitam.collect.internal.service.FluxService;
+import fr.gouv.vitam.collect.internal.service.ManageStatusThread;
+import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
+import fr.gouv.vitam.collect.internal.thread.PurgeTransactionThread;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -48,8 +56,13 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetadataType;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceType;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -76,32 +89,66 @@ public class BusinessApplication extends ConfigurationApplication {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         singletons = new HashSet<>();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final CollectConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
+            final CollectConfiguration configuration = PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
             SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
             SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
-            TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
+            // Vitam Clients
+            WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkspaceType.COLLECT);
+            MetaDataClientFactory metadataCollectClientFactory =
+                MetaDataClientFactory.getInstance(MetadataType.COLLECT);
+            WorkspaceClientFactory workspaceCollectClientFactory =
+                WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
+            IngestExternalClientFactory ingestExternalClientFactory = IngestExternalClientFactory.getInstance();
+            AccessExternalClientFactory accessExternalClientFactory = AccessExternalClientFactory.getInstance();
+            AdminExternalClientFactory adminExternalClientFactory = AdminExternalClientFactory.getInstance();
 
+
+            // Repositories
+            TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
             ProjectRepository projectRepository = new ProjectRepository(mongoDbAccess);
+
+            // Services
+            MetadataService metadataService = new MetadataService(metadataCollectClientFactory);
             ProjectService projectService = new ProjectService(projectRepository);
-            TransactionService transactionService = new TransactionService(transactionRepository, projectService);
-            SipService sipService = new SipService(configuration);
-            CollectService collectService = new CollectService(transactionService, configuration);
-            FluxService fluxService =
-                new FluxService(collectService, configuration);
+            TransactionService transactionService =
+                new TransactionService(transactionRepository, projectService, metadataService,
+                    workspaceCollectClientFactory, accessExternalClientFactory, adminExternalClientFactory);
+            SipService sipService = new SipService(ingestExternalClientFactory,
+                workspaceCollectClientFactory, metadataService);
+            CollectService collectService =
+                new CollectService(metadataService, workspaceCollectClientFactory,
+                    FormatIdentifierFactory.getInstance());
+            FluxService fluxService = new FluxService(collectService, metadataService);
+
+
+            // Resources
+            final EndpointsResource endpointsResource = new EndpointsResource(secureEndpointRegistry);
+            final TransactionResource transactionResource =
+                new TransactionResource(transactionService, sipService,
+                    metadataService);
+            final ProjectResource projectResource =
+                new ProjectResource(projectService, transactionService, metadataService, fluxService);
+            final CollectMetadataResource collectMetadataResource = new CollectMetadataResource(metadataService,
+                collectService);
+
+            // Threads
+            new PurgeTransactionThread(configuration, transactionService);
+            new ManageStatusThread(configuration, transactionService);
+
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
-            singletons.add(new CollectThreadRunner(configuration, transactionService, collectService));
-            singletons.add(
-                new TransactionResource(secureEndpointRegistry, transactionService, collectService, sipService, projectService, fluxService));
+            singletons.add(endpointsResource);
+            singletons.add(transactionResource);
+            singletons.add(projectResource);
+            singletons.add(collectMetadataResource);
             singletons.add(secureEndpointScanner);
         } catch (IOException e) {
             LOGGER.debug("Error when starting BusinessApplication : {}", e);

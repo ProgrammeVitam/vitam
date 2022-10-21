@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.repository;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
+import fr.gouv.vitam.collect.internal.model.ProjectStatus;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -44,18 +45,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ProjectRepositoryTest {
 
     private static final String PROJECT_TEST_COLLECTION = "Project" + GUIDFactory.newGUID().getId();
+    private final Integer tenant = 1;
 
+    private ProjectRepository repository;
     @Rule
     public MongoRule mongoRule =
         new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PROJECT_TEST_COLLECTION);
-
-    private ProjectRepository repository;
-    private final Integer tenant = 1;
     private final static String PROJECT_1_ID = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
     private final static String PROJECT_2_ID = "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq";
     private final static String PROJECT_3_ID = "aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq";
     private final static String PROJECT_4_ID = "aeaaaaaaaaaltpovaa2zgamd5kdsesiaaaaq";
-    private final static List<String> keys = List.of("_id", "context.SubmissionAgencyIdentifier", "context.MessageIdentifier");
 
     @Before
     public void setUp() {
@@ -69,7 +68,7 @@ public class ProjectRepositoryTest {
         populateDb();
 
         // WHEN
-        List<ProjectModel> searchProjects = repository.searchProject("test", keys, tenant);
+        List<ProjectModel> searchProjects = repository.searchProject("test", tenant);
 
         // THEN
         assertThat(searchProjects).hasSize(1);
@@ -82,7 +81,7 @@ public class ProjectRepositoryTest {
         populateDb();
 
         // WHEN
-        List<ProjectModel> searchProjects = repository.searchProject(PROJECT_2_ID, keys, tenant);
+        List<ProjectModel> searchProjects = repository.searchProject(PROJECT_2_ID, tenant);
 
         // THEN
         assertThat(searchProjects).hasSize(1);
@@ -95,7 +94,7 @@ public class ProjectRepositoryTest {
         populateDb();
 
         // WHEN
-        List<ProjectModel> searchProjects = repository.searchProject(".", keys, tenant);
+        List<ProjectModel> searchProjects = repository.searchProject(".", tenant);
 
         // THEN
         assertThat(searchProjects).isEmpty();
@@ -107,7 +106,7 @@ public class ProjectRepositoryTest {
         populateDb();
 
         // WHEN
-        List<ProjectModel> searchProjects = repository.searchProject(":)", keys, tenant);
+        List<ProjectModel> searchProjects = repository.searchProject(":)", tenant);
 
         // THEN
         assertThat(searchProjects).hasSize(1);
@@ -126,18 +125,18 @@ public class ProjectRepositoryTest {
         List<ProjectModel> getProjects() {
             return List.of(
                 createProject(PROJECT_1_ID, "Test"),
-                createProject(PROJECT_2_ID,"Hello"),
-                createProject(PROJECT_3_ID,"OK"),
-                createProject(PROJECT_4_ID,":)")
+                createProject(PROJECT_2_ID, "Hello"),
+                createProject(PROJECT_3_ID, "OK"),
+                createProject(PROJECT_4_ID, ":)")
             );
         }
 
         private ProjectModel createProject(String id, String messageIdentifier) {
             ProjectModel project = new ProjectModel();
             project.setId(id);
+            project.setName(messageIdentifier);
+            project.setStatus(ProjectStatus.OPEN);
             ManifestContext context = new ManifestContext();
-            context.setName(messageIdentifier);
-            context.setStatus("OPEN");
             context.setArchivalAgreement("IC-000001");
             context.setMessageIdentifier(messageIdentifier);
             context.setArchivalAgencyIdentifier("Identifier0");
