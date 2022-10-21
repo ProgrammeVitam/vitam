@@ -1,8 +1,0 @@
-[
-  {
-    "id" : "default",
-    "offers" : [
-      {"id" : "default", "referent": true}
-    ]
-  }
-]
