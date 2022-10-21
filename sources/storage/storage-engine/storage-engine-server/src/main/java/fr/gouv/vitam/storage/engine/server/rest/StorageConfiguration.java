@@ -40,6 +40,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private String p12LogbookFile;
     private Integer storageTraceabilityOverlapDelay;
     private int restoreBulkSize = 1000;
+    private Boolean isReadOnly;
 
     private int offerSynchronizationBulkSize = 1000;
     private int offerSyncThreadPoolSize = 32;
@@ -283,5 +284,14 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public void setStorageAccessLogBackupFrequency(long storageAccessLogBackupFrequency) {
         this.storageAccessLogBackupFrequency = storageAccessLogBackupFrequency;
+    }
+
+    public Boolean isReadOnly() {
+        return isReadOnly;
+    }
+
+    public StorageConfiguration setReadOnly(Boolean readOnly) {
+        isReadOnly = readOnly;
+        return this;
     }
 }
