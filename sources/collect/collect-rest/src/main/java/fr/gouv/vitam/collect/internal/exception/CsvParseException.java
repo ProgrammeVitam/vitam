@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,53 +21,35 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.dto;
 
+package fr.gouv.vitam.collect.internal.exception;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
-import java.io.Serializable;
-import java.util.Objects;
+public class CsvParseException extends VitamRuntimeException {
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CriteriaProjectDto implements Serializable {
-
-    @JsonProperty(value = "$query")
-    private String query;
-
-
-    public CriteriaProjectDto() {
-        //Empty constructor for serialization
+    /**
+     * @param message
+     */
+    public CsvParseException(String message) {
+        super(message);
     }
 
-    public CriteriaProjectDto(String query) {
-        this.query = query;
+    /**
+     * @param cause
+     */
+    public CsvParseException(Throwable cause) {
+        super(cause);
     }
 
-    public String getQuery() {
-        return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        CriteriaProjectDto that = (CriteriaProjectDto) o;
-        return Objects.equals(query, that.query);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(query);
+    /**
+     * @param message
+     * @param cause
+     */
+    public CsvParseException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

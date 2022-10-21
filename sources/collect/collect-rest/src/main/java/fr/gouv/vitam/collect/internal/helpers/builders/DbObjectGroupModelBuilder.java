@@ -52,6 +52,11 @@ public class DbObjectGroupModelBuilder {
         return this;
     }
 
+    public DbObjectGroupModelBuilder withQualifiers(List<DbQualifiersModel> qualifiers) {
+        this.qualifiers = qualifiers;
+        return this;
+    }
+
     public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, DataObjectVersionType usage,
         Integer version) {
         this.qualifiers = Collections.singletonList(new DbQualifiersModelBuilder()

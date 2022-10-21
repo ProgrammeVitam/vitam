@@ -89,7 +89,7 @@ La classe contient actuellement 6 méthodes :
     public Response uploadObjectGroup(@PathParam("unitId") String unitId,
                                       @PathParam("usage") String usageString,
                                       @PathParam("version") Integer version,
-                                      ObjectGroupDto objectGroupDto) {
+                                      ObjectDto objectDto) {
   ...
 
 4. upload()

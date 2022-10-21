@@ -24,32 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.model.ManifestContext;
-import fr.gouv.vitam.collect.internal.model.ProjectModel;
+package fr.gouv.vitam.collect.internal.model;
 
-public class ProjectModelBuilder {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class CollectUnitModel {
+
+    @JsonProperty("#id")
     private String id;
-    private ManifestContext manifestContext;
-    private Integer tenant;
 
-    public ProjectModelBuilder withId(String id) {
+    @JsonProperty("#object")
+    private String og;
+
+    @JsonProperty("#unitType")
+    private String unitType;
+
+    @JsonProperty("#opi")
+    private String opi;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
         this.id = id;
-        return this;
     }
 
-    public ProjectModelBuilder withManifestContext(ManifestContext manifestContext) {
-        this.manifestContext = manifestContext;
-        return this;
+    public String getOg() {
+        return og;
     }
 
-    public ProjectModelBuilder withTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
+    public void setOg(String og) {
+        this.og = og;
     }
 
-    public ProjectModel build() {
-        return new ProjectModel(id, manifestContext, tenant);
+    public String getUnitType() {
+        return unitType;
+    }
+
+    public void setUnitType(String unitType) {
+        this.unitType = unitType;
+    }
+
+    public String getOpi() {
+        return opi;
+    }
+
+    public void setOpi(String opi) {
+        this.opi = opi;
     }
 }

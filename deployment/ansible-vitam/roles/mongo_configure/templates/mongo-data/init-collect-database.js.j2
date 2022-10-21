@@ -5,10 +5,7 @@ db = db.getSiblingDB('collect')
 // Create indexes
 // A single collection can have no more than 64 indexes.
 
-db.Project.createIndex( { "MessageIdentifier" : 1 } )
-db.Project.createIndex( { "ArchivalAgencyIdentifier" : 1 } ) 
-
- 
-
-
-
+db.Project.createIndex({
+    "Context.SubmissionAgencyIdentifier": 1,
+    "Context.ArchivalAgencyIdentifier": 1
+});

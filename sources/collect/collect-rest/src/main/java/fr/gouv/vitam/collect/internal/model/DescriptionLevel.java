@@ -24,45 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.helpers.builders;
 
-import fr.gouv.vitam.collect.internal.model.ManifestContext;
-import fr.gouv.vitam.collect.internal.model.TransactionModel;
-import fr.gouv.vitam.collect.internal.model.TransactionStatus;
+package fr.gouv.vitam.collect.internal.model;
 
-public class TransactionModelBuilder {
-    private String id;
-    private ManifestContext manifestContext;
-    private TransactionStatus status;
-    private String projectId;
-    private Integer tenant;
+public enum DescriptionLevel {
+    FONDS("Fonds"),
+    SUBFONDS("Subfonds"),
+    CLASS("Class"),
+    COLLECTION("Collection"),
+    SERIES("Series"),
+    SUBSERIES("Subseries"),
+    RECORD_GRP("RecordGrp"),
+    SUB_GRP("SubGrp"),
+    FILE("File"),
+    ITEM("Item"),
+    OTHER_LEVEL("OtherLevel");
 
-    public TransactionModelBuilder withId(String id) {
-        this.id = id;
-        return this;
+    private final String value;
+
+    DescriptionLevel(String value) {
+        this.value = value;
     }
 
-    public TransactionModelBuilder withManifestContext(ManifestContext manifestContext) {
-        this.manifestContext = manifestContext;
-        return this;
+    public static DescriptionLevel fromValue(String v) {
+        for (DescriptionLevel c : DescriptionLevel.values()) {
+            if (c.value.equals(v)) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException(v);
     }
 
-    public TransactionModelBuilder withStatus(TransactionStatus status) {
-        this.status = status;
-        return this;
-    }
-
-    public TransactionModelBuilder withProjectId(String projectId) {
-        this.projectId = projectId;
-        return this;
-    }
-
-    public TransactionModelBuilder withTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-    public TransactionModel build() {
-        return new TransactionModel(id, manifestContext, status, projectId, tenant);
+    public String getValue() {
+        return value;
     }
 }

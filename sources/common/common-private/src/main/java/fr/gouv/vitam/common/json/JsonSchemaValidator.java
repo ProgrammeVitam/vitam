@@ -49,9 +49,8 @@ import java.io.InputStream;
 @Immutable
 public class JsonSchemaValidator {
 
-    private JsonSchema jsonSchema;
-
-    private static JsonSchemaFactory JSON_SCHEMA_FACTORY = getJsonSchemaFactory();
+    private static final JsonSchemaFactory JSON_SCHEMA_FACTORY = getJsonSchemaFactory();
+    private final JsonSchema jsonSchema;
 
     private static final String DATE_TIME_VITAM = "date-time-vitam";
 
@@ -116,7 +115,7 @@ public class JsonSchemaValidator {
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set("validateJson", error);
                 throw new JsonSchemaValidationException(
-                    "Document schema validation failed : \n" + errorNode.toString());
+                    "Document schema validation failed : \n" + errorNode);
             }
 
         } catch (ProcessingException e) {

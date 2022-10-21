@@ -36,7 +36,9 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
+import fr.gouv.vitam.collect.internal.model.ProjectStatus;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -50,6 +52,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,24 +94,18 @@ public class CollectHelper {
         return dbObjectGroupModel.getQualifiers().stream()
             .filter(dbQualifiersModel -> usage.getName().equals(dbQualifiersModel.getQualifier()))
             .flatMap(dbQualifiersModel -> dbQualifiersModel.getVersions().stream())
-            .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion()))
-            .findFirst().orElse(null);
+            .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion())).findFirst()
+            .orElse(null);
     }
 
     public static int getLastVersion(DbQualifiersModel qualifierModelToUpdate) {
-        return qualifierModelToUpdate.getVersions()
-            .stream()
-            .map(DbVersionsModel::getDataObjectVersion)
-            .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
-            .map(Integer::parseInt)
-            .max(Comparator.naturalOrder())
-            .orElse(0);
+        return qualifierModelToUpdate.getVersions().stream().map(DbVersionsModel::getDataObjectVersion)
+            .map(dataObjectVersion -> dataObjectVersion.split("_")[1]).map(Integer::parseInt)
+            .max(Comparator.naturalOrder()).orElse(0);
     }
 
     public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, DataObjectVersionType usage) {
-        return qualifiers.stream()
-            .filter(qualifier -> qualifier.getQualifier().equals(usage.getName()))
-            .findFirst()
+        return qualifiers.stream().filter(qualifier -> qualifier.getQualifier().equals(usage.getName())).findFirst()
             .orElse(null);
     }
 
@@ -135,10 +132,9 @@ public class CollectHelper {
 
     public static List<BulkUnitInsertEntry> fetchBulkUnitInsertEntries(ObjectNode unitJson) {
         if (null != unitJson.get(UP) && unitJson.get(UP).size() != 0) {
-            Set<String> parentUnitIds = StreamSupport
-                .stream(unitJson.get(UP).spliterator(), false)
-                .map(JsonNode::asText)
-                .collect(Collectors.toSet());
+            Set<String> parentUnitIds =
+                StreamSupport.stream(unitJson.get(UP).spliterator(), false).map(JsonNode::asText)
+                    .collect(Collectors.toSet());
             return Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
         }
         return Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
@@ -147,57 +143,69 @@ public class CollectHelper {
     public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel) {
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId(projectModel.getId());
+        projectDto.setName(projectModel.getName());
+        projectDto.setCreationDate(projectModel.getCreationDate());
+        projectDto.setLastUpdate(projectModel.getLastUpdate());
+        projectDto.setStatus(Objects.requireNonNullElse(projectModel.getStatus(), ProjectStatus.OPEN).toString());
         projectDto.setTenant(projectModel.getTenant());
         if (projectModel.getManifestContext() != null) {
             projectDto.setArchivalAgreement(projectModel.getManifestContext().getArchivalAgreement());
             projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
             projectDto.setArchivalAgencyIdentifier(projectModel.getManifestContext().getArchivalAgencyIdentifier());
-            projectDto.setTransferingAgencyIdentifier(
+            projectDto.setTransferringAgencyIdentifier(
                 projectModel.getManifestContext().getTransferringAgencyIdentifier());
             projectDto.setOriginatingAgencyIdentifier(
                 projectModel.getManifestContext().getOriginatingAgencyIdentifier());
             projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
             projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
             projectDto.setComment(projectModel.getManifestContext().getComment());
-            projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
-            projectDto.setName(projectModel.getManifestContext().getName());
-            projectDto.setCreationDate(projectModel.getManifestContext().getCreationDate());
-            projectDto.setLastUpdate(projectModel.getManifestContext().getLastUpdate());
             projectDto.setAcquisitionInformation(projectModel.getManifestContext().getAcquisitionInformation());
             projectDto.setLegalStatus(projectModel.getManifestContext().getLegalStatus());
-            projectDto.setStatus(projectModel.getManifestContext().getStatus());
+            projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
         }
-
         return projectDto;
     }
 
     public static TransactionDto convertTransactionModelToTransactionDto(TransactionModel transactionModel) {
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setId(transactionModel.getId());
+        transactionDto.setName(transactionModel.getName());
+        transactionDto.setCreationDate(transactionModel.getCreationDate());
+        transactionDto.setLastUpdate(transactionModel.getLastUpdate());
+        transactionDto.setStatus(
+            Objects.requireNonNullElse(transactionModel.getStatus(), TransactionStatus.OPEN).toString());
         transactionDto.setTenant(transactionModel.getTenant());
-        transactionDto.setLegalStatus(transactionModel.getStatus().toString());
-
+        if (transactionModel.getManifestContext() != null) {
+            transactionDto.setArchivalAgreement(transactionModel.getManifestContext().getArchivalAgreement());
+            transactionDto.setMessageIdentifier(transactionModel.getManifestContext().getMessageIdentifier());
+            transactionDto.setArchivalAgencyIdentifier(
+                transactionModel.getManifestContext().getArchivalAgencyIdentifier());
+            transactionDto.setTransferringAgencyIdentifier(
+                transactionModel.getManifestContext().getTransferringAgencyIdentifier());
+            transactionDto.setOriginatingAgencyIdentifier(
+                transactionModel.getManifestContext().getOriginatingAgencyIdentifier());
+            transactionDto.setSubmissionAgencyIdentifier(
+                transactionModel.getManifestContext().getSubmissionAgencyIdentifier());
+            transactionDto.setArchivalProfile(transactionModel.getManifestContext().getArchivalProfile());
+            transactionDto.setComment(transactionModel.getManifestContext().getComment());
+            transactionDto.setAcquisitionInformation(transactionModel.getManifestContext().getAcquisitionInformation());
+            transactionDto.setLegalStatus(transactionModel.getManifestContext().getLegalStatus());
+            transactionDto.setUnitUp(transactionModel.getManifestContext().getUnitUp());
+        }
         return transactionDto;
     }
 
     public static ManifestContext mapProjectDtoToManifestContext(ProjectDto projectDto) {
-        return new ManifestContextBuilder()
-            .withArchivalAgreement(projectDto.getArchivalAgreement())
+        return new ManifestContextBuilder().withArchivalAgreement(projectDto.getArchivalAgreement())
             .withMessageIdentifier(projectDto.getMessageIdentifier())
             .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
-            .withTransferingAgencyIdentifier(projectDto.getTransferingAgencyIdentifier())
+            .withTransferingAgencyIdentifier(projectDto.getTransferringAgencyIdentifier())
             .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(projectDto.getArchivalProfile())
-            .withComment(projectDto.getComment())
-            .withUnitUp(projectDto.getUnitUp())
-            .withName(projectDto.getName())
+            .withArchivalProfile(projectDto.getArchivalProfile()).withComment(projectDto.getComment())
             .withAcquisitionInformation(projectDto.getAcquisitionInformation())
             .withLegalStatus(projectDto.getLegalStatus())
-            .withCreationDate(projectDto.getCreationDate())
-            .withlastUpdate(projectDto.getLastUpdate())
-            .withStatus(projectDto.getStatus())
-            .build();
+            .withUnitUp(projectDto.getUnitUp()).build();
     }
 
     public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto) {
@@ -208,12 +216,9 @@ public class CollectHelper {
             .withTransferingAgencyIdentifier(transactionDto.getTransferringAgencyIdentifier())
             .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
             .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(transactionDto.getArchivalProfile())
-            .withComment(transactionDto.getComment())
+            .withArchivalProfile(transactionDto.getArchivalProfile()).withComment(transactionDto.getComment())
             .withAcquisitionInformation(transactionDto.getAcquisitionInformation())
             .withLegalStatus(transactionDto.getLegalStatus())
-            .withCreationDate(transactionDto.getCreationDate())
-            .withlastUpdate(transactionDto.getLastUpdate())
-            .build();
+            .withUnitUp(transactionDto.getUnitUp()).build();
     }
 }

@@ -36,26 +36,11 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProjectDto implements Serializable {
 
-    @JsonProperty(value = "id")
+    @JsonProperty(value = "#id")
     private String id;
 
     @JsonProperty(value = "Name", required = true)
     private String name;
-
-    @JsonProperty(value = "AcquisitionInformation")
-    private String acquisitionInformation;
-
-    @JsonProperty(value = "LegalStatus")
-    private String legalStatus;
-
-    @JsonProperty(value = "CreationDate")
-    private String creationDate;
-
-    @JsonProperty(value = "LastUpdate")
-    private String lastUpdate;
-
-    @JsonProperty(value = "Status")
-    private String status;
 
     @JsonProperty(value = "ArchivalAgreement", required = true)
     private String archivalAgreement;
@@ -67,7 +52,7 @@ public class ProjectDto implements Serializable {
     private String archivalAgencyIdentifier;
 
     @JsonProperty(value = "TransferringAgencyIdentifier", required = true)
-    private String transferingAgencyIdentifier;
+    private String transferringAgencyIdentifier;
 
     @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
     private String originatingAgencyIdentifier;
@@ -78,17 +63,32 @@ public class ProjectDto implements Serializable {
     @JsonProperty(value = "ArchiveProfile")
     private String archivalProfile;
 
+    @JsonProperty(value = "AcquisitionInformation")
+    private String acquisitionInformation;
+
+    @JsonProperty(value = "LegalStatus")
+    private String legalStatus;
+
     @JsonProperty(value = "Comment")
     private String comment;
 
-    @JsonProperty(value = "tenant")
+    @JsonProperty(value = "UnitUp")
+    private String unitUp;
+
+    @JsonProperty(value = "#tenant")
     private Integer tenant;
 
-    @JsonProperty(value = "transactionId")
-    private String transactionId;
+    @JsonProperty(value = "CreationDate")
+    private String creationDate;
 
-    @JsonProperty(value = "unitUp")
-    private String unitUp;
+    @JsonProperty(value = "LastUpdate")
+    private String lastUpdate;
+
+    @JsonProperty(value = "Status")
+    private String status;
+
+    @JsonProperty(value = "#transactionId")
+    private String transactionId;
 
     public ProjectDto() {
         //Empty constructor for serialization
@@ -101,7 +101,7 @@ public class ProjectDto implements Serializable {
     public ProjectDto(String id, String name, String acquisitionInformation, String legalStatus, String creationDate,
         String lastUpdate, String status, String archivalAgreement, String messageIdentifier,
         String archivalAgencyIdentifier, String transferringAgencyIdentifier, String originatingAgencyIdentifier,
-        String submissionAgencyIdentifier, String archivalProfile, String comment, Integer tenant, String unitUp) {
+        String submissionAgencyIdentifier, String archivalProfile, String comment, String unitUp, Integer tenant) {
         this.id = id;
         this.name = name;
         this.acquisitionInformation = acquisitionInformation;
@@ -112,13 +112,13 @@ public class ProjectDto implements Serializable {
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.transferingAgencyIdentifier = transferringAgencyIdentifier;
+        this.transferringAgencyIdentifier = transferringAgencyIdentifier;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
         this.comment = comment;
-        this.tenant = tenant;
         this.unitUp = unitUp;
+        this.tenant = tenant;
     }
 
     public String getId() {
@@ -153,12 +153,12 @@ public class ProjectDto implements Serializable {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
     }
 
-    public String getTransferingAgencyIdentifier() {
-        return transferingAgencyIdentifier;
+    public String getTransferringAgencyIdentifier() {
+        return transferringAgencyIdentifier;
     }
 
-    public void setTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    public void setTransferringAgencyIdentifier(String transferringAgencyIdentifier) {
+        this.transferringAgencyIdentifier = transferringAgencyIdentifier;
     }
 
     public String getOriginatingAgencyIdentifier() {
@@ -193,6 +193,14 @@ public class ProjectDto implements Serializable {
         this.comment = comment;
     }
 
+    public String getUnitUp() {
+        return unitUp;
+    }
+
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
+    }
+
     public Integer getTenant() {
         return tenant;
     }
@@ -207,14 +215,6 @@ public class ProjectDto implements Serializable {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
-    }
-
-    public String getUnitUp() {
-        return unitUp;
-    }
-
-    public void setUnitUp(String unitUp) {
-        this.unitUp = unitUp;
     }
 
     public String getName() {

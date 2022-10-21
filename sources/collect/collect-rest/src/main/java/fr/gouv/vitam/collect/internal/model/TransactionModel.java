@@ -38,29 +38,42 @@ public class TransactionModel {
     @JsonProperty("_id")
     private String id;
 
-    @JsonProperty("context")
+    @JsonProperty("Name")
+    private String name;
+
+    @JsonProperty("Context")
     private ManifestContext manifestContext;
 
+    @JsonProperty("Status")
     private TransactionStatus status;
+
+    @JsonProperty("CreationDate")
+    private String creationDate;
+
+    @JsonProperty("LastUpdate")
+    private String lastUpdate;
 
     @JsonProperty("ProjectId")
     private String projectId;
 
-    @JsonProperty("_tenant")
-    private Integer tenant;
-
     @JsonProperty("VitamOperationId")
     private String vitamOperationId;
+
+    @JsonProperty("_tenant")
+    private Integer tenant;
 
     public TransactionModel() {
     }
 
-    public TransactionModel(String id, ManifestContext manifestContext, TransactionStatus status, String projectId,
-        Integer tenant) {
+    public TransactionModel(String id, String name, ManifestContext manifestContext, TransactionStatus status,
+        String projectId, String creationDate, String lastUpdate, Integer tenant) {
         this.id = id;
+        this.name = name;
         this.manifestContext = manifestContext;
         this.status = status;
         this.projectId = projectId;
+        this.creationDate = creationDate;
+        this.lastUpdate = lastUpdate;
         this.tenant = tenant;
     }
 
@@ -70,6 +83,14 @@ public class TransactionModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public ManifestContext getManifestContext() {
@@ -88,6 +109,22 @@ public class TransactionModel {
         this.status = status;
     }
 
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
+
     public String getProjectId() {
         return projectId;
     }
@@ -96,20 +133,20 @@ public class TransactionModel {
         this.projectId = projectId;
     }
 
-    public Integer getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Integer tenant) {
-        this.tenant = tenant;
-    }
-
     public String getVitamOperationId() {
         return vitamOperationId;
     }
 
     public void setVitamOperationId(String vitamOperationId) {
         this.vitamOperationId = vitamOperationId;
+    }
+
+    public Integer getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Integer tenant) {
+        this.tenant = tenant;
     }
 
     @Override

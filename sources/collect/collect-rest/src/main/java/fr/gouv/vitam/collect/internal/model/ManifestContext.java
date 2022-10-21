@@ -26,60 +26,54 @@
  */
 package fr.gouv.vitam.collect.internal.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ManifestContext {
 
-    private String name;
+    @JsonProperty("AcquisitionInformation")
     private String acquisitionInformation;
+
+    @JsonProperty("LegalStatus")
     private String legalStatus;
-    private String creationDate;
-    private String lastUpdate;
-    private String status;
+
+    @JsonProperty("ArchivalAgreement")
     private String archivalAgreement;
 
+    @JsonProperty("MessageIdentifier")
     private String messageIdentifier;
 
+    @JsonProperty("ArchivalAgencyIdentifier")
     private String archivalAgencyIdentifier;
 
+    @JsonProperty("TransferringAgencyIdentifier")
     private String transferringAgencyIdentifier;
 
+    @JsonProperty("OriginatingAgencyIdentifier")
     private String originatingAgencyIdentifier;
 
+    @JsonProperty("SubmissionAgencyIdentifier")
     private String submissionAgencyIdentifier;
 
+    @JsonProperty("ArchivalProfile")
     private String archivalProfile;
 
+    @JsonProperty("Comment")
     private String comment;
 
+    @JsonProperty("UnitUp")
     private String unitUp;
-
 
     public ManifestContext() {
     }
 
-    public ManifestContext(String name, String acquisitionInformation, String legalStatus, String creationDate,
-        String lastUpdate, String status, String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
+    public ManifestContext(String acquisitionInformation, String legalStatus,
+        String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
         String archivalProfile, String comment, String unitUp) {
-        this.name = name;
         this.acquisitionInformation = acquisitionInformation;
         this.legalStatus = legalStatus;
-        this.creationDate = creationDate;
-        this.status = status;
-        this.lastUpdate = lastUpdate;
-        this.archivalAgreement = archivalAgreement;
-        this.messageIdentifier = messageIdentifier;
-        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.transferringAgencyIdentifier = transferingAgencyIdentifier;
-        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
-        this.archivalProfile = archivalProfile;
-        this.comment = comment;
-        this.unitUp = unitUp;
-    }
-
-    public ManifestContext(String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
-        String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment, String unitUp) {
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
@@ -155,22 +149,6 @@ public class ManifestContext {
         this.comment = comment;
     }
 
-    public String getUnitUp() {
-        return unitUp;
-    }
-
-    public void setUnitUp(String unitUp) {
-        this.unitUp = unitUp;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getAcquisitionInformation() {
         return acquisitionInformation;
     }
@@ -187,27 +165,11 @@ public class ManifestContext {
         this.legalStatus = legalStatus;
     }
 
-    public String getCreationDate() {
-        return creationDate;
+    public String getUnitUp() {
+        return unitUp;
     }
 
-    public void setCreationDate(String creationDate) {
-        this.creationDate = creationDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(String lastUpdate) {
-        this.lastUpdate = lastUpdate;
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
     }
 }

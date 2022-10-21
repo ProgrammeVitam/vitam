@@ -56,9 +56,11 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class ProjectRepository {
 
-    public static final String PROJECT_COLLECTION = "Project";
-    public static final String ID = "_id";
-    public static final String TENANT_ID = "_tenant";
+    private static final String PROJECT_COLLECTION = "Project";
+    private static final String ID = "_id";
+    private static final String SUBMISSION_AGENCY_IDENTIFIER = "Context.SubmissionAgencyIdentifier";
+    private static final String MESSAGE_IDENTIFIER = "Context.MessageIdentifier";
+    private static final String TENANT_ID = "_tenant";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProjectRepository.class);
 
     private final MongoCollection<Document> projectCollection;
@@ -141,11 +143,12 @@ public class ProjectRepository {
         LOGGER.debug("Project tenant to find : {}", tenant);
         try {
             List<ProjectModel> listProjects = new ArrayList<>();
-            MongoCursor<Document> projectsCursor =
-                projectCollection.find(eq(TENANT_ID, tenant)).cursor();
-            while (projectsCursor.hasNext()) {
-                Document doc = projectsCursor.next();
-                listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
+            try (MongoCursor<Document> projectsCursor =
+                projectCollection.find(eq(TENANT_ID, tenant)).cursor()) {
+                while (projectsCursor.hasNext()) {
+                    Document doc = projectsCursor.next();
+                    listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
+                }
             }
             return listProjects;
 
@@ -171,14 +174,13 @@ public class ProjectRepository {
      * return projects according to criteria
      *
      * @param searchValue value Of search
-     * @param keys Keys of search criteria
      * @param tenant tenant
      * @return List<ProjectModel>
      * @throws CollectException exception thrown in case of error
      */
-    public List<ProjectModel> searchProject(String searchValue, List<String> keys, Integer tenant)
+    public List<ProjectModel> searchProject(String searchValue, int tenant)
         throws CollectException {
-
+        List<String> keys = List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER);
         try {
             List<ProjectModel> listProjects = new ArrayList<>();
             List<Bson> filters = keys.stream().map(key -> {

@@ -24,34 +24,75 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.service;
 
-import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
+package fr.gouv.vitam.collect.internal.resource;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import fr.gouv.vitam.collect.internal.service.FluxService;
+import fr.gouv.vitam.collect.internal.service.MetadataService;
+import fr.gouv.vitam.collect.internal.service.ProjectService;
+import fr.gouv.vitam.collect.internal.service.TransactionService;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-public class CollectThreadRunner {
+public class ProjectResourceTest {
 
-    public CollectThreadRunner(CollectConfiguration configuration, TransactionService transactionService,
-        CollectService collectService
-    ) {
-        final ScheduledExecutorService scheduledExecutorService =
-            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
-        scheduledExecutorService.scheduleAtFixedRate(
-            new PurgeTransactionThread(configuration, transactionService, collectService),
-            configuration.getPurgeTransactionThreadFrequency(), configuration.getPurgeTransactionThreadFrequency(),
-            TimeUnit.MINUTES);
+    private static final int TENANT = 0;
 
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
-        final ScheduledExecutorService scheduledTransactionStatus =
-            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
-        scheduledTransactionStatus.scheduleAtFixedRate(
-            new ManageStatusThread(transactionService, configuration),
-            Math.min(5, configuration.getStatusTransactionThreadFrequency()),
-            configuration.getStatusTransactionThreadFrequency(),
-            TimeUnit.MINUTES);
+    @Mock
+    private ProjectService projectService;
+
+    @Mock
+    private TransactionService transactionService;
+
+    @Mock
+    private MetadataService metadataService;
+
+    @Mock
+    private FluxService fluxService;
+
+    @Test
+    public void getProjects() {
+    }
+
+    @Test
+    public void searchProject() {
+    }
+
+    @Test
+    public void initProject() {
+    }
+
+    @Test
+    public void updateProject() {
+    }
+
+    @Test
+    public void getProjectById() {
+    }
+
+    @Test
+    public void deleteProjectById() {
+    }
+
+    @Test
+    public void getUnitsByProjectId() {
+    }
+
+    @Test
+    public void getAllTransactions() {
+    }
+
+    @Test
+    public void initTransaction() {
+    }
+
+    @Test
+    public void uploadProjectZip() {
     }
 }

@@ -1,0 +1,1035 @@
+[
+  {
+    "Title": "Carrefour-Pleyel",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-04T08:07:00",
+    "Description": "Cette ArchiveUnit d\u00E9clare une StorageRule avec STO-00001 comme Rule, 01/01/2000 comme StartDate et Copy comme FinalAction, une AppraisalRule avec APP-00001 comme Rule, 01/01/2001 comme StartDate et Destroy comme FinalAction, une DisseminationRule avec DIS-00001 comme Rule et 01/01/2000 comme StartDate et une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate. Elle h\u00E9rite de Saint-Denis Universit\u00E9 un NeedAuthorization \u00E0 true, et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "EndDate": "2017-04-04T08:07:00",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2ytyaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq"
+    ],
+    "#min": 1,
+    "#max": 4,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq"
+    ],
+    "#management": {
+      "StorageRule": {
+        "Rules": [
+          {
+            "Rule": "STO-00001",
+            "StartDate": "2000-01-01"
+          }
+        ],
+        "FinalAction": "Copy"
+      },
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00001",
+            "StartDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "DisseminationRule": {
+        "Rules": [
+          {
+            "Rule": "DIS-00001",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      },
+      "ReuseRule": {
+        "Rules": [
+          {
+            "Rule": "REU-00001",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:28.724",
+    "#approximate_update_date": "2022-10-18T19:39:29.933"
+  },
+  {
+    "Title": "Montparnasse.txt",
+    "DescriptionLevel": "Item",
+    "Description": "Cette ArchiveUnit ne d\u00E9clare aucune r\u00E8gle. Elle h\u00E9rite de Saint-Lazare un NeedAuthorization \u00E0 true, une StorageRule avec Copy comme FinalAction, une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction (venant de MarxDormoy), une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate (venant de Carrefour Pleyel), une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate (venant de Marx Dormoy) et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "TransactedDate": "2017-04-04T08:07:06",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn26xaaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaaba3gnkamd5sn27pqaaaba",
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26raaaaaq"
+    ],
+    "#min": 1,
+    "#max": 6,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26raaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 2,
+    "#approximate_creation_date": "2022-10-18T19:39:29.507",
+    "#approximate_update_date": "2022-10-18T19:39:29.969"
+  },
+  {
+    "Title": "MontparnasseEtSaintDenisBasilique.txt",
+    "DescriptionLevel": "Item",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn24fyaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaaba3gnkamd5sn24miaaaba",
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq"
+    ],
+    "#min": 1,
+    "#max": 4,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.181",
+    "#approximate_update_date": "2022-10-18T19:39:29.228"
+  },
+  {
+    "Title": "AU de Rattachement",
+    "DescriptionLevel": "Series",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq",
+    "#tenant": 0,
+    "#unitups": [],
+    "#min": 1,
+    "#max": 1,
+    "#allunitups": [],
+    "#management": {
+      "UpdateOperation": {
+        "SystemId": "aeeaaaaaaceevqftaammeamaqvje33aaaaaq"
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 0,
+    "#approximate_creation_date": "2022-10-18T19:39:28.384",
+    "#approximate_update_date": "2022-10-18T19:39:28.384"
+  },
+  {
+    "Title": "Saint-Lazare",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-04T08:07:06",
+    "Description": "Cette ArchiveUnit d\u00E9clare une StorageRule en annulant la r\u00E8gle STO-00001 et en d\u00E9clarant Copy comme FinalAction, une AppraisalRule annulant la r\u00E8gle APP-00001 h\u00E9rit\u00E9e de Carrefour Pleyel ainsi qu'une DisseminationRule annulant toutes les r\u00E8gles h\u00E9rit\u00E9es. Elle h\u00E9rite de Carrefour Pleyel un NeedAuthorization \u00E0 true, une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate, une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true. Elle h\u00E9rite de Marx Dormoy un NeedAuthorization \u00E0 true, une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction, une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "EndDate": "2017-04-04T08:07:06",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn26raaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq"
+    ],
+    "#min": 1,
+    "#max": 5,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {
+      "StorageRule": {
+        "FinalAction": "Copy",
+        "Inheritance": {
+          "PreventRulesId": [
+            "STO-00001"
+          ]
+        }
+      },
+      "AppraisalRule": {
+        "FinalAction": "Destroy",
+        "Inheritance": {
+          "PreventRulesId": [
+            "APP-00001"
+          ]
+        }
+      },
+      "DisseminationRule": {
+        "Inheritance": {
+          "PreventInheritance": true
+        }
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReassessingDate": "2005-01-01",
+            "HoldReason": "Motif du gel",
+            "PreventRearrangement": true
+          },
+          {
+            "Rule": "HOL-00002",
+            "HoldEndDate": "2017-12-31"
+          }
+        ]
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.482",
+    "#approximate_update_date": "2022-10-18T19:39:29.994"
+  },
+  {
+    "Title": "1_Saint-Denis",
+    "DescriptionLevel": "RecordGrp",
+    "Description": "Cette ArchiveUnit n'a aucune r\u00E8gle propre, mais r\u00E9cup\u00E8re du ManagementMetadata du SIP un NeedAuthorization \u00E0 true, une StorageRule avec un FinalAction \u00E0 Copy, une AppraisalRule avec un FinalAction \u00E0 Keep, une AccessRule avec la Rule ACC-00002 dont la StartDate est 01/01/2000 et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "Transmitter": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      }
+    ],
+    "SentDate": "2017-01-01T00:00:00",
+    "Gps": {
+      "GpsVersionID": "Syst\u00E8me g\u00E9od\u00E9sique WGS 84",
+      "GpsAltitude": 36,
+      "GpsAltitudeRef": "0",
+      "GpsLatitude": "48 56 45.395",
+      "GpsLatitudeRef": "N",
+      "GpsLongitude": "2 21 49.964",
+      "GpsLongitudeRef": "E",
+      "GpsDateStamp": "2018-03-01T11:04:00"
+    },
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "20170045/1",
+      "AMN.X/12"
+    ],
+    "OriginatingSystemId": [
+      "123456",
+      "AZERTY"
+    ],
+    "Source": "Wikipedia",
+    "SubmissionAgency": {
+      "Identifier": "RATP"
+    },
+    "AuthorizedAgent": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      },
+      {
+        "Activity": [
+          "Transport en commun"
+        ],
+        "Corpname": "Compagnie du chemin de fer m\u00E9tropolitain de Paris",
+        "Function": [
+          "Transport"
+        ],
+        "Identifier": [
+          "CMP"
+        ],
+        "Mandate": [
+          "Statuts de 1899"
+        ],
+        "Position": [
+          "Direction"
+        ],
+        "Role": [
+          "Direction"
+        ]
+      }
+    ],
+    "StartDate": "2017-04-04T08:07:00",
+    "Language": [
+      "fr"
+    ],
+    "DescriptionLanguage": "fr",
+    "Version": "2",
+    "RelatedObjectReference": {
+      "IsVersionOf": [
+        {
+          "ArchiveUnitRefId": "ID14"
+        }
+      ],
+      "Replaces": [
+        {
+          "DataObjectReference": {
+            "DataObjectGroupReferenceId": "ID12"
+          }
+        }
+      ],
+      "Requires": [
+        {
+          "RepositoryArchiveUnitPID": "19850526/6"
+        }
+      ],
+      "IsPartOf": [
+        {
+          "RepositoryObjectPID": "12345676890"
+        }
+      ],
+      "References": [
+        {
+          "ExternalReference": "4-LK18-3389"
+        }
+      ]
+    },
+    "Status": "Original",
+    "Keyword": [
+      {
+        "KeywordContent": "Transport en commun",
+        "KeywordReference": "ark:/67717/T1-1273",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Saint-Denis",
+        "KeywordReference": "93066",
+        "KeywordType": "geogname"
+      }
+    ],
+    "FilePlanPosition": [
+      "13.1.",
+      "RATP.13.1."
+    ],
+    "Addressee": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      }
+    ],
+    "AcquiredDate": "2017-01-01T00:00:00",
+    "DocumentType": "Plan",
+    "Coverage": {
+      "Spatial": [
+        "Saint-Denis"
+      ],
+      "Temporal": [
+        "20e si\u00E8cle"
+      ],
+      "Juridictional": [
+        "Communaut\u00E9 de communes de Plaine Commune"
+      ]
+    },
+    "Recipient": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      }
+    ],
+    "RegisteredDate": "2017-01-01T00:00:00",
+    "EndDate": "2017-04-04T08:07:00",
+    "Arrangement": [
+      "<Arrangement>Hi\u00E9rarchique</Arrangement>"
+    ],
+    "Sender": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      }
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "7890",
+      "QWERTY"
+    ],
+    "Type": "Information de repr\u00E9sentation",
+    "ReceivedDate": "2017-01-01T00:00:00",
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "Toto1",
+      "1Otot"
+    ],
+    "TransactedDate": "2017-01-01T00:00:00",
+    "Signature": [
+      {
+        "Signer": [
+          {
+            "FirstName": "Fulgence Marie Auguste",
+            "BirthName": "Bienven\u00FCe",
+            "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+            "GivenName": "Le p\u00E8re du m\u00E9tro",
+            "Gender": "M",
+            "BirthDate": "1852-01-27",
+            "BirthPlace": {
+              "Geogname": "Uzel",
+              "Address": "Place de la Mairie",
+              "PostalCode": "22460",
+              "City": "Uzel",
+              "Region": "Bretagne",
+              "Country": "France"
+            },
+            "DeathDate": "1936-08-03",
+            "DeathPlace": {
+              "Geogname": "Paris",
+              "Address": "H\u00F4pital Boucicaut",
+              "PostalCode": "75015",
+              "City": "Paris",
+              "Region": "Ile de France",
+              "Country": "France"
+            },
+            "Nationality": [
+              "Fran\u00E7aise"
+            ],
+            "Identifier": [
+              "0000 0000 5488 9547"
+            ],
+            "SigningTime": "1998-04-04T08:07:00",
+            "Function": [
+              "Ing\u00E9nierie"
+            ],
+            "Activity": [
+              "Conception de lignes de m\u00E9tro"
+            ],
+            "Position": [
+              "Chef de l'inspection des Ponts et Chauss\u00E9es"
+            ],
+            "Role": [
+              "Directeur des travaux"
+            ],
+            "Mandate": [
+              "Loi du 30 mars 1898"
+            ]
+          }
+        ],
+        "Validator": {
+          "FirstName": "Fulgence Marie Auguste",
+          "BirthName": "Bienven\u00FCe",
+          "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+          "GivenName": "Le p\u00E8re du m\u00E9tro",
+          "Gender": "M",
+          "BirthDate": "1852-01-27",
+          "BirthPlace": {
+            "Geogname": "Uzel",
+            "Address": "Place de la Mairie",
+            "PostalCode": "22460",
+            "City": "Uzel",
+            "Region": "Bretagne",
+            "Country": "France"
+          },
+          "DeathDate": "1936-08-03",
+          "DeathPlace": {
+            "Geogname": "Paris",
+            "Address": "H\u00F4pital Boucicaut",
+            "PostalCode": "75015",
+            "City": "Paris",
+            "Region": "Ile de France",
+            "Country": "France"
+          },
+          "Nationality": [
+            "Fran\u00E7aise"
+          ],
+          "Identifier": [
+            "0000 0000 5488 9547"
+          ],
+          "ValidationTime": "1998-04-04T08:07:00",
+          "Function": [
+            "Ing\u00E9nierie"
+          ],
+          "Activity": [
+            "Conception de lignes de m\u00E9tro"
+          ],
+          "Position": [
+            "Chef de l'inspection des Ponts et Chauss\u00E9es"
+          ],
+          "Role": [
+            "Directeur des travaux"
+          ],
+          "Mandate": [
+            "Loi du 30 mars 1898"
+          ]
+        },
+        "ReferencedObject": {
+          "SignedObjectId": "ID13",
+          "SignedObjectDigest": {
+            "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+            "Algorithm": "SHA-512"
+          }
+        }
+      }
+    ],
+    "CreatedDate": "2017-01-01T00:00:00",
+    "OriginatingAgency": {
+      "Identifier": "RATP"
+    },
+    "Event": [
+      {
+        "evId": "123456",
+        "evTypeProc": "Ligne_ouverture",
+        "evType": "Ouverture",
+        "evDateTime": "1998-05-25T08:07:00",
+        "evDetData": "Ouverture de la station \u00E0 l'exploitation",
+        "outcome": "OK",
+        "outDetail": "Ligne_Ouverture_OK",
+        "outMessg": "Ouverture de la station effectu\u00E9e avec succ\u00E8s",
+        "evTypeDetail": "500 personnes pr\u00E9sentes"
+      }
+    ],
+    "Tag": [
+      "station",
+      "m\u00E9tropolitain"
+    ],
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "Saint-Denis - Universit\u00E9 est une station de la ligne 13 du m\u00E9tro de Paris, situ\u00E9e au nord de la commune de Saint-Denis, en limite de celle de Pierrefitte-sur-Seine, dans le d\u00E9partement de la Seine-Saint-Denis. C'est le terminus de la ligne 13 sur sa branche nord-est",
+        "La station est ouverte le 25 mai 1998. Son nom vient de sa proximit\u00E9 imm\u00E9diate de l'universit\u00E9 de Paris VIII \u00E0 Saint-Denis."
+      ]
+    },
+    "Writer": [
+      {
+        "FirstName": "Fulgence Marie Auguste",
+        "BirthName": "Bienven\u00FCe",
+        "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
+        "GivenName": "Le p\u00E8re du m\u00E9tro",
+        "Gender": "M",
+        "BirthDate": "1852-01-27",
+        "BirthPlace": {
+          "Geogname": "Uzel",
+          "Address": "Place de la Mairie",
+          "PostalCode": "22460",
+          "City": "Uzel",
+          "Region": "Bretagne",
+          "Country": "France"
+        },
+        "DeathDate": "1936-08-03",
+        "DeathPlace": {
+          "Geogname": "Paris",
+          "Address": "H\u00F4pital Boucicaut",
+          "PostalCode": "75015",
+          "City": "Paris",
+          "Region": "Ile de France",
+          "Country": "France"
+        },
+        "Nationality": [
+          "Fran\u00E7aise"
+        ],
+        "Identifier": [
+          "0000 0000 5488 9547"
+        ],
+        "Function": [
+          "Ing\u00E9nierie"
+        ],
+        "Activity": [
+          "Conception de lignes de m\u00E9tro"
+        ],
+        "Position": [
+          "Chef de l'inspection des Ponts et Chauss\u00E9es"
+        ],
+        "Role": [
+          "Directeur des travaux"
+        ],
+        "Mandate": [
+          "Loi du 30 mars 1898"
+        ]
+      }
+    ],
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#min": 1,
+    "#max": 2,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:28.527",
+    "#approximate_update_date": "2022-10-18T19:39:30.118"
+  },
+  {
+    "Title": "Saint-Lazare.link",
+    "DescriptionLevel": "Item",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2zkyaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaaba3gnkamd5sn22nqaaaaq",
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2ytyaaaaq"
+    ],
+    "#min": 1,
+    "#max": 5,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2ytyaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:28.816",
+    "#approximate_update_date": "2022-10-18T19:39:29.032"
+  },
+  {
+    "Title": "Stalingrad.txt",
+    "DescriptionLevel": "Item",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn3afyaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaaba3gnkamd5sn3amiaaaba",
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq"
+    ],
+    "#min": 1,
+    "#max": 5,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.694",
+    "#approximate_update_date": "2022-10-18T19:39:29.739"
+  },
+  {
+    "Title": "SaintDenisUniversit\u00E9.txt",
+    "DescriptionLevel": "Item",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn25eaaaaaq",
+    "#tenant": 0,
+    "#object": "aebaaaaaaaeaaaaba3gnkamd5sn25jqaaaba",
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq"
+    ],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.3",
+    "#approximate_update_date": "2022-10-18T19:39:29.348"
+  },
+  {
+    "Title": "2_Front-Populaire",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-05T08:11:00",
+    "Description": "Cette unit\u00E9 de description doit h\u00E9riter de ManagementMetadata de la r\u00E8gle ACC-00002\n                        avec pour StartDate 01/01/2000 et a comme r\u00E8gle propre ACC-00003 avec pour StartDate 01/01/2000",
+    "EndDate": "2017-04-05T08:11:00",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#min": 1,
+    "#max": 2,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002",
+            "StartDate": "2002-01-01"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00003",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00003",
+            "StartDate": "2010-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReassessingDate": "2005-01-01",
+            "HoldReason": "Motif du gel",
+            "PreventRearrangement": false
+          },
+          {
+            "Rule": "HOL-00002",
+            "HoldEndDate": "2001-01-01"
+          }
+        ]
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.417",
+    "#approximate_update_date": "2022-10-18T19:39:30.033"
+  },
+  {
+    "Title": "Porte-de-la-Chapelle",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-05T08:11:00",
+    "Description": "Cette unit\u00E9 de description doit h\u00E9riter de son parent de la r\u00E8gle ACC-00003 avec pour\n                        StartDate 01/01/2000 mais a la m\u00EAme r\u00E8gle que son parent \u00E0 savoir ACC-00002 avec une StartDate\n                        diff\u00E9rente au 01/01/2002",
+    "EndDate": "2017-04-05T08:11:00",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq"
+    ],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00002",
+            "StartDate": "2002-01-01"
+          }
+        ]
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00002",
+            "HoldEndDate": "2020-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventRulesId": [
+            "HOL-00003"
+          ]
+        }
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.439",
+    "#approximate_update_date": "2022-10-18T19:39:30.063"
+  },
+  {
+    "Title": "Saint-Denis-Basilique",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-04T08:07:00",
+    "Description": "Cette ArchiveUnit d\u00E9clare une AccessRule annulant toutes les r\u00E8gles h\u00E9rit\u00E9es. Elle h\u00E9rite de Saint-Denis Universit\u00E9 un NeedAuthorization \u00E0 true, une StorageRule avec un FinalAction \u00E0 Copy, une AppraisalRule avec un FinalAction \u00E0 Keep et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "EndDate": "2017-04-04T08:07:00",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2x3qaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq"
+    ],
+    "#min": 1,
+    "#max": 3,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2xbaaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002",
+            "StartDate": "2002-01-01"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "AccessRule": {
+        "Inheritance": {
+          "PreventInheritance": true
+        }
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:28.628",
+    "#approximate_update_date": "2022-10-18T19:39:30.090"
+  },
+  {
+    "Title": "Marx-Dormoy",
+    "DescriptionLevel": "RecordGrp",
+    "StartDate": "2017-04-05T08:11:00",
+    "Description": "Cette ArchiveUnit d\u00E9clare une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction, une AccessRule annulant la r\u00E8gle ACC-00003, et une DisseminationRule avec DIS-00002 comme Rule et 01/01/2000 comme StartDate. Elle h\u00E9rite de Porte de la Chapelle un NeedAuthorization \u00E0 true, une StorageRule avec Copy comme FinalAction, une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate et une ClassificationRule avec CLASS-00001 comme Rule et 03/06/2015 comme StartDate, Confidentiel D\u00E9fense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization \u00E0 true",
+    "EndDate": "2017-04-05T08:11:00",
+    "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn26lqaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq"
+    ],
+    "#min": 1,
+    "#max": 4,
+    "#allunitups": [
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26biaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn26gqaaaaq",
+      "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq"
+    ],
+    "#management": {
+      "DisseminationRule": {
+        "Rules": [
+          {
+            "Rule": "DIS-00002",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      },
+      "HoldRule": {
+        "Inheritance": {
+          "PreventInheritance": true
+        }
+      },
+      "AccessRule": {
+        "Inheritance": {
+          "PreventRulesId": [
+            "ACC-00003"
+          ]
+        }
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2022-10-18T19:39:29.459",
+    "#approximate_update_date": "2022-10-18T19:39:30.313"
+  }
+]

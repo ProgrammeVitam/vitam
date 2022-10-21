@@ -36,47 +36,39 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransactionDto implements Serializable {
 
-    @JsonProperty(value = "id")
-    private String id;
+    @JsonProperty(value = "#id") private String id;
 
-    @JsonProperty(value = "ArchivalAgreement", required = true)
-    private String archivalAgreement;
+    @JsonProperty(value = "Name", required = true) private String name;
 
-    @JsonProperty(value = "MessageIdentifier", required = true)
-    private String messageIdentifier;
+    @JsonProperty(value = "ArchivalAgreement", required = true) private String archivalAgreement;
 
-    @JsonProperty(value = "ArchivalAgencyIdentifier", required = true)
-    private String archivalAgencyIdentifier;
+    @JsonProperty(value = "MessageIdentifier", required = true) private String messageIdentifier;
 
-    @JsonProperty(value = "TransferringAgencyIdentifier", required = true)
-    private String transferringAgencyIdentifier;
+    @JsonProperty(value = "ArchivalAgencyIdentifier", required = true) private String archivalAgencyIdentifier;
 
-    @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
-    private String originatingAgencyIdentifier;
+    @JsonProperty(value = "TransferringAgencyIdentifier", required = true) private String transferringAgencyIdentifier;
 
-    @JsonProperty(value = "SubmissionAgencyIdentifier")
-    private String submissionAgencyIdentifier;
+    @JsonProperty(value = "OriginatingAgencyIdentifier", required = true) private String originatingAgencyIdentifier;
 
-    @JsonProperty(value = "ArchiveProfile")
-    private String archivalProfile;
+    @JsonProperty(value = "SubmissionAgencyIdentifier") private String submissionAgencyIdentifier;
 
-    @JsonProperty(value = "Comment")
-    private String comment;
+    @JsonProperty(value = "ArchiveProfile") private String archivalProfile;
 
-    @JsonProperty("tenant")
-    private Integer tenant;
+    @JsonProperty(value = "AcquisitionInformation") private String acquisitionInformation;
 
-    @JsonProperty(value = "AcquisitionInformation")
-    private String acquisitionInformation;
+    @JsonProperty(value = "LegalStatus") private String legalStatus;
 
-    @JsonProperty(value = "LegalStatus")
-    private String legalStatus;
+    @JsonProperty(value = "Comment") private String comment;
 
-    @JsonProperty(value = "CreationDate")
-    private String creationDate;
+    @JsonProperty(value = "UnitUp") private String unitUp;
 
-    @JsonProperty(value = "LastUpdate")
-    private String lastUpdate;
+    @JsonProperty("#tenant") private Integer tenant;
+
+    @JsonProperty(value = "CreationDate") private String creationDate;
+
+    @JsonProperty(value = "LastUpdate") private String lastUpdate;
+
+    @JsonProperty(value = "Status") private String status;
 
     public TransactionDto() {
         //Empty constructor for serialization
@@ -89,7 +81,7 @@ public class TransactionDto implements Serializable {
     public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
         String archivalAgencyIdentifier, String transferringAgencyIdentifier, String originatingAgencyIdentifier,
         String submissionAgencyIdentifier, String archivalProfile, String comment, Integer tenant,
-        String acquisitionInformation, String legalStatus, String creationDate, String lastUpdate) {
+        String acquisitionInformation, String legalStatus, String creationDate, String lastUpdate, String status) {
         this.id = id;
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
@@ -104,6 +96,7 @@ public class TransactionDto implements Serializable {
         this.legalStatus = legalStatus;
         this.creationDate = creationDate;
         this.lastUpdate = lastUpdate;
+        this.status = status;
     }
 
     public String getId() {
@@ -112,6 +105,14 @@ public class TransactionDto implements Serializable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getArchivalAgreement() {
@@ -218,6 +219,14 @@ public class TransactionDto implements Serializable {
         this.lastUpdate = lastUpdate;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -231,5 +240,13 @@ public class TransactionDto implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public String getUnitUp() {
+        return unitUp;
+    }
+
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
     }
 }

@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -67,6 +68,8 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -77,7 +80,6 @@ import org.junit.Test;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -101,6 +103,7 @@ public class CollectIT extends VitamRuleRunner {
     private static final String OPI = "#opi";
     private static final String SUBMISSION_AGENCY_IDENTIFIER = "MICHEL_MERCIER";
     private static final String MESSAGE_IDENTIFIER = "20220302-000005";
+    private static final String UNITS_UPDATED_PATH = "collect/units_with_description.json";
 
 
     @ClassRule
@@ -119,18 +122,16 @@ public class CollectIT extends VitamRuleRunner {
                 AccessExternalMain.class,
                 IngestExternalMain.class,
                 CollectMain.class));
-    private static String transactionGuuid;
-    private static String projectGuuid;
-    private static String unitGuuid;
-    private static String objectGroupGuuid;
-    private static String usage = DataObjectVersionType.BINARY_MASTER.getName();
-    private static Integer version = 1;
+    private static String transactionGuid;
+    private static String projectGuid;
+    private static String unitGuid;
+    private static String objectGroupGuid;
+    private static final String usage = DataObjectVersionType.BINARY_MASTER.getName();
+    private static final Integer version = 1;
     private static CollectClient collectClient;
     private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
     private static String vitamOperationId;
-
-    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private VitamContext vitamContext = new VitamContext(tenantId)
+    private final VitamContext vitamContext = new VitamContext(tenantId)
         .setApplicationSessionId(APPLICATION_SESSION_ID)
         .setAccessContract(ACCESS_CONTRACT);
 
@@ -162,18 +163,18 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(((RequestResponseOK) response).getFirstResult()),
                 ProjectDto.class);
-        transactionGuuid = projectDtoResult.getTransactionId();
-        projectGuuid = projectDtoResult.getId();
+        transactionGuid = projectDtoResult.getTransactionId();
+        projectGuid = projectDtoResult.getId();
         getProjectById();
         uploadProjectZip();
         uploadUnit();
-        getUnitById(unitGuuid);
+        getUnitById(unitGuid);
         getUnitByDslQuery();
-        getAttachementUnit(transactionGuuid);
-        getTransactionById(transactionGuuid);
+        getAttachementUnit(transactionGuid);
+        getTransactionById(transactionGuid);
         getUnitsByProjectId();
         uploadGot();
-        getObjectById(objectGroupGuuid);
+        getObjectById(objectGroupGuid);
         uploadBinary();
         closeTransaction();
         ingest();
@@ -183,8 +184,8 @@ public class CollectIT extends VitamRuleRunner {
         searchProjectById();
         searchProjectByMessageIdentifier();
         searchProjectBySubmissionAgencyIdentifier();
-        deleteTransactionById(transactionGuuid);
-        deleteProjectById(projectGuuid);
+        deleteTransactionById(transactionGuid);
+        deleteProjectById(projectGuid);
 
 
     }
@@ -212,8 +213,8 @@ public class CollectIT extends VitamRuleRunner {
 
 
     private void searchProjectById() throws VitamClientException, InvalidParseOperationException {
-        List<ProjectDto> projectsDtoResults = searchValue(projectGuuid);
-        assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectGuuid);
+        List<ProjectDto> projectsDtoResults = searchValue(projectGuid);
+        assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectGuid);
     }
 
     private List<ProjectDto> searchValue(String query) throws VitamClientException, InvalidParseOperationException {
@@ -226,10 +227,10 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     private void getTransactionByProjectId() throws VitamClientException, InvalidParseOperationException {
-        TransactionDto transactionDtoResult = getTransactionByProjectId(projectGuuid);
+        TransactionDto transactionDtoResult = getTransactionByProjectId(projectGuid);
 
         assertThat(transactionDtoResult).isNotNull();
-        assertThat(transactionDtoResult.getId()).isEqualTo(transactionGuuid);
+        assertThat(transactionDtoResult.getId()).isEqualTo(transactionGuid);
     }
 
 
@@ -247,10 +248,10 @@ public class CollectIT extends VitamRuleRunner {
         TransactionDto transaction =
             new TransactionDto("XXXX00000111111", null, null, null,
                 null, null, null, null,
-                "comment", null, null, null, null, null);
+                "comment", null, null, null, null, null, TransactionStatus.OPEN.toString());
 
         RequestResponse<JsonNode> response =
-            collectClient.initTransaction(vitamContext, transaction, projectGuuid);
+            collectClient.initTransaction(vitamContext, transaction, projectGuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
         TransactionDto transactionDtoResult =
@@ -261,7 +262,7 @@ public class CollectIT extends VitamRuleRunner {
     private static ProjectDto initProjectData() {
         ProjectDto projectDto = new ProjectDto();
         projectDto.setArchivalAgencyIdentifier("Vitam");
-        projectDto.setTransferingAgencyIdentifier("AN");
+        projectDto.setTransferringAgencyIdentifier("AN");
         projectDto.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
         projectDto.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
         projectDto.setMessageIdentifier(MESSAGE_IDENTIFIER);
@@ -278,7 +279,7 @@ public class CollectIT extends VitamRuleRunner {
         throws VitamClientException, JsonProcessingException, InvalidCreateOperationException,
         InvalidParseOperationException {
         // Given
-        ProjectDto projectDtoResult = getProjectDtoById(projectGuuid);
+        ProjectDto projectDtoResult = getProjectDtoById(projectGuid);
 
         // When
         SelectMultiQuery selectUnit = new SelectMultiQuery();
@@ -305,40 +306,40 @@ public class CollectIT extends VitamRuleRunner {
     public void uploadUnit() throws Exception {
         JsonNode archiveUnitJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_UNIT));
         RequestResponseOK<JsonNode> response =
-            collectClient.uploadArchiveUnit(vitamContext, archiveUnitJson, transactionGuuid);
+            collectClient.uploadArchiveUnit(vitamContext, archiveUnitJson, transactionGuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
-        unitGuuid = response.getFirstResult().get("#id").textValue();
+        unitGuid = response.getFirstResult().get("#id").textValue();
 
     }
 
     public void uploadGot() throws Exception {
         JsonNode gotJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_OBJECT));
         RequestResponseOK<JsonNode> response =
-            collectClient.addObjectGroup(vitamContext, unitGuuid, version, gotJson, usage);
+            collectClient.addObjectGroup(vitamContext, unitGuid, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
-        objectGroupGuuid = response.getFirstResult().get("id").textValue();
+        objectGroupGuid = response.getFirstResult().get("id").textValue();
     }
 
     public void uploadBinary() throws Exception {
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
-            Response response = collectClient.addBinary(vitamContext, unitGuuid, version, inputStream, usage);
+            Response response = collectClient.addBinary(vitamContext, unitGuid, version, inputStream, usage);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
     }
 
     public void closeTransaction() throws Exception {
-        Response response = collectClient.closeTransaction(vitamContext, transactionGuuid);
+        Response response = collectClient.closeTransaction(vitamContext, transactionGuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
 
 
     public void ingest() throws Exception {
-        RequestResponseOK<JsonNode> response = collectClient.ingest(vitamContext, transactionGuuid);
+        RequestResponseOK<JsonNode> response = collectClient.ingest(vitamContext, transactionGuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
@@ -348,14 +349,14 @@ public class CollectIT extends VitamRuleRunner {
 
 
     public void getProjectById() throws Exception {
-        ProjectDto projectDtoResult = getProjectDtoById(projectGuuid);
+        ProjectDto projectDtoResult = getProjectDtoById(projectGuid);
 
         assertThat(projectDtoResult).isNotNull();
-        assertThat(projectDtoResult.getId()).isEqualTo(projectGuuid);
+        assertThat(projectDtoResult.getId()).isEqualTo(projectGuid);
     }
 
     public void getUnitByDslQuery() throws Exception {
-        String unitDsl = "{\"$roots\": [],\"$query\": [{\"$eq\": {\"#opi\": \"" + transactionGuuid +
+        String unitDsl = "{\"$roots\": [],\"$query\": [{\"$eq\": {\"#opi\": \"" + transactionGuid +
             "\"} }],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
         RequestResponseOK<JsonNode> response =
             collectClient.selectUnits(vitamContext, JsonHandler.getFromString(unitDsl));
@@ -370,11 +371,12 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
         assertThat(response.getFirstResult().get("#id").textValue()).isEqualTo(unitId);
-        assertThat(response.getFirstResult().get(OPI).textValue()).isEqualTo(transactionGuuid);
+        assertThat(response.getFirstResult().get(OPI).textValue()).isEqualTo(transactionGuid);
     }
 
     public void getAttachementUnit(String transactionId) throws Exception {
-        RequestResponseOK<JsonNode> response = collectClient.getUnitsByTransaction(vitamContext, transactionId);
+        RequestResponseOK<JsonNode> response =
+            collectClient.getUnitsByTransaction(vitamContext, transactionId, new SelectMultiQuery().getFinalSelect());
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         ArrayNode arrayNodeUnits = (ArrayNode) response.getFirstResult().get("$results");
@@ -396,7 +398,7 @@ public class CollectIT extends VitamRuleRunner {
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("_id")).isNotNull();
-        assertThat(response.getFirstResult().get("_id").textValue()).isEqualTo(objectGroupGuuid);
+        assertThat(response.getFirstResult().get("_id").textValue()).isEqualTo(objectGroupGuid);
     }
 
     public void updateProject()
@@ -428,12 +430,39 @@ public class CollectIT extends VitamRuleRunner {
             .after(LocalDateUtil.getDate(projectDtoResultAfterUpdate.getCreationDate())));
     }
 
+    @Test
     public void uploadProjectZip() throws Exception {
+        ProjectDto projectDto = initProjectData();
+
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult()),
+                ProjectDto.class);
+        transactionGuid = projectDtoResult.getTransactionId();
+        projectGuid = projectDtoResult.getId();
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
-            Response response = collectClient.uploadProjectZip(vitamContext, projectGuuid, inputStream);
+            Response response = collectClient.uploadProjectZip(vitamContext, projectGuid, inputStream);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
+
+
+        final RequestResponseOK<JsonNode> unitsByTransaction =
+            collectClient.getUnitsByTransaction(vitamContext, transactionGuid, new SelectMultiQuery().getFinalSelect());
+
+
+        final JsonNode expectedUnits =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_PATH));
+
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(unitsByTransaction.getResults()), expectedUnits,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                List.of("[*]." + VitamFieldsHelper.id(), "[*]." + VitamFieldsHelper.unitups(),
+                    "[*]." + VitamFieldsHelper.object(), "[*]." + VitamFieldsHelper.allunitups(),
+                    "[*]." + VitamFieldsHelper.initialOperation(), "[*]." + VitamFieldsHelper.approximateCreationDate(),
+                    "[*]." + VitamFieldsHelper.approximateUpdateDate())));
     }
 
     public void deleteTransactionById(String transactionId) throws Exception {

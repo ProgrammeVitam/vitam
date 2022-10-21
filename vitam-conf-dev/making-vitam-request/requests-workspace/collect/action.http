@@ -1,17 +1,14 @@
 ### Configuration
-@transaction-id = aeeaaaaaachlf3tiaa2i6amb3wdtx4aaaaaq
-@project-id = aeeaaaaaaghcnbfoabiccamcwbaa2taaaaaq
+@transaction-id = aeeaaaaaagffmfhuax2koamdvxkoomqaaaaq
+@project-id = aeaaaaaaaaffmfhuax2koamdvxkoneyaaaaq
 @unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
 @tenant = 1
-@access-contract = ContratTNR
 
 ### Création d'un nouveau projet
 POST {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
-Content-Length: 401
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
   "ArchivalAgencyIdentifier": "Identifier0",
@@ -24,48 +21,44 @@ X-Access-Contract-Id: {{access-contract}}
   "AcquisitionInformation": "Versement",
   "ArchivalAgreement":"IC-000001",
   "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
-  "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
+  "UnitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
 }
 
 ### Mise à jour d'un projet
 PUT {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
-Content-Length: 401
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
-  "id": "{{project-id}}",
+  "#id": "{{project-id}}",
+  "Name": "Versement premier archive",
   "ArchivalAgencyIdentifier": "Identifier0",
-  "TransferingAgencyIdentifier": "Identifier3",
+  "TransferringAgencyIdentifier": "Identifier3",
   "OriginatingAgencyIdentifier": "FRAN_NP_009915",
   "SubmissionAgencyIdentifier": "FRAN_NP_005061",
   "MessageIdentifier": "20220302-000006",
   "ArchivalAgreement":"IC-000001",
   "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
-  "unitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
+  "UnitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
 }
 
 ### Récuperation de tout les projets associé au tenant
 GET {{url-collect}}/collect-external/v1/projects
 accept: application/json
-content-type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 
 
 ### Recherche d'un project par criteria
-GET {{url-collect}}/collect-external/v1/projects/search
+GET {{url-collect}}/collect-external/v1/projects
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 Content-Length: 143
 
 {
-    "$query":"search"
+    "$query":"Versement"
 }
 
 ### Récuperation d'un projet par id
@@ -73,23 +66,21 @@ GET {{url-collect}}/collect-external/v1/projects/{{project-id}}
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 ### Récuperation d'une unité archivistique pas dsl query
-GET {{url-collect}}/collect-external/v1/units
+GET {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/units
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 Content-Length: 143
 
 {
     "$roots": [],
     "$query": [
         {
-            "$eq": {
-                "#opi": "aeeaaaaaaceezldyaamscambcvdf6zyaaaaq"
-            }
+          "$match": {
+            "Title": "Saint"
+          }
         }
     ],
     "$filter": {
@@ -104,7 +95,6 @@ GET {{url-collect}}/collect-external/v1/projects/{{project-id}}/units
 accept: application/json
 content-type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 Content-Length: 143
 
 {
@@ -112,7 +102,7 @@ Content-Length: 143
     "$query": [
         {
             "$match": {
-                "Title": "our"
+                "Title": "Saint"
             }
         }
     ],
@@ -126,7 +116,6 @@ POST {{url-collect}}/collect-external/v1/projects/{{project-id}}/binary
 Accept: application/json
 Content-Type: application/zip
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 < /path_tozip/stream.zip
 
@@ -137,9 +126,9 @@ POST  {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
+  "Name": "Versement des objets binaires",
   "ArchivalAgreement": "IC-000001",
   "MessageIdentifier": "Transaction de test",
   "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
@@ -155,7 +144,6 @@ POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/units
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
   "DescriptionLevel": "Item",
@@ -178,7 +166,6 @@ POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
   "fileInfo": {
@@ -191,7 +178,6 @@ POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster
 Accept: application/json
 Content-Type: application/octet-stream
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 < /path_tobinary/binaire_test.txt
 
@@ -200,7 +186,6 @@ POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {
   "fileInfo": {
@@ -213,7 +198,6 @@ POST  {{url-collect}}/collect-external/v1/units/{{unit-id}}/objects/BinaryMaster
 Accept: application/json
 Content-Type: application/octet-stream
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 < /path_tobinary/binary_version_2.txt
 
@@ -222,7 +206,7 @@ POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/close
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
+
 
 {}
 
@@ -231,6 +215,11 @@ POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/send
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
-X-Access-Contract-Id: {{access-contract}}
 
 {}
+
+
+###
+
+OPTIONS {{url-collect}}/collect-external/v1
+X-Tenant-Id: {{tenant}}

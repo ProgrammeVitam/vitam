@@ -30,25 +30,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.collect.external.dto.FileInfoDto;
-import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
-import fr.gouv.vitam.collect.internal.service.CollectService;
-import fr.gouv.vitam.collect.internal.service.FluxService;
-import fr.gouv.vitam.collect.internal.service.ProjectService;
+import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -59,53 +51,38 @@ import org.mockito.junit.MockitoRule;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
-@Ignore
 public class TransactionResourceTest {
     private static final String SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME = "init_transaction_response.json";
     private static final String SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME = "upload_au_response.json";
-    @Mock
-    private static WorkspaceClientFactory workspaceClientFactory;
-    @Mock
-    private static MetaDataClientFactory metaDataClientFactory;
-    private static JsonNode sampleInitTransaction;
-    private static JsonNode sampleUploadArchiveUnit;
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
-    @Mock
-    private SecureEndpointRegistry secureEndpointRegistry;
     private TransactionResource transactionResource;
     @Mock
     private TransactionService transactionService;
     @Mock
     private CollectConfiguration collectConfiguration;
-    private WorkspaceClient workspaceClient;
     @Mock
-    private MetaDataClient metaDataClient;
-    @Mock
-    private CollectService collectService;
-    @Mock
-    private ProjectService projectService;
+    private MetadataService metadataService;
     @Mock
     private SipService sipService;
-    @Mock
-    private FluxService fluxService;
 
     @Before
     public void setUp() {
         given(collectConfiguration.getWorkspaceUrl()).willReturn("http://localhost:8082");
-        transactionResource = new TransactionResource(secureEndpointRegistry, transactionService, collectService, sipService, projectService,fluxService);
+        transactionResource =
+            new TransactionResource(transactionService, sipService, metadataService);
     }
 
     @Test
     public void initTransactionTest_OK() throws Exception {
         // Given
-        sampleInitTransaction =
+        final JsonNode fromFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-        given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
-        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class), anyString());
+        Mockito.doNothing().when(transactionService).createTransaction(any(TransactionDto.class), anyString());
         // When
         //        RequestResponseOK result = transactionResource.initTransaction(null);
         // Then
@@ -115,9 +92,8 @@ public class TransactionResourceTest {
     @Test
     public void initTransactionTest_KO() throws Exception {
         // Given
-        sampleInitTransaction =
+        final JsonNode fromFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-        given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d764");
         Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class), anyString());
         // When
         //        RequestResponseOK result = transactionResource.initTransaction(null);
@@ -169,15 +145,14 @@ public class TransactionResourceTest {
         String resultMetaData = "{\"httpCode\": 200}";
         JsonNode jsonResultMetaData = mapper.readTree(resultMetaData);
         String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-        sampleUploadArchiveUnit =
+        final JsonNode fromFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
         Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null));
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
         given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
         //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
-        given(collectService.saveArchiveUnitInMetaData(Mockito.any())).willReturn(jsonResultMetaData);
+        given(metadataService.saveArchiveUnit(Mockito.any())).willReturn(jsonResultMetaData);
         //Mockito.doReturn(jsonResultMetaData).when(transactionResourceSpy).saveArchiveUnitInMetaData(Mockito.any());
         // When
         //        RequestResponseOK result = transactionResourceSpy.uploadArchiveUnit(TransactionId, archiveCollectUnitDto);
@@ -193,14 +168,13 @@ public class TransactionResourceTest {
         String resultMetaData = "{\"httpCode\": 200}";
         JsonNode jsonResultMetaData = mapper.readTree(resultMetaData);
         String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-        sampleUploadArchiveUnit =
+        final JsonNode fromFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
         Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null));
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
         given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
         //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d764");
         //Mockito.doReturn(jsonResultMetaData).when(transactionResourceSpy).saveArchiveUnitInMetaData(Mockito.any());
         // When
         //        RequestResponseOK result = transactionResourceSpy.uploadArchiveUnit(TransactionId, archiveCollectUnitDto);
@@ -223,16 +197,15 @@ public class TransactionResourceTest {
         ArrayNode jsonResultArchiveUnit = (ArrayNode) mapper.readTree(resultArchiveUnitMetaData);
         String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
         String archiveUnitId = "1a9a3e4e-26b6-45eb-b8d1-5fd41cba8a59";
-        sampleUploadArchiveUnit =
+        final JsonNode fromFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
         Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null));
+            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
         given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
 
-        ObjectGroupDto objectGroupDto = new ObjectGroupDto();
-        objectGroupDto.setFileInfo(new FileInfoDto("Pereire.txt", lastModified));
+        ObjectDto objectDto = new ObjectDto();
+        objectDto.setFileInfo(new FileInfoDto("Pereire.txt", lastModified));
         TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        given(CollectService.createRequestId()).willReturn("082aba2d-817f-4e5f-8fa4-f12ba7d7642f");
         //given(transactionService.saveObjectGroupInMetaData(Mockito.any(), Mockito.any())).willReturn(jsonResultMetaData);
         //given(transactionService.getArchiveUnitById(Mockito.any())).willReturn(jsonResultArchiveUnit);
         // When

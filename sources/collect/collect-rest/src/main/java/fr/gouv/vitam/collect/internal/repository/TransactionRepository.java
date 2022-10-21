@@ -88,7 +88,7 @@ public class TransactionRepository {
         LOGGER.debug("Transaction to create: {}", transactionModel);
         try {
             String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
-                transactionCollection.insertOne(Document.parse(transactionModelAsString));
+            transactionCollection.insertOne(Document.parse(transactionModelAsString));
         } catch (InvalidParseOperationException e) {
             throw new CollectException("Error when creating transaction: " + e);
         }
@@ -188,19 +188,15 @@ public class TransactionRepository {
 
 
     private FindIterable<Document> getIterableTransactionsByQuery(Bson query) {
-
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Bson finalQuery = and(query, eq(TENANT_ID, tenantId));
         return transactionCollection.find(finalQuery);
-
     }
 
 
     public List<TransactionModel> findTransactionsByQuery(Bson query) throws CollectException {
-
-        try {
-            List<TransactionModel> listTransactions = new ArrayList<>();
-            MongoCursor<Document> transactions = this.getIterableTransactionsByQuery(query).cursor();
+        List<TransactionModel> listTransactions = new ArrayList<>();
+        try (MongoCursor<Document> transactions = this.getIterableTransactionsByQuery(query).cursor()) {
             while (transactions.hasNext()) {
                 Document doc = transactions.next();
                 listTransactions.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));

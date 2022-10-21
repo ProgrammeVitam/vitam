@@ -25,17 +25,20 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.collect.internal.service;
+package fr.gouv.vitam.collect.internal.thread;
 
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import java.text.ParseException;
@@ -46,6 +49,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class PurgeTransactionThread implements Runnable {
 
@@ -55,18 +60,18 @@ public class PurgeTransactionThread implements Runnable {
 
     private final TransactionService transactionService;
 
-    private final CollectService collectService;
-
     private final Map<Integer, Integer> purgeTransactionDelayInMinutes;
 
     private final int purgeTransactionThreadPoolSize;
 
-    public PurgeTransactionThread(CollectConfiguration collectConfiguration, TransactionService transactionService,
-        CollectService collectService) {
-        this.collectService = collectService;
+    public PurgeTransactionThread(CollectConfiguration collectConfiguration, TransactionService transactionService) {
         this.transactionService = transactionService;
         purgeTransactionDelayInMinutes = collectConfiguration.getPurgeTransactionDelayInMinutes();
         this.purgeTransactionThreadPoolSize = collectConfiguration.getPurgeTransactionThreadPoolSize();
+
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
+            .scheduleAtFixedRate(this, collectConfiguration.getPurgeTransactionThreadFrequency(),
+                collectConfiguration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
     }
 
     @Override
@@ -79,14 +84,14 @@ public class PurgeTransactionThread implements Runnable {
     }
 
     public void deleteTransaction(Integer tenantId, Integer delay) throws CollectException, ParseException {
-        LOGGER.debug("start delete transaction content" + tenantId + " " +Thread.currentThread().getId());
+        LOGGER.debug("start delete transaction content" + tenantId + " " + Thread.currentThread().getId());
         List<TransactionModel> transactionModelList = transactionService.getListTransactionToDeleteByTenant(tenantId);
         if (transactionModelList.isEmpty()) {
             LOGGER.debug(TRANSACTION_NOT_FOUND);
         }
         for (TransactionModel transactionModel : transactionModelList) {
-            if (isToDelete(transactionModel.getManifestContext().getLastUpdate(), delay)) {
-                collectService.deleteTransactionContent(transactionModel.getId());
+            if (isToDelete(transactionModel.getLastUpdate(), delay)) {
+                transactionService.deleteTransactionContent(transactionModel.getId());
             }
         }
 
@@ -104,27 +109,26 @@ public class PurgeTransactionThread implements Runnable {
         Thread.currentThread().setName(PurgeTransactionThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
-        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(this.purgeTransactionThreadPoolSize);
+        ExecutorService executorService =
+            ExecutorUtils.createScalableBatchExecutorService(this.purgeTransactionThreadPoolSize);
         try {
             List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
             for (var entry : purgeTransactionDelayInMinutes.entrySet()) {
-                CompletableFuture<Void> traceabilityCompletableFuture =
-                    CompletableFuture.runAsync(() -> {
-                        VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
-                        try {
-                            deleteTransaction(entry.getKey(), entry.getValue());
-                        } catch (ParseException | CollectException e) {
-                            LOGGER.error("Error when deleting transaction: {}", e);
-                        }
-                    }, executorService);
+                CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(() -> {
+                    VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
+                    try {
+                        deleteTransaction(entry.getKey(), entry.getValue());
+                    } catch (ParseException | CollectException e) {
+                        LOGGER.error("Error when deleting transaction: {}", e);
+                    }
+                }, executorService);
 
                 completableFuturesList.add(traceabilityCompletableFuture);
             }
             CompletableFuture<Void> combinedFuture =
-                CompletableFuture
-                    .allOf(completableFuturesList.toArray(new CompletableFuture[0]));
+                CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
             combinedFuture.get();
-        } catch (InterruptedException  e) {
+        } catch (InterruptedException e) {
             LOGGER.error("Error when executing threads: {}", e);
             Thread.currentThread().interrupt();
             throw new CollectException("Error when executing threads: " + e);

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.internal.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -36,21 +37,29 @@ import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
-import fr.gouv.vitam.collect.internal.helpers.builders.TransactionModelBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -59,13 +68,18 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -83,15 +97,22 @@ public class TransactionService {
 
 
     private final TransactionRepository transactionRepository;
+    private final ProjectService projectService;
+    private final MetadataService metadataService;
+    private final WorkspaceClientFactory workspaceCollectClientFactory;
     private final AccessExternalClientFactory accessExternalClientFactory;
     private final AdminExternalClientFactory adminExternalClientFactory;
-    private final ProjectService projectService;
 
-    public TransactionService(TransactionRepository transactionRepository, ProjectService projectService) {
+    public TransactionService(TransactionRepository transactionRepository, ProjectService projectService,
+        MetadataService metadataService, WorkspaceClientFactory workspaceCollectClientFactory,
+        AccessExternalClientFactory accessExternalClientFactory,
+        AdminExternalClientFactory adminExternalClientFactory) {
         this.transactionRepository = transactionRepository;
         this.projectService = projectService;
-        this.accessExternalClientFactory = AccessExternalClientFactory.getInstance();
-        this.adminExternalClientFactory = AdminExternalClientFactory.getInstance();
+        this.metadataService = metadataService;
+        this.workspaceCollectClientFactory = workspaceCollectClientFactory;
+        this.accessExternalClientFactory = accessExternalClientFactory;
+        this.adminExternalClientFactory = adminExternalClientFactory;
     }
 
 
@@ -110,18 +131,63 @@ public class TransactionService {
      * @throws CollectException exception thrown in case of error
      */
     public void createTransaction(TransactionDto transactionDto, String projectId) throws CollectException {
-        Optional<ProjectModel> projectOpt = projectService.findProject(projectId);
+        Optional<ProjectDto> projectOpt = projectService.findProject(projectId);
+        final String creationDate = LocalDateUtil.now().toString();
+
         if (projectOpt.isEmpty()) {
             throw new CollectException("project with id " + projectId + "not found");
         }
-        TransactionModel transactionModel = new TransactionModelBuilder()
-            .withId(transactionDto.getId())
-            .withManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto))
-            .withStatus(TransactionStatus.OPEN)
-            .withTenant(transactionDto.getTenant())
-            .withProjectId(projectId)
-            .build();
+        TransactionModel transactionModel = new TransactionModel(transactionDto.getId(), transactionDto.getName(),
+            CollectHelper.mapTransactionDtoToManifestContext(transactionDto), TransactionStatus.OPEN, projectId,
+            creationDate, creationDate, transactionDto.getTenant());
+
         transactionRepository.createTransaction(transactionModel);
+    }
+
+    /**
+     * delete transaction according to id
+     *
+     * @param id transaction to delete
+     * @throws CollectException exception thrown in case of error
+     */
+    public void deleteTransaction(String id) throws CollectException {
+        deleteTransactionContent(id);
+        transactionRepository.deleteTransaction(id);
+    }
+
+    public void deleteTransactionContent(String id) throws CollectException {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            if (workspaceClient.isExistingContainer(id)) {
+                workspaceClient.deleteContainer(id, true);
+            }
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error("Error when trying to delete stream from workspace: {} ", e);
+            throw new CollectException("Error when trying to delete stream from workspace: " + e);
+        }
+
+        try {
+            final SelectMultiQuery request = new SelectMultiQuery();
+            QueryProjection queryProjection = new QueryProjection();
+            queryProjection.setFields(Map.of(VitamFieldsHelper.id(), 1, VitamFieldsHelper.object(), 1));
+            request.setProjection(JsonHandler.toJsonNode(queryProjection));
+            final ScrollSpliterator<JsonNode> scrollRequest = metadataService.selectUnits(request, id);
+            Iterator<List<JsonNode>> iterator =
+                Iterators.partition(new SpliteratorIterator<>(scrollRequest), VitamConfiguration.getBatchSize());
+
+            while (iterator.hasNext()) {
+                List<JsonNode> units = iterator.next();
+                final List<String> idObjectGroups =
+                    units.stream().map(e -> e.get(VitamFieldsHelper.object())).filter(Objects::nonNull)
+                        .map(JsonNode::asText).collect(Collectors.toList());
+                metadataService.deleteObjectGroups(idObjectGroups);
+                final List<String> idUnits =
+                    units.stream().map(e -> e.get(VitamFieldsHelper.id())).map(JsonNode::asText)
+                        .collect(Collectors.toList());
+                metadataService.deleteUnits(idUnits);
+            }
+        } catch (InvalidParseOperationException e) {
+            throw new CollectException(e);
+        }
     }
 
     /**
@@ -130,28 +196,19 @@ public class TransactionService {
      * @throws CollectException exception thrown in case of error
      */
     public void createTransactionFromProjectDto(ProjectDto projectDto, String transactionId) throws CollectException {
-        ManifestContext manifestContext = new ManifestContextBuilder()
-            .withArchivalAgreement(projectDto.getArchivalAgreement())
-            .withMessageIdentifier(projectDto.getMessageIdentifier())
-            .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
-            .withTransferingAgencyIdentifier(projectDto.getTransferingAgencyIdentifier())
-            .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
-            .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(projectDto.getArchivalProfile())
-            .withComment(projectDto.getComment())
-            .withUnitUp(projectDto.getUnitUp())
-            .withAcquisitionInformation(projectDto.getAcquisitionInformation())
-            .withLegalStatus(projectDto.getLegalStatus())
-            .withCreationDate(projectDto.getCreationDate())
-            .withlastUpdate(projectDto.getLastUpdate())
-            .build();
-        TransactionModel transactionModel = new TransactionModelBuilder()
-            .withId(transactionId)
-            .withManifestContext(manifestContext)
-            .withProjectId(projectDto.getId())
-            .withStatus(TransactionStatus.OPEN)
-            .withTenant(projectDto.getTenant())
-            .build();
+        ManifestContext manifestContext =
+            new ManifestContextBuilder().withArchivalAgreement(projectDto.getArchivalAgreement())
+                .withMessageIdentifier(projectDto.getMessageIdentifier())
+                .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
+                .withTransferingAgencyIdentifier(projectDto.getTransferringAgencyIdentifier())
+                .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
+                .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
+                .withArchivalProfile(projectDto.getArchivalProfile()).withComment(projectDto.getComment())
+                .withAcquisitionInformation(projectDto.getAcquisitionInformation()).withUnitUp(projectDto.getUnitUp())
+                .withLegalStatus(projectDto.getLegalStatus()).build();
+        TransactionModel transactionModel =
+            new TransactionModel(transactionId, projectDto.getName(), manifestContext, TransactionStatus.OPEN,
+                projectDto.getId(), projectDto.getCreationDate(), projectDto.getLastUpdate(), projectDto.getTenant());
         transactionRepository.createTransaction(transactionModel);
     }
 
@@ -190,15 +247,6 @@ public class TransactionService {
         return transactionRepository.findTransactionsByQuery(eq(PROJECT_ID, id));
     }
 
-    /**
-     * delete transaction according to id
-     *
-     * @param id transaction to delete
-     */
-    public void deleteTransactionById(String id) {
-        transactionRepository.deleteTransaction(id);
-    }
-
 
     public void closeTransaction(String transactionId) throws CollectException {
         Optional<TransactionModel> transactionModel = findTransaction(transactionId);
@@ -209,6 +257,8 @@ public class TransactionService {
     }
 
     public void replaceTransaction(TransactionModel transactionModel) throws CollectException {
+        final String updateDate = LocalDateUtil.now().toString();
+        transactionModel.setLastUpdate(updateDate);
         transactionRepository.replaceTransaction(transactionModel);
     }
 
@@ -229,23 +279,20 @@ public class TransactionService {
     private Map<String, String> mapStatusOperations(List<LogbookOperation> results) {
         return results.stream()
             .map(logbookOperation -> logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1))
-            .filter(eventLogBook -> PROCESS_SIP_UNITARY.equals(eventLogBook.getEvType()))
-            .collect(Collectors.toMap(LogbookEvent::getEvIdProc, eventLogBook ->
-                statusTrasactionsMap.containsKey(eventLogBook.getOutcome()) ?
-                    statusTrasactionsMap.get(eventLogBook.getOutcome()) :
-                    TransactionStatus.SENT.name()
-            ));
+            .filter(eventLogBook -> PROCESS_SIP_UNITARY.equals(eventLogBook.getEvType())).collect(
+                Collectors.toMap(LogbookEvent::getEvIdProc,
+                    eventLogBook -> statusTrasactionsMap.containsKey(eventLogBook.getOutcome()) ?
+                        statusTrasactionsMap.get(eventLogBook.getOutcome()) :
+                        TransactionStatus.SENT.name()));
 
 
     }
 
     private Map<String, String> mapStatusOperationsFromProcess(List<ProcessDetail> results) {
-
         return results.stream().collect(Collectors.toMap(ProcessDetail::getOperationId, processDetail ->
             statusTrasactionsMap.containsKey(processDetail.getStepStatus()) ?
                 statusTrasactionsMap.get(processDetail.getStepStatus()) :
-                TransactionStatus.SENT.name()
-        ));
+                TransactionStatus.SENT.name()));
     }
 
 
@@ -262,9 +309,7 @@ public class TransactionService {
                 }
             }
         }
-
         return transactionsToUpdate;
-
     }
 
 
@@ -290,14 +335,12 @@ public class TransactionService {
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamContext vitamcontext = new VitamContext(tenantId);
-            RequestResponse<ProcessDetail> requestResponse =
-                client.listOperationsDetails(vitamcontext, processQuery);
+            RequestResponse<ProcessDetail> requestResponse = client.listOperationsDetails(vitamcontext, processQuery);
             if (!requestResponse.isOk()) {
                 LOGGER.error("Error from access client: {}", requestResponse.toString());
                 throw new CollectException("Error from access client: " + requestResponse);
             } else {
-                RequestResponseOK<ProcessDetail> requestResponseOK =
-                    (RequestResponseOK<ProcessDetail>) requestResponse;
+                RequestResponseOK<ProcessDetail> requestResponseOK = (RequestResponseOK<ProcessDetail>) requestResponse;
                 List<ProcessDetail> results = requestResponseOK.getResults();
                 return mapStatusOperationsFromProcess(results);
             }
@@ -305,8 +348,6 @@ public class TransactionService {
             LOGGER.error("Error when select operation: {}", e);
             throw new CollectException(e);
         }
-
-
     }
 
 
@@ -314,14 +355,12 @@ public class TransactionService {
         throws CollectException {
 
         JsonNode select = getDslForSelectOperation(
-            transactions.stream().map(TransactionModel::getVitamOperationId).collect(
-                Collectors.toList()));
+            transactions.stream().map(TransactionModel::getVitamOperationId).collect(Collectors.toList()));
 
         try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamContext vitamcontext = new VitamContext(tenantId);
-            RequestResponse<LogbookOperation> requestResponse =
-                client.selectOperations(vitamcontext, select);
+            RequestResponse<LogbookOperation> requestResponse = client.selectOperations(vitamcontext, select);
             if (!requestResponse.isOk()) {
                 LOGGER.error("Error from access client: {}", requestResponse.toString());
                 throw new CollectException("Error from access client: " + requestResponse);
@@ -335,8 +374,6 @@ public class TransactionService {
             LOGGER.error("Error when select operation: {}", e);
             throw new CollectException(e);
         }
-
-
     }
 
     public void manageTransactionsStatus() throws CollectException {
@@ -357,10 +394,5 @@ public class TransactionService {
             }
 
         }
-
-
     }
-
-
-
 }

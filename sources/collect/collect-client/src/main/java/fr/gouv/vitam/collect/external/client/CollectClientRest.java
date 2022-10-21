@@ -217,13 +217,14 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
 
     @Override
     public RequestResponseOK<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
-        String transactionId) throws VitamClientException {
+        String transactionId, JsonNode query) throws VitamClientException {
 
         VitamRequestBuilder request = get()
             .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
             .withHeaders(vitamContext.getHeaders())
             .withHeader(EXPECT, EXPECT_CONTINUE)
-            .withJsonAccept();
+            .withJson()
+            .withBody(query);
 
         try (Response response = make(request)) {
             check(response);

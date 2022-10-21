@@ -29,16 +29,10 @@ package fr.gouv.vitam.collect.internal.helpers.builders;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
 
-import java.util.Date;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ManifestContextBuilder {
-    private String name;
     private String acquisitionInformation;
     private String legalStatus;
-    private String creationDate;
-    private String lastUpdate;
-    private String status;
     private String archivalAgreement;
     private String messageIdentifier;
     private String archivalAgencyIdentifier;
@@ -94,11 +88,6 @@ public class ManifestContextBuilder {
         return this;
     }
 
-    public ManifestContextBuilder withName(String name) {
-        this.name = name;
-        return this;
-    }
-
     public ManifestContextBuilder withAcquisitionInformation(String acquisitionInformation) {
         this.acquisitionInformation = acquisitionInformation;
         return this;
@@ -109,23 +98,8 @@ public class ManifestContextBuilder {
         return this;
     }
 
-    public ManifestContextBuilder withCreationDate(String creationDate) {
-        this.creationDate = creationDate;
-        return this;
-    }
-
-    public ManifestContextBuilder withlastUpdate(String lastUpdate) {
-        this.lastUpdate = lastUpdate;
-        return this;
-    }
-
-    public ManifestContextBuilder withStatus(String status) {
-        this.status = status;
-        return this;
-    }
-
     public ManifestContext build() {
-        return new ManifestContext(name, acquisitionInformation, legalStatus, creationDate, lastUpdate, status,
+        return new ManifestContext(acquisitionInformation, legalStatus,
             archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
             transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
             comment, unitUp);

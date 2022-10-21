@@ -28,12 +28,10 @@ package fr.gouv.vitam.collect.internal.service;
 
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.helpers.builders.ProjectModelBuilder;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,12 +63,15 @@ public class TransactionServiceTest {
     public void createCollectTest() throws CollectException {
         // Given
         TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null, null, null);
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null,
+                null, null,
+                TransactionStatus.OPEN.toString());
 
 
 
         // When
-        ProjectModel project = new ProjectModelBuilder().withId("id").build();
+        ProjectModel project = new ProjectModel();
+        //project.setId("id");
         doReturn(Optional.of(project)).when(projectService).findProject("id");
         transactionService.createTransaction(transactionDto, "id");
 
@@ -88,7 +89,9 @@ public class TransactionServiceTest {
         final String idCollect = "XXXX000002222222";
         // Given
         TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null, null, null);
+            new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null,
+                null, null,
+                TransactionStatus.OPEN.toString());
         doReturn(Optional.of(transactionDto)).when(transactionRepository).findTransaction(any());
 
         // When
@@ -100,11 +103,11 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCheckStatus_OK() throws CollectException {
+    public void testCheckStatus_OK() {
         // Given
         final String idCollect = "XXXX000002222222";
         TransactionModel transactionModel =
-            new TransactionModel(idCollect, null, TransactionStatus.OPEN, null, null);
+            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
 
         // When
         boolean checkStatus =
@@ -115,11 +118,11 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCheckStatus_KO() throws InvalidParseOperationException {
+    public void testCheckStatus_KO() {
         // Given
         final String idCollect = "XXXX000002222222";
         TransactionModel transactionModel =
-            new TransactionModel(idCollect, null, TransactionStatus.OPEN, null, null);
+            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
 
         // When
         boolean checkStatus =

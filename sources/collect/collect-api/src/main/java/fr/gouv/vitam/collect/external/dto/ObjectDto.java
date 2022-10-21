@@ -34,7 +34,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ObjectGroupDto implements Serializable {
+public class ObjectDto implements Serializable {
 
     @JsonProperty("id")
     private String id;
@@ -42,11 +42,11 @@ public class ObjectGroupDto implements Serializable {
     @JsonProperty("fileInfo")
     private FileInfoDto fileInfo;
 
-    public ObjectGroupDto() {
+    public ObjectDto() {
         //Empty constructor for serialization
     }
 
-    public ObjectGroupDto(String id, FileInfoDto fileInfo) {
+    public ObjectDto(String id, FileInfoDto fileInfo) {
         this.id = id;
         this.fileInfo = fileInfo;
     }
@@ -73,7 +73,7 @@ public class ObjectGroupDto implements Serializable {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        ObjectGroupDto that = (ObjectGroupDto) o;
+        ObjectDto that = (ObjectDto) o;
         return Objects.equals(id, that.id) && Objects.equals(fileInfo, that.fileInfo);
     }
 

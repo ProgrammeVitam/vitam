@@ -28,9 +28,8 @@ package fr.gouv.vitam.collect.internal.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.external.dto.FileInfoDto;
-import fr.gouv.vitam.collect.external.dto.ObjectGroupDto;
+import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
-import fr.gouv.vitam.collect.internal.helpers.builders.DbQualifiersModelBuilder;
 import fr.gouv.vitam.collect.internal.helpers.handlers.QueryHandler;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -38,16 +37,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.FILE_NAME;
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.OBJECT_GROUP_ID;
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.OPI;
-import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.QUALIFIER_VERSION_1;
+import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.QUALIFIER_VERSION;
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.USAGE;
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.VERSION_ID;
 import static fr.gouv.vitam.collect.internal.helpers.QueryHandlerTest.TestDummyData.qualifiersAddMultiQuery;
@@ -60,30 +57,22 @@ public class QueryHandlerTest {
     public void should_create_qualifiers_add_multiple_query()
         throws InvalidCreateOperationException, InvalidParseOperationException {
         // GIVEN
-        DbQualifiersModel qualifiersModel = new DbQualifiersModelBuilder()
-            .withUsage(USAGE)
-            .withVersion(VERSION_ID, FILE_NAME, USAGE, QUALIFIER_VERSION_1)
-            .withNbc(1)
-            .build();
-        List<DbQualifiersModel> qualifiers = new ArrayList<>();
-        qualifiers.add(qualifiersModel);
-
         DbObjectGroupModel objectGroup = new DbObjectGroupModelBuilder()
-            .withQualifiers(VERSION_ID, FILE_NAME, USAGE, QUALIFIER_VERSION_1)
+            .withQualifiers(new ArrayList<>())
             .withOpi(OPI)
             .withId(OBJECT_GROUP_ID)
             .withFileInfoModel(FILE_NAME)
             .build();
-        ObjectGroupDto objectGroupDto = new ObjectGroupDto();
+
+        ObjectDto objectDto = new ObjectDto();
         FileInfoDto fileInfo = new FileInfoDto();
         fileInfo.setFileName(FILE_NAME);
-        objectGroupDto.setFileInfo(fileInfo);
-        objectGroupDto.setId("aeeaaaaaacaltpovaewckalf3ukh4myaaaeq");
+        objectDto.setFileInfo(fileInfo);
+        objectDto.setId(VERSION_ID);
 
         // WHEN
         UpdateMultiQuery qualifiersAddMultiQuery =
-            QueryHandler.getQualifiersAddMultiQuery(USAGE, QUALIFIER_VERSION_1, qualifiers, objectGroupDto, VERSION_ID,
-                objectGroup.getNbc());
+            QueryHandler.getQualifiersAddMultiQuery(objectGroup, USAGE, QUALIFIER_VERSION, objectDto);
 
         // THEN
         JsonNode expectedJsonNode = qualifiersAddMultiQuery();
@@ -95,66 +84,40 @@ public class QueryHandlerTest {
     static class TestDummyData {
         static DataObjectVersionType USAGE = DataObjectVersionType.BINARY_MASTER;
         static String FILE_NAME = "memoire_nationale.txt";
-        static String VERSION_ID = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
-        static String OPI = "aeeaaaaaacaltpovaewckal62ukh4myaaaaq";
-        static String OBJECT_GROUP_ID = "aeedaaaaacaltpovaewckal62ukh4myaa67q";
-        static int QUALIFIER_VERSION_1 = 1;
+        static String VERSION_ID = "OBJECT_ID";
+        static String OPI = "OPI";
+        static String OBJECT_GROUP_ID = "OBJECT_GROUP_ID";
+        static int QUALIFIER_VERSION = 1;
 
         static JsonNode qualifiersAddMultiQuery() throws InvalidParseOperationException {
             String qualifiersAddMultiQuery = "{\n" +
-                "  \"$roots\": [],\n" +
-                "  \"$query\": [],\n" +
-                "  \"$filter\": {\n" +
-                "    \"$hint\": [\n" +
-                "      \"objectgroups\"\n" +
-                "    ]\n" +
+                "  \"$roots\" : [ ],\n" +
+                "  \"$query\" : [ ],\n" +
+                "  \"$filter\" : {\n" +
+                "    \"$hint\" : [ \"objectgroups\" ]\n" +
                 "  },\n" +
-                "  \"$action\": [\n" +
-                "    {\n" +
-                "      \"$set\": {\n" +
-                "        \"#qualifiers\": [\n" +
-                "          {\n" +
-                "            \"qualifier\": \"" + USAGE.getName() + "\",\n" +
-                "            \"_nbc\": 1,\n" +
-                "            \"versions\": [\n" +
-                "              {\n" +
-                "                \"_id\": \"" + VERSION_ID + "\",\n" +
-                "                \"DataObjectVersion\": \"" + USAGE.getName() + "_" + QUALIFIER_VERSION_1 + "\",\n" +
-                "                \"FileInfo\": {\n" +
-                "                  \"Filename\": \"" + FILE_NAME + "\"\n" +
-                "                },\n" +
-                "                \"Size\": 0\n" +
-                "              }\n" +
-                "            ]\n" +
+                "  \"$action\" : [ {\n" +
+                "    \"$set\" : {\n" +
+                "      \"#qualifiers\" : [ {\n" +
+                "        \"qualifier\" : \"" + USAGE.getName() + "\",\n" +
+                "        \"_nbc\" : 1,\n" +
+                "        \"versions\" : [ {\n" +
+                "          \"_id\" : \"" + VERSION_ID + "\",\n" +
+                "          \"DataObjectVersion\" : \"" + USAGE.getName() + "_" + QUALIFIER_VERSION + "\",\n" +
+                "          \"FileInfo\" : {\n" +
+                "            \"Filename\" : \"" + FILE_NAME + "\"\n" +
                 "          },\n" +
-                "          {\n" +
-                "            \"qualifier\": \"" + USAGE.getName() + "\",\n" +
-                "            \"_nbc\": 1,\n" +
-                "            \"versions\": [\n" +
-                "              {\n" +
-                "                \"_id\": \"" + VERSION_ID + "\",\n" +
-                "                \"DataObjectVersion\": \"" + USAGE.getName() + "_" + QUALIFIER_VERSION_1 + "\",\n" +
-                "                \"FileInfo\": {\n" +
-                "                  \"Filename\": \"" + FILE_NAME + "\"\n" +
-                "                },\n" +
-                "                \"Size\": 0\n" +
-                "              }\n" +
-                "            ]\n" +
-                "          }\n" +
-                "        ]\n" +
-                "      }\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"$set\": {\n" +
-                "        \"#nbobjects\": 2\n" +
-                "      }\n" +
+                "          \"Size\" : 0\n" +
+                "        } ]\n" +
+                "      } ]\n" +
                 "    }\n" +
-                "  ]\n" +
+                "  }, {\n" +
+                "    \"$set\" : {\n" +
+                "      \"#nbobjects\" : 1\n" +
+                "    }\n" +
+                "  } ]\n" +
                 "}";
             return JsonHandler.getFromString(qualifiersAddMultiQuery);
         }
     }
-
-
-
 }
