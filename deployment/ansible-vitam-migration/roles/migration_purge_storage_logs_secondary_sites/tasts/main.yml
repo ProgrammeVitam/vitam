@@ -1,0 +1,55 @@
+- name: Ensure playbook launched on secondary site
+  fail: msg="Playbook must be run on secondary sites only"
+  when: primary_site|lower != 'false'
+
+- name: Populate service facts
+  service_facts:
+
+- name: Ensure vitam-storage service is stopped before cleanup
+  fail:
+    msg: "Storage-engine is running. Please ensure Vitam is stopped"
+  when: ansible_facts.services["vitam-storage.service"].state == "running"
+
+- name: Checking for non-empty access log files
+  find:
+    paths: "{{ vitam_folder_log }}/access-log/"
+    size: 1b
+  register: nonEmptyAccessLogsFound
+
+- name: Ensure no non-empty access log file is found
+  fail:
+    msg: "Illegal / unexpected non-empty access log found on secondary site ({{ nonEmptyAccessLogsFound.files }}). Please contact Vitam support"
+  when: nonEmptyAccessLogsFound.files | length > 0
+
+- name: Checking for non-empty storage log files
+  find:
+    paths: "{{ vitam_folder_log }}/storage-log/"
+    size: 1b
+  register: nonEmptyStorageLogsFound
+
+- name: Ensure no non-empty storage log file is found
+  fail:
+    msg: "Illegal / unexpected non-empty storage log found on secondary site ({{ nonEmptyStorageLogsFound.files }}). Please contact Vitam support"
+  when: nonEmptyStorageLogsFound.files | length > 0
+
+- name: Listing access logs files
+  find:
+    path: "{{ vitam_folder_log }}/access-log/"
+  register: accessLogFilesToCleanup
+
+- name: Delete access log files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ accessLogFilesToCleanup.files }}"
+
+- name: Listing storage logs files
+  find:
+    path: "{{ vitam_folder_log }}/storage-log/"
+  register: storageLogFilesToCleanup
+
+- name: Delete storage logs files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ storageLogFilesToCleanup.files }}"
