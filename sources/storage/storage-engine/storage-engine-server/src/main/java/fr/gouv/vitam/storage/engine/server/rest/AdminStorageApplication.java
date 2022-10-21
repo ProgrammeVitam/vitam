@@ -27,12 +27,14 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
+import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 
@@ -83,6 +85,7 @@ public class AdminStorageApplication extends Application {
             singletons.add(new AdminOfferDiffResource(new OfferDiffService(distribution)));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
             singletons.add(new AdminRequestIdFilter());
+            singletons.add(new WriteProtectionScanner(new AlertServiceImpl(), storageConfiguration.isReadOnly()));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

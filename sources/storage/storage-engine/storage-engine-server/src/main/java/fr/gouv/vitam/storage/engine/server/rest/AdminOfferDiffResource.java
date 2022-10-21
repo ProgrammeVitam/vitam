@@ -38,6 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferDiffRequest;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffStatus;
+import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtection;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
@@ -77,6 +78,7 @@ public class AdminOfferDiffResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @WriteProtection(true)
     public Response startOfferDiff(
         OfferDiffRequest offerDiffRequest) {
         ParametersChecker.checkParameter("Offer 1 is mandatory.", offerDiffRequest.getOffer1());
@@ -123,6 +125,7 @@ public class AdminOfferDiffResource {
     @Path("/diff")
     @HEAD
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @WriteProtection(true)
     public Response isOfferDiffRunning() {
         return Response.ok().header("Running", this.offerDiffService.isRunning()).build();
     }
@@ -134,6 +137,7 @@ public class AdminOfferDiffResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @WriteProtection(true)
     public Response getLastOfferDiffStatus() {
         OfferDiffStatus lastOfferDiffStatus = this.offerDiffService.getLastOfferDiffStatus();
 

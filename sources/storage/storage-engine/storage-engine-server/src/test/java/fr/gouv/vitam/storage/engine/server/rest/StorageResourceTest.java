@@ -211,16 +211,10 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(),
+                VitamHttpHeader.OFFERS_IDS.getName(),
                 OFFER_ID, VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
-            .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
-            .body("").when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
