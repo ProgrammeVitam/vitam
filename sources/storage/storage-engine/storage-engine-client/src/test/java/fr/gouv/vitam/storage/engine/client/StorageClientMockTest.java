@@ -106,7 +106,6 @@ public class StorageClientMockTest {
         assertTrue(existsResult.containsKey("offerId"));
         assertEquals(existsResult.get("offerId"), Boolean.TRUE);
         assertFalse(existsResult.containsKey("offerIdFake"));
-        assertTrue(client.existsContainer("idStrategy"));
     }
 
 
