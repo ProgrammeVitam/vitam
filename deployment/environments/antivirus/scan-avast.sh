@@ -20,7 +20,7 @@ RET_FAILURE=3
 RET=$RET_FAILURE
 ##########################################################################
 # For verbose mode, you can add -a parameter to the scan command         #
-SCAN_PARAMS='-aifup'
+SCAN_PARAMS='-ifup'
 # For verbose mode, you can remove the -q parameter to the unzip command #
 UNZIP_PARAMS=''
 ##########################################################################
@@ -42,10 +42,10 @@ custom_scan () {
     # Examples output:
     # avast: /vitam/data/ingest-external/upload/SIP_Test_decompression.zip|>content/ID6999.docx|>word/media/image8.emf: The file is a decompression bomb
     # avast: /vitam/data/ingest-external/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq|>content/ID15.docx|>word/embeddings/Microsoft_PowerPoint_Presentation1.pptx|>ppt/media/image1.emf: The file is a decompression bomb
-    local DECOMPRESSION_BOMBS=($(cat ${WORKING_DIR}/scan.log | grep -e 'The file is a decompression bomb' | cut -d':' -f2 | cut -d'>' -f2-))
+    local DECOMPRESSION_BOMBS=$(cat ${WORKING_DIR}/scan.log | grep -e 'The file is a decompression bomb' | cut -d':' -f2 | cut -d'>' -f2-)
     if [ -n "$DECOMPRESSION_BOMBS" ]; then
       # Whitelist => emf,wmf,log
-      local REAL_BOMBS=($(echo $DECOMPRESSION_BOMBS | grep -vF -e '.emf' -e '.wmf' -e '.log'))
+      local REAL_BOMBS=$(echo $DECOMPRESSION_BOMBS | grep -vE '^.*\.(emf|wmf|log)$')
 
       # If we don't have real decompression bomb (maybe we have too big files)
       if [ -n "$REAL_BOMBS" ]; then
@@ -55,7 +55,7 @@ custom_scan () {
         RET=$RET_VIRUS_FOUND_NOTFIXED
       else
         echo "INFO: $(printf '%s\n' $DECOMPRESSION_BOMBS | wc -l) decompression bombs ignored..." |& tee -a ${WORKING_DIR}/scan.log
-        printf ' %s\n' $DECOMPRESSION_BOMBS |& tee -a ${WORKING_DIR}/scan.log
+        printf '  %s\n' $DECOMPRESSION_BOMBS |& tee -a ${WORKING_DIR}/scan.log
         RET=$RET_VIRUS_FOUND_FIXED
       fi
     fi
@@ -64,11 +64,11 @@ custom_scan () {
     # Examples output:
     # avast: /vitam/data/ingest-external/upload/SIP-Perf-1-18x400M.zip|>content/ID58.tmp: ZIP archive is corrupted
     # avast: /vitam/data/ingest-external/upload/SIP-Perf-1-18x400M.zip|>content/ID43093.pdf|>word/theme/theme1.xml: ZIP archive is corrupted
-    local CORRUPTED_FILES=($(cat ${WORKING_DIR}/scan.log | grep -e 'ZIP archive is corrupted' | cut -d':' -f2 | tr '|>' '\n' | grep -e content | uniq))
+    local CORRUPTED_FILES=$(cat ${WORKING_DIR}/scan.log | grep -e 'ZIP archive is corrupted' | cut -d':' -f2 | cut -d'>' -f2-)
     if [ -n "$CORRUPTED_FILES" ]; then
       REASON="$(printf '%s\n' ${CORRUPTED_FILES} | wc -l) corrupted files found !"
       echo "ERROR: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
-      printf ' %s\n' $CORRUPTED_FILES |& tee -a ${WORKING_DIR}/scan.log
+      printf '  %s\n' $CORRUPTED_FILES |& tee -a ${WORKING_DIR}/scan.log
       RET=$RET_VIRUS_FOUND_NOTFIXED
     fi
 
@@ -77,10 +77,11 @@ custom_scan () {
       # Example output for zip: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.zip|>content/ID13.tmp: Compressed file is too big to be processed
       # Example output for tar.gz: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.tar.gz|>SIP-Perf-1-1x500M.tar: Compressed file is too big to be processed
       # Example output for tar.bz2: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.tar.bz2|>{bzip}: Compressed file is too big to be processed
-      local FILES_TO_INDIVIDUALLY_SCAN=($(cat ${WORKING_DIR}/scan.log | grep -e 'Compressed file is too big to be processed'| cut -d':' -f2 | cut -d'>' -f2 | uniq | sed 's/|//'))
+      local FILES_TO_INDIVIDUALLY_SCAN=($(cat ${WORKING_DIR}/scan.log | grep -e 'Compressed file is too big to be processed' | cut -d':' -f2 | cut -d'>' -f2 | uniq | sed 's/|//'))
       if [ -n "$FILES_TO_INDIVIDUALLY_SCAN" ]; then
         # echo "Starting individual scan for ${#FILES_TO_INDIVIDUALLY_SCAN[@]} big files..." |& tee -a ${WORKING_DIR}/scan.log
         unzip_and_scan "$FILE_TO_SCAN" "${FILES_TO_INDIVIDUALLY_SCAN[@]}"
+        RET=$?
       fi
     fi
 
@@ -116,17 +117,18 @@ unzip_and_scan () {
       tar xvjf "$ARCHIVE" --directory "$TMP_FILE" |& tee -a ${WORKING_DIR}/scan.log #uncompress the entire archive
     else
       echo "ERROR: $ARCHIVE: mime-type $TYPE_SIP is not supported" |& tee -a ${WORKING_DIR}/scan.log
-      break # exit loop
+      return $RET_FAILURE
     fi
 
     # Normal scan...
-    custom_scan "$TMP_FILE"
-    RET=$? # return code of scan
+    scan $SCAN_PARAMS "$TMP_FILE" &>> ${WORKING_DIR}/scan.log
+    local RET=$? # return code of scan
 
     rm -f "$TMP_FILE"
 
-    if [ $RET -ge 2 ]; then
-      break # exit loop
+    if [ $RET != $RET_OK ]; then
+      REASON="Virus found !"
+      return $RET_VIRUS_FOUND_NOTFIXED
     fi
 
   done
