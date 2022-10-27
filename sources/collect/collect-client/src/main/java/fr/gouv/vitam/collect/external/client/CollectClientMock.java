@@ -159,12 +159,6 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery)
-        throws VitamClientException {
-        return null;
-    }
-
-    @Override
     public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext, String projectId,
         JsonNode dslQuery)
         throws VitamClientException {
@@ -183,6 +177,11 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
+    public RequestResponse<JsonNode> updateTransaction(VitamContext vitamContext, TransactionDto transactionDto)
+        throws VitamClientException {
+        throw new NotImplementedException("Not implemented");
+    }
+    
     public RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
         throws VitamClientException {
         throw new NotImplementedException("Not implemented");

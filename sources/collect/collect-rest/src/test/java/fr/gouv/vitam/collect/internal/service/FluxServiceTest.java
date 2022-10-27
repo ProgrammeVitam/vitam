@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.helpers.builders.DbObjectGroupModelBuilder;
 import fr.gouv.vitam.collect.internal.model.CollectUnitModel;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -115,9 +116,10 @@ public class FluxServiceTest {
     @Test
     @RunWithCustomExecutor
     public void processStream() throws Exception {
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setId("TRANSACTION_ID");
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId("PROJECT_ID");
-        projectDto.setTransactionId("TRANSACTION_ID");
         Map<String, JsonNode> units = new HashMap<>();
         Map<String, JsonNode> objectGroups = new HashMap<>();
         when(metadataService.saveArchiveUnit(any())).thenAnswer(e -> {
@@ -159,7 +161,7 @@ public class FluxServiceTest {
         });
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, projectDto);
+            fluxService.processStream(resourceAsStream, transactionDto, projectDto);
         }
 
 
@@ -181,9 +183,10 @@ public class FluxServiceTest {
     @Test
     @RunWithCustomExecutor
     public void processStream_with_metadata_update() throws Exception {
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setId("TRANSACTION_ID");
         ProjectDto projectDto = new ProjectDto();
         projectDto.setId("PROJECT_ID");
-        projectDto.setTransactionId("TRANSACTION_ID");
         Map<String, JsonNode> units = new HashMap<>();
         Map<String, JsonNode> objectGroups = new HashMap<>();
         when(metadataService.saveArchiveUnit(any())).thenAnswer(e -> {
@@ -258,7 +261,7 @@ public class FluxServiceTest {
         });
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION2_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, projectDto);
+            fluxService.processStream(resourceAsStream, transactionDto, projectDto);
         }
 
         final JsonNode expectedQueries =

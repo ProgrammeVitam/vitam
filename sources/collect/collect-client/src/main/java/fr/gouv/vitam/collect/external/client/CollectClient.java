@@ -245,19 +245,9 @@ public interface CollectClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
+    Response uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
         throws VitamClientException;
 
-
-    /**
-     * get archive unit by Dsl query
-     *
-     * Consume and produce MediaType.APPLICATION_JSON
-     *
-     * @return Response
-     * @throws VitamClientException exception occurs when parse operation failed
-     */
-    RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery) throws VitamClientException;
 
     /**
      * Get all AU attached to transactions related to project Id param
@@ -296,6 +286,18 @@ public interface CollectClient extends MockOrRestClient {
      */
     RequestResponseOK<JsonNode> searchProject(VitamContext vitamContext, CriteriaProjectDto criteria)
         throws VitamClientException;
+
+    /**
+     * Update a collect transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse<JsonNode> updateTransaction(VitamContext vitamContext,
+        TransactionDto transactionDto) throws VitamClientException;
+
 
 
     RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)

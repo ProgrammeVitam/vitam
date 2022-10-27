@@ -36,6 +36,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.collect.external.dto.FileInfoDto;
 import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CsvMetadataMapper;
 import fr.gouv.vitam.collect.internal.model.CollectUnitModel;
@@ -113,14 +114,14 @@ public class FluxService {
         this.metadataService = metadataService;
     }
 
-    public void processStream(InputStream inputStreamObject, ProjectDto projectDto) throws CollectException {
+    public void processStream(InputStream inputStreamObject, TransactionDto transactionDto, ProjectDto projectDto) throws CollectException {
         final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory().createArchiveInputStream(
             CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
             HashMap<String, String> savedGuidUnits = new HashMap<>();
-            boolean isAttachmentAuExist = isAttachmentAuExist(projectDto, savedGuidUnits);
+            boolean isAttachmentAuExist = isAttachmentAuExist(projectDto, transactionDto.getId(),  savedGuidUnits);
             boolean isExtraMetadataExist = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
@@ -132,11 +133,11 @@ public class FluxService {
                     String fileName = Paths.get(entry.getName()).getFileName().toString();
                     if (!entry.isDirectory() && fileName.equals(METADATA_CSV_FILE)) {
                         // save file in workspace
-                        collectService.pushStreamToWorkspace(projectDto.getTransactionId(), entryInputStream,
+                        collectService.pushStreamToWorkspace(transactionDto.getId(), entryInputStream,
                             METADATA_CSV_FILE);
                         isExtraMetadataExist = true;
                     } else {
-                        convertEntryToAu(projectDto, entry, isAttachmentAuExist, entryInputStream, savedGuidUnits,
+                        convertEntryToAu(transactionDto.getId(), entry, isAttachmentAuExist, entryInputStream, savedGuidUnits,
                             fileName);
                     }
                     isEmpty = false;
@@ -148,9 +149,9 @@ public class FluxService {
             }
 
             if (isExtraMetadataExist) {
-                try (final InputStream is = collectService.getInputStreamFromWorkspace(projectDto.getTransactionId(),
+                try (final InputStream is = collectService.getInputStreamFromWorkspace(transactionDto.getId(),
                     METADATA_CSV_FILE)) {
-                    updateUnits(projectDto.getTransactionId(), is, isAttachmentAuExist);
+                    updateUnits(transactionDto.getId(), is, isAttachmentAuExist);
                 }
             }
 
@@ -264,11 +265,11 @@ public class FluxService {
         return map;
     }
 
-    private boolean isAttachmentAuExist(ProjectDto projectDto, HashMap<String, String> savedGuidUnits)
+    private boolean isAttachmentAuExist(ProjectDto projectDto, String transactionId, HashMap<String, String> savedGuidUnits)
         throws CollectException {
         boolean isAttachmentAuExist = false;
         if (projectDto.getUnitUp() != null) {
-            JsonNode savedUnit = uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.SERIES.getValue(),
+            JsonNode savedUnit = uploadArchiveUnit(transactionId, DescriptionLevel.SERIES.getValue(),
                 DUMMY_ARCHIVE_UNIT_TITLE, null, projectDto.getUnitUp());
             savedGuidUnits.put(ATTACHEMENT_AU, savedUnit.get(ID).asText());
             isAttachmentAuExist = true;
@@ -276,7 +277,7 @@ public class FluxService {
         return isAttachmentAuExist;
     }
 
-    private void convertEntryToAu(ProjectDto projectDto, ArchiveEntry entry, boolean isAttachmentAuExist,
+    private void convertEntryToAu(String transactionId, ArchiveEntry entry, boolean isAttachmentAuExist,
         ArchiveEntryInputStream entryInputStream, HashMap<String, String> savedGuidUnits, String fileName)
         throws CollectException {
         Map.Entry<String, String> unitParentEntry;
@@ -285,13 +286,13 @@ public class FluxService {
             unitParentEntry =
                 getUnitParentByPath(savedGuidUnits, StringUtils.chop(entry.getName()), isAttachmentAuExist);
             unitRecord =
-                uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.RECORD_GRP.getValue(), fileName,
+                uploadArchiveUnit(transactionId, DescriptionLevel.RECORD_GRP.getValue(), fileName,
                     unitParentEntry != null ? unitParentEntry.getValue() : null, null);
             savedGuidUnits.put(StringUtils.chop(entry.getName()), unitRecord.get(ID).asText());
         } else {
             unitParentEntry = getUnitParentByPath(savedGuidUnits, entry.getName(), isAttachmentAuExist);
             JsonNode unitItem =
-                uploadArchiveUnit(projectDto.getTransactionId(), DescriptionLevel.ITEM.getValue(), fileName,
+                uploadArchiveUnit(transactionId, DescriptionLevel.ITEM.getValue(), fileName,
                     unitParentEntry != null ? unitParentEntry.getValue() : null, null);
             uploadObjectGroup(unitItem.get(ID).asText(), fileName);
             uploadBinary(unitItem.get(ID).asText(), entryInputStream);
