@@ -72,7 +72,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDis
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -1205,7 +1205,7 @@ public class StorageDistributionImplTest {
         folder.create();
 
         StorageLog storageLogService =
-            StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
+            new StorageLogService(list, Paths.get(folder.getRoot().getAbsolutePath()));
 
         return Pair.of(configuration, storageLogService);
     }

@@ -24,34 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.rest.writeprotection;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.net.URI;
 
-public final class StorageLogFactory {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-    private static StorageLog instance;
+public class WriteProtectionForbiddenFilterTest {
 
-    public static synchronized StorageLog getInstance(StorageConfiguration storageConfiguration) throws IOException {
-        if (storageConfiguration.isReadOnly()) {
-            return new ReadOnlyStorageLog(new AlertServiceImpl());
-        }
+    @Test
+    public void testFilter() throws IOException {
 
-        if (instance == null) {
-            instance = new StorageLogService(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
-        }
-        return instance;
-    }
+        // Given
+        AlertService alertService = mock(AlertService.class);
+        WriteProtectionForbiddenFilter filter = new WriteProtectionForbiddenFilter(alertService);
 
-    @VisibleForTesting
-    public static synchronized void resetForTesting() {
-        instance = null;
+        ContainerRequestContext request = mock(ContainerRequestContext.class);
+        doReturn("POST").when(request).getMethod();
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        doReturn(uriInfo).when(request).getUriInfo();
+        doReturn(URI.create("https://uri/")).when(uriInfo).getRequestUri();
+
+        // When
+        filter.filter(request);
+
+        // Then
+        ArgumentCaptor<Response> responseArgumentCaptor = ArgumentCaptor.forClass(Response.class);
+        verify(request).abortWith(responseArgumentCaptor.capture());
+        assertThat(responseArgumentCaptor.getValue().getStatus()).isEqualTo(
+            Response.Status.UNAUTHORIZED.getStatusCode());
+        verify(alertService).createAlert(VitamLogLevel.ERROR,
+            "SECURITY ALERT. Illegal Write API invocation on secondary site : POST https://uri/");
     }
 }

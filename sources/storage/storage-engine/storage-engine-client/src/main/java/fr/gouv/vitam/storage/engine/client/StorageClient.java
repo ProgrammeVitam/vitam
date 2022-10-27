@@ -122,15 +122,6 @@ public interface StorageClient extends BasicClient {
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
-     * Check the existance of a tenant container in storage by its id
-     *
-     * @param strategyId the storage strategy id
-     * @return true if exist
-     * @throws StorageServerClientException if the Server got an internal error
-     */
-    boolean existsContainer(String strategyId) throws StorageServerClientException;
-
-    /**
      * Check the existence of an object in storage by its id and type {@link DataCategory}.
      *
      * @param strategyId the storage strategy id

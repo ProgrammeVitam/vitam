@@ -1,0 +1,2 @@
+---
+vitam_folder_log: "{{ vitam_defaults.folder.root_path }}/log/{{ vitam.storageengine.vitam_component }}"

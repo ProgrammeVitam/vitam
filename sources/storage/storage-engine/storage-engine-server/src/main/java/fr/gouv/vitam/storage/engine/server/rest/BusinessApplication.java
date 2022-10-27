@@ -27,7 +27,9 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -68,6 +70,7 @@ public class BusinessApplication extends Application {
 
             StorageResource storageResource = new StorageResource(storageConfiguration);
             singletons.add(storageResource);
+            singletons.add(new WriteProtectionScanner(new AlertServiceImpl(), storageConfiguration.isReadOnly()));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

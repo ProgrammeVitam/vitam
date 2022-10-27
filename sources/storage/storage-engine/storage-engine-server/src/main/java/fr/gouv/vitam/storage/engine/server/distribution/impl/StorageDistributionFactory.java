@@ -24,34 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 
-import java.io.IOException;
-import java.nio.file.Paths;
+public final class StorageDistributionFactory {
 
-public final class StorageLogFactory {
+    public static StorageDistribution createStorageDistribution(
+        StorageConfiguration storageConfiguration,
+        StorageLog storageLogService,
+        AlertService alertService) throws StorageTechnicalException {
 
-    private static StorageLog instance;
+        StorageDistributionImpl storageDistribution =
+            new StorageDistributionImpl(storageConfiguration, storageLogService);
 
-    public static synchronized StorageLog getInstance(StorageConfiguration storageConfiguration) throws IOException {
         if (storageConfiguration.isReadOnly()) {
-            return new ReadOnlyStorageLog(new AlertServiceImpl());
+            return new ReadOnlyShieldStorageDistribution(storageDistribution, alertService);
         }
 
-        if (instance == null) {
-            instance = new StorageLogService(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
-        }
-        return instance;
+        return storageDistribution;
     }
 
-    @VisibleForTesting
-    public static synchronized void resetForTesting() {
-        instance = null;
-    }
 }
