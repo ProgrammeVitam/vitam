@@ -132,8 +132,7 @@
   notify:
    - "cerebro - reload consul configuration"
 
-- name: Flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: Ensure cerebro is started at boot
   service:

@@ -1,6 +1,7 @@
 ---
-# handlers file for siegfried
+
 - name: "siegfried - restart service"
-  service:
+  systemd:
     name: vitam-siegfried
     state: restarted
+    daemon_reload: yes

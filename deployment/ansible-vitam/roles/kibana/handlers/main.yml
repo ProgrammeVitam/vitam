@@ -1,10 +1,10 @@
 ---
 
-# handlers file for log-server
 - name: "kibana - restart service"
   systemd:
     name: kibana
     state: restarted
+    daemon_reload: yes
 
 - name: "kibana - reload consul configuration"
   service:

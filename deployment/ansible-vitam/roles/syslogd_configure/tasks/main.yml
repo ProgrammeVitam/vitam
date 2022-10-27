@@ -1,7 +1,0 @@
----
-
-- include_tasks: rsyslog.yml
-  when: syslog.name =="rsyslog"
-
-- include_tasks: syslogng.yml
-  when: syslog.name =="syslog-ng"

@@ -1,11 +1,12 @@
 ---
-# handlers for alertmanager
-- name: reload consul configuration
-  service:
-    name: vitam-consul
-    state: reloaded
 
-- name: restart prometheus alertmanager
-  service:
+- name: "prometheus-alertmanager - restart service"
+  systemd:
     name: vitam-alertmanager
     state: restarted
+    daemon_reload: yes
+
+- name: "prometheus-alertmanager - reload consul configuration"
+  systemd:
+    name: vitam-consul
+    state: reloaded

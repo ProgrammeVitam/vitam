@@ -10,7 +10,7 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
-  notify: restart grafana
+  notify: "grafana - restart service"
 
 - name: Ensure grafana directories are present
   file:
@@ -32,10 +32,9 @@
     group: "{{ grafana_group }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default ('0640') }}"
   tags: update_grafana_configuration
-  notify: restart grafana
+  notify: "grafana - restart service"
 
-- name: flush_handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: Make sure grafana-server is started and enabled at boot
   systemd:
@@ -64,7 +63,7 @@
     - consul_conf
     - update_grafana_configuration
   notify:
-    - reload consul configuration
+    - "grafana - reload consul configuration"
 
 - name: Wait for grafana-server port {{ grafana.http_port | default(3000) }} to be open
   wait_for:

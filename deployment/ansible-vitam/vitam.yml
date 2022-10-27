@@ -118,13 +118,6 @@
     elasticsearch_host: "{{ elasticsearch.log.host }}"
     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
 
-### SYSLOG DAEMON CONFIGURATION ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - syslogd_configure
-
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts_elasticsearch_data
   any_errors_fatal: true

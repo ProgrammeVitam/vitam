@@ -8,7 +8,7 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
-  notify: restart prometheus alertmanager
+  notify: "prometheus-alertmanager - restart service"
 
 #### Configuration ####
 - name: Check that the alertmanager directories exist
@@ -26,7 +26,7 @@
     - log
     - data
     - tmp
-  notify: restart prometheus alertmanager
+  notify: "prometheus-alertmanager - restart service"
 
 - name: Apply prometheus alertmanager sysconfig default
   template:
@@ -37,7 +37,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - update_alertmanager_configuration
-  notify: restart prometheus alertmanager
+  notify: "prometheus-alertmanager - restart service"
 
 - name: Create the prometheus alertmanager configuration file
   template:
@@ -49,7 +49,7 @@
   tags:
     - update_alertmanager_configuration
   notify:
-    - restart prometheus alertmanager
+    - "prometheus-alertmanager - restart service"
 
 #### Consul configuration ####
 - name: Ensure consul config dir is OK
@@ -71,7 +71,7 @@
     - consul_conf
     - update_alertmanager_configuration
   notify:
-    - reload consul configuration
+    - "prometheus-alertmanager - reload consul configuration"
 
 # Ensure that the installation is complete and consul up
 - meta: flush_handlers

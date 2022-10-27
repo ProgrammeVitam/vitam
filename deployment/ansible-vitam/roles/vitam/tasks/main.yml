@@ -184,7 +184,7 @@
     - "vitam - restart service"
 
 - include_tasks: storage.yml
-  when: vitam_struct.vitam_component == "storage"
+  when: vitam_struct.vitam_component == "storage" or vitam_struct.vitam_component == "ihm-recette"
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
@@ -348,8 +348,7 @@
 
 - import_tasks: selinux_contexts.yml
 
-- name: Flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: Ensure "{{ package_name }}" service is disabled and stopped on secondary site
   service:

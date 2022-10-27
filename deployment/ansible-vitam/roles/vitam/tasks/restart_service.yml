@@ -1,9 +1,0 @@
----
-
-- debug:
-    msg: Restart and check {{ package_name }} service
-
-- name: restart the service
-  service:
-    name: "{{ package_name }}"
-    state: restarted

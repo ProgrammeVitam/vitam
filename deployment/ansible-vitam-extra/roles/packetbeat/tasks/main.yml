@@ -46,7 +46,7 @@
   register: result
   until: result.rc == 0
   notify:
-    - restart kibana
+    - "packetbeat - restart kibana"
 
 - name: restart packetbeat
   service:

@@ -54,7 +54,7 @@
     dest: "{{ vitam_defaults.folder.root_path }}"
     owner: "root"
     mode: 0644
-  notify: restart apache
+  notify: "vitam_browser - restart apache"
 
 - name: add configuration file for mapping on Centos # + notify httpd restart
   template:
@@ -63,7 +63,7 @@
     mode: 0500
     owner: root
   when: ansible_os_family == "RedHat"
-  notify: restart apache
+  notify: "vitam_browser - restart apache"
   with_items:
   - "httpd-offer-view.conf"
   - "security.conf"
@@ -75,7 +75,7 @@
     mode: 0500
     owner: root
   when: ansible_os_family == "Debian"
-  notify: restart apache
+  notify: "vitam_browser - restart apache"
   with_items:
   - "httpd-offer-view.conf"
   - "security.conf"
@@ -86,7 +86,7 @@
     dest: '/etc/{{ apache_service }}/sites-enabled/{{ item }}'
     state: link
   when: ansible_os_family == "Debian"
-  notify: restart apache
+  notify: "vitam_browser - restart apache"
   with_items:
   - "httpd-offer-view.conf"
   - "security.conf"

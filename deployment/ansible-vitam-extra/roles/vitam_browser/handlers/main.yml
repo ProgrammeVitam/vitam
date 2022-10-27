@@ -1,6 +1,6 @@
 ---
-# handlers file for storage-offer-default
-- name: restart apache
+
+- name: "vitam_browser - restart apache"
   service:
     name: "{{ apache_service }}"
-    state: "restarted"
+    state: restarted
