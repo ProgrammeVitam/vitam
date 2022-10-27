@@ -1,5 +1,4 @@
 ---
-# tasks file for rsyslog
 
 - name: ensure rsyslog package is installed
   package:
@@ -9,6 +8,22 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - "rsyslog - restart service"
+
+- name: copy VITAM transport config file
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.d/vitam_transport.conf
+    owner: root
+    mode: 0644
+  when:
+    - groups['hosts_logstash']|length > 0
+    - consul_disabled is not defined or consul_disabled |lower != "true"
+  notify:
+    - "rsyslog - restart service"
+
+- meta: flush_handlers
 
 - name: ensure service is started on boot && restart service
   service:

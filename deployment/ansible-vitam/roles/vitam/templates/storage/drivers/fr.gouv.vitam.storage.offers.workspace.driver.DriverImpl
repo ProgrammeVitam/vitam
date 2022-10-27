@@ -2,6 +2,6 @@
 {% if item.id is defined %}
 {{ item.id }}{% if not loop.last %};{% endif %}
 {% else %}
-{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}{% if not loop.last %};{% endif %}
+{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}{% if not loop.last %};{% endif %}
 {% endif %}
 {% endfor %}

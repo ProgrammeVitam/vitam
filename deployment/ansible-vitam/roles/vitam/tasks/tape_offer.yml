@@ -9,7 +9,7 @@
 - name: add user vitam to tape group if component is offer
   user:
     name: "{{ vitam_defaults.users.vitam }}"
-    groups: "tape" 
+    groups: "tape"
     append: yes
-  when: ("tape" in getent_group) and (vitam_struct.vitam_component == "offer")
+  when: ("tape" in getent_group)
 # TODO OMA: maybe even more restrictive on conf_offer ?

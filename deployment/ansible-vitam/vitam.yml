@@ -118,13 +118,6 @@
     elasticsearch_host: "{{ elasticsearch.log.host }}"
     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
 
-### SYSLOG DAEMON CONFIGURATION ###
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - syslogd_configure
-
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts_elasticsearch_data
   any_errors_fatal: true
@@ -165,7 +158,6 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - simulate_tape
     - vitam
     - offer
     - timers
@@ -184,7 +176,6 @@
   roles:
     - vitam
     - timers
-    - storage
   vars:
     vitam_struct: "{{ vitam.storageengine }}"
     vitam_certificate_client_type: "storage"
@@ -194,7 +185,10 @@
 - hosts: hosts_metadata
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
+  # First server started alone to ensure indexes are created once
+  serial:
+    - 1
+    - "100%"
   roles:
     - elasticsearch-mapping
     - vitam
@@ -207,7 +201,10 @@
 - hosts: hosts_logbook
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
+  # First server started alone to ensure indexes are created once
+  serial:
+    - 1
+    - "100%"
   roles:
     - vitam
     - timers
@@ -226,7 +223,10 @@
     vitam_struct: "{{ vitam.workspace }}"
 
 - hosts: hosts_metadata_collect
-  serial: 1
+  # First server started alone to ensure indexes are created once
+  serial:
+    - 1
+    - "100%"
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -260,7 +260,10 @@
 - hosts: hosts_functional_administration
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
+  # First server started alone to ensure indexes are created once
+  serial:
+    - 1
+    - "100%"
   roles:
     - vitam
     - timers

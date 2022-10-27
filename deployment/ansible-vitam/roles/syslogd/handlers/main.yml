@@ -1,13 +1,13 @@
 ---
 
-- name: restart clamav
+- name: "rsyslog - restart service"
   systemd:
-    name: "{{ clamav_service_name }}"
+    name: rsyslog
     state: restarted
     daemon_reload: yes
 
-- name: restart avast
+- name: "syslogng - restart service"
   systemd:
-    name: avast
+    name: syslog-ng
     state: restarted
     daemon_reload: yes

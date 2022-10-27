@@ -1,12 +1,15 @@
 ---
 
-- name: "restart service"
-  include_tasks: tasks/restart_service.yml
-  listen: "restart service"
+- name: "vitam - restart service"
+  systemd:
+    name: "{{ package_name }}"
+    state: restarted
+    daemon_reload: yes
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
 
-- name: reload consul
-  include_tasks: tasks/reload_consul.yml
-  listen: "reload consul configuration"
+- name: "vitam - reload consul configuration"
+  systemd:
+    name: vitam-consul
+    state: reloaded
   when: consul_disabled is not defined or consul_disabled |lower != "true"

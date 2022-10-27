@@ -221,8 +221,6 @@ grafana:
         allowUiUpdates: true
         options:
           path: "/etc/grafana/provisioning/dashboards"
-    grafana_plugins:
-      - camptocamp-prometheus-alertmanager-datasource
 
 # Curator units: days
 curator:

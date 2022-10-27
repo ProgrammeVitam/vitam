@@ -1,25 +1,6 @@
 ---
 
 #### Kibana installation ####
-- name: Set command for CentOS
-  set_fact:
-    check_kibana_version: "rpm -q kibana"
-  when: ansible_os_family == "RedHat"
-
-- name: Set command for Debian
-  set_fact:
-    check_kibana_version: "dpkg-query -l  'kibana'"
-  when: ansible_os_family == "Debian"
-
-- name: checking whether kibana is already installed
-  shell : "{{ check_kibana_version }}"
-  register: is_installed
-  ignore_errors: true
-# OMA: ignore_errors beurk
-
-- import_tasks: migrate_kibana_5.yml
-  when: is_installed.stdout.find('5.6.') != -1
-
 - name: Install vitam-kibana package from repo
   package:
     name: vitam-kibana
@@ -29,15 +10,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart kibana
-
-- name: Configure kibana autostart at boot
-  systemd:
-    name: kibana
-    daemon_reload: yes
-    enabled: "{{ kibana.at_boot | default(service_at_boot) }}"
-  notify:
-    - restart kibana
+    - "kibana - restart service"
 
 - name: Kibana configuration by templating
   template:
@@ -47,7 +20,7 @@
     group: root
     mode: 0644
   notify:
-    - restart kibana
+    - "kibana - restart service"
 
 - name: Ensure Kibana log dir is OK
   file:
@@ -72,14 +45,6 @@
     state: absent
   when: kibana.logrotate | default('enabled') | lower == 'disabled'
 
-- name: flush_handlers
-  meta: flush_handlers
-
-- name: Make sure kibana is started
-  systemd:
-    name: kibana
-    state: started
-
 #### Consul configuration ####
 - name: Ensure consul config dir is OK
   file:
@@ -98,4 +63,22 @@
   tags:
     - consul_conf
   notify:
-   - reload consul configuration
+    - "kibana - reload consul configuration"
+
+- meta: flush_handlers
+
+- name: Make sure kibana is started & at boot
+  systemd:
+    name: kibana
+    enabled: "{{ composant.at_boot | default(service_at_boot) }}"
+    state: started
+
+- name: Check kibana service health in local consul agent
+  uri:
+    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ kibana_service_name }}"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"

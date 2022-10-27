@@ -1,12 +1,12 @@
 ---
 
-# handlers for grafana
-- name: restart grafana
-  service:
+- name: "grafana - restart service"
+  systemd:
     name: grafana-server
     state: restarted
+    daemon_reload: yes
 
-- name: reload consul configuration
-  service:
+- name: "grafana - reload consul configuration"
+  systemd:
     name: vitam-consul
     state: reloaded

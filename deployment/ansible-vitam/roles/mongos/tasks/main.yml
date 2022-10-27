@@ -8,14 +8,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart mongos
-
-- name: enable mongos
-  service:
-    name: vitam-mongos
-    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
-  notify:
-    - restart mongos
+    - "mongos - restart service"
 
 #### Configuration ####
 
@@ -36,7 +29,7 @@
     - script
     - tmp
   notify:
-    - restart mongos
+    - "mongos - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -63,7 +56,7 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
-    - restart mongos
+    - "mongos - restart service"
   tags:
     - update_mongodb_configuration
 
@@ -104,25 +97,9 @@
     - consul_conf
     - update_mongodb_configuration
   notify:
-   - reload consul configuration
-
-# Ensure that the installation is complete and consul up before contnuing...
-- meta: flush_handlers
-  tags:
-    - update_mongodb_configuration
-
-- name: Ensure service is started
-  service:
-    name: vitam-mongos
-    state: started
-  tags:
-    - update_mongodb_configuration
-
-#### Mongo online configuration ####
-# Note : mongodb needs to be started for these elements to succeed
+   - "mongos - reload consul configuration"
 
 # Enable mongo passphrase
-
 - name: Copy the passphrase
   template:
     src: "keyfile.j2"
@@ -132,3 +109,32 @@
     mode: 0600
   tags:
     - update_mongodb_configuration
+  notify:
+    - "mongos - reload consul configuration"
+
+# Ensure that the installation is complete and consul up before continuing...
+- meta: flush_handlers
+  tags:
+    - update_mongodb_configuration
+
+- name: Ensure {{ mongo_cluster_name }}-mongos service is started at boot
+  service:
+    name: vitam-mongos
+    enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+    state: started
+
+- name: Wait for the {{ mongo_cluster_name }}-mongos port to be open
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ mongodb.mongos_port }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+- name: Check {{ mongo_cluster_name }}-mongos service health in local consul agent
+  uri:
+    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ mongo_cluster_name }}-mongos"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"

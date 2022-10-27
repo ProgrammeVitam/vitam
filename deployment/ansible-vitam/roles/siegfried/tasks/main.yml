@@ -9,12 +9,13 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
-    - restart siegfried
+    - "siegfried - restart service"
 
-- name: Ensure siegfried is started on boot
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Ensure siegfried is started at boot
   service:
     name: vitam-siegfried
     enabled: "{{ siegfried.at_boot | default(service_at_boot) }}"
     state: started
-  notify:
-    - restart siegfried

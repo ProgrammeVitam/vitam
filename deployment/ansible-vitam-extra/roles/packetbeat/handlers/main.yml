@@ -1,6 +1,6 @@
 ---
-# handlers file for topbeat
-- name: restart kibana
+
+- name: "packetbeat - restart kibana"
   service:
     name: kibana
     state: restarted

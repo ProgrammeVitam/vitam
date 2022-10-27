@@ -1,11 +1,12 @@
 ---
-# handlers file for common
-- name: reload consul configuration
-  service:
-    name: vitam-consul
-    state: reloaded
 
-- name: restart mongos
-  service:
+- name: "mongos - restart service"
+  systemd:
     name: vitam-mongos
     state: restarted
+    daemon_reload: yes
+
+- name: "mongos - reload consul configuration"
+  systemd:
+    name: vitam-consul
+    state: reloaded

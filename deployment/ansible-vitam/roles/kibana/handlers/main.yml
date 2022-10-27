@@ -1,12 +1,12 @@
 ---
 
-# handlers file for log-server
-- name: restart kibana
+- name: "kibana - restart service"
   systemd:
     name: kibana
     state: restarted
+    daemon_reload: yes
 
-- name: reload consul configuration
+- name: "kibana - reload consul configuration"
   service:
     name: vitam-consul
     state: reloaded
