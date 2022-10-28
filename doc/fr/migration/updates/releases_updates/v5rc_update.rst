@@ -93,7 +93,7 @@ Contrôle et nettoyage de journaux du storage engine des sites secondaires
 
 Lors d'une montée de version majeure vers une version 5.rc.3+ (v5.rc.3 ou supérieure), un contrôle / purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires est nécessaire.
 
-La procédure est à réaliser sur tous les **sites secondaires** de Vitam :
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
 
 - S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
 - Exécuter le playbook :
@@ -101,3 +101,17 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam :
   .. code-block:: bash
 
      ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass
+
+Contrôle et nettoyage de journaux du storage engine des sites secondaires
+-------------------------------------------------------------------------
+
+Lors d'une montée de version majeure vers une version 5.rc.3+ (v5.rc.3 ou supérieure), une réinitialisation de la reconstruction des registre de fonds est nécessaire sur les sites secondaires.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_accession_register_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass

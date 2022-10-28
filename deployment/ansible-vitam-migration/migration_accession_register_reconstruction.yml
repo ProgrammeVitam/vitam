@@ -1,0 +1,24 @@
+---
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "You are about to run accession register reconstruction clean and migration playbook for secondary sites.\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+- hosts: hosts_mongos_data
+  any_errors_fatal: yes
+  roles:
+    - migrate_accession_register_reconstruction_mongo
+
+- hosts: hosts_functional_administration
+  any_errors_fatal: yes
+  roles:
+    - migrate_accession_register_reconstruction_elasticsearch
