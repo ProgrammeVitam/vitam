@@ -1,0 +1,19 @@
+
+// Switch to masterdata database
+db = db.getSiblingDB('masterdata');
+
+// Reset accession register collections
+db.AccessionRegisterDetail.remove({});
+db.AccessionRegisterSymbolic.remove({});
+db.AccessionRegisterSummary.remove({});
+
+// Reset reconstruction offsets
+db.Offset.updateMany(
+    { "collection": { "$in": [ "AccessionRegisterDetail", "AccessionRegisterSymbolic" ] } },
+    { $set: { "offset": NumberLong(0) } }
+);
+
+db.VitamSequence.updateMany(
+    { "Name": { "$in": [ "BACKUP_REGISTER_DETAIL", "BACKUP_REGISTER_SYMBOLIC" ] } },
+    { $set: {"Counter": NumberInt(0) } }
+);
