@@ -1,0 +1,19 @@
+---
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "Your are about to launch storage-log and access-log migration script for secondary sites.\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+- hosts: hosts_storage_engine
+  any_errors_fatal: true
+  roles:
+    - migration_purge_storage_logs_secondary_sites

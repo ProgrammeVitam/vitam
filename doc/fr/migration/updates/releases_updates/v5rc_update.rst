@@ -87,3 +87,17 @@ Si des problèmes de cohérence de type "Orphan large object segments" persisten
 Dans ce cas, il est recommandé de vérifier préalablement que les objets concernés n'existent pas sur les autres offres (mêmes container & objectName).
 Si les objets n'existent pas dans les autres offres, il s'agit alors de reliquats d'objets non complètement éliminés. Le lancement du mode 2 (correction des anomalies + purge des objets) est à réaliser.
 Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra envisager la "Procédure de resynchronisation ciblée d’une offre" décrite dans la Documentation d’EXploitation (DEX) de Vitam pour synchroniser l'offre Swift pour les éléments concernés.
+
+Contrôle et nettoyage de journaux du storage engine des sites secondaires
+-------------------------------------------------------------------------
+
+Lors d'une montée de version majeure vers une version 5.rc.3+ (v5.rc.3 ou supérieure), un contrôle / purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires est nécessaire.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass

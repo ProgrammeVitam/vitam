@@ -227,25 +227,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean existsContainer(String strategyId) throws StorageServerClientException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-
-        VitamRequestBuilder request = head()
-            .withPath("/")
-            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
-            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
-            .withJsonAccept();
-
-        try (Response response = make(request)) {
-            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
-        } catch (final VitamClientInternalException e) {
-            final String errorMessage =
-                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            throw new StorageServerClientException(errorMessage, e);
-        }
-    }
-
-    @Override
     public Map<String, Boolean> exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
