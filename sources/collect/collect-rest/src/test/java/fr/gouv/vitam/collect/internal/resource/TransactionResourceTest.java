@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.external.dto.ObjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
@@ -69,12 +70,14 @@ public class TransactionResourceTest {
     private MetadataService metadataService;
     @Mock
     private SipService sipService;
+    @Mock
+    private FluxService fluxService;
 
     @Before
     public void setUp() {
         given(collectConfiguration.getWorkspaceUrl()).willReturn("http://localhost:8082");
         transactionResource =
-            new TransactionResource(transactionService, sipService, metadataService);
+            new TransactionResource(transactionService, sipService, metadataService, fluxService);
     }
 
     @Test

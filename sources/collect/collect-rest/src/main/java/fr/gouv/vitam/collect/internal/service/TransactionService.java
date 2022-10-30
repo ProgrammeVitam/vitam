@@ -38,7 +38,6 @@ import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.collect.internal.model.ManifestContext;
-import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
@@ -200,7 +199,7 @@ public class TransactionService {
             new ManifestContextBuilder().withArchivalAgreement(projectDto.getArchivalAgreement())
                 .withMessageIdentifier(projectDto.getMessageIdentifier())
                 .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
-                .withTransferingAgencyIdentifier(projectDto.getTransferringAgencyIdentifier())
+                .withTransferringAgencyIdentifier(projectDto.getTransferringAgencyIdentifier())
                 .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
                 .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
                 .withArchivalProfile(projectDto.getArchivalProfile()).withComment(projectDto.getComment())

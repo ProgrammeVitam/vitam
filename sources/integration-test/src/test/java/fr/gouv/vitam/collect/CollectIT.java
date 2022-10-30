@@ -58,14 +58,16 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.security.internal.rest.IdentityMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -74,7 +76,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -89,22 +90,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 
-@Ignore
 public class CollectIT extends VitamRuleRunner {
-
-    private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
-    private static final String JSON_NODE_OBJECT = "collect/upload_got_collect.json";
-    private static final String BINARY_FILE = "collect/Plan-Barbusse.txt";
-
-    private static final Integer tenantId = 0;
-    private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
-    private static final String ACCESS_CONTRACT = "ContratTNR";
-    private static final String ZIP_FILE = "collect/sampleStream.zip";
-    private static final String OPI = "#opi";
-    private static final String SUBMISSION_AGENCY_IDENTIFIER = "MICHEL_MERCIER";
-    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
-    private static final String UNITS_UPDATED_PATH = "collect/units_with_description.json";
-
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -112,28 +98,31 @@ public class CollectIT extends VitamRuleRunner {
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
-                WorkerMain.class,
                 AdminManagementMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class,
-                AccessExternalMain.class,
-                IngestExternalMain.class,
                 CollectMain.class));
-    private static String transactionGuid;
-    private static String projectGuid;
-    private static String unitGuid;
-    private static String objectGroupGuid;
-    private static final String usage = DataObjectVersionType.BINARY_MASTER.getName();
-    private static final Integer version = 1;
+
+
+    private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
+    private static final String JSON_NODE_OBJECT = "collect/upload_got_collect.json";
+    private static final String BINARY_FILE = "collect/Plan-Barbusse.txt";
+
+    private static final Integer TENANT_ID = 0;
+    private static final String OPI = "#opi";
+    private static final String SUBMISSION_AGENCY_IDENTIFIER = "MICHEL_MERCIER";
+    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
+    private static final String UNITS_UPDATED_BY_ZIP_PATH = "collect/units_with_description.json";
+
+    private static final String ZIP_FILE = "collect/sampleStream.zip";
+    private static final String UNITS_TO_UPDATE = "collect/updateMetadata/units.json";
+    private static final String UNITS_UPDATED_BY_CSV_PATH = "collect/updateMetadata/units_updated.json";
+    private static final String METADATA_FILE = "collect/updateMetadata/metadata.csv";
+
+
     private static CollectClient collectClient;
     private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
-    private static String vitamOperationId;
-    private final VitamContext vitamContext = new VitamContext(tenantId)
-        .setApplicationSessionId(APPLICATION_SESSION_ID)
-        .setAccessContract(ACCESS_CONTRACT);
+    private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -152,9 +141,8 @@ public class CollectIT extends VitamRuleRunner {
 
 
     @RunWithCustomExecutor
-    @Test
     public void should_perform_collect_operation() throws Exception {
-
+/*
         ProjectDto projectDto = initProjectData();
 
         RequestResponse<JsonNode> response = collectClient.initProject(vitamContext, projectDto);
@@ -163,10 +151,10 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(((RequestResponseOK) response).getFirstResult()),
                 ProjectDto.class);
-        transactionGuid = projectDtoResult.getTransactionId();
-        projectGuid = projectDtoResult.getId();
+        String transactionGuid = projectDtoResult.getTransactionId();
+        String projectGuid = projectDtoResult.getId();
         getProjectById();
-        uploadProjectZip();
+        should_upload_project_zip();
         uploadUnit();
         getUnitById(unitGuid);
         getUnitByDslQuery();
@@ -183,9 +171,7 @@ public class CollectIT extends VitamRuleRunner {
         createTransactionByProject();
         searchProjectById();
         searchProjectByMessageIdentifier();
-        searchProjectBySubmissionAgencyIdentifier();
-        deleteTransactionById(transactionGuid);
-        deleteProjectById(projectGuid);
+        searchProjectBySubmissionAgencyIdentifier();*/
 
 
     }
@@ -213,8 +199,9 @@ public class CollectIT extends VitamRuleRunner {
 
 
     private void searchProjectById() throws VitamClientException, InvalidParseOperationException {
-        List<ProjectDto> projectsDtoResults = searchValue(projectGuid);
-        assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectGuid);
+        String projectId = null;
+        List<ProjectDto> projectsDtoResults = searchValue(projectId);
+        assertThat(projectsDtoResults.get(0).getId()).isEqualTo(projectId);
     }
 
     private List<ProjectDto> searchValue(String query) throws VitamClientException, InvalidParseOperationException {
@@ -227,6 +214,8 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     private void getTransactionByProjectId() throws VitamClientException, InvalidParseOperationException {
+        String projectGuid = null;
+        String transactionGuid = null;
         TransactionDto transactionDtoResult = getTransactionByProjectId(projectGuid);
 
         assertThat(transactionDtoResult).isNotNull();
@@ -244,7 +233,7 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     private void createTransactionByProject() throws VitamClientException, InvalidParseOperationException {
-
+        String projectGuid = null;
         TransactionDto transaction =
             new TransactionDto("XXXX00000111111", null, null, null,
                 null, null, null, null,
@@ -261,7 +250,6 @@ public class CollectIT extends VitamRuleRunner {
 
     private static ProjectDto initProjectData() {
         ProjectDto projectDto = new ProjectDto();
-        projectDto.setArchivalAgencyIdentifier("Vitam");
         projectDto.setTransferringAgencyIdentifier("AN");
         projectDto.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
         projectDto.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
@@ -279,6 +267,7 @@ public class CollectIT extends VitamRuleRunner {
         throws VitamClientException, JsonProcessingException, InvalidCreateOperationException,
         InvalidParseOperationException {
         // Given
+        String projectGuid = null;
         ProjectDto projectDtoResult = getProjectDtoById(projectGuid);
 
         // When
@@ -304,27 +293,36 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void uploadUnit() throws Exception {
+        String transactionGuid = null;
         JsonNode archiveUnitJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_UNIT));
         RequestResponseOK<JsonNode> response =
             collectClient.uploadArchiveUnit(vitamContext, archiveUnitJson, transactionGuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("#id")).isNotNull();
-        unitGuid = response.getFirstResult().get("#id").textValue();
+        String unitGuid = response.getFirstResult().get("#id").textValue();
 
     }
 
     public void uploadGot() throws Exception {
+        String unitGuid = null;
+        Integer version = null;
+        String usage = null;
+
         JsonNode gotJson = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(JSON_NODE_OBJECT));
         RequestResponseOK<JsonNode> response =
             collectClient.addObjectGroup(vitamContext, unitGuid, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
-        objectGroupGuid = response.getFirstResult().get("id").textValue();
+        String objectGroupGuid = response.getFirstResult().get("id").textValue();
     }
 
     public void uploadBinary() throws Exception {
+        String unitGuid = null;
+        Integer version = null;
+        String usage = null;
+
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(BINARY_FILE)) {
             Response response = collectClient.addBinary(vitamContext, unitGuid, version, inputStream, usage);
@@ -333,22 +331,27 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void closeTransaction() throws Exception {
+        String transactionGuid = null;
+
         Response response = collectClient.closeTransaction(vitamContext, transactionGuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
 
 
     public void ingest() throws Exception {
+        String transactionGuid = null;
+
         RequestResponseOK<JsonNode> response = collectClient.ingest(vitamContext, transactionGuid);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
         assertThat(response.getFirstResult().get("id")).isNotNull();
-        vitamOperationId = response.getFirstResult().get("id").textValue();
+        String vitamOperationId = response.getFirstResult().get("id").textValue();
         Assertions.assertThat(vitamOperationId).isNotNull();
     }
 
 
     public void getProjectById() throws Exception {
+        String projectGuid = null;
         ProjectDto projectDtoResult = getProjectDtoById(projectGuid);
 
         assertThat(projectDtoResult).isNotNull();
@@ -356,6 +359,8 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void getUnitByDslQuery() throws Exception {
+        String transactionGuid = null;
+
         String unitDsl = "{\"$roots\": [],\"$query\": [{\"$eq\": {\"#opi\": \"" + transactionGuid +
             "\"} }],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
         RequestResponseOK<JsonNode> response =
@@ -366,6 +371,7 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void getUnitById(String unitId) throws Exception {
+        String transactionGuid = null;
         RequestResponseOK<JsonNode> response = collectClient.getUnitById(vitamContext, unitId);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
@@ -394,6 +400,8 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     public void getObjectById(String objectId) throws Exception {
+        String objectGroupGuid = null;
+
         RequestResponseOK<JsonNode> response = collectClient.getObjectById(vitamContext, objectId);
         assertThat(response.isOk()).isTrue();
         assertThat(response.getFirstResult()).isNotNull();
@@ -431,18 +439,17 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     @Test
-    public void uploadProjectZip() throws Exception {
+    public void should_upload_project_zip() throws Exception {
         ProjectDto projectDto = initProjectData();
 
         final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
         Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
 
         ProjectDto projectDtoResult =
-            JsonHandler.getFromJsonNode(
-                JsonHandler.toJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult()),
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                 ProjectDto.class);
-        transactionGuid = projectDtoResult.getTransactionId();
-        projectGuid = projectDtoResult.getId();
+        String transactionGuid = projectDtoResult.getTransactionId();
+        String projectGuid = projectDtoResult.getId();
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
             Response response = collectClient.uploadProjectZip(vitamContext, projectGuid, inputStream);
@@ -455,7 +462,7 @@ public class CollectIT extends VitamRuleRunner {
 
 
         final JsonNode expectedUnits =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_PATH));
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_ZIP_PATH));
 
         JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(unitsByTransaction.getResults()), expectedUnits,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
@@ -465,12 +472,74 @@ public class CollectIT extends VitamRuleRunner {
                     "[*]." + VitamFieldsHelper.approximateUpdateDate())));
     }
 
-    public void deleteTransactionById(String transactionId) throws Exception {
+    @Test
+    public void should_update_metadata() throws Exception {
+        ProjectDto projectDto = initProjectData();
+
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class);
+        String transactionGuid = projectDtoResult.getTransactionId();
+
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(UNITS_TO_UPDATE)) {
+            final List<Unit> units = JsonHandler.getFromInputStream(inputStream, List.class, Unit.class);
+            for (Unit unit : units) {
+                unit.put(Unit.OPI, transactionGuid);
+            }
+            MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
+            MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
+        }
+
+
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
+            RequestResponseOK<JsonNode> response = collectClient.updateUnits(vitamContext, transactionGuid, inputStream);
+        }
+
+        final RequestResponseOK<JsonNode> unitsByTransaction =
+            collectClient.getUnitsByTransaction(vitamContext, transactionGuid, new SelectMultiQuery().getFinalSelect());
+
+        final JsonNode expectedUnits =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_CSV_PATH));
+
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(unitsByTransaction.getResults()), expectedUnits,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                List.of("[*]." + VitamFieldsHelper.id(), "[*]." + VitamFieldsHelper.unitups(),
+                    "[*]." + VitamFieldsHelper.object(), "[*]." + VitamFieldsHelper.allunitups(),
+                    "[*]." + VitamFieldsHelper.initialOperation(), "[*]." + VitamFieldsHelper.approximateCreationDate(),
+                    "[*]." + VitamFieldsHelper.approximateUpdateDate())));
+    }
+
+    @Test
+    public void deleteTransactionById() throws Exception {
+        ProjectDto projectDto = initProjectData();
+
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class);
+        String transactionId = projectDtoResult.getTransactionId();
+
         RequestResponse<JsonNode> response = collectClient.deleteTransactionById(vitamContext, transactionId);
         assertThat(response.getStatus()).isEqualTo(200);
     }
 
-    public void deleteProjectById(String projectId) throws Exception {
+    @Test
+    public void deleteProjectById() throws Exception {
+        ProjectDto projectDto = initProjectData();
+
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class);
+        String projectId = projectDtoResult.getId();
+
         RequestResponse<JsonNode> response = collectClient.deleteProjectById(vitamContext, projectId);
         assertThat(response.getStatus()).isEqualTo(200);
     }

@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractMap;
@@ -86,7 +87,7 @@ public class CsvMetadataMapper {
             final String json = JsonUnflattener.unflatten(node.toString());
             final JsonNode unit = JsonHandler.getFromString(json);
             fixSpeceficSedaFields(unit);
-            return new AbstractMap.SimpleEntry<>(record.get(FILE_FIELD), unit);
+            return new AbstractMap.SimpleEntry<>(FilenameUtils.separatorsToUnix(record.get(FILE_FIELD)), unit);
         } catch (Exception e) {
             LOGGER.debug("Cannot parse json entry {}", node.toString());
             throw new CsvParseException(e);
@@ -106,6 +107,15 @@ public class CsvMetadataMapper {
             if (node != null) {
                 if (!node.isArray()) {
                     ((ObjectNode) unit).set(item, JsonHandler.createArrayNode().add(node));
+                }
+                for (int i = 0; i < unit.get(item).size(); i++) {
+                    final JsonNode subNode = unit.at("/" + item + "/" + i + "/" + "linkingAgentIdentifier");
+                    if (subNode != null && subNode != MissingNode.getInstance()) {
+                        if (!subNode.isArray()) {
+                            ((ObjectNode) unit.at("/" + item + "/" + i)).set("linkingAgentIdentifier",
+                                JsonHandler.createArrayNode().add(subNode));
+                        }
+                    }
                 }
             }
         }
@@ -248,16 +258,27 @@ public class CsvMetadataMapper {
                     }
                 }
             } else if (e.startsWith(CONTENT + "Event")) {
-                final String fieldName =
-                    e.replace(CONTENT + "Event.EventIdentifier", CONTENT + "Event.evId")
-                        .replace(CONTENT + "Event.EventDateTime", CONTENT + "Event.evDateTime")
-                        .replace(CONTENT + "Event.EventDetailData", CONTENT + "Event.evTypeDetail")
-                        .replace(CONTENT + "Event.EventDetail", CONTENT + "Event.evDetData")
-                        .replace(CONTENT + "Event.EventTypeCode", CONTENT + "Event.evTypeProc")
-                        .replace(CONTENT + "Event.EventType", CONTENT + "Event.evType")
-                        .replace(CONTENT + "Event.OutcomeDetailMessage", CONTENT + "Event.outMessg")
-                        .replace(CONTENT + "Event.OutcomeDetail", CONTENT + "Event.outDetail")
-                        .replace(CONTENT + "Event.Outcome", CONTENT + "Event.outcome");
+                final String fieldName = e.replace(CONTENT + "Event.EventIdentifier", CONTENT + "Event.evId")
+                    .replace(CONTENT + "Event.EventDateTime", CONTENT + "Event.evDateTime")
+                    .replace(CONTENT + "Event.EventDetailData", CONTENT + "Event.evTypeDetail")
+                    .replace(CONTENT + "Event.EventDetail", CONTENT + "Event.evDetData")
+                    .replace(CONTENT + "Event.EventTypeCode", CONTENT + "Event.evTypeProc")
+                    .replace(CONTENT + "Event.EventType", CONTENT + "Event.evType")
+                    .replace(CONTENT + "Event.OutcomeDetailMessage", CONTENT + "Event.outMessg")
+                    .replace(CONTENT + "Event.OutcomeDetail", CONTENT + "Event.outDetail")
+                    .replace(CONTENT + "Event.Outcome", CONTENT + "Event.outcome")
+                    .replace(CONTENT + "Event.LinkingAgentIdentifier", CONTENT + "Event.linkingAgentIdentifier")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventIdentifier", CONTENT + "Event.$1.evId")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventDateTime", CONTENT + "Event.$1.evDateTime")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventDetailData", CONTENT + "Event.$1.evTypeDetail")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventDetail", CONTENT + "Event.$1.evDetData")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventTypeCode", CONTENT + "Event.$1.evTypeProc")
+                    .replaceAll(CONTENT + "Event.(\\d+).EventType", CONTENT + "Event.$1.evType")
+                    .replaceAll(CONTENT + "Event.(\\d+).OutcomeDetailMessage", CONTENT + "Event.$1.outMessg")
+                    .replaceAll(CONTENT + "Event.(\\d+).OutcomeDetail", CONTENT + "Event.$1.outDetail")
+                    .replaceAll(CONTENT + "Event.(\\d+).Outcome", CONTENT + "Event.$1.outcome")
+                    .replaceAll(CONTENT + "Event.(\\d+).LinkingAgentIdentifier", CONTENT + "Event.$1.linkingAgentIdentifier");
+
                 node.put(parseHeader(fieldName), value);
             } else {
                 node.put(parseHeader(e), value);

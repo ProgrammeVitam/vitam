@@ -297,5 +297,8 @@ public interface CollectClient extends MockOrRestClient {
     RequestResponseOK<JsonNode> searchProject(VitamContext vitamContext, CriteriaProjectDto criteria)
         throws VitamClientException;
 
+
+    RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
+        throws VitamClientException;
 }
 

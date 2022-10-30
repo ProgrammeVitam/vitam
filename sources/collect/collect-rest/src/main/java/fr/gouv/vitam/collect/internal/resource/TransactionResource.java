@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
+import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
@@ -45,6 +46,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -53,16 +55,21 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 import java.util.Optional;
 
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNITS_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
@@ -88,11 +95,14 @@ public class TransactionResource {
     private final MetadataService metadataService;
     private final SipService sipService;
 
+    private final FluxService fluxService;
+
     public TransactionResource(TransactionService transactionService, SipService sipService,
-        MetadataService metadataService) {
+        MetadataService metadataService, FluxService fluxService) {
         this.transactionService = transactionService;
         this.sipService = sipService;
         this.metadataService = metadataService;
+        this.fluxService = fluxService;
     }
 
     @Path("/{transactionId}")
@@ -268,6 +278,35 @@ public class TransactionResource {
         } catch (InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/{transactionId}/units")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Envoi vers VITAM la transaction")
+    public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) throws CollectException {
+        try {
+            SanityChecker.checkParameter(transactionId);
+
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+            if (transactionModel.isEmpty() ||
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+            }
+            TransactionModel transaction = transactionModel.get();
+            fluxService.updateUnits(transaction.getId(), is,
+                !Objects.isNull(transaction.getManifestContext().getUnitUp()));
+
+            return Response.ok(new RequestResponseOK<>()).build();
+        } catch (CollectException | IOException e) {
+            LOGGER.error("An error occurs when try to update metadata : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("An error occurs when try to update metadata : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

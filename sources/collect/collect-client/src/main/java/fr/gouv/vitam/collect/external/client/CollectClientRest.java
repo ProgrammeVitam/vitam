@@ -411,6 +411,20 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
         }
     }
 
+    @Override
+    public RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
+        throws VitamClientException {
+        try (Response response = make(
+            put().withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
+                .withHeaders(vitamContext.getHeaders())
+                .withBody(is)
+                .withJson())) {
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return (RequestResponseOK<JsonNode>) result;
+        }
+    }
+
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {

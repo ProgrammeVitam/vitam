@@ -129,7 +129,7 @@ public class BusinessApplication extends ConfigurationApplication {
             final EndpointsResource endpointsResource = new EndpointsResource(secureEndpointRegistry);
             final TransactionResource transactionResource =
                 new TransactionResource(transactionService, sipService,
-                    metadataService);
+                    metadataService, fluxService);
             final ProjectResource projectResource =
                 new ProjectResource(projectService, transactionService, metadataService, fluxService);
             final CollectMetadataResource collectMetadataResource = new CollectMetadataResource(metadataService,

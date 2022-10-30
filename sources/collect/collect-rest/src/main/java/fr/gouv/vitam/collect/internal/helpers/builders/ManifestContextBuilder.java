@@ -36,7 +36,7 @@ public class ManifestContextBuilder {
     private String archivalAgreement;
     private String messageIdentifier;
     private String archivalAgencyIdentifier;
-    private String transferingAgencyIdentifier;
+    private String transferringAgencyIdentifier;
     private String originatingAgencyIdentifier;
     private String submissionAgencyIdentifier;
     private String archivalProfile;
@@ -58,8 +58,8 @@ public class ManifestContextBuilder {
         return this;
     }
 
-    public ManifestContextBuilder withTransferingAgencyIdentifier(String transferingAgencyIdentifier) {
-        this.transferingAgencyIdentifier = transferingAgencyIdentifier;
+    public ManifestContextBuilder withTransferringAgencyIdentifier(String transferingAgencyIdentifier) {
+        this.transferringAgencyIdentifier = transferingAgencyIdentifier;
         return this;
     }
 
@@ -101,7 +101,7 @@ public class ManifestContextBuilder {
     public ManifestContext build() {
         return new ManifestContext(acquisitionInformation, legalStatus,
             archivalAgreement, messageIdentifier, archivalAgencyIdentifier,
-            transferingAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
+            transferringAgencyIdentifier, originatingAgencyIdentifier, submissionAgencyIdentifier, archivalProfile,
             comment, unitUp);
     }
 }
