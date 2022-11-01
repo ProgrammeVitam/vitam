@@ -1,8 +1,67 @@
 Notes et procédures spécifiques R16
 ###################################
 
+Procédures à exécuter AVANT la montée de version
+================================================
+
+Supprimer les indexes de configuration kibana
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée avant la montée de version si vous disposez d'une instance R16.4 ou inférieur (4.0.4-), vers une version R16.5 ou supérieur (4.0.5+).
+
+.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
+
+Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
+
+Exécutez le playbook suivant:
+
+.. code-block:: bash
+
+     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_kibana_indexes.yml --ask-vault-pass
+
+Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
+
+La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
+
+Réinitialisation de la reconstruction des registres de fond des sites secondaires
+---------------------------------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure). Elle permet la réinitialisation de la reconstruction des registre de fonds sur les sites secondaires.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
+
+- S'assurer que les timers de Vitam aient bien été préalablement arrêtés (via le playbook ``ansible-vitam-exploitation/stop_vitam_timers.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_accession_register_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
+
+Contrôle et nettoyage de journaux du storage engine des sites secondaires
+-------------------------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure). Elle permet le contrôle et la purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
+
+Procédures à exécuter APRÈS la montée de version
+================================================
+
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
+
+.. note:: Cette procédure doit être lancée une seule fois, et pour chaque offre Swift V2/V3, APRES upgrade Vitam, et uniquement depuis le **site primaire**.
 
 Si vous disposez d'une instance R16.3 ou inférieur (4.0.3-), vers une version R16.4+ (4.0.4+), et que vous utilisez des offres Swift V2/V3 (providers openstack-swift-v2 et/ou openstack-swift-v3), il est nécessaire de procéder à une migration des données :
 
@@ -37,52 +96,3 @@ Si des problèmes de cohérence de type "Orphan large object segments" persisten
 Dans ce cas, il est recommandé de vérifier préalablement que les objets concernés n'existent pas sur les autres offres (mêmes container & objectName).
 Si les objets n'existent pas dans les autres offres, il s'agit alors de reliquats d'objets non complètement éliminés. Le lancement du mode 2 (correction des anomalies + purge des objets) est à réaliser.
 Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra envisager la "Procédure de resynchronisation ciblée d’une offre" décrite dans la Documentation d’EXploitation (DEX) de Vitam pour synchroniser l'offre Swift pour les éléments concernés.
-
-.. note:: Cette procédure doit être lancée une seule fois, et pour chaque offre Swift V2/V3, APRES upgrade Vitam.
-
-Supprimer les indexes de configuration kibana
-----------------------------------------------
-
-.. caution:: Cette opération doit être effectuée avant la montée de version si vous disposez d'une instance R16.4 ou inférieur (4.0.4-), vers une version R16.5 ou supérieur (4.0.5+).
-
-.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
-
-Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
-
-Executez le playbook suivant:
-
-.. code-block:: bash
-
-     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_kibana_indexes.yml.yml --ask-vault-pass
-
-Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
-
-La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
-
-Contrôle et nettoyage de journaux du storage engine des sites secondaires
--------------------------------------------------------------------------
-
-En cas de migrations depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure), un contrôle / purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires est nécessaire.
-
-La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
-
-- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
-- Exécuter le playbook :
-
-  .. code-block:: bash
-
-     ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass
-
-Réinitialisation de la reconstruction des registres de fond des sites secondaires
----------------------------------------------------------------------------------
-
-En cas de migrations depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure), une réinitialisation de la reconstruction des registre de fonds est nécessaire sur les sites secondaires.
-
-La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
-
-- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
-- Exécuter le playbook :
-
-  .. code-block:: bash
-
-     ansible-playbook ansible-vitam-migration/migration_accession_register_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
