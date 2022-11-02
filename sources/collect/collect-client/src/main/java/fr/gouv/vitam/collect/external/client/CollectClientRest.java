@@ -418,7 +418,8 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
             put().withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
                 .withHeaders(vitamContext.getHeaders())
                 .withBody(is)
-                .withJson())) {
+                .withJsonAccept()
+                .withOctetContentType())) {
             check(response);
             RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
             return (RequestResponseOK<JsonNode>) result;
