@@ -49,7 +49,8 @@ pipeline {
             logRotator(
                 artifactDaysToKeepStr: '',
                 artifactNumToKeepStr: '',
-                numToKeepStr: '100'
+                daysToKeepStr: '100',
+                numToKeepStr: '30'
             )
         )
     }
@@ -617,7 +618,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage("Information") {
             steps {
                 script {
