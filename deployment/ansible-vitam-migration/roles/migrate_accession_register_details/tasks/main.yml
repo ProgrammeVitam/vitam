@@ -1,5 +1,6 @@
 ---
 
 - import_tasks: update_schema.yml
+  delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
 
 - import_tasks: update_accession_register_details.yml
