@@ -59,7 +59,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,6 +73,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -107,7 +107,7 @@ public class TransactionResource {
 
     @Path("/{transactionId}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_READ, description = "retourner la transaction par son id")
     public Response getTransactionById(@PathParam("transactionId") String transactionId) {
         try {
@@ -136,7 +136,7 @@ public class TransactionResource {
 
     @Path("/{transactionId}")
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_DELETE, description = "Supprime une transaction par son id")
     public Response deleteTransactionById(@PathParam("transactionId") String transactionId) {
         try {
@@ -162,8 +162,8 @@ public class TransactionResource {
 
     @Path("/{transactionId}/units")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_UNIT_CREATE, description = "Crée une unité archivistique et la rattache à la transaction courante")
     public Response uploadArchiveUnit(@PathParam("transactionId") String transactionId, JsonNode unitJsonNode) {
 
@@ -202,8 +202,8 @@ public class TransactionResource {
      */
     @Path("/{transactionId}/units")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_UNIT_READ, description = "Récupére toutes les unités archivistique")
     public Response selectUnits(@PathParam("transactionId") String transactionId,
         @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery) {
@@ -219,7 +219,7 @@ public class TransactionResource {
     @Path("/{transactionId}/close")
     @POST
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_CLOSE, description = "Ferme une transaction")
     public Response closeTransaction(@PathParam("transactionId") String transactionId) {
         try {
@@ -238,7 +238,7 @@ public class TransactionResource {
     @Path("/{transactionId}/send")
     @POST
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
     public Response generateAndSendSip(@PathParam("transactionId") String transactionId) throws CollectException {
         TransactionModel transaction = null;
@@ -284,8 +284,8 @@ public class TransactionResource {
 
     @Path("/{transactionId}/units")
     @PUT
-    @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Envoi vers VITAM la transaction")
     public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) throws CollectException {
         try {

@@ -121,6 +121,16 @@ X-Tenant-Id: {{tenant}}
 
 
 
+### Mise à jour des metadonnées par un fichier csv
+PUT {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/units
+Accept: application/json
+Content-Type: application/octet-stream
+X-Tenant-Id: {{tenant}}
+
+< /path_tometadata/metadata.csv
+
+
+
 ### Création d'une nouvelle transaction
 POST  {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
 Accept: application/json
