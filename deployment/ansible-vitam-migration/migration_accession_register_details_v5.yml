@@ -5,7 +5,7 @@
   gather_facts: no
   vars_prompt:
     name: "confirmation"
-    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
+    prompt: "This playbook will add new properties (Comment & obIdIn) in the AccessionRegisterDetail collection.\nWARNING: Documents on offer will be updated, no rollback possible after running this script.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
     default: "NO"
     private: no
   tasks:
@@ -14,7 +14,7 @@
       when: confirmation|upper != "YES"
 
 
-- hosts: hosts_access_external
+- hosts: hosts_functional_administration
   roles:
     - migrate_accession_register_details
   run_once: true
