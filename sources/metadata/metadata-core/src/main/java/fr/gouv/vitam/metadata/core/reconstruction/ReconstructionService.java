@@ -89,6 +89,7 @@ import io.prometheus.client.Histogram;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.io.input.CloseShieldInputStream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -110,7 +111,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -280,30 +280,35 @@ public class ReconstructionService {
 
                 Path filePath = Files.createTempFile(guid + "_", offerLog.getFileName());
 
-                // Read zip file from offer
-                try (InputStream zipFileAsStream = restoreBackupService.loadData(
-                    VitamConfiguration.getDefaultStrategy(), dataCategory, offerLog.getFileName())) {
+                try {
 
-                    // Copy file to local tmp to prevent risk of broken stream
-                    Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                    // Read zip file from offer
+                    try (InputStream zipFileAsStream = restoreBackupService.loadData(
+                        VitamConfiguration.getDefaultStrategy(), dataCategory, offerLog.getFileName())) {
 
-                } catch (StorageNotFoundException ex) {
-                    throw new ReconstructionException("Could not find graph zip file " + offerLog.getFileName(), ex);
-                }
+                        // Copy file to local tmp to prevent risk of broken stream
+                        Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                // Handle a reconstruction from a copied zip file
-                try (InputStream zipInputStream = Files.newInputStream(filePath)) {
-                    reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
+                    } catch (StorageNotFoundException ex) {
+                        throw new ReconstructionException("Could not find graph zip file " + offerLog.getFileName(),
+                            ex);
+                    }
+
+                    // Handle a reconstruction from a copied zip file
+                    try (InputStream zipInputStream = Files.newInputStream(filePath)) {
+                        reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
+                    }
+
+                    newOffset = offerLog.getSequence();
+                    // log the reconstruction of Vitam collection.
+                    LOGGER.info(String.format(
+                        "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
+                        dataCategory.name(), tenant, offset, LocalDateUtil.now()));
+
                 } finally {
                     // Remove file
                     Files.deleteIfExists(filePath);
                 }
-                newOffset = offerLog.getSequence();
-                // log the reconstruction of Vitam collection.
-                LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                    dataCategory.name(), tenant, offset, LocalDateUtil.now()));
-
             }
 
             response.setStatus(StatusCode.OK);
@@ -730,7 +735,7 @@ public class ReconstructionService {
             Objects.requireNonNullElse(backupModel.getLifecycle().getList("events", Map.class), new ArrayList<>())
                 .stream().map(map -> (Map<String, ?>) map).collect(Collectors.toList());
         if (!events.isEmpty()) {
-            Map<String,?> lastEvent = events.get(events.size() - 1);
+            Map<String, ?> lastEvent = events.get(events.size() - 1);
             String approximateDateTime = (String) lastEvent.get(EV_DATE_TIME);
 
             backupModel.getMetadatas()
@@ -755,7 +760,9 @@ public class ReconstructionService {
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
                     if (!entry.isDirectory()) {
-                        ArrayNode arrayNode = (ArrayNode) JsonHandler.getFromInputStream(archiveInputStream);
+                        // Wrap in CloseShieldInputStream to avoid closing initial zip file stream
+                        ArrayNode arrayNode =
+                            (ArrayNode) JsonHandler.getFromInputStream(CloseShieldInputStream.wrap(archiveInputStream));
                         treatBulkGraph(metaDaCollection, arrayNode);
                     }
                 }
