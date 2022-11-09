@@ -241,9 +241,10 @@ public class TransactionService {
      * @return Optional<TransactionModel>
      * @throws CollectException exception thrown in case of error
      */
-    public List<TransactionModel> findTransactionsByProjectId(String id) throws CollectException {
+    public List<TransactionDto> findTransactionsByProjectId(String id) throws CollectException {
         LOGGER.debug("Transaction id to find : {}", id);
-        return transactionRepository.findTransactionsByQuery(eq(PROJECT_ID, id));
+        List<TransactionModel> listTransactions = transactionRepository.findTransactionsByQuery(eq(PROJECT_ID, id));
+        return listTransactions.stream().map(CollectHelper::convertTransactionModelToTransactionDto).collect(Collectors.toList());
     }
 
 
@@ -394,4 +395,20 @@ public class TransactionService {
 
         }
     }
+    /**
+     * update a transaction model
+     *
+     * @throws CollectException exception thrown in case of error
+     */
+    public void replaceTransaction(TransactionDto transactionDto) throws CollectException {
+        TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setId(transactionDto.getId());
+        transactionModel.setName(transactionDto.getName());
+        transactionModel.setManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto));
+        transactionModel.setTenant(transactionDto.getTenant());
+        transactionModel.setProjectId(transactionDto.getProjectId());
+        transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));
+        transactionRepository.replaceTransaction(transactionModel);
+    }
+
 }

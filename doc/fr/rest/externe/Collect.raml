@@ -105,7 +105,43 @@ documentation:
             application/json:
               type: object
               example: !include libraries/examples/listProjectsObjectResponse.json
-  /{id}/binary:
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer un projet.
+    delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
+  /{id}/units:
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
+         uriParameters:
+             projectId:
+               required: true
+               description: Identifiant du projet
+         body:
+           application/json:
+             type: object
+             example: !include libraries/examples/streamUnitRequest.json
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectUnitObjectResponse.json
+  /{id}/upload:
     displayName: upload d'une archive Zip
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -123,56 +159,46 @@ documentation:
           body:
             application/json:
   /{id}/transactions:
-       displayName: upload d'une archive Zip
+       displayName: Permet de gerer les transactions d'un projet
        is: [ StandardTraits.StandardOptionalHeader,
              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-       post:
+       get:
         description: |
-          Permet de soumettre un ensemble de binaire au format Zip
-        body:
-         application/zip:
+          - request body : JSON object
+          - response : JSON of saved transactions / HTTP CODE 200
+        is: [StandardTraits.StandardOptionalHeader,
+            StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+            StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
         headers:
-         X-tenant-Id:
-          required: true
+        x-tenant-id:
+            required: true
         responses:
-           200:
-             body:
-               application/json:
-  /{id}/transaction:
-      description: |
-        API de collecte. Ce point d'entrée permet de créer une transaction de versement par project.
-
-        Crée une transaction d'entrée :
-        - une requête unique, avec un 'body' contenant toutes les informations au format JSON :
-          - ArchivalAgencyIdentifier
-          - TransferingAgencyIdentifier
-          - OriginatingAgencyIdentifier
-          - ArchiveProfile
-          - Comment
-      post:
+          200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/transactionResponse.json
+       post:
         description: |
           - request body : JSON object
           - response : JSON of saved transaction / HTTP CODE 200
         is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+                    StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
         headers:
          x-tenant-id:
             required: true
-
-  /{id}:
-      description: |
-        API de collecte. Ce point d'entrée permet de supprimer un project de versement.
-      delete:
-        is: [ StandardTraits.StandardOptionalHeader,
-             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-        headers:
-         x-tenant-id:
-            required: true
+        body:
+           application/json:
+              type: object
+              example: !include libraries/examples/projectObjectPutRequest.json
         responses:
-          200:
+           200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/projectObjectResponse.json
 
 /transactions:
   displayName: Transactions
@@ -318,6 +344,18 @@ documentation:
         is: [ StandardTraits.StandardOptionalHeader,
               StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
                StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           Permet de télécharger un binaire
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/octet-stream:
+                  description: Binary object as a file
+       
         post:
          description: |
            Permet de rajouter un binaire
@@ -334,76 +372,3 @@ documentation:
                   type: object
                   example: !include libraries/examples/CollectBinaryObjectResponse.json
 
-/projects/{projectId}:
-  displayName: Opérations sur les projets
-  description: |
-    API de collecte. Ce point d'entrée permet de gérer les projets.
-
-  get:
-    description: |
-      Permet de récupérer les détails du projet
-    is: [CollectTraits.ProjectResponse, StandardTraits.StandardOptionalHeader,
-         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-    uriParameters:
-        projectId:
-          required: true
-          description: Identifiant du projet
-    headers:
-     x-tenant-id:
-        required: true
-    responses:
-        200:
-          body:
-            application/json:
-              type: object
-              example: !include libraries/examples/projectResponse.json
-
-  /binary:
-        displayName: Charge les binaires d'un projet
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-        post:
-         description: |
-           Permet de charger les binaires d'un projet
-         uriParameters:
-             projectId:
-               required: true
-               description: Identifiant du projet
-         body:
-           application/octet-stream:
-             description: Binary object as a file
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-
-  /units:
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-        get:
-         description: |
-           Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
-         uriParameters:
-             projectId:
-               required: true
-               description: Identifiant du projet
-         body:
-           application/json:
-             type: object
-             example: !include libraries/examples/streamUnitRequest.json
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectUnitObjectResponse.json

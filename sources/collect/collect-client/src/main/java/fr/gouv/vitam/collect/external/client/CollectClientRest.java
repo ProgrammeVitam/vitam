@@ -336,29 +336,15 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
-    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
+    public Response uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
         throws VitamClientException {
         try (Response response = make(post()
-            .withPath(PROJECT_PATH + "/" + projectId + "/binary")
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/upload")
             .withHeaders(vitamContext.getHeaders())
             .withBody(inputStreamUploaded)
             .withContentType(CommonMediaType.ZIP_TYPE))) {
             check(response);
             return response;
-        }
-    }
-
-    @Override
-    public RequestResponseOK<JsonNode> selectUnits(VitamContext vitamContext, JsonNode jsonQuery)
-        throws VitamClientException {
-        try (Response response = make(
-            get().withPath(UNITS_PATH)
-                .withHeaders(vitamContext.getHeaders())
-                .withBody(jsonQuery)
-                .withJson())) {
-            check(response);
-            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-            return (RequestResponseOK<JsonNode>) result;
         }
     }
     
@@ -437,5 +423,21 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
                 fromStatusCode(response.getStatus()).getReasonPhrase()));
     }
 
+    @Override
+    public RequestResponse<JsonNode> updateTransaction(VitamContext vitamContext,
+        TransactionDto transactionDto) throws VitamClientException {
 
+        VitamRequestBuilder request = put()
+            .withPath(TRANSACTION_PATH)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withBody(transactionDto)
+            .withJsonContentType()
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.external.dto.IngestDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
@@ -37,8 +38,11 @@ import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
+import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -47,6 +51,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -59,6 +64,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,10 +78,13 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNIT
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ZIP_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/collect-external/v1/transactions")
@@ -86,6 +95,7 @@ public class TransactionResource {
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
     private static final String OPI = "#opi";
     private static final String ID = "#id";
     private static final String UNIT_TYPE = "#unitType";
@@ -94,15 +104,16 @@ public class TransactionResource {
     private final TransactionService transactionService;
     private final MetadataService metadataService;
     private final SipService sipService;
-
     private final FluxService fluxService;
+    private final ProjectService projectService;
 
     public TransactionResource(TransactionService transactionService, SipService sipService,
-        MetadataService metadataService, FluxService fluxService) {
+        MetadataService metadataService, FluxService fluxService, ProjectService projectService) {
         this.transactionService = transactionService;
         this.sipService = sipService;
         this.metadataService = metadataService;
         this.fluxService = fluxService;
+        this.projectService = projectService;
     }
 
     @Path("/{transactionId}")
@@ -133,6 +144,35 @@ public class TransactionResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
+
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_UPDATE, description = "Mise à jour d'une transaction")
+    public Response updateTransaction(TransactionDto transactionDto) {
+        try {
+            ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(transactionDto));
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionDto.getId());
+            if (transactionModel.isEmpty()) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
+            }
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            transactionDto.setTenant(tenantId);
+            transactionDto.setStatus(transactionModel.get().getStatus().name());
+            transactionDto.setProjectId(transactionModel.get().getProjectId());
+            transactionService.replaceTransaction(transactionDto);
+
+            return CollectRequestResponse.toResponseOK(transactionDto);
+        } catch (CollectException e) {
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error when trying to parse : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
 
     @Path("/{transactionId}")
     @DELETE
@@ -282,6 +322,7 @@ public class TransactionResource {
         }
     }
 
+
     @Path("/{transactionId}/units")
     @PUT
     @Consumes(APPLICATION_OCTET_STREAM)
@@ -310,4 +351,41 @@ public class TransactionResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
+    
+   @Path("/{transactionId}/upload")
+    @POST
+    @Consumes({CommonMediaType.ZIP})
+    @Produces(APPLICATION_JSON)
+
+    @Secured(permission = TRANSACTION_ZIP_CREATE, description = "Charge les binaires d'une transaction")
+    public Response uploadTransactionZip(@PathParam("transactionId") String transactionId, InputStream inputStreamObject) {
+        try {
+            ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
+
+            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+
+
+            if (transactionModel.isEmpty() ||
+                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+                LOGGER.error(TRANSACTION_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
+            }
+            Optional<ProjectDto> projectDto = projectService.findProject(transactionModel.get().getProjectId());
+
+            if (projectDto.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+            fluxService.processStream(inputStreamObject, CollectHelper.convertTransactionModelToTransactionDto(transactionModel.get()), projectDto.get());
+
+            return Response.status(OK).build();
+        } catch (CollectException e) {
+            LOGGER.debug("An error occurs when try to upload the ZIP: {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
 }

@@ -87,9 +87,6 @@ public class ProjectDto implements Serializable {
     @JsonProperty(value = "Status")
     private String status;
 
-    @JsonProperty(value = "#transactionId")
-    private String transactionId;
-
     public ProjectDto() {
         //Empty constructor for serialization
     }
@@ -207,14 +204,6 @@ public class ProjectDto implements Serializable {
 
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
-    }
-
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
     }
 
     public String getName() {

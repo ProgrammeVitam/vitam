@@ -34,12 +34,9 @@ import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
-import fr.gouv.vitam.collect.internal.model.TransactionStatus;
-import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -62,13 +59,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
@@ -80,7 +75,6 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/collect-external/v1/projects")
 public class ProjectResource {
@@ -104,14 +98,11 @@ public class ProjectResource {
 
     private final MetadataService metadataService;
 
-    private final FluxService fluxService;
-
     public ProjectResource(ProjectService projectService, TransactionService transactionService,
-        MetadataService metadataService, FluxService fluxService) {
+        MetadataService metadataService) {
         this.projectService = projectService;
         this.transactionService = transactionService;
         this.metadataService = metadataService;
-        this.fluxService = fluxService;
     }
 
     @GET
@@ -155,10 +146,6 @@ public class ProjectResource {
             projectDto.setId(GUIDFactory.newGUID().getId());
             projectDto.setTenant(tenantId);
             projectService.createProject(projectDto);
-            String transactionId = GUIDFactory.newRequestIdGUID(tenantId).getId();
-            // FIXME : add another api to create a transaction
-            transactionService.createTransactionFromProjectDto(projectDto, transactionId);
-            projectDto.setTransactionId(transactionId);
             return CollectRequestResponse.toResponseOK(projectDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -183,6 +170,7 @@ public class ProjectResource {
             }
             Integer tenantId = ParameterHelper.getTenantParameter();
             projectDto.setTenant(tenantId);
+            projectDto.setCreationDate(projectOpt.get().getCreationDate());
             projectService.updateProject(projectDto);
 
             return CollectRequestResponse.toResponseOK(projectDto);
@@ -207,18 +195,7 @@ public class ProjectResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-
-            Optional<TransactionModel> transactionModel = transactionService.findLastTransactionByProjectId(projectId);
-
-            if (transactionModel.isEmpty()) {
-                LOGGER.error(TRANSACTION_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
-            }
-            ProjectDto projectDto = projectDtoOptional.get();
-            projectDto.setTransactionId(transactionModel.get().getId());
-
-
-            return CollectRequestResponse.toResponseOK(projectDto);
+            return CollectRequestResponse.toResponseOK(projectDtoOptional.get());
         } catch (CollectException e) {
             LOGGER.error("Error when fetching project by Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -296,11 +273,11 @@ public class ProjectResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_READ, description = "Récupérer la dernière transaction du projet")
+    @Secured(permission = TRANSACTION_READ, description = "Récupérer la liste des transactions par projet")
     public Response getAllTransactions(@PathParam("projectId") String projectId) {
         try {
             SanityChecker.checkParameter(projectId);
-            final List<TransactionModel> results = transactionService.findTransactionsByProjectId(projectId);
+            final List<TransactionDto> results = transactionService.findTransactionsByProjectId(projectId);
             return CollectRequestResponse.toResponseOK(results);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -330,45 +307,6 @@ public class ProjectResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        }
-    }
-
-
-    @Path("/{projectId}/binary")
-    @POST
-    @Consumes({CommonMediaType.ZIP})
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_ID_BINARY, description = "Charge les binaires d'un projet")
-    public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
-        try {
-            ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
-            Optional<ProjectDto> projectDtoOptional = projectService.findProject(projectId);
-
-            if (projectDtoOptional.isEmpty()) {
-                LOGGER.error(PROJECT_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
-            }
-            ProjectDto projectDto = projectDtoOptional.get();
-
-            Optional<TransactionModel> transactionModel =
-                transactionService.findLastTransactionByProjectId(projectDto.getId());
-
-            if (transactionModel.isEmpty() ||
-                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
-                LOGGER.error(TRANSACTION_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
-            }
-            projectDto.setTransactionId(transactionModel.get().getId());
-
-            fluxService.processStream(inputStreamObject, projectDto);
-
-            return Response.status(OK).build();
-        } catch (CollectException e) {
-            LOGGER.debug("An error occurs when try to upload the ZIP: {}", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

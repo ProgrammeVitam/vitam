@@ -32,8 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.access.external.rest.AccessExternalMain;
-import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.external.client.CollectClient;
 import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
@@ -60,15 +58,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
-import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.security.internal.rest.IdentityMain;
-import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -88,7 +81,6 @@ import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-
 
 public class CollectIT extends VitamRuleRunner {
 
@@ -263,6 +255,24 @@ public class CollectIT extends VitamRuleRunner {
         return projectDto;
     }
 
+
+    private TransactionDto initTransaction() throws VitamClientException, InvalidParseOperationException {
+
+        TransactionDto transaction = new TransactionDto();
+        transaction.setArchivalAgencyIdentifier("Vitam");
+        transaction.setTransferringAgencyIdentifier("AN");
+        transaction.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
+        transaction.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
+        transaction.setMessageIdentifier(MESSAGE_IDENTIFIER);
+        transaction.setArchivalAgencyIdentifier("IC-000001");
+        transaction.setArchivalProfile("ArchiveProfile");
+        transaction.setLegalStatus(TransactionStatus.OPEN.name());
+        transaction.setComment("Versement du service producteur : Cabinet de Michel Mercier");
+        transaction.setUnitUp(ATTACHEMENT_UNIT_ID);
+        return transaction;
+    }
+
+
     private void getUnitsByProjectId()
         throws VitamClientException, JsonProcessingException, InvalidCreateOperationException,
         InvalidParseOperationException {
@@ -330,9 +340,7 @@ public class CollectIT extends VitamRuleRunner {
         }
     }
 
-    public void closeTransaction() throws Exception {
-        String transactionGuid = null;
-
+    public void closeTransaction(String transactionGuid) throws Exception {
         Response response = collectClient.closeTransaction(vitamContext, transactionGuid);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
     }
@@ -356,18 +364,6 @@ public class CollectIT extends VitamRuleRunner {
 
         assertThat(projectDtoResult).isNotNull();
         assertThat(projectDtoResult.getId()).isEqualTo(projectGuid);
-    }
-
-    public void getUnitByDslQuery() throws Exception {
-        String transactionGuid = null;
-
-        String unitDsl = "{\"$roots\": [],\"$query\": [{\"$eq\": {\"#opi\": \"" + transactionGuid +
-            "\"} }],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
-        RequestResponseOK<JsonNode> response =
-            collectClient.selectUnits(vitamContext, JsonHandler.getFromString(unitDsl));
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(response.getFirstResult()).isNotNull();
-        assertThat(response.getHits().getTotal()).isEqualTo(1);
     }
 
     public void getUnitById(String unitId) throws Exception {
@@ -438,7 +434,6 @@ public class CollectIT extends VitamRuleRunner {
             .after(LocalDateUtil.getDate(projectDtoResultAfterUpdate.getCreationDate())));
     }
 
-    @Test
     public void should_upload_project_zip() throws Exception {
         ProjectDto projectDto = initProjectData();
 
@@ -448,17 +443,23 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                 ProjectDto.class);
-        String transactionGuid = projectDtoResult.getTransactionId();
-        String projectGuid = projectDtoResult.getId();
+
+        TransactionDto transactiondto = initTransaction();
+
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+        TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
-            Response response = collectClient.uploadProjectZip(vitamContext, projectGuid, inputStream);
+            Response response = collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
 
 
         final RequestResponseOK<JsonNode> unitsByTransaction =
-            collectClient.getUnitsByTransaction(vitamContext, transactionGuid, new SelectMultiQuery().getFinalSelect());
+            collectClient.getUnitsByTransaction(vitamContext, transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
 
 
         final JsonNode expectedUnits =
@@ -482,12 +483,19 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                 ProjectDto.class);
-        String transactionGuid = projectDtoResult.getTransactionId();
+
+        TransactionDto transactiondto = initTransaction();
+
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+        TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
 
         try (InputStream inputStream = PropertiesUtils.getResourceAsStream(UNITS_TO_UPDATE)) {
             final List<Unit> units = JsonHandler.getFromInputStream(inputStream, List.class, Unit.class);
             for (Unit unit : units) {
-                unit.put(Unit.OPI, transactionGuid);
+                unit.put(Unit.OPI, transactionDtoResult.getId());
             }
             MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
             MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
@@ -495,11 +503,11 @@ public class CollectIT extends VitamRuleRunner {
 
 
         try (InputStream inputStream = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
-            RequestResponseOK<JsonNode> response = collectClient.updateUnits(vitamContext, transactionGuid, inputStream);
+            RequestResponseOK<JsonNode> response = collectClient.updateUnits(vitamContext, transactionDtoResult.getId(), inputStream);
         }
 
         final RequestResponseOK<JsonNode> unitsByTransaction =
-            collectClient.getUnitsByTransaction(vitamContext, transactionGuid, new SelectMultiQuery().getFinalSelect());
+            collectClient.getUnitsByTransaction(vitamContext, transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
 
         final JsonNode expectedUnits =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_CSV_PATH));
@@ -522,9 +530,16 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                 ProjectDto.class);
-        String transactionId = projectDtoResult.getTransactionId();
 
-        RequestResponse<JsonNode> response = collectClient.deleteTransactionById(vitamContext, transactionId);
+        TransactionDto transactiondto = initTransaction();
+
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+        TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+
+        RequestResponse<JsonNode> response = collectClient.deleteTransactionById(vitamContext, transactionDtoResult.getId());
         assertThat(response.getStatus()).isEqualTo(200);
     }
 
@@ -542,5 +557,30 @@ public class CollectIT extends VitamRuleRunner {
 
         RequestResponse<JsonNode> response = collectClient.deleteProjectById(vitamContext, projectId);
         assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    public void updateTransaction() throws Exception {
+        ProjectDto projectDto = initProjectData();
+        String newComment = "New Comment";
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class);
+
+        TransactionDto transactiondto = initTransaction();
+
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+        TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+        assertThat(transactionDtoResult.getComment()).isNotEqualTo(newComment);
+        transactionDtoResult.setComment(newComment);
+        RequestResponse<JsonNode> response = collectClient.updateTransaction(vitamContext, transactionDtoResult);
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(transactionDtoResult.getComment()).isEqualTo(newComment);
     }
 }

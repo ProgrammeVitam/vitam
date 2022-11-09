@@ -70,6 +70,10 @@ public class TransactionDto implements Serializable {
 
     @JsonProperty(value = "Status") private String status;
 
+    @JsonProperty(value = "ProjectId")
+    private String projectId;
+
+
     public TransactionDto() {
         //Empty constructor for serialization
     }
@@ -226,6 +230,15 @@ public class TransactionDto implements Serializable {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
 
     @Override
     public boolean equals(Object o) {
