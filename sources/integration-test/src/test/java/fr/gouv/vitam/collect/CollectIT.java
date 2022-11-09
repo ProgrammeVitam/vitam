@@ -560,6 +560,51 @@ public class CollectIT extends VitamRuleRunner {
     }
 
     @Test
+    public void reopenAndAbortTransaction() throws Exception {
+        ProjectDto projectDto = initProjectData();
+
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+        ProjectDto projectDtoResult =
+            JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class);
+
+        TransactionDto transactiondto = initTransaction();
+
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+        TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
+
+
+        String transactionId = transactionDtoResult.getId();
+        collectClient.closeTransaction(vitamContext, transactionId);
+        verifyTransactionStatus(TransactionStatus.READY, transactionId);
+
+        //test reopen
+        collectClient.reopenTransaction(vitamContext, transactionId);
+        verifyTransactionStatus(TransactionStatus.OPEN, transactionId);
+
+
+        //test abort
+        collectClient.abortTransaction(vitamContext, transactionId);
+        verifyTransactionStatus(TransactionStatus.ABORTED, transactionId);
+
+
+    }
+
+    public void verifyTransactionStatus(TransactionStatus status, String transactionId) throws VitamClientException {
+        RequestResponse<JsonNode> response = collectClient.getTransactionById(vitamContext, transactionId);
+        assertThat(response.isOk()).isTrue();
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) response;
+        assertThat(requestResponseOK.getFirstResult().get("#id").textValue()).isEqualTo(transactionId);
+        assertThat(requestResponseOK.getFirstResult().get("Status").textValue())
+            .isEqualTo(status.name());
+    }
+
+    @Test
     public void updateTransaction() throws Exception {
         ProjectDto projectDto = initProjectData();
         String newComment = "New Comment";

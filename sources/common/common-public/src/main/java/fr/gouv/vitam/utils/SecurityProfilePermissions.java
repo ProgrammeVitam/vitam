@@ -159,6 +159,8 @@ public enum SecurityProfilePermissions {
     TRANSACTION_UPDATE("transaction:update"),
     TRANSACTION_CREATE("transaction:create"),
     TRANSACTION_CLOSE("transaction:close"),
+    TRANSACTION_ABORT("transaction:abort"),
+    TRANSACTION_REOPEN("transaction:reopen"),
     TRANSACTION_SEND("transaction:send"),
     TRANSACTION_ID_UNITS("transaction:id:units"),
     TRANSACTION_ID_UNITS_UPDATE("transaction:id:units:update"),

@@ -32,6 +32,7 @@ import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
+import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
@@ -61,17 +62,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_TRANSACTIONS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_QUERY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_READ;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -273,7 +275,7 @@ public class ProjectResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_READ, description = "Récupérer la liste des transactions par projet")
+    @Secured(permission = PROJECT_ID_TRANSACTIONS, description = "Récupérer la liste des transactions du projet")
     public Response getAllTransactions(@PathParam("projectId") String projectId) {
         try {
             SanityChecker.checkParameter(projectId);

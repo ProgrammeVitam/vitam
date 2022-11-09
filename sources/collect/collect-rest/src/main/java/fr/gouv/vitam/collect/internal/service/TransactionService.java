@@ -88,6 +88,7 @@ import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 public class TransactionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private static final String TRANSACTION_NOT_UPDATED = "Wrong status to update! ";
     private static final String PROJECT_ID = "ProjectId";
     private static final String STATUS = "Status";
     private static final String PROCESS_SIP_UNITARY = "PROCESS_SIP_UNITARY";
@@ -395,6 +396,32 @@ public class TransactionService {
 
         }
     }
+
+    public void abortTransaction(String transactionId) throws CollectException {
+        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
+        if (transactionModel.isEmpty()) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        if (!checkStatus(transactionModel.get(), TransactionStatus.OPEN,
+            TransactionStatus.READY, TransactionStatus.ACK_KO, TransactionStatus.KO)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
+        }
+        changeStatusTransaction(TransactionStatus.ABORTED, transactionModel.get());
+
+    }
+
+    public void reopenTransaction(String transactionId) throws CollectException {
+        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
+        if (transactionModel.isEmpty()) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        if (!checkStatus(transactionModel.get(), TransactionStatus.READY, TransactionStatus.ACK_KO,
+            TransactionStatus.KO)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
+        }
+        changeStatusTransaction(TransactionStatus.OPEN, transactionModel.get());
+    }
+
     /**
      * update a transaction model
      *
@@ -410,5 +437,4 @@ public class TransactionService {
         transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));
         transactionRepository.replaceTransaction(transactionModel);
     }
-
 }

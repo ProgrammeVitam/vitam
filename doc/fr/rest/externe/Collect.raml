@@ -263,6 +263,47 @@ documentation:
                     application/json:
                       type: object
                       example: !include libraries/examples/CollectIngestObjectResponse.json
+
+  /{id}/abort:
+        displayName: Abandonner une une transaction -> statut ABORTED
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+        post:
+         description: |
+           Permet d'abandonner une transaction
+         body:
+          application/json:
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
+
+  /{id}/reopen:
+        displayName: Rouvrir une une transaction -> statut ABORTED
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+        post:
+         description: |
+           Permet de rouvrir une transaction
+         body:
+          application/json:
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
+
   /{id}:
     description: |
         API de collecte. Ce point d'entrée permet de supprimer une transaction.

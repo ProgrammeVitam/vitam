@@ -174,6 +174,7 @@ public class CollectHelper {
         transactionDto.setLastUpdate(transactionModel.getLastUpdate());
         transactionDto.setStatus(
             Objects.requireNonNullElse(transactionModel.getStatus(), TransactionStatus.OPEN).toString());
+        transactionDto.setProjectId(transactionModel.getProjectId());
         transactionDto.setTenant(transactionModel.getTenant());
         if (transactionModel.getManifestContext() != null) {
             transactionDto.setArchivalAgreement(transactionModel.getManifestContext().getArchivalAgreement());
