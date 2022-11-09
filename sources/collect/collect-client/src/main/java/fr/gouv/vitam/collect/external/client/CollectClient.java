@@ -238,6 +238,28 @@ public interface CollectClient extends MockOrRestClient {
         VitamClientException;
 
     /**
+     * Abort Transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response abortTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException;
+
+
+    /**
+     * Reopen Transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponseOK<JsonNode>
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response reopenTransaction(VitamContext vitamContext, String transactionId) throws
+        VitamClientException;
+
+    /**
      * Upload zip and consume
      *
      * Consume and produce CommonMediaType.ZIP

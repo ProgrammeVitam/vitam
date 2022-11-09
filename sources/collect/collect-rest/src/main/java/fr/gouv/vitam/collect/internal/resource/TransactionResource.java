@@ -71,10 +71,12 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Optional;
 
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ABORT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNITS_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_REOPEN;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
@@ -265,6 +267,44 @@ public class TransactionResource {
         try {
             SanityChecker.checkParameter(transactionId);
             transactionService.closeTransaction(transactionId);
+            return Response.status(OK).build();
+        } catch (CollectException e) {
+            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/{transactionId}/abort")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_ABORT, description = "Abandonner une transaction")
+    public Response abortTransaction(@PathParam("transactionId") String transactionId) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+            transactionService.abortTransaction(transactionId);
+            return Response.status(OK).build();
+        } catch (CollectException e) {
+            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/{transactionId}/reopen")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_REOPEN, description = "Rouvrir une transaction")
+    public Response reopenTransaction(@PathParam("transactionId") String transactionId) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+            transactionService.reopenTransaction(transactionId);
             return Response.status(OK).build();
         } catch (CollectException e) {
             LOGGER.error("An error occurs when try to close transaction : {}", e);

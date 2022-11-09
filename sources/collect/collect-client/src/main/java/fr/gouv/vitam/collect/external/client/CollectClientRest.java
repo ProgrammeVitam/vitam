@@ -336,6 +336,29 @@ public class CollectClientRest extends DefaultClient implements CollectClient {
     }
 
     @Override
+    public Response abortTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
+        try (Response response = make(put()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/abort")
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept())) {
+            check(response);
+            return response;
+        }
+    }
+
+    @Override
+    public Response reopenTransaction(VitamContext vitamContext, String transactionId)
+        throws VitamClientException {
+        try (Response response = make(put()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/reopen")
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept())) {
+            check(response);
+            return response;
+        }
+    }
+
+    @Override
     public Response uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
         throws VitamClientException {
         try (Response response = make(post()

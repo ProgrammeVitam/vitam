@@ -153,6 +153,16 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
+    public Response abortTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public Response reopenTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
     public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
         throws VitamClientException {
         return null;
