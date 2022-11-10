@@ -543,7 +543,7 @@
     "path": "Coverage",
     "type": "object",
     "indexed": true,
-    "cardinality": "many"
+    "cardinality": "one"
   },
   {
     "path": "Coverage.Juridictional",
@@ -795,7 +795,7 @@
     "path": "OriginatingAgency",
     "type": "object",
     "indexed": true,
-    "cardinality": "many"
+    "cardinality": "one"
   },
   {
     "path": "OriginatingAgency.Identifier",
@@ -2475,7 +2475,7 @@
     "path": "_history.data._mgt.ClassificationRule.Inheritance.PreventRulesId",
     "type": "keyword",
     "indexed": true,
-    "cardinality": "one"
+    "cardinality": "many"
   },
   {
     "path": "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
