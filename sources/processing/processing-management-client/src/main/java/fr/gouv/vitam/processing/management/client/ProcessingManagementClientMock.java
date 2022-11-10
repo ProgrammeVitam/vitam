@@ -132,16 +132,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public boolean isNotRunning(String operationId) {
-        return false;
-    }
-
-    @Override
-    public boolean isNotRunning(String operationId, ProcessState expectedProcessState) {
-        return false;
-    }
-
-    @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerDescription) {
     }
 
