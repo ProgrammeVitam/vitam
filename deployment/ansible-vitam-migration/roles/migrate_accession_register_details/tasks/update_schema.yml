@@ -7,16 +7,13 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
 
 - name: update in mongo Accession Register Detail schema.
   shell: "mongo {{ hostvars[groups['hosts_mongos_data'][0]]['ip_service'] }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/tmp/mongos/migrate_accession_register_details.js"
   register: results # used in update_accession_register_details.yml
   no_log: "{{ hide_passwords_during_deploy }}"
-  delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
 
 - name: remove temporary script.
   file:
     path: "{{ vitam_defaults.folder.root_path }}/tmp/mongos/migrate_accession_register_details.js"
     state: absent
-  delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
