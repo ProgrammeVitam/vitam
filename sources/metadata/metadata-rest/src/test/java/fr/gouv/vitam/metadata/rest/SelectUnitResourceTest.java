@@ -223,7 +223,7 @@ public class SelectUnitResourceTest {
         junitHelper = JunitHelper.getInstance();
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(SERVER_HOST, mongoRule.getDataBasePort()));
+        mongo_nodes.add(new MongoDbNode(SERVER_HOST, MongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
                 mappingLoader);
@@ -233,8 +233,8 @@ public class SelectUnitResourceTest {
         configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(2, 1))
-                .setObjectgroup(new CollectionConfiguration(2, 1))));
+                .setUnit(new CollectionConfiguration(1, 0))
+                .setObjectgroup(new CollectionConfiguration(1, 0))));
 
         serverPort = junitHelper.findAvailablePort();
 

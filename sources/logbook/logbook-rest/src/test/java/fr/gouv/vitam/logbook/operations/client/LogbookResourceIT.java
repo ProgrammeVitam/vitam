@@ -214,7 +214,7 @@ public class LogbookResourceIT {
             logbookConf.setOperationTraceabilityThreadPoolSize(4);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                    new CollectionConfiguration(2, 1))));
+                    new CollectionConfiguration(1, 0))));
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);

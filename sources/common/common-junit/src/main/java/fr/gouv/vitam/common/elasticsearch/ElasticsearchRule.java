@@ -70,7 +70,7 @@ public class ElasticsearchRule extends ExternalResource {
     public static String HOST = "localhost";
     public static final String VITAM_CLUSTER = "elasticsearch-data";
     private boolean clientClosed = false;
-    private RestHighLevelClient client;
+    private final RestHighLevelClient client;
     private Set<String> indexesToBePurged = new HashSet<>();
 
     public ElasticsearchRule(String... indexesToBePurged) {

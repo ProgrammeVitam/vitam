@@ -179,7 +179,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     private static String CONFIG_SIEGFRIED_PATH = "";
     private static final String TEST_ELIMINATION_V2_SIP =
         "elimination/TEST_ELIMINATION_V2.zip";
-    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
+    private final WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -204,18 +204,18 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
                 new GroupedTenantConfiguration()
                     .setName("mygrp")
                     .setTenants("0-1")
-                    .setUnit(new CollectionConfiguration(2, 0))
-                    .setObjectgroup(new CollectionConfiguration(2, 0))
+                    .setUnit(new CollectionConfiguration(1, 0))
+                    .setObjectgroup(new CollectionConfiguration(1, 0))
             ));
 
         LogbookIndexationConfiguration logbookIndexationConfiguration = new LogbookIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                new CollectionConfiguration(2, 1)))
+                new CollectionConfiguration(1, 0)))
             .setGroupedTenantConfiguration(Collections.singletonList(
                 new fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration()
                     .setName(TENANT_GROUP)
                     .setTenants("0-1")
-                    .setLogbookoperation(new CollectionConfiguration(2, 1))
+                    .setLogbookoperation(new CollectionConfiguration(1, 0))
             ));
 
         runner.setCustomMetadataIndexationConfiguration(metadataIndexationConfiguration);

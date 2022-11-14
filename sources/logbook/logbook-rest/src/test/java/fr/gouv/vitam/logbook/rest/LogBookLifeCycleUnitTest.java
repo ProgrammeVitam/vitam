@@ -175,7 +175,7 @@ public class LogBookLifeCycleUnitTest {
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             final List<MongoDbNode> nodes = new ArrayList<>();
-            nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+            nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
             logbookConf.setDbName(mongoRule.getMongoDatabase().getName()).setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
@@ -197,7 +197,7 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setOperationTraceabilityThreadPoolSize(4);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                    new CollectionConfiguration(2, 1))));
+                    new CollectionConfiguration(1, 0))));
 
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();

@@ -74,8 +74,8 @@ public final class MetadataCollectionsTestUtils {
         MetaDataConfiguration metadataConfiguration = new MetaDataConfiguration()
             .setIndexationConfiguration(new MetadataIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setUnit(new CollectionConfiguration(2, 1))
-                    .setObjectgroup(new CollectionConfiguration(2, 1)))
+                    .setUnit(new CollectionConfiguration(1, 0))
+                    .setObjectgroup(new CollectionConfiguration(1, 0)))
                 .setGroupedTenantConfiguration(tenantGroupConfiguration)
             );
         return new ElasticsearchMetadataIndexManager(metadataConfiguration, allTenants, mappingLoader);
