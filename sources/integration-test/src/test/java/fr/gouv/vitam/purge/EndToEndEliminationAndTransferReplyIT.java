@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -114,6 +116,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -153,7 +156,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.lucene.search.TotalHits;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -1547,7 +1555,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
                 public FileVisitResult preVisitDirectory(java.nio.file.Path dir, BasicFileAttributes attrs)
                     throws IOException {
-                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir) + "/"));
                     zos.closeEntry();
                     return FileVisitResult.CONTINUE;
                 }
@@ -2223,12 +2231,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Logbook LFCs are not persisted in ES
         if (collection.getEsClient() != null) {
-            TotalHits totalHits = collection.getEsClient()
-                .basicSearch(collection, VitamThreadUtils.getVitamSession().getTenantId(),
-                    null, QueryBuilders.termQuery(VitamDocument.ID, documentId))
-                .getHits()
-                .getTotalHits();
-            assertThat(totalHits.value).isEqualTo(expectedHits);
+            try {
+                QueryBuilder finalQuery =
+                    new BoolQueryBuilder().must(QueryBuilders.termQuery(VitamDocument.ID, documentId))
+                        .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
+
+                TotalHits totalHits = collection.getEsClient().search(
+                    ElasticsearchIndexAlias.ofMultiTenantCollection(collection.getName(), tenantId),
+                    finalQuery, null, null,
+                    List.of(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)), 0,
+                    GlobalDatas.LIMIT_LOAD, Collections.emptyList(), null, null, false).getHits().getTotalHits();
+
+                assertThat(totalHits.value).isEqualTo(expectedHits);
+            } catch (DatabaseException | BadRequestException e) {
+                throw new MetaDataExecutionException(e);
+            }
         }
 
         assertThat(collection.getCollection().find(Filters.eq(VitamDocument.ID, documentId))

@@ -164,6 +164,7 @@ public class MetaDataImpl {
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     public static final int MAX_PRECISION_THRESHOLD = 40000;
+    private static final int AGGREGATION_SIZE = 10_000;
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -502,31 +503,29 @@ public class MetaDataImpl {
     private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant)
         throws MetaDataExecutionException {
         TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies")
-            .field("_sps")
+            .field("_sps").size(AGGREGATION_SIZE)
             .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
                 .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
                 .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
 
         TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency")
-            .field("_sp")
+            .field("_sp").size(AGGREGATION_SIZE)
             .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
                 .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
                 .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
 
         return OBJECTGROUP.getEsClient()
-            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.matchAllQuery())
-            .getAggregations();
+            .basicAggregationSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.matchAllQuery());
     }
 
     private Aggregations selectArchiveUnitAccessionRegisterInformation(Integer tenant)
         throws MetaDataExecutionException {
         List<AggregationBuilder> aggregations = Arrays.asList(
-            AggregationBuilders.terms("originatingAgency").field("_sp"),
-            AggregationBuilders.terms("originatingAgencies").field("_sps")
+            AggregationBuilders.terms("originatingAgency").field("_sp").size(AGGREGATION_SIZE),
+            AggregationBuilders.terms("originatingAgencies").field("_sps").size(AGGREGATION_SIZE)
         );
         return MetadataCollections.UNIT.getEsClient()
-            .basicSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.matchAllQuery())
-            .getAggregations();
+            .basicAggregationSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.matchAllQuery());
     }
 
     public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenant,
@@ -537,7 +536,7 @@ public class MetaDataImpl {
         QueryBuilder query = queryForObjectGroupAccessionRegisterByOperationId(tenant, operationId);
 
         Aggregations result = OBJECTGROUP.getEsClient()
-            .basicSearch(OBJECTGROUP, tenant, Collections.singletonList(originatingAgencyAgg), query).getAggregations();
+            .basicAggregationSearch(OBJECTGROUP, tenant, Collections.singletonList(originatingAgencyAgg), query);
 
         List<ObjectGroupPerOriginatingAgency> listOgsPerSps = new ArrayList<>();
         Terms originatingAgencyResult = result.get("originatingAgency");

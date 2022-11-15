@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.management.integration.test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -73,6 +76,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.bson.Document;
 import org.junit.After;
@@ -83,8 +87,11 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,7 +108,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(BackupAndReconstructionFunctionalAdminIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 LogbookMain.class,
@@ -164,6 +171,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @After
     public void tearDown() {
         runAfter();
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     /**
@@ -911,6 +919,71 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testBackupAndReconstructAccessionRegisterSymbolicWithManyAgenciesOk() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
+
+        OffsetRepository offsetRepository;
+
+        MongoDbAccess mongoDbAccess =
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        offsetRepository = new OffsetRepository(mongoDbAccess);
+
+        offsetRepository
+            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
+
+        initializeDbWithManyUnitsAndObjectGroups();
+
+        // Compute Accession Register Symbolic
+
+        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
+            adminManagementClient.createAccessionRegisterSymbolic(Collections.singletonList(TENANT_0));
+        }
+
+        long registerSymbolicSize =
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().countDocuments();
+
+        assertThat(registerSymbolicSize).isEqualTo(16);
+
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+        final VitamMongoRepository arsMongo =
+            vitamRepository
+                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+
+        final VitamElasticsearchRepository arsEs =
+            vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
+                    functionalAdminIndexManager
+                        .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC));
+
+        arsMongo.purge();
+        arsEs.purge();
+
+        registerSymbolicSize = FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().countDocuments();
+
+        assertThat(registerSymbolicSize).isEqualTo(0);
+
+        // Reconstruction service
+        ReconstructionServiceImpl reconstructionService =
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
+                functionalAdminIndexManager);
+
+        // Reconstruct Accession Register Detail
+        ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName());
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItem.setLimit(1000);
+        reconstructionService.reconstruct(reconstructionItem);
+
+        registerSymbolicSize = FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().countDocuments();
+
+        assertThat(registerSymbolicSize).isEqualTo(16);
+    }
+
     private void checkSymbolicRegisterResult(ArrayNode docs) {
         for (JsonNode doc : docs) {
             if (doc.get("OriginatingAgency").asText().equals("OA1")) {
@@ -1069,6 +1142,34 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
                 metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
+    }
+
+    private void initializeDbWithManyUnitsAndObjectGroups() throws IOException, DatabaseException {
+        try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/units.jsonl")) {
+            final Iterator<List<Document>> iterator =
+                Iterators.partition(new JsonLineGenericIterator<>(is, new TypeReference<>() {
+                }), 1000);
+            while (iterator.hasNext()) {
+                List<Document> units = iterator.next();
+                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                    .save(units);
+                VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+                    metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
+            }
+        }
+        try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/objectgroups.jsonl")) {
+            final Iterator<List<Document>> iterator =
+                Iterators.partition(new JsonLineGenericIterator<>(is, new TypeReference<>() {
+                }), 1000);
+            while (iterator.hasNext()) {
+                List<Document> objectgroups = iterator.next();
+                VitamRepositoryFactory.get()
+                    .getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()).save(objectgroups);
+                VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                        metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                    .save(objectgroups);
+            }
+        }
     }
 
     @Test

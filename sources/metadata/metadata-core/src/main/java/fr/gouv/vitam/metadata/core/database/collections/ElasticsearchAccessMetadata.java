@@ -243,7 +243,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param query elasticsearch
      * @return the elasticsearch SearchResponse
      */
-    public SearchResponse basicSearch(MetadataCollections collection, Integer tenantId,
+    public Aggregations basicAggregationSearch(MetadataCollections collection, Integer tenantId,
         List<AggregationBuilder> aggregations, QueryBuilder query)
         throws MetaDataExecutionException {
         try {
@@ -254,7 +254,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
             return super.search(indexAlias, finalQuery, null, null,
                 Lists.newArrayList(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)), 0,
-                GlobalDatas.LIMIT_LOAD, aggregations, null, null, false);
+                0, aggregations, null, null, false).getAggregations();
         } catch (DatabaseException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         }
