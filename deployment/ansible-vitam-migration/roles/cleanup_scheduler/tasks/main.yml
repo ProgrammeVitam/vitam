@@ -7,5 +7,5 @@
   loop: "{{ files }}"
 
 - name: force systemd to reread configs
-  ansible.builtin.systemd:
+  systemd:
     daemon_reload: yes
