@@ -17,10 +17,22 @@ fi
 echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d"
 docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d
 
+echo "Waiting for ES container to start"
+sleep 5
+until $(curl --output /dev/null --silent --head --fail http://localhost:9200/); do
+    echo 'Waiting for ES container to start...'
+    sleep 1
+    ((c++)) && ((c==60)) && break
+done
+
+echo "Updating ES conf"
+curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_cluster/settings -d '{ "transient": { "cluster.routing.allocation.disk.threshold_enabled": false } }'
+echo ""
+
 echo "Waiting for swift container to start"
 sleep 5
 until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:35357/v3); do
-    echo 'Waiting for swift to start...'
+    echo 'Waiting for swift container to start...'
     sleep 2
     ((c++)) && ((c==15)) && break
 done

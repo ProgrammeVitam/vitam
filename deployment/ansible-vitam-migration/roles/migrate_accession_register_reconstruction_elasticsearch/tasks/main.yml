@@ -16,10 +16,24 @@
       retries: "{{ vitam_defaults.services.status_retries_number }}"
       delay: "{{ vitam_defaults.services.status_retries_delay }}"
 
+    - name: Refresh accession registers indexes in elasticsearch data
+      uri:
+        method: POST
+        url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ item }}/_refresh"
+        body_format: json
+        body:
+          query:
+            match_all: { }
+        timeout: "{{ vitam_defaults.services.api_call_timeout }}"
+      with_items:
+        - accessionregisterdetail
+        - accessionregistersummary
+        - accessionregistersymbolic
+
     - name: Reset accession registers in elasticsearch data
       uri:
         method: POST
-        url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ item }}/_delete_by_query"
+        url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ item }}/_delete_by_query?refresh=true&wait_for_active_shards=all"
         body_format: json
         body:
           query:

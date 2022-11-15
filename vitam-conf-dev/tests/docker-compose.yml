@@ -5,12 +5,12 @@ services:
     ports:
       - "27017:27017"
     volumes:
-            - ./initdb.d/:/docker-entrypoint-initdb.d/
+      - ./initdb.d/:/docker-entrypoint-initdb.d/
     healthcheck:
       test: test $$(echo "rs.status().ok" | mongo --quiet) -eq 1
       interval: 10s
       start_period: 30s
-    command: ["mongod", "--bind_ip_all","--replSet", "rs0"]
+    command: [ "mongod", "--bind_ip_all","--replSet", "rs0" ]
   elasticsearch:
     image: elasticsearch:7.16.3
     environment:
