@@ -32,7 +32,10 @@ import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,9 +46,12 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public class TransactionServiceTest {
     @Rule
@@ -58,6 +64,17 @@ public class TransactionServiceTest {
 
     @Mock
     private ProjectService projectService;
+
+    @Mock
+    private WorkspaceClientFactory workspaceCollectClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Before
+    public void setup() {
+        given(workspaceCollectClientFactory.getClient()).willReturn(workspaceClient);
+    }
 
     @Test
     public void createCollectTest() throws CollectException {
@@ -132,4 +149,23 @@ public class TransactionServiceTest {
         Assertions.assertThat(checkStatus).isFalse();
     }
 
+    @Test
+    public void isTransactionContentNotEmptyTest() throws Exception {
+        final String idTransaction = "XXXX000002222222";
+        // Given
+        when(workspaceClient.isExistingContainer(any())).thenReturn(true);
+
+        assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void isTransactionContentEmptyTest() throws Exception {
+        final String idTransaction = "XXXX000002222222";
+        // Given
+        when(workspaceClient.isExistingContainer(any())).thenReturn(false);
+
+        assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction))
+            .isInstanceOf(CollectException.class);
+    }
 }

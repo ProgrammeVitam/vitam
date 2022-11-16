@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -245,7 +246,8 @@ public class TransactionService {
     public List<TransactionDto> findTransactionsByProjectId(String id) throws CollectException {
         LOGGER.debug("Transaction id to find : {}", id);
         List<TransactionModel> listTransactions = transactionRepository.findTransactionsByQuery(eq(PROJECT_ID, id));
-        return listTransactions.stream().map(CollectHelper::convertTransactionModelToTransactionDto).collect(Collectors.toList());
+        return listTransactions.stream().map(CollectHelper::convertTransactionModelToTransactionDto)
+            .collect(Collectors.toList());
     }
 
 
@@ -436,5 +438,21 @@ public class TransactionService {
         transactionModel.setProjectId(transactionDto.getProjectId());
         transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));
         transactionRepository.replaceTransaction(transactionModel);
+    }
+
+    /**
+     * check if the transaction content is empty
+     *
+     * @throws CollectException exception thrown in case of error
+     */
+    public void isTransactionContentEmpty(String id) throws CollectException {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            if (!workspaceClient.isExistingContainer(id)) {
+                throw new CollectException("Cannot send an empty transaction");
+            }
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.error(e.getLocalizedMessage());
+            throw new CollectException(e);
+        }
     }
 }

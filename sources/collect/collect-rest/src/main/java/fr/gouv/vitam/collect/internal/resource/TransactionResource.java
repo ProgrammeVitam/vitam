@@ -332,6 +332,7 @@ public class TransactionResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
             transaction = transactionModel.get();
+            transactionService.isTransactionContentEmpty(transaction.getId());
             transactionService.changeStatusTransaction(TransactionStatus.SENDING, transaction);
             String digest = sipService.generateSip(transaction);
             if (digest == null) {
@@ -354,7 +355,7 @@ public class TransactionResource {
         } catch (CollectException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
