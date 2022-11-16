@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -85,8 +86,9 @@ public class CollectMetadataResource {
     public Response getUnitById(@PathParam("unitId") String unitId) {
         try {
             SanityChecker.checkParameter(unitId);
-            JsonNode response = metadataService.selectUnitById(unitId);
-            return Response.status(OK).entity(response).build();
+            final RequestResponseOK<JsonNode> response =
+                RequestResponseOK.getFromJsonNode(metadataService.selectUnitById(unitId));
+            return response.toResponse();
         } catch (CollectException e) {
             LOGGER.error("Error when fetching unit in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -136,8 +138,9 @@ public class CollectMetadataResource {
 
         try {
             SanityChecker.checkParameter(gotId);
-            JsonNode response = metadataService.selectObjectGroupById(gotId, true);
-            return Response.status(OK).entity(response).build();
+            final RequestResponseOK<JsonNode> response =
+                RequestResponseOK.getFromJsonNode(metadataService.selectObjectGroupById(gotId, true));
+            return response.toResponse();
         } catch (CollectException e) {
             LOGGER.error("Error when fetching object in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
