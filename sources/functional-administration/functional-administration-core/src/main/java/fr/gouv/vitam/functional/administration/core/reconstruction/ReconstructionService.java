@@ -65,9 +65,7 @@ public interface ReconstructionService {
      * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
-    ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem);
-
-    void computeAccessionRegisterSummary(String originatingAgency, Integer tenant);
+    ReconstructionResponseItem reconstructAccessionRegister(ReconstructionRequestItem reconstructionItem);
 
     List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
 }

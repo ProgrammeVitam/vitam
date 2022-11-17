@@ -8,7 +8,7 @@
     <processing-directives>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), overwrite them -->
-        <overwrite-existing-data>false</overwrite-existing-data>
+        <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
@@ -18,7 +18,7 @@
         <schedule>
             <job>
                 <name>OfferLogCompactionJob_{{ item.name }}</name>
-                <group>offer</group>
+                <group>Offer</group>
                 <description>Job for launching Offer Log Compaction</description>
                 <job-class>fr.gouv.vitam.scheduler.server.job.OfferLogCompactionJob</job-class>
                 <job-data-map>
@@ -31,9 +31,9 @@
             <trigger>
                 <cron>
                     <name>OfferLogCompaction_{{ item.name }}</name>
-                    <group>offer</group>
+                    <group>Offer</group>
                     <job-name>OfferLogCompactionJob_{{ item.name }}</job-name>
-                    <job-group>offer</job-group>
+                    <job-group>Offer</job-group>
                     <cron-expression>{{ vitam_timers.offer.frequency_offerlog_compaction | default('0 10/30 * * * ?') }}</cron-expression>
                 </cron>
             </trigger>

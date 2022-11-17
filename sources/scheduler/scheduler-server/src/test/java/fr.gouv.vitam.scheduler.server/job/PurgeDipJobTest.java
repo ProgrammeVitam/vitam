@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.junit.Before;
@@ -50,6 +53,10 @@ public class PurgeDipJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
@@ -70,20 +77,18 @@ public class PurgeDipJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testStoreGraphSuccess() throws Exception {
         // Given
-        when(metaDataClient.purgeExpiredDipFiles(any())).thenReturn(null);
+        when(metaDataClient.purgeExpiredDipFiles()).thenReturn(null);
 
         // When
         purgeDipJob.execute(jobExecutionContext);
 
         // Then
-        verify(metaDataClient, times(1)).purgeExpiredDipFiles(any());
+        verify(metaDataClient, times(1)).purgeExpiredDipFiles();
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
 
     }
-
-
-
 }

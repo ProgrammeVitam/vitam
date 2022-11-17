@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -79,8 +78,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode selectUnits(JsonNode selectQuery)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException,
-        InvalidParseOperationException, MetaDataClientServerException;
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException;
 
     /**
      * Bulk Search units by a list of select query (DSL)
@@ -96,8 +95,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException,
-        InvalidParseOperationException, MetaDataClientServerException;
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException;
 
     /**
      * Search units by query (DSL) and path unit id
@@ -114,8 +113,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode selectUnitbyId(JsonNode selectQuery, String unitId)
-        throws MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException;
 
     /**
      * Search Object Group by query (DSL) and path objectGroup id
@@ -134,9 +133,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
-        throws MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException,
-        MetaDataClientServerException;
+        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException,
+        InvalidParseOperationException, MetadataInvalidSelectException, MetaDataClientServerException;
 
     /**
      * Update units by query (DSL) and path unit id
@@ -154,8 +152,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode updateUnitById(JsonNode updateQuery, String unitId)
-        throws MetaDataNotFoundException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
+        throws MetaDataNotFoundException, MetaDataExecutionException, MetaDataDocumentSizeException,
+        InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * @param insertQuery as String
@@ -167,9 +165,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode insertObjectGroup(JsonNode insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataNotFoundException, MetaDataDocumentSizeException,
-        MetaDataClientServerException;
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Update ObjectGroup
@@ -377,8 +374,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery)
-        throws MetaDataDocumentSizeException,
-        InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
+        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
+        MetaDataExecutionException;
 
     /**
      * Creates the AccessionRegisterSymbolics from ElasticSearch aggregations and nested aggregation request.
@@ -387,8 +384,7 @@ public interface MetaDataClient extends BasicClient {
      *
      * @return a list of AccessionRegisterSymbolic as JsonNode
      */
-    JsonNode createAccessionRegisterSymbolic()
-        throws MetaDataClientServerException, MetaDataExecutionException;
+    JsonNode createAccessionRegisterSymbolic() throws MetaDataClientServerException, MetaDataExecutionException;
 
     /**
      * delete UnitsBulk
@@ -397,8 +393,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataExecutionException MetaDataExecutionException
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
-    void deleteUnitsBulk(Collection<String> listIds)
-        throws MetaDataExecutionException, MetaDataClientServerException;
+    void deleteUnitsBulk(Collection<String> listIds) throws MetaDataExecutionException, MetaDataClientServerException;
 
     /**
      * Delete Object Group Bulk
@@ -413,67 +408,57 @@ public interface MetaDataClient extends BasicClient {
     /**
      * API to access and launch the Vitam store graph service for metadatas.
      *
+     * @return
      * @throws MetaDataExecutionException MetaDataExecutionException
      * @throws MetaDataClientServerException MetaDataClientServerException
-     * @param vitamContext
-     * @return
      */
-    Response storeGraph(VitamContext vitamContext)
-        throws MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException,
+    Response storeGraph() throws MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException,
         InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * API to access and launch the Vitam reconstruction service for metadatas.<br/>
      *
-     *
-     * @param vitamContext
      * @param reconstructionItems list of reconstruction request items
-     * @throws MetaDataClientServerException MetaDataClientServerException
      * @return
+     * @throws MetaDataClientServerException MetaDataClientServerException
      */
-    Response reconstructCollection(VitamContext vitamContext,
-        JsonNode reconstructionItems)
+    Response reconstructCollection(JsonNode reconstructionItems)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * API to process obsolete compute inherited rules service for metadatas.<br/>
      *
-     * @param vitamContext
-     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      * @return
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      */
-    Response processObsoleteComputedInheritedRules(
-        VitamContext vitamContext)
+    Response processObsoleteComputedInheritedRules()
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * API to process purge expired DIP files service for metadatas.<br/>
      *
-     * @param vitamContext
-     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      * @return
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      */
-    Response purgeExpiredDipFiles(VitamContext vitamContext)
+    Response purgeExpiredDipFiles()
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * API to process purge expired tranfering SIP files service for metadatas.<br/>
      *
-     * @param vitamContext
-     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      * @return
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      */
-    Response purgeExpiredTransfersSIPFiles(VitamContext vitamContext)
+    Response purgeExpiredTransfersSIPFiles()
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * API to process audit data consistency Mongo and ES service for metadatas.<br/>
      *
-     * @param vitamContext
-     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      * @return
+     * @throws MetaDataClientServerException MetaDataClientServerException InvalidParseOperationException
      */
-    Response runAuditDataConsistencyMongoEs(VitamContext vitamContext)
+    Response runAuditDataConsistencyMongoEs()
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     Response streamUnits(JsonNode selectQuery)

@@ -33,15 +33,17 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.scheduler.server.model.TraceabilityType;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -53,6 +55,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@DisallowConcurrentExecution
 public class TraceabilityLFCJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TraceabilityLFCJob.class);
@@ -69,7 +72,7 @@ public class TraceabilityLFCJob implements Job {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    private boolean secureAllTenants(TraceabilityType traceabilityType) {
+    private boolean secureAllTenants(MetadataType metadataType) {
         List<Integer> tenants = VitamConfiguration.getTenants();
 
         VitamThreadPoolExecutor defaultExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
@@ -79,7 +82,7 @@ public class TraceabilityLFCJob implements Job {
         for (Integer tenant : tenants) {
             completableFutures.add(
                 CompletableFuture.runAsync(() -> {
-                    if (secureByTenantId(tenant, traceabilityType)) {
+                    if (secureByTenantId(tenant, metadataType)) {
                         atLeastOneTenantReachedMaxCapacity.set(true);
                     }
                 }, defaultExecutor));
@@ -96,19 +99,19 @@ public class TraceabilityLFCJob implements Job {
      * Launch securization for a specific tenant
      *
      * @param tenantId to be secured
-     * @param traceabilityType - Unit or ObjectGroup
+     * @param metadataType - Unit or ObjectGroup
      * @return true if the tenant need another run to be fully secured
      */
-    private boolean secureByTenantId(int tenantId, TraceabilityType traceabilityType) {
+    private boolean secureByTenantId(int tenantId, MetadataType metadataType) {
         String operationId = null;
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
             try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-                operationId = runLfcTraceability(tenantId, traceabilityType, client);
+                operationId = runLfcTraceability(tenantId, metadataType, client);
 
                 if (operationId == null) {
-                    LOGGER.info("No " + traceabilityType + " LFC traceability required for tenant " + tenantId);
+                    LOGGER.info("No " + metadataType + " LFC traceability required for tenant " + tenantId);
                     return false;
                 }
 
@@ -118,7 +121,7 @@ public class TraceabilityLFCJob implements Job {
                 Stopwatch stopwatch = Stopwatch.createStarted();
                 do {
 
-                    Thread.sleep(timeSleep);
+                    TimeUnit.MILLISECONDS.sleep(timeSleep);
                     timeSleep = Math.min(timeSleep * 2, 60000);
 
                     lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus(operationId);
@@ -149,20 +152,20 @@ public class TraceabilityLFCJob implements Job {
         }
     }
 
-    private String runLfcTraceability(int tenantId, TraceabilityType traceabilityType,
+    private String runLfcTraceability(int tenantId, MetadataType metadataType,
         LogbookOperationsClient client)
 
         throws LogbookClientServerException, InvalidParseOperationException {
         RequestResponseOK<String> response;
-        switch (traceabilityType) {
-            case ObjectGroup:
+        switch (metadataType) {
+            case OBJECTGROUP:
                 response = client.traceabilityLfcObjectGroup();
                 break;
-            case Unit:
+            case UNIT:
                 response = client.traceabilityLfcUnit();
                 break;
             default:
-                throw new IllegalStateException("Unknown traceability type " + traceabilityType);
+                throw new IllegalStateException("Unknown metadata type " + metadataType);
         }
 
         String operationId = getOperationId(response);
@@ -184,10 +187,9 @@ public class TraceabilityLFCJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-            TraceabilityType traceabilityType;
-            traceabilityType = TraceabilityType.valueOf(jobDataMap.get(ITEM).toString());
+            MetadataType metadataType = MetadataType.valueOf(jobDataMap.get(ITEM).toString());
             while (true) {
-                boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(traceabilityType);
+                boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(metadataType);
 
                 if (!atLeastOneTenantReachedMaxCapacity) {
                     LOGGER.info("Done !");
@@ -196,7 +198,7 @@ public class TraceabilityLFCJob implements Job {
 
                 LOGGER.warn("At least one traceability operation reached max capacity. Re-run traceability...");
             }
-            LOGGER.info("Traceability LFC for " + traceabilityType.getMessage() + " operation is finished");
+            LOGGER.info("Traceability LFC for " + metadataType.getName() + " operation is finished");
         } catch (IllegalArgumentException e) {
             LOGGER.error("Expecting traceability type argument. Valid values: {}",
                 StringUtils.join(TraceabilityType.values(), ", "));

@@ -66,12 +66,12 @@ import java.util.List;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 @Tag(name = "Functional-Administration")
-public class AdminReconstructionResource {
+public class ReconstructionResource {
 
     /**
      * Vitam Logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminReconstructionResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionResource.class);
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
 
@@ -100,7 +100,7 @@ public class AdminReconstructionResource {
      * @param reconstructionFactory
      * @param ontologyLoader
      */
-    public AdminReconstructionResource(AdminManagementConfiguration configuration,
+    public ReconstructionResource(AdminManagementConfiguration configuration,
         VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader,
         ElasticsearchFunctionalAdminIndexManager indexManager) {
         DbConfigurationImpl adminConfiguration;
@@ -145,7 +145,7 @@ public class AdminReconstructionResource {
                 try {
                     // reconstruction of the given collection on the given list of tenants
                     reconstructionService.reconstruct(FunctionalAdminCollections.getFromValue(r.getCollection()),
-                        r.getTenants().stream().toArray(Integer[]::new));
+                        r.getTenants().toArray(Integer[]::new));
                 } catch (DatabaseException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                 }
@@ -200,7 +200,7 @@ public class AdminReconstructionResource {
                     "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
                     item.getCollection(), item.getTenant(), item.getLimit()));
                 try {
-                    responses.add(reconstructionService.reconstruct(item));
+                    responses.add(reconstructionService.reconstructAccessionRegister(item));
                 } catch (IllegalArgumentException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                     responses.add(new ReconstructionResponseItem(item, StatusCode.KO));

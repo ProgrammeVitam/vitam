@@ -30,7 +30,10 @@ package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -64,6 +67,10 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
 
@@ -84,6 +91,7 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testRuleAuditOKThenSuccess() throws Exception {
 
         // Given
@@ -106,6 +114,7 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testRuleAuditKOThenException() throws Exception {
 
         // Given

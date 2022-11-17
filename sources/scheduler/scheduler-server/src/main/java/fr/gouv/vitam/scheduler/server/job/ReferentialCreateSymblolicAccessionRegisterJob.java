@@ -41,6 +41,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -51,13 +52,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@DisallowConcurrentExecution
 public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        ReferentialCreateSymblolicAccessionRegisterJob.class);
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ReferentialCreateSymblolicAccessionRegisterJob.class);
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
-    public ReferentialCreateSymblolicAccessionRegisterJob(
-        AdminManagementClientFactory adminManagementClientFactory) {
+    public ReferentialCreateSymblolicAccessionRegisterJob(AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
@@ -66,36 +67,18 @@ public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
     }
 
 
-
-    private static void runInVitamThreadExecutor(Runnable runnable)
-        throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
-        completableFuture.get();
-        executorService.shutdown();
-    }
-
-    private void createAccessionRegisterSymbolic(Integer adminTenant, List<Integer> tenants) {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        final Integer adminTenant = VitamConfiguration.getAdminTenant();
         VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
 
         try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
             LOGGER.info("Start accession register symbolic update");
-            RequestResponse<AccessionRegisterSymbolic> response = client.createAccessionRegisterSymbolic(tenants);
+            RequestResponse<AccessionRegisterSymbolic> response =
+                client.createAccessionRegisterSymbolic(VitamConfiguration.getTenants());
             LOGGER.info("Response receive from create accession register symbolic {}", response);
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            throw new IllegalStateException(" Error during storage log backup", e);
-        }
-    }
-
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            List<Integer> tenants = VitamConfiguration.getTenants();
-            runInVitamThreadExecutor(
-                () -> createAccessionRegisterSymbolic(VitamConfiguration.getAdminTenant(), tenants));
-        } catch (Exception e) {
-            LOGGER.error(e);
-            throw new JobExecutionException(e);
+            throw new JobExecutionException(" Error during storage log backup", e);
         }
     }
 

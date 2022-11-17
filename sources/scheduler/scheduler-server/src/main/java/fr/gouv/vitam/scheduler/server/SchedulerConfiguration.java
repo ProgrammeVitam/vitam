@@ -30,4 +30,23 @@ package fr.gouv.vitam.scheduler.server;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 public class SchedulerConfiguration extends DefaultVitamApplicationConfiguration {
+
+    private String fileNames = "jobs/*.xml";
+    private boolean failOnFileNotFound = true;
+
+    public String getFileNames() {
+        return fileNames;
+    }
+
+    public void setFileNames(String fileNames) {
+        this.fileNames = fileNames;
+    }
+
+    public boolean isFailOnFileNotFound() {
+        return failOnFileNotFound;
+    }
+
+    public void setFailOnFileNotFound(boolean failOnFileNotFound) {
+        this.failOnFileNotFound = failOnFileNotFound;
+    }
 }

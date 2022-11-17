@@ -33,20 +33,16 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+@DisallowConcurrentExecution
 public class TraceabilityJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TraceabilityJob.class);
@@ -59,45 +55,26 @@ public class TraceabilityJob implements Job {
         this(LogbookOperationsClientFactory.getInstance());
     }
 
-    public TraceabilityJob(
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public TraceabilityJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
 
-    private static void runInVitamThreadExecutor(Runnable runnable)
-        throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
-        completableFuture.get();
-        executorService.shutdown();
-    }
-
-
-
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Traceability operation in progress...");
+        var adminTenant = VitamConfiguration.getAdminTenant();
+        var tenants = VitamConfiguration.getTenants();
         try {
-            runInVitamThreadExecutor(() -> {
+            VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
 
-                var adminTenant = VitamConfiguration.getAdminTenant();
-                var tenants = VitamConfiguration.getTenants();
-                try {
-                    VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
-                    VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
-
-                    try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
-                        LOGGER.info("Start traceability");
-                        client.traceability(tenants);
-                        LOGGER.info("Traceability done successfully");
-                    }
-                } catch (InvalidParseOperationException | LogbookClientServerException e) {
-                    throw new IllegalStateException(" Error when securing logbook operations  :  " + adminTenant, e);
-                }
-
-            });
-        } catch (InterruptedException | ExecutionException e) {
-            throw new JobExecutionException(e);
+            try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
+                LOGGER.info("Start traceability");
+                client.traceability(tenants);
+                LOGGER.info("Traceability done successfully");
+            }
+        } catch (InvalidParseOperationException | LogbookClientServerException e) {
+            throw new JobExecutionException(" Error when securing logbook operations  :  " + adminTenant, e);
         }
         LOGGER.info("Traceability operation is finished");
 

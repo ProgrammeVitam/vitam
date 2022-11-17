@@ -32,10 +32,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+@DisallowConcurrentExecution
 public class IdentityExpirationJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityExpirationJob.class);

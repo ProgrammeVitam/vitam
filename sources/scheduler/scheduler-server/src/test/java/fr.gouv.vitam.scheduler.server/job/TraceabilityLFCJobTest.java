@@ -28,13 +28,17 @@
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.scheduler.server.model.TraceabilityType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +68,10 @@ public class TraceabilityLFCJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -83,7 +91,7 @@ public class TraceabilityLFCJobTest {
     public void setup() {
         doReturn(logbookOperationsClient).when(logbookOperationsClientFactory).getClient();
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("item", TraceabilityType.Unit.name());
+        jobDataMap.put("item", MetadataType.UNIT.name());
         when(context.getJobDetail()).thenReturn(jobDetail);
         when(context.getJobDetail().getJobDataMap()).thenReturn(jobDataMap);
         VitamConfiguration.setAdminTenant(1);
@@ -91,6 +99,7 @@ public class TraceabilityLFCJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testTraceabilityLFCOKThenSuccess() throws Exception {
         // Given
         doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
@@ -112,6 +121,7 @@ public class TraceabilityLFCJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testTraceabilityLFCFatalThenOK() throws Exception {
         // Given
         doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)

@@ -650,7 +650,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         reconstructionItem.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         reconstructionItem.setTenant(TENANT_1);
         reconstructionItem.setLimit(1000);
-        reconstructionService.reconstruct(reconstructionItem);
+        reconstructionService.reconstructAccessionRegister(reconstructionItem);
 
         registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -766,7 +766,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         reconstructionItem.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName());
         reconstructionItem.setTenant(TENANT_1);
         reconstructionItem.setLimit(1000);
-        reconstructionService.reconstruct(reconstructionItem);
+        reconstructionService.reconstructAccessionRegister(reconstructionItem);
 
         registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find()));
