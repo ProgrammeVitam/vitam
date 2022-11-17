@@ -71,6 +71,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -80,8 +82,8 @@ import static org.mockito.Mockito.when;
 public class ProcessingManagementClientTest extends ResteasyTestApplication {
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    private static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
-    private static VitamServerTestRunner vitamServerTestRunner =
+    private static final ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
+    private static final VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(ProcessingManagementClientTest.class, factory);
 
 
@@ -202,8 +204,9 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isNotRunning("FakeOp", ProcessState.COMPLETED);
-            Assertions.assertThat(resp).isFalse();
+            final ItemStatus operationProcessStatus = client.getOperationProcessStatus("FakeOp");
+            final ProcessState state = operationProcessStatus.getGlobalState();
+            assertEquals(ProcessState.RUNNING, state);
         }
 
         // Test completed true
@@ -214,8 +217,9 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isNotRunning("FakeOp");
-            Assertions.assertThat(resp).isTrue();
+            final ItemStatus operationProcessStatus = client.getOperationProcessStatus("FakeOp");
+            final ProcessState state = operationProcessStatus.getGlobalState();
+            assertNotEquals(ProcessState.RUNNING, state);
         }
 
         // Test completed false
@@ -226,16 +230,21 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isNotRunning("FakeOp");
-            Assertions.assertThat(resp).isFalse();
+            final ItemStatus operationProcessStatus = client.getOperationProcessStatus("FakeOp");
+            final ProcessState state = operationProcessStatus.getGlobalState();
+            assertNotEquals(ProcessState.RUNNING, state);
         }
 
         // Test completed true
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
+        when(mock.head()).thenReturn(Response.status(Status.OK)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED.name())
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+            .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isNotRunning("FakeOp");
-            Assertions.assertThat(resp).isTrue();
+            final ItemStatus operationProcessStatus = client.getOperationProcessStatus("FakeOp");
+            final ProcessState state = operationProcessStatus.getGlobalState();
+            assertNotEquals(ProcessState.RUNNING, state);
         }
     }
 

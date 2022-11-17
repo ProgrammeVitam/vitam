@@ -102,6 +102,7 @@ import static fr.gouv.vitam.common.model.MetadataStorageHelper.GOT_KEY;
 import static fr.gouv.vitam.common.model.MetadataStorageHelper.LFC_KEY;
 import static fr.gouv.vitam.common.model.MetadataStorageHelper.UNIT_KEY;
 import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.ProcessState.RUNNING;
 import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OB_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
@@ -322,16 +323,29 @@ public class VitamTestHelper {
     }
 
     public static void waitOperation(long nbTry, long timeToSleep, String operationId, ProcessState processState) {
-        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        for (int nbtimes = 0; (nbtimes <= nbTry &&
-            !processingClient.isNotRunning(operationId, processState)); nbtimes++) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(timeToSleep);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        try (ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance()
+            .getClient()) {
+            for (int nbtimes = 0; nbtimes <= nbTry; nbtimes++) {
+                final ItemStatus opStatus = processingManagementClient.getOperationProcessStatus(operationId);
+                final ProcessState state = opStatus.getGlobalState();
+                if ((processState == null && !state.equals(RUNNING)) || state.equals(processState)) {
+                    break;
+                } else if (nbtimes == nbTry) {
+                    LOGGER.error("Process with id={} not finished state={}, status={}", operationId, state,
+                        opStatus.getGlobalStatus());
+                    fail("Process did not finished on time");
+                }
+                try {
+                    TimeUnit.MILLISECONDS.sleep(timeToSleep);
+                } catch (InterruptedException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
             }
+        } catch (VitamClientException | InternalServerException | BadRequestException e) {
+            fail("An error occured while retreiving process status", e);
         }
     }
+
 
     public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
         waitOperation(nbTry, timeToSleep, operationId, null);

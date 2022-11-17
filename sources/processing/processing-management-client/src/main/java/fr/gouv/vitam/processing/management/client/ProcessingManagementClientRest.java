@@ -190,46 +190,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public boolean isNotRunning(String operationId) {
-        return isNotRunning(operationId, null);
-    }
-
-    /**
-     * Return false if status accepted Return true otherwise
-     *
-     * @param operationId
-     * @return
-     */
-    @Override
-    public boolean isNotRunning(String operationId, ProcessState expectedProcessState) {
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        VitamRequestBuilder request = head()
-            .withPath(OPERATION_URI + "/" + operationId)
-            .withJsonAccept();
-        try (Response response = make(request)) {
-            // FIXME : What if 50x / 40x?
-            if (response.getStatus() != Status.ACCEPTED.getStatusCode()) {
-                return true;
-            }
-
-            final ProcessState state =
-                ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
-            final StatusCode status =
-                StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-
-            if (ProcessState.PAUSE.equals(state) && status.isGreaterOrEqualToStarted()) {
-                return (null == expectedProcessState || expectedProcessState.equals(state));
-            }
-
-            return false;
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            // FIXME : Why is that?!!
-            return true;
-        }
-    }
-
-    @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
         throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);

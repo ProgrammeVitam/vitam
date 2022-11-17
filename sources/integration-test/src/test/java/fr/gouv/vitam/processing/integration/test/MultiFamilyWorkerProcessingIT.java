@@ -42,7 +42,6 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -81,11 +80,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -105,7 +104,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
-    private int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
+    private final int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
 
     public static final String INGEST_LEVEL_STACK_JSON =
         "integration-processing/ingestLevelStack.json";
@@ -281,7 +280,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         // Get first step and assert that it is executed by FamilyOne worker
         ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -303,7 +302,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         // Worker of the family one not invoked
         assertThat(workerInstanceFamilyOne.getServeEvents().getMeta().total).isEqualTo(0);
@@ -318,7 +317,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         // Worker of the family one not invoked
         assertThat(workerInstanceFamilyOne.getServeEvents().getMeta().total).isEqualTo(0);
@@ -342,7 +341,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         // Number of invocations from the step 3 to the last one
         // All ref steps are executed by worker FamilyOne
@@ -369,26 +368,6 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
 
         checkAllSteps(processWorkflow);
-    }
-
-    private void wait(String operationId) {
-        wait(operationId, ProcessState.COMPLETED);
-    }
-
-    private void wait(String operationId, ProcessState processState) {
-        int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient()
-            .isNotRunning(operationId, processState)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
     }
 
     private void simulateIngest(String containerName)

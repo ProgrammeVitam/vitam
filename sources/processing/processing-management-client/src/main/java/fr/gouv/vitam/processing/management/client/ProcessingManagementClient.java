@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.client;
 
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -36,7 +35,6 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -51,22 +49,6 @@ import java.util.Optional;
  * Processing Management Client
  */
 public interface ProcessingManagementClient extends MockOrRestClient {
-
-    /**
-     * Check if process workflow is completed of not
-     *
-     * @param operationId
-     * @return boolean true/false
-     */
-    boolean isNotRunning(String operationId);
-
-    /**
-     * @param operationId
-     * @param expectedProcessState
-     * @return
-     */
-    @VisibleForTesting
-    boolean isNotRunning(String operationId, ProcessState expectedProcessState);
 
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is

@@ -442,9 +442,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK<StorageLogTraceabilityResult> response =
                 storageClient.storageLogTraceability(Collections.singletonList(TENANT_ID));
-            String opId = response.getResults().get(0).getOperationId();
-            waitOperation(opId);
-            return opId;
+            return response.getResults().get(0).getOperationId();
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             fail("Error while securing data", e);
         } finally {
@@ -491,9 +489,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             RequestResponseOK<TenantLogbookOperationTraceabilityResult> response
                 = client.traceability(Collections.singletonList(TENANT_ID));
             assertThat(response.getResults().size()).isEqualTo(1);
-            String opId = response.getResults().get(0).getOperationId();
-            waitOperation(opId);
-            return opId;
+            return response.getResults().get(0).getOperationId();
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             fail("Error while securing tenant", e);
             return null;

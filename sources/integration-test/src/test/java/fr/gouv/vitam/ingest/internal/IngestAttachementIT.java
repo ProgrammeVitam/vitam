@@ -327,7 +327,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
     private InputStream createZipFile(final String folderToZip) throws IOException {
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
         String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(folderToZip), zipPath);
 
@@ -359,7 +359,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
                 }
 
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir) + "/"));
                     zos.closeEntry();
                     return FileVisitResult.CONTINUE;
                 }
@@ -383,7 +383,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         // stop workflow
         processingManagementClient.cancelOperationProcessExecution(operationId);
-        waitOperation(operationId, PAUSE);
+        waitOperation(operationId, COMPLETED);
         verifyOperation(operationId, KO);
         return operationId;
     }
