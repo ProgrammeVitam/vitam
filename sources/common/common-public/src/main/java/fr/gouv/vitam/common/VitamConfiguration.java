@@ -344,7 +344,7 @@ public class VitamConfiguration {
     /*
      * Max cache entries
      */
-    private static int maxCacheEntries = 10000;
+    private static int maxCacheEntries = 25_000;
 
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)

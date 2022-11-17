@@ -366,29 +366,23 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      * @throws MetaDataException
      */
     private void preLoadCache(List<Document> documents) throws MetaDataException {
-        Set<String> allUps =
-            documents
-                .stream()
-                .map(o -> (List<String>) o.get(Unit.UP, List.class))
-                .filter(CollectionUtils::isNotEmpty)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
 
         try {
-            Map<String, Document> docs = getCache().getAll(allUps);
-            while (!allUps.isEmpty()) {
+            Collection<Document> currentDocuments = documents;
 
-                allUps = docs
-                    .values()
+            while(true) {
+                Set<String> parentUnitIds = currentDocuments
                     .stream()
-                    .map(o -> (List<String>) o.get(Unit.UP, List.class))
+                    .map(o -> o.getList(Unit.UP, String.class))
                     .filter(CollectionUtils::isNotEmpty)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
 
-                if (!allUps.isEmpty()) {
-                    docs = getCache().getAll(allUps);
+                if (parentUnitIds.isEmpty()) {
+                    break;
                 }
+
+                currentDocuments = getCache().getAll(parentUnitIds).values();
             }
 
         } catch (ExecutionException e) {
@@ -451,8 +445,7 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
                     this.bulkUpdateMongo(metadataCollections, updateOneModels);
                     // Re-Index all documents
                     this.bulkElasticsearch(metadataCollections,
-                        documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
-                            Collectors.toSet()));
+                        documents.stream().map(o -> o.getString(Unit.ID)).collect(Collectors.toSet()));
                 } catch (DatabaseException e) {
                     // Rollback in MongoDB and Elasticsearch
                     throw new MetaDataException(e);
@@ -480,8 +473,8 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
         List<String> up = document.getList(Unit.UP, String.class);
-        String unitId = document.get(Unit.ID, String.class);
-        String originatingAgency = document.get(Unit.ORIGINATING_AGENCY, String.class);
+        String unitId = document.getString(Unit.ID);
+        String originatingAgency = document.getString(Unit.ORIGINATING_AGENCY);
 
         computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, up, START_DEPTH);
 
@@ -528,23 +521,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         // +1 because if no parent _max==1 if one parent _max==2
         Integer max = max_minus_one + 1;
 
-        /*
-         * If the current document is present in the cache ?
-         * Then two options:
-         *      - invalidate cache for this key
-         *      - update cache
-         * Why ?
-         * the cache will be re-used to compute graph of ObjectGroup (if UNIT/GOT compute at the same time demanded)
-         *
-         * In this case, we will just update cache. because invalidation must be done
-         */
-
-        if (null != getCache().getIfPresent(unitId)) {
-            document.put(Unit.ORIGINATING_AGENCIES, new ArrayList<>(sps));
-            document.put(Unit.UNITUPS, new ArrayList<>(us));
-            getCache().put(unitId, document);
-        }
-
         Document update = new Document(Unit.ID, unitId)
             .append(Unit.UNITUPS, us)
             .append(Unit.UNITDEPTHS, parentsDepths)
@@ -579,24 +555,41 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         throws VitamRuntimeException {
 
         Set<String> sps = new HashSet<>();
-        Set<String> unitParents = new HashSet<>();
-        String gotId = document.get(ObjectGroup.ID, String.class);
-        List<String> up = document.get(ObjectGroup.UP, List.class);
+        Set<String> us = new HashSet<>();
+        String gotId = document.getString(ObjectGroup.ID);
+        List<String> up = document.getList(ObjectGroup.UP, String.class);
 
-        computeObjectGroupGraph(sps, unitParents, up);
-
-        // Add current _up to _us
-        if (null != up) {
-            unitParents.addAll(up);
-        }
-
-        String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
+        String originatingAgency = document.getString(Unit.ORIGINATING_AGENCY);
         if (StringUtils.isNotEmpty(originatingAgency)) {
             sps.add(originatingAgency);
         }
 
+        List<String> currentUpUnitIds = up;
+        while (CollectionUtils.isNotEmpty(currentUpUnitIds)) {
+
+            us.addAll(currentUpUnitIds);
+
+            Collection<Document> parentUnits;
+            try {
+                parentUnits = getCache().getAll(currentUpUnitIds).values();
+            } catch (ExecutionException e) {
+                throw new VitamRuntimeException(e);
+            }
+
+            parentUnits.stream()
+                .map(o -> o.getString(Unit.ORIGINATING_AGENCY))
+                .filter(StringUtils::isNotEmpty)
+                .forEach(sps::add);
+
+            currentUpUnitIds = parentUnits.stream()
+                .map(o -> o.getList(Unit.UP, String.class))
+                .filter(CollectionUtils::isNotEmpty)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        }
+
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
-            .append(Unit.UNITUPS, unitParents)
+            .append(Unit.UNITUPS, us)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())))
             .append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
@@ -633,60 +626,20 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             Document parentUnit = unitParent.getValue();
 
             GraphRelation ugr = new GraphRelation(unitId, unitParent.getKey(),
-                unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
+                parentUnit.getString(Unit.ORIGINATING_AGENCY), currentDepth);
 
             if (graphRels.contains(ugr)) {
-                // Relation (unit_id , unitParent.getKey()) already treated
+                // Relation (unit_id , unitParent.getKey()) already processed
                 // Means unit_id already visited, then  continue is unnecessary. beak is the best choice for performance
                 break;
             }
 
             graphRels.add(ugr);
 
-            // Recall the same method, but no for each parent unit of the current unit_id
+            // Invoke the same method with parent units
             computeUnitGraphUsingDirectParents(graphRels,
                 unitParent.getKey(),
-                parentUnit.get(Unit.UP, List.class), nextDepth);
-        }
-
-    }
-
-
-    /**
-     * For ObjectGroup, we only get graph data (sps) from only unit represents (up)
-     * We do not loop over all parent of parent until root units
-     * As not concurrence expected, no problem of inconsistency,
-     * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
-     *
-     * @param originatingAgencies
-     * @param unitParents
-     * @param up
-     * @throws VitamRuntimeException
-     */
-    private void computeObjectGroupGraph(Set<String> originatingAgencies, Set<String> unitParents, List<String> up)
-        throws VitamRuntimeException {
-        if (null == up || up.isEmpty()) {
-            return;
-        }
-
-        final Map<String, Document> units;
-        try {
-            units = getCache().getAll(up);
-        } catch (ExecutionException e) {
-            throw new VitamRuntimeException(e);
-        }
-
-        for (Map.Entry<String, Document> unit : units.entrySet()) {
-            Document au = unit.getValue();
-            List agencies = au.get(Unit.ORIGINATING_AGENCIES, List.class);
-            if (CollectionUtils.isNotEmpty(agencies)) {
-                originatingAgencies.addAll(agencies);
-            }
-
-            List parents = au.get(Unit.UNITUPS, List.class);
-            if (CollectionUtils.isNotEmpty(parents)) {
-                unitParents.addAll(parents);
-            }
+                parentUnit.getList(Unit.UP, String.class), nextDepth);
         }
     }
 
