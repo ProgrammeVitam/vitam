@@ -209,6 +209,8 @@ public class FluxService {
                 CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false).withDelimiter(';'))) {
             List<String> headerNames = parser.getHeaderNames();
 
+            boolean updated = false;
+
             final Iterator<Map<String, JsonNode>> iterator =
                 IteratorUtils.transformedIterator(Iterators.partition(parser.iterator(), 1000),
                     list -> list.stream().map(e -> CsvMetadataMapper.map(e, headerNames))
@@ -216,7 +218,8 @@ public class FluxService {
 
             while (iterator.hasNext()) {
                 try {
-                    var unitsIdByURI = iterator.next();
+                    updated = true;
+                    Map<String, JsonNode> unitsIdByURI = iterator.next();
                     // update unit with list
                     final List<JsonNode> updateMultiQueries =
                         convertToQuery(unitsIdByURI, unitsByURI, isAttachmentAuExist);
@@ -236,6 +239,9 @@ public class FluxService {
                     LOGGER.error("Could not create update query", e);
                     throw new CollectException(e);
                 }
+            }
+            if (!updated) {
+                throw new CollectException("no update data found !");
             }
         }
     }

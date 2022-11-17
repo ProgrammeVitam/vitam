@@ -120,36 +120,6 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCheckStatus_OK() {
-        // Given
-        final String idCollect = "XXXX000002222222";
-        TransactionModel transactionModel =
-            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
-
-        // When
-        boolean checkStatus =
-            transactionService.checkStatus(transactionModel, TransactionStatus.OPEN, TransactionStatus.ACK_KO);
-
-        // Then
-        Assertions.assertThat(checkStatus).isTrue();
-    }
-
-    @Test
-    public void testCheckStatus_KO() {
-        // Given
-        final String idCollect = "XXXX000002222222";
-        TransactionModel transactionModel =
-            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
-
-        // When
-        boolean checkStatus =
-            transactionService.checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_KO);
-
-        // Then
-        Assertions.assertThat(checkStatus).isFalse();
-    }
-
-    @Test
     public void isTransactionContentNotEmptyTest() throws Exception {
         final String idTransaction = "XXXX000002222222";
         // Given

@@ -44,6 +44,7 @@ import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -55,7 +56,9 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -67,6 +70,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -373,9 +379,10 @@ public class TransactionResource {
     @PUT
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Envoi vers VITAM la transaction")
+    @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Mettre à jour les unités archivistiques")
     public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) {
         try {
+            ParametersChecker.checkParameter("DOCUMENT_IS_MANDATORY", is);
             SanityChecker.checkParameter(transactionId);
 
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
@@ -391,7 +398,28 @@ public class TransactionResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-            fluxService.updateUnits(transaction.getId(), is, !Objects.isNull(projectDto.get().getUnitUp()));
+
+            final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+            File file = PropertiesUtils.fileFromTmpFolder(String.format("metadata_%s.csv", requestId));
+
+            // Check Html Pattern
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                StreamUtils.copy(is, fileOutputStream);
+                if (file.length() == 0) {
+                    throw new IllegalArgumentException("Empty file");
+                }
+                SanityChecker.checkHTMLFile(file);
+
+
+                try (InputStream sanityStream = new FileInputStream(file)) {
+                    fluxService.updateUnits(transaction.getId(), sanityStream,
+                        !Objects.isNull(projectDto.get().getUnitUp()));
+                }
+            } finally {
+                FileUtils.deleteQuietly(file);
+            }
+
+
 
             return Response.ok(new RequestResponseOK<>()).build();
         } catch (CollectException | IOException e) {
@@ -399,6 +427,9 @@ public class TransactionResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to update metadata : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to read stream : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
