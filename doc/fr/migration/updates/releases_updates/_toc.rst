@@ -1,7 +1,7 @@
 .. _releases_updates:
 
-Montées de version mineure
-##########################
+Montées de version majeures
+###########################
 
 .. toctree::
    :glob:
