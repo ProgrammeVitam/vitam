@@ -32,23 +32,20 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+@DisallowConcurrentExecution
 public class ReconstructionOperationJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionOperationJob.class);
@@ -59,49 +56,25 @@ public class ReconstructionOperationJob implements Job {
         this(LogbookOperationsClientFactory.getInstance());
     }
 
-    ReconstructionOperationJob(
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    ReconstructionOperationJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        final Integer adminTenant = VitamConfiguration.getAdminTenant();
         try {
-
-            runInVitamThreadExecutor(() -> {
-
-                try {
-                    VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-                    VitamThreadUtils.getVitamSession()
-                        .setRequestId(GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant()));
-                    List<ReconstructionRequestItem> reconstructionItems =
-                        VitamConfiguration.getTenants().stream().map(ReconstructionRequestItem::new)
-                            .collect(Collectors.toList());
-                    try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
-                        LOGGER.info("Reconstruction operation in progress...");
-                        client.reconstructCollection(reconstructionItems);
-                        LOGGER.info("Reconstruction operation is finished");
-                    }
-                } catch (LogbookClientServerException e) {
-                    throw new IllegalStateException(
-                        " Error when securing logbook operations  :  " + VitamConfiguration.getAdminTenant(), e);
-                }
-
-
-            });
-        } catch (InterruptedException | ExecutionException e) {
-            throw new JobExecutionException(e);
+            VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
+            List<ReconstructionRequestItem> reconstructionItems =
+                VitamConfiguration.getTenants().stream().map(ReconstructionRequestItem::new)
+                    .collect(Collectors.toList());
+            try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
+                LOGGER.info("Reconstruction operation in progress...");
+                client.reconstructCollection(reconstructionItems);
+                LOGGER.info("Reconstruction operation is finished");
+            }
+        } catch (LogbookClientServerException e) {
+            throw new IllegalStateException(" Error when securing logbook operations  :  " + adminTenant, e);
         }
     }
-
-
-
-    private static void runInVitamThreadExecutor(Runnable runnable)
-        throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
-        completableFuture.get();
-        executorService.shutdown();
-    }
-
-
 }

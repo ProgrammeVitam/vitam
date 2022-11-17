@@ -24,7 +24,7 @@
     <schedule>
         <job>
             <name>ReferentialCreateSymblolicAccessionRegisterJob</name>
-            <group>functionalAdminGroup</group>
+            <group>FunctionalAdministration</group>
             <description>Job for referential accession register symbolic</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.ReferentialCreateSymblolicAccessionRegisterJob</job-class>
         </job>
@@ -32,9 +32,9 @@
         <trigger>
            <cron>
                 <name>ReferentialCreateSymblolicAccessionRegisterTrigger</name>
-                <group>functionalAdminGroup</group>
+                <group>FunctionalAdministration</group>
                 <job-name>ReferentialCreateSymblolicAccessionRegisterJob</job-name>
-                <job-group>functionalAdminGroup</job-group>
+                <job-group>FunctionalAdministration</job-group>
                 <cron-expression>0 50 0 * * ?</cron-expression>
             </cron>
         </trigger>
@@ -43,7 +43,7 @@
     <schedule>
         <job>
             <name>RuleManagementAuditJob</name>
-            <group>functionalAdminGroup</group>
+            <group>FunctionalAdministration</group>
             <description>Job for management rules audit</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.RuleManagementAuditJob</job-class>
         </job>
@@ -51,9 +51,9 @@
         <trigger>
             <cron>
                 <name>RuleManagementAuditTrigger</name>
-                <group>functionalAdminGroup</group>
+                <group>FunctionalAdministration</group>
                 <job-name>RuleManagementAuditJob</job-name>
-                <job-group>functionalAdminGroup</job-group>
+                <job-group>FunctionalAdministration</job-group>
                 <cron-expression>0 40 * * * ?</cron-expression>
             </cron>
         </trigger>
@@ -64,7 +64,7 @@
     <schedule>
         <job>
             <name>ReconstructionAccessionRegisterJob</name>
-            <group>functionalAdminGroup</group>
+            <group>FunctionalAdministration</group>
             <description>Job for reconstruction accession register</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionAccessionRegisterJob</job-class>
         </job>
@@ -72,9 +72,9 @@
         <trigger>
             <cron>
                 <name>ReconstructionAccessionRegisterTrigger</name>
-                <group>functionalAdminGroup</group>
+                <group>FunctionalAdministration</group>
                 <job-name>ReconstructionAccessionRegisterJob</job-name>
-                <job-group>functionalAdminGroup</job-group>
+                <job-group>FunctionalAdministration</job-group>
                 <cron-expression>0 0/5 * * * ?</cron-expression>
             </cron>
         </trigger>
@@ -82,7 +82,7 @@
     <schedule>
         <job>
             <name>ReconstructionReferentialJob</name>
-            <group>functionalAdminGroup</group>
+            <group>FunctionalAdministration</group>
             <description>job for referentials reconstruction </description>
             <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionReferentialJob</job-class>
         </job>
@@ -90,9 +90,9 @@
         <trigger>
             <cron>
                 <name>ReconstructionReferentialTrigger</name>
-                <group>functionalAdminGroup</group>
+                <group>FunctionalAdministration</group>
                 <job-name>ReconstructionReferentialJob</job-name>
-                <job-group>functionalAdminGroup</job-group>
+                <job-group>FunctionalAdministration</job-group>
                 <cron-expression>0 0/5 * * * ?</cron-expression>
             </cron>
         </trigger>

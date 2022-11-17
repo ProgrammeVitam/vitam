@@ -33,24 +33,26 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+@DisallowConcurrentExecution
 public class MetadataReconstructionJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataReconstructionJob.class);
 
     private final MetaDataClientFactory metaDataClientFactory;
-
-    private static final Integer TENANT_ID = VitamConfiguration.getAdminTenant();
 
     public static final String OBJECTGROUP = "OBJECTGROUP";
 
@@ -70,9 +72,11 @@ public class MetadataReconstructionJob implements Job {
     }
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        final Integer adminTenant = VitamConfiguration.getAdminTenant();
+        VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            VitamContext vitamContext = new VitamContext(TENANT_ID);
             LOGGER.info("Process of reconstruction in progress...");
             final ObjectNode reconstructionPayload = JsonHandler.createObjectNode();
             VitamConfiguration.getTenants().forEach(tenant -> {
@@ -82,7 +86,7 @@ public class MetadataReconstructionJob implements Job {
             reconstructionPayload.put(UNIT_GRAPH, VitamConfiguration.getAdminTenant());
             reconstructionPayload.put(OBJECTGROUP_GRAPH, VitamConfiguration.getAdminTenant());
 
-            metaDataClient.reconstructCollection(vitamContext, reconstructionPayload);
+            metaDataClient.reconstructCollection(reconstructionPayload);
             LOGGER.info("End of process reconstruction");
         } catch (InvalidParseOperationException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new JobExecutionException(e);

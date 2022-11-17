@@ -29,7 +29,10 @@ package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -62,6 +65,10 @@ public class TraceabilityJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -82,6 +89,7 @@ public class TraceabilityJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testStorageLogBackupOKThenSuccess() throws Exception {
 
         // Given
@@ -103,6 +111,7 @@ public class TraceabilityJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testStorageLogBackupKOThenException() throws Exception {
 
         // Given

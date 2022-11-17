@@ -32,23 +32,20 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+@DisallowConcurrentExecution
 public class ReconstructionAccessionRegisterJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionAccessionRegisterJob.class);
@@ -59,45 +56,22 @@ public class ReconstructionAccessionRegisterJob implements Job {
         this(AdminManagementClientFactory.getInstance());
     }
 
-    ReconstructionAccessionRegisterJob(
-        AdminManagementClientFactory adminManagementClientFactory) {
+    ReconstructionAccessionRegisterJob(AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        final Integer adminTenant = VitamConfiguration.getAdminTenant();
+        VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
+        try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
+            List<ReconstructionRequestItem> reconstructionItems = getReconstructionItems();
 
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-
-        try {
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-
-                try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
-                    VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-                    VitamThreadUtils.getVitamSession()
-                        .setRequestId(GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant()));
-                    List<ReconstructionRequestItem> reconstructionItems = getReconstructionItems();
-
-                    LOGGER.info("Reconstruction accession register in progress...");
-                    client.reconstructAccessionRegister(reconstructionItems);
-                    LOGGER.info("Reconstruction accession register is finished");
-                } catch (AdminManagementClientServerException e) {
-                    throw new IllegalStateException(
-                        " Error when reconstruction Admin  :  " + VitamConfiguration.getAdminTenant(), e);
-                }
-
-
-            }, executorService);
-            completableFuture.get();
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new JobExecutionException("Reconstruction accession register is interrupted", e);
-        } catch (ExecutionException e) {
-            LOGGER.error(e);
-            throw new JobExecutionException("Reconstruction accession register is failed", e);
-        } finally {
-            executorService.shutdown();
+            LOGGER.info("Reconstruction accession register in progress...");
+            client.reconstructAccessionRegister(reconstructionItems);
+            LOGGER.info("Reconstruction accession register is finished");
+        } catch (AdminManagementClientServerException e) {
+            throw new JobExecutionException(" Error when reconstruction Admin  :  " + adminTenant, e);
         }
     }
 
@@ -106,8 +80,8 @@ public class ReconstructionAccessionRegisterJob implements Job {
         List<ReconstructionRequestItem> reconstructionRequestItems = new ArrayList<>();
 
         VitamConfiguration.getTenants().forEach(tenant -> {
-            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterDetail", tenant, 1000));
-            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterSymbolic", tenant, 1000));
+            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterDetail", tenant));
+            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterSymbolic", tenant));
         });
 
         return reconstructionRequestItems;

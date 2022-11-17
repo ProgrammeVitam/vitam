@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.junit.Before;
@@ -50,6 +53,10 @@ public class StoreGraphJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
@@ -70,15 +77,16 @@ public class StoreGraphJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testStoreGraphSuccess() throws Exception {
         // Given
-        when(metaDataClient.storeGraph(any())).thenReturn(null);
+        when(metaDataClient.storeGraph()).thenReturn(null);
 
         // When
         storeGraphJob.execute(jobExecutionContext);
 
         // Then
-        verify(metaDataClient, times(1)).storeGraph(any());
+        verify(metaDataClient, times(1)).storeGraph();
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
 

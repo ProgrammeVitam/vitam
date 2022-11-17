@@ -13,7 +13,7 @@
     <processing-directives>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), overwrite them -->
-        <overwrite-existing-data>false</overwrite-existing-data>
+        <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
@@ -23,7 +23,7 @@
 
         <job>
             <name>certificateExpirationJob</name>
-            <group>SecurityGroup</group>
+            <group>Security</group>
             <description>Job for supervising certificate expiration</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.IdentityExpirationJob</job-class>
         </job>
@@ -31,9 +31,9 @@
         <trigger>
             <cron>
                 <name>certificateExpirationTrigger</name>
-                <group>SecurityGroup</group>
+                <group>Security</group>
                 <job-name>certificateExpirationJob</job-name>
-                <job-group>SecurityGroup</job-group>
+                <job-group>Security</job-group>
                 <cron-expression>0 0 0 * * ?</cron-expression>
             </cron>
         </trigger>

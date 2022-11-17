@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.junit.Before;
@@ -50,6 +53,10 @@ public class MetadataReconstructionJobTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
@@ -70,20 +77,18 @@ public class MetadataReconstructionJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testReconstructCollectionSuccess() throws Exception {
         // Given
-        when(metaDataClient.reconstructCollection(any(), any())).thenReturn(null);
+        when(metaDataClient.reconstructCollection(any())).thenReturn(null);
 
         // When
         metadataReconstructionJob.execute(jobExecutionContext);
 
         // Then
-        verify(metaDataClient, times(1)).reconstructCollection(any(), any());
+        verify(metaDataClient, times(1)).reconstructCollection(any());
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
 
     }
-
-
-
 }

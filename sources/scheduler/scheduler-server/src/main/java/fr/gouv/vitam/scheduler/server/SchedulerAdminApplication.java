@@ -29,6 +29,7 @@ package fr.gouv.vitam.scheduler.server;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.scheduler.server.util.VitamJobsDataProcessorPlugin;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
 import javax.servlet.ServletConfig;
@@ -48,8 +49,12 @@ public class SchedulerAdminApplication extends AdminApplication {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final SchedulerConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, SchedulerConfiguration.class);
+
+            final VitamJobsDataProcessorPlugin jobsDataProcessorPlugin = new VitamJobsDataProcessorPlugin(configuration);
+
             super.getSingletons().add(new BasicAuthenticationFilter(configuration));
             super.getSingletons().add(new JsonParseExceptionMapper());
+            super.getSingletons().add(new AdminSchedulerResource(jobsDataProcessorPlugin));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

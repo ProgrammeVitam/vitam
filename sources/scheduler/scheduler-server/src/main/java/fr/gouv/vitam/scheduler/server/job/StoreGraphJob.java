@@ -32,25 +32,27 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
+@DisallowConcurrentExecution
 public class StoreGraphJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreGraphJob.class);
 
     private final MetaDataClientFactory metaDataClientFactory;
-
-    private static final Integer TENANT_ID = VitamConfiguration.getAdminTenant();
 
     public StoreGraphJob() {
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();
@@ -62,11 +64,12 @@ public class StoreGraphJob implements Job {
     }
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
-
+        final Integer adminTenant = VitamConfiguration.getAdminTenant();
+        VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            VitamContext vitamContext = new VitamContext(TENANT_ID);
             LOGGER.info("Process of storing graph in progress...");
-            metaDataClient.storeGraph(vitamContext);
+            metaDataClient.storeGraph();
             LOGGER.info("End of process storing graph");
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new JobExecutionException(e);

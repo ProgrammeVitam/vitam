@@ -37,7 +37,7 @@
 - import_playbook: services/others/pre_check.yml
 
 ### STOP VITAM TIMERS ###
-- import_playbook: ../ansible-vitam-exploitation/stop_vitam_timers.yml
+- import_playbook: ../ansible-vitam-exploitation/stop_vitam_scheduling.yml
 
 ### HOSTS NORMALIZATION ###
 - import_playbook: services/others/pre_install.yml
@@ -109,6 +109,6 @@
 
 - import_playbook: services/vitam/scheduler.yml
 
-- import_playbook: ../ansible-vitam-exploitation/start_vitam_timers.yml
+- import_playbook: ../ansible-vitam-exploitation/start_vitam_scheduling.yml
 
 - import_playbook: services/vitam/ihm_demo.yml

@@ -59,10 +59,9 @@ public class ReconstructionRequestItem {
         super();
     }
 
-    public ReconstructionRequestItem(String collection, Integer tenant, int limit) {
+    public ReconstructionRequestItem(String collection, Integer tenant) {
         this.collection = collection;
         this.tenant = tenant;
-        this.limit = limit;
     }
 
     /**

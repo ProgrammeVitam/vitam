@@ -273,7 +273,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * @return response of reconstruction
      * @throws IllegalArgumentException invalid input
      */
-    public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
+    public ReconstructionResponseItem reconstructAccessionRegister(ReconstructionRequestItem reconstructionItem) {
         ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MANDATORY_MSG, reconstructionItem);
         ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MANDATORY_MSG, reconstructionItem.getCollection());
         ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MANDATORY_MSG, reconstructionItem.getTenant());
@@ -290,7 +290,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         final Histogram.Timer timer = VitamCommonMetrics.RECONSTRUCTION_DURATION
             .labels(String.valueOf(reconstructionItem.getTenant()), collection.name()).startTimer();
         try {
-            return reconstructCollection(collection, reconstructionItem.getTenant(), reconstructionItem.getLimit());
+            return reconstructAccessionRegister(collection, reconstructionItem.getTenant(), reconstructionItem.getLimit());
         } finally {
             timer.observeDuration();
         }
@@ -317,7 +317,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * @param limit number of data to reconstruct
      * @return response of reconstruction
      */
-    private ReconstructionResponseItem reconstructCollection(FunctionalAdminCollections collection, int tenant,
+    private ReconstructionResponseItem reconstructAccessionRegister(FunctionalAdminCollections collection, int tenant,
         int limit) {
 
         final long offset =
@@ -395,7 +395,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             }
 
             if (collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
-                this.computeAccessionRegisterSummary(originatingAgencies, tenant);
+                computeAccessionRegisterSummary(originatingAgencies, tenant);
             }
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException de) {
@@ -525,10 +525,6 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             indexManager.getElasticsearchIndexAliasResolver(faCollection)).save(collection);
     }
 
-    public void computeAccessionRegisterSummary(String originatingAgency, Integer tenant) {
-        computeAccessionRegisterSummary(Sets.newHashSet(originatingAgency), tenant);
-    }
-
     public void computeAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
 
         ParametersChecker.checkParameter("All params are required", originatingAgencies, tenant);
@@ -553,14 +549,14 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 BasicDBObject searchQuery = new BasicDBObject();
                 searchQuery.put(AccessionRegisterSummary.ORIGINATING_AGENCY,
                     registerSummaryDoc.getString(AccessionRegisterSummary.ORIGINATING_AGENCY));
-                MongoCursor registerSummaryIt =
-                    (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(searchQuery))
-                        .iterator();
-                if (registerSummaryIt.hasNext()) {
-                    registerSummaryDoc.append(ID, ((AccessionRegisterSummary) registerSummaryIt.next()).get(ID));
-                } else {
-                    registerSummaryDoc.append(ID,
-                        GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId());
+                try (MongoCursor<AccessionRegisterSummary> registerSummaryIt = (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.<AccessionRegisterSummary>getCollection()
+                    .find(searchQuery)).iterator()) {
+                    if (registerSummaryIt.hasNext()) {
+                        registerSummaryDoc.append(ID, registerSummaryIt.next().get(ID));
+                    } else {
+                        registerSummaryDoc.append(ID,
+                            GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId());
+                    }
                 }
                 accessionRegisterSummary.add(registerSummaryDoc);
             }

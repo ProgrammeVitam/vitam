@@ -37,7 +37,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.scheduler.server.model.Referential;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -49,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@DisallowConcurrentExecution
 public class ReconstructionReferentialJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionReferentialJob.class);
@@ -104,7 +106,14 @@ public class ReconstructionReferentialJob implements Job {
     private List<CompletableFuture<Void>> getReconstructionCompletableFutures(ExecutorService executorService) {
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        for (Referential referential : Referential.values()) {
+        for (FunctionalAdminCollections referential : FunctionalAdminCollections.values()) {
+            switch (referential) {
+                case ACCESSION_REGISTER_DETAIL:
+                case ACCESSION_REGISTER_SUMMARY:
+                case ACCESSION_REGISTER_SYMBOLIC:
+                case VITAM_SEQUENCE:
+                    continue;
+            }
             String referentialValue = referential.name();
 
             CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {

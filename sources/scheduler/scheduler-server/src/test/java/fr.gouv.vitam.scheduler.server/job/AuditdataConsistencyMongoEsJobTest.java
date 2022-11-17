@@ -27,6 +27,10 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.junit.Before;
@@ -46,23 +50,25 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class AuditdataConsistencyMongoEsJobTest {
+    private static final int ADMIN_TENANT = 1;
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Mock
-    private MetaDataClientFactory metaDataClientFactory;
+    @Mock private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock
-    private MetaDataClient metaDataClient;
+    @Mock private MetaDataClient metaDataClient;
 
-    @Mock
-    private JobExecutionContext jobExecutionContext;
+    @Mock private JobExecutionContext jobExecutionContext;
 
     private AuditDataConsistencyMongoEsJob auditdataConsistencyMongoEsJob;
 
     @Before
     public void setup() {
+        VitamConfiguration.setAdminTenant(ADMIN_TENANT);
         MockitoAnnotations.initMocks(this);
         Mockito.reset(metaDataClient);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -70,20 +76,17 @@ public class AuditdataConsistencyMongoEsJobTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testStoreGraphSuccess() throws Exception {
         // Given
-        when(metaDataClient.runAuditDataConsistencyMongoEs(any())).thenReturn(null);
+        when(metaDataClient.runAuditDataConsistencyMongoEs()).thenReturn(null);
 
         // When
         auditdataConsistencyMongoEsJob.execute(jobExecutionContext);
 
         // Then
-        verify(metaDataClient, times(1)).runAuditDataConsistencyMongoEs(any());
+        verify(metaDataClient, times(1)).runAuditDataConsistencyMongoEs();
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
-
     }
-
-
-
 }

@@ -8,7 +8,7 @@
     <processing-directives>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), overwrite them -->
-        <overwrite-existing-data>false</overwrite-existing-data>
+        <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
@@ -18,17 +18,17 @@
     <schedule>
 		<job>
 		    <name>MetadataReconstructionJob</name>
-		    <group>metadata</group>
-		    <description>Job for metadata reconstruction</description>
+		    <group>Metadata</group>
+		    <description>Job for Metadata reconstruction</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.MetadataReconstructionJob</job-class>
 		</job>
 
 		<trigger>
 		    <cron>
 		        <name>ReconstructionTrigger</name>
-		        <group>metadata</group>
+		        <group>Metadata</group>
 		        <job-name>MetadataReconstructionJob</job-name>
-		        <job-group>metadata</job-group>
+		        <job-group>Metadata</job-group>
 		        <cron-expression>{{ vitam_timers.metadata.frequency_reconstruction | default('0 0/5 * * * ?') }}</cron-expression>
 		    </cron>
 		</trigger>
@@ -37,7 +37,7 @@
     <schedule>
 		<job>
 		    <name>StoreGraphJob</name>
-		    <group>metadata</group>
+		    <group>Metadata</group>
 		    <description>Job for storing graph</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.StoreGraphJob</job-class>
 		</job>
@@ -45,9 +45,9 @@
 		<trigger>
 		    <cron>
 		        <name>StoreGraphTrigger</name>
-		        <group>metadata</group>
+		        <group>Metadata</group>
 		        <job-name>StoreGraphJob</job-name>
-		        <job-group>metadata</job-group>
+		        <job-group>Metadata</job-group>
 		        <cron-expression>{{ vitam_timers.metadata.frequency_store_graph | default('0 10/30 * * * ?') }}</cron-expression>
 		    </cron>
 		</trigger>
@@ -55,7 +55,7 @@
    <schedule>
 		<job>
 		    <name>ProcessObsoleteComputedInheritedRulesJob</name>
-		    <group>metadata</group>
+		    <group>Metadata</group>
 		    <description>Job for process obsolete computed inherited rules</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.ProcessObsoleteComputedInheritedRulesJob</job-class>
 		</job>
@@ -63,9 +63,9 @@
 		<trigger>
 		    <cron>
 		        <name>ProcessObsoleteComputedInheritedRulesTrigger</name>
-		        <group>metadata</group>
+		        <group>Metadata</group>
 		        <job-name>ProcessObsoleteComputedInheritedRulesJob</job-name>
-		        <job-group>metadata</job-group>
+		        <job-group>Metadata</job-group>
 		        <cron-expression>{{ vitam_timers.metadata.frequency_computed_inherited_rules | default('0 30 2 * * ?') }}</cron-expression>
 		    </cron>
 		</trigger>
@@ -74,7 +74,7 @@
     <schedule>
 		<job>
 		    <name>PurgeDipJob</name>
-		    <group>metadata</group>
+		    <group>Metadata</group>
 		    <description>Job for purging old DIP archives from workspace storage</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.PurgeDipJob</job-class>
 		</job>
@@ -82,9 +82,9 @@
 		<trigger>
 		    <cron>
 		        <name>PurgeDipJobTrigger</name>
-		        <group>metadata</group>
+		        <group>Metadata</group>
 		        <job-name>PurgeDipJob</job-name>
-		        <job-group>metadata</job-group>
+		        <job-group>Metadata</job-group>
 		        <cron-expression>{{ vitam_timers.metadata.frequency_purge_dip | default('0 0 * * * ?') }}</cron-expression>
 		    </cron>
 		</trigger>
@@ -93,7 +93,7 @@
    <schedule>
 		<job>
 		    <name>PurgeSipJob</name>
-		    <group>metadata</group>
+		    <group>Metadata</group>
 		    <description>Job for purging old transfer SIP archives from workspace storage</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.PurgeSipJob</job-class>
 		</job>
@@ -101,9 +101,9 @@
 		<trigger>
 		    <cron>
 		        <name>PurgeSipJobTrigger</name>
-		        <group>metadata</group>
+		        <group>Metadata</group>
 		        <job-name>PurgeSipJob</job-name>
-		        <job-group>metadata</job-group>
+		        <job-group>Metadata</job-group>
 		        <cron-expression>{{ vitam_timers.metadata.frequency_purge_transfers_sip | default('0 25 2 * * ?') }}</cron-expression>
 		    </cron>
 		</trigger>
@@ -112,20 +112,12 @@
     <schedule>
 		<job>
 		    <name>AuditDataConsistencyMongoEsJob</name>
-		    <group>metadata</group>
+		    <group>Metadata</group>
 		    <description>MongoDB and Elasticsearch data consistency audit Job</description>
 		    <job-class>fr.gouv.vitam.scheduler.server.job.AuditDataConsistencyMongoEsJob</job-class>
+            <durability>true</durability>
+            <recover>true</recover>
 		</job>
-
-		<trigger>
-		    <cron>
-		        <name>AuditDataConsistencyMongoEsJobTrigger</name>
-		        <group>metadata</group>
-		        <job-name>AuditDataConsistencyMongoEsJob</job-name>
-		        <job-group>metadata</job-group>
-		        <cron-expression>{{ vitam_timers.metadata.frequency_audit_mongodb_es  | default('0 0 0 1 JAN ? 2020') }}</cron-expression>
-		    </cron>
-		</trigger>
     </schedule>
 {% endif %}
 </job-scheduling-data>

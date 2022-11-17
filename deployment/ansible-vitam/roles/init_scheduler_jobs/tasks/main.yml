@@ -1,0 +1,11 @@
+---
+
+- name: initiate scheduler jobs
+  uri:
+    url: "http://{{ vitam.scheduler.host }}:{{ vitam.scheduler.port_admin }}/scheduler/v1/jobs"
+    method: POST
+    headers:
+      Connection: "keep-alive"
+      Host: "{{ vitam_struct.host }}"
+    status_code: 202
+  run_once: true

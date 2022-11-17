@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.index.model.ReindexationOK;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -301,36 +300,32 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public Response storeGraph(VitamContext vitamContext) {
+    public Response storeGraph() {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
-    public Response reconstructCollection(VitamContext vitamContext,
-        JsonNode reconstructionItems) {
+    public Response reconstructCollection(JsonNode reconstructionItems) {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
-    public Response processObsoleteComputedInheritedRules(
-        VitamContext vitamContext) {
+    public Response processObsoleteComputedInheritedRules() {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
-    public Response purgeExpiredDipFiles(VitamContext vitamContext) {
+    public Response purgeExpiredDipFiles() {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
-    public Response purgeExpiredTransfersSIPFiles(
-        VitamContext vitamContext) {
+    public Response purgeExpiredTransfersSIPFiles() {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
     @Override
-    public Response runAuditDataConsistencyMongoEs(
-        VitamContext vitamContext) {
+    public Response runAuditDataConsistencyMongoEs() {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 
