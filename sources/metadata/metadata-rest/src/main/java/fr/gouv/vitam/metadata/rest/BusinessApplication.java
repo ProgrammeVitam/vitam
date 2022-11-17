@@ -39,7 +39,6 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 
@@ -102,8 +101,6 @@ public class BusinessApplication extends Application {
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
                 indexManager);
-
-            GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 
             MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);
             MetadataResource metaDataResource =
