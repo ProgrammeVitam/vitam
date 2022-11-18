@@ -305,7 +305,7 @@ public class MetadataManagementResource {
             ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
 
-            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+            VitamThreadUtils.getVitamSession().initIfAbsent(xTenantId);
 
             GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
             return Response.ok().header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
@@ -327,9 +327,12 @@ public class MetadataManagementResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response computeGraphByDSLInProgress() {
+    public Response computeGraphByDSLInProgress(@HeaderParam(GlobalDataRest.X_TENANT_ID) Integer xTenantId) {
 
-        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+        ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
+
+        VitamThreadUtils.getVitamSession().initIfAbsent(xTenantId);
 
         boolean inProgress = this.graphComputeService.isInProgress();
         if (inProgress) {

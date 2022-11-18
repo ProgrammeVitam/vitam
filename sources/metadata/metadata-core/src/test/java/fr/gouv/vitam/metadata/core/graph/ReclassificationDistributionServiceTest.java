@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.core.graph;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
@@ -36,6 +35,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
@@ -88,6 +88,9 @@ public class ReclassificationDistributionServiceTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
+    public TempFolderRule testFolder = new TempFolderRule();
+
+    @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
@@ -110,9 +113,6 @@ public class ReclassificationDistributionServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         operationId = GUIDFactory.newRequestIdGUID(tenant).toString();
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
-
-        File tmpFolder = folder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", tmpFolder.getAbsolutePath());
     }
 
     @Test
