@@ -161,7 +161,7 @@ public class MongoDbAccessMetadataImplTest {
             Lists
                 .newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes,
+        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.getClusterName(), esNodes,
             metadataIndexManager);
         MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
@@ -388,10 +388,12 @@ public class MongoDbAccessMetadataImplTest {
         SearchResponse objectGroupResponse =
             searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_1.data"));
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
@@ -421,10 +423,12 @@ public class MongoDbAccessMetadataImplTest {
         SearchResponse objectGroupResponse =
             searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_2.data"));
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
@@ -468,10 +472,12 @@ public class MongoDbAccessMetadataImplTest {
             PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_3.data")
         );
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
@@ -514,10 +520,12 @@ public class MongoDbAccessMetadataImplTest {
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
@@ -562,10 +570,12 @@ public class MongoDbAccessMetadataImplTest {
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
@@ -601,10 +611,12 @@ public class MongoDbAccessMetadataImplTest {
             PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_6.data")
         );
 
-        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(archiveUnitResponse);
-        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
-            .willReturn(objectGroupResponse);
+        given(client.basicAggregationSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse.getAggregations());
+        given(client.basicAggregationSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class),
+            any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse.getAggregations());
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
