@@ -1,0 +1,4 @@
+---
+
+# Migration timeout in seconds (defaults to 10 hours per tenant)
+migration_timeout: 36000
