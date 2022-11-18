@@ -38,7 +38,6 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -109,8 +108,6 @@ public class AdminMetadataApplication extends Application {
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
                 indexManager);
-
-            GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 
             final AdminMetadataManagementResource adminMetadataReconstructionResource =
                 new AdminMetadataManagementResource(vitamRepositoryProvider, offsetRepository,

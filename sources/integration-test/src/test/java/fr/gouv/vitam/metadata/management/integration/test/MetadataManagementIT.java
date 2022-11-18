@@ -87,7 +87,6 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.metadata.rest.MetadataManagementResource;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -145,8 +144,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.mongodb.client.model.Indexes.ascending;
-import static com.mongodb.client.model.Sorts.orderBy;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1084,17 +1081,17 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Given initial unit data
             final List<Document> unitList =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units),
-                    new TypeReference<List<Document>>() {
+                    new TypeReference<>() {
                     });
 
             final List<Document> gotList =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_gots),
-                    new TypeReference<List<Document>>() {
+                    new TypeReference<>() {
                     });
 
             final List<JsonNode> unitsLfcJsonNodes =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units_lfc),
-                    new TypeReference<List<JsonNode>>() {
+                    new TypeReference<>() {
                     });
 
             List<Document> unitsLfc = unitsLfcJsonNodes.stream()
@@ -1357,7 +1354,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
 
-    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile, boolean validateMetadata)
+    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile,
+        boolean validateMetadata)
         throws InvalidParseOperationException, FileNotFoundException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection, validateMetadata);
@@ -1371,7 +1369,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean validateMetadata) throws InvalidParseOperationException {
+    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean validateMetadata)
+        throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find();
@@ -1382,7 +1381,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Replace _glpd, _acd and _aud with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
             jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
-            if(validateMetadata && mongoCollection.equals(MetadataCollections.UNIT.getCollection())) {
+            if (validateMetadata && mongoCollection.equals(MetadataCollections.UNIT.getCollection())) {
                 assertThat(jsonUnit.get(Unit.APPROXIMATE_CREATION_DATE)).isNotNull();
                 assertThat(jsonUnit.get(Unit.APPROXIMATE_UPDATE_DATE)).isNotNull();
                 jsonUnit.put(Unit.APPROXIMATE_CREATION_DATE, "#TIMESTAMP#");
@@ -1511,7 +1510,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                Lists.newArrayList("OA2"));
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
