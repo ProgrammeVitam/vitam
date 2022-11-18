@@ -58,6 +58,18 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 Procédures à exécuter APRÈS la montée de version
 ================================================
 
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
+
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass
+
+..
+
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
 
@@ -96,3 +108,29 @@ Si des problèmes de cohérence de type "Orphan large object segments" persisten
 Dans ce cas, il est recommandé de vérifier préalablement que les objets concernés n'existent pas sur les autres offres (mêmes container & objectName).
 Si les objets n'existent pas dans les autres offres, il s'agit alors de reliquats d'objets non complètement éliminés. Le lancement du mode 2 (correction des anomalies + purge des objets) est à réaliser.
 Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra envisager la "Procédure de resynchronisation ciblée d’une offre" décrite dans la Documentation d’EXploitation (DEX) de Vitam pour synchroniser l'offre Swift pour les éléments concernés.
+
+Recalcul du graph des métadonnées des sites secondaires
+-------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure). Elle permet le recalcul du graphe des métadonnées sur les sites secondaires
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam APRÈS l'installation de la nouvelle version :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam_timers.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_metadata_graph_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
+
+Redémarrage des timers et des accès externes à Vitam
+----------------------------------------------------
+
+La montée de version est maintenant terminée, vous pouvez réactiver les services externals ainsi que les timers sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass
