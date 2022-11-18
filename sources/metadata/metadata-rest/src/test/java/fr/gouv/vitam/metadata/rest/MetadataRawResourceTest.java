@@ -114,7 +114,7 @@ public class MetadataRawResourceTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
+        mongo_nodes.add(new MongoDbNode(HOST_NAME, MongoRule.getDataBasePort()));
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
@@ -126,8 +126,8 @@ public class MetadataRawResourceTest {
         configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(2, 1))
-                .setObjectgroup(new CollectionConfiguration(2, 1))));
+                .setUnit(new CollectionConfiguration(1, 0))
+                .setObjectgroup(new CollectionConfiguration(1, 0))));
 
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();

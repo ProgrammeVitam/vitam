@@ -72,7 +72,7 @@ public final class LogbookCollectionsTestUtils {
         LogbookConfiguration logbookConfiguration = new LogbookConfiguration()
             .setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setLogbookoperation(new CollectionConfiguration(2, 1)))
+                    .setLogbookoperation(new CollectionConfiguration(1, 0)))
                 .setGroupedTenantConfiguration(tenantGroupConfiguration)
             );
         return new ElasticsearchLogbookIndexManager(logbookConfiguration, allTenants);

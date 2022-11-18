@@ -183,7 +183,7 @@ public class WebApplicationResourceDeleteTest {
 
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
         final WebApplicationConfig realAdminConfig = PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
         realAdminConfig.setAuthentication(false);
         realAdminConfig.setEnableSession(true);
@@ -191,19 +191,19 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setFunctionalAdminIndexationConfiguration(
             new FunctionalAdminIndexationConfiguration()
-                .setDefaultConfiguration(new CollectionConfiguration(2, 1))
+                .setDefaultConfiguration(new CollectionConfiguration(1, 0))
         );
         realAdminConfig.setMetadataIndexationConfiguration(
             new MetadataIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setUnit(new CollectionConfiguration(2, 1))
-                    .setObjectgroup(new CollectionConfiguration(2, 1)))
+                    .setUnit(new CollectionConfiguration(1, 0))
+                    .setObjectgroup(new CollectionConfiguration(1, 0)))
         );
         realAdminConfig.setLogbookIndexationConfiguration(
             new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(
                     new fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration()
-                        .setLogbookoperation(new CollectionConfiguration(2, 1)))
+                        .setLogbookoperation(new CollectionConfiguration(1, 0)))
         );
         VitamConfiguration.setTenants(tenantList);
 

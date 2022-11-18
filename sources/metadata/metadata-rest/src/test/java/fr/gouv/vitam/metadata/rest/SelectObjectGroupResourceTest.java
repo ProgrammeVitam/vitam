@@ -139,7 +139,7 @@ public class SelectObjectGroupResourceTest {
 
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
+        mongo_nodes.add(new MongoDbNode(HOST_NAME, MongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
                 mappingLoader);
@@ -148,8 +148,8 @@ public class SelectObjectGroupResourceTest {
         configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(2, 1))
-                .setObjectgroup(new CollectionConfiguration(2, 1))));
+                .setUnit(new CollectionConfiguration(1, 0))
+                .setObjectgroup(new CollectionConfiguration(1, 0))));
 
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();

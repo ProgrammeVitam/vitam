@@ -163,10 +163,10 @@ public class MetadataResourceTest {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        mongo_nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
-                elasticsearchRule.getClusterName(), esNodes, mappingLoader);
+                ElasticsearchRule.getClusterName(), esNodes, mappingLoader);
 
         elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
             metadataIndexManager);
@@ -181,8 +181,8 @@ public class MetadataResourceTest {
         configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
             .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(2, 1))
-                .setObjectgroup(new CollectionConfiguration(2, 1))));
+                .setUnit(new CollectionConfiguration(1, 0))
+                .setObjectgroup(new CollectionConfiguration(1, 0))));
 
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -524,8 +524,8 @@ public class MetadataResourceTest {
     @RunWithCustomExecutor
     public void should_find_accession_register_on_object_group() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Document doc = (Document) (new ObjectGroup(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
+        Document doc = new ObjectGroup(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json")));
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
             factory.getVitamMongoRepository(OBJECTGROUP.getVitamCollection());

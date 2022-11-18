@@ -143,7 +143,7 @@ public final class FunctionalAdminCollectionsTestUtils {
         return new ElasticsearchFunctionalAdminIndexManager(
             new AdminManagementConfiguration(Collections.emptyList(), null, null, null)
                 .setIndexationConfiguration(new FunctionalAdminIndexationConfiguration()
-                    .setDefaultConfiguration(new CollectionConfiguration(2, 1)))
+                    .setDefaultConfiguration(new CollectionConfiguration(1, 0)))
         );
     }
 }
