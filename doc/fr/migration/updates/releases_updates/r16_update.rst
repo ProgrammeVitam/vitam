@@ -94,6 +94,45 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 
   ..
 
+Procédures à exécuter APRÈS la montée de version
+================================================
+
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
+
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass
+
+Recalcul du graph des métadonnées des sites secondaires
+-------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure vers une version R16.7+ (4.0.7 ou supérieure). Elle permet le recalcul du graphe des métadonnées sur les sites secondaires
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam APRÈS l'installation de la nouvelle version :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam_timers.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_metadata_graph_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
+
+Redémarrage des timers et des accès externes à Vitam
+----------------------------------------------------
+
+La montée de version est maintenant terminée, vous pouvez réactiver les services externals ainsi que les timers sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass
+
 Vérification de la bonne migration des données
 ==============================================
 
