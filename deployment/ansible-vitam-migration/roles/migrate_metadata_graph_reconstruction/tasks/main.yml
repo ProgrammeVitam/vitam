@@ -1,0 +1,28 @@
+---
+- block:
+
+    - name: Ensure that current site is a secondary site.
+      fail:
+        msg: "Cannot run this migration playbook on a primary site"
+      when: primary_site | lower != 'false'
+
+    - name: Update metadata graph per tenant
+      uri:
+        url: "http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/computegraph"
+        method: POST
+        force_basic_auth: yes
+        user: "{{ admin_basic_auth_user }}"
+        password: "{{ admin_basic_auth_password }}"
+        # WARNING: For historical reasons, we need to explicitly set the $depth to 0,
+        #          otherwise graph fields might be queried internally
+        body: '{"$roots": [],"$query": [{"$exists": "#id" ,"$depth" : 0}],"$filter": {},"$projection": {}}'
+        body_format: "json"
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          X-Tenant-Id: "{{ item }}"
+        status_code: 200
+        timeout: "{{ migration_timeout }}"
+      loop: "{{ vitam_tenant_ids }}"
+
+  run_once: true
