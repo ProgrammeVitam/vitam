@@ -244,7 +244,7 @@ public class SipService {
                 workspaceClient.compress(transactionModel.getId(), compressInformation);
                 return digest.digestHex();
             }
-            throw new CollectException("Container already exists");
+            throw new CollectException("Cannot find related Container to transaction");
         } catch (ContentAddressableStorageServerException e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectException(e);
