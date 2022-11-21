@@ -326,7 +326,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                collection.name(), tenant, limit, offset));
+                collection.name(), tenant, limit, offset + 1));
         ReconstructionResponseItem response =
             new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
@@ -351,7 +351,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
             // get the list of data to backup.
             Iterator<List<OfferLog>> offerLogIterator =
-                recoverBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset,
+                recoverBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset + 1L,
                     limit, Order.ASC);
 
             Set<String> originatingAgencies = new HashSet<>();
@@ -400,7 +400,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException de) {
             LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
+                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
                 collection, tenant, offset), de);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
@@ -409,8 +409,14 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository
-                .createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName(), newOffset);
+            if (newOffset != offset) {
+                offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(),
+                    collection.getName(), newOffset);
+            } else {
+                LOGGER.info(String.format(
+                    "[Reconstruction]: Nothing to reconstruct for Vitam collection {%s} on the tenant {%s} from {offset:%s}",
+                    collection, tenant, offset));
+            }
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
@@ -549,6 +555,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 BasicDBObject searchQuery = new BasicDBObject();
                 searchQuery.put(AccessionRegisterSummary.ORIGINATING_AGENCY,
                     registerSummaryDoc.getString(AccessionRegisterSummary.ORIGINATING_AGENCY));
+                searchQuery.put(TENANT_ID, tenant);
                 try (MongoCursor<AccessionRegisterSummary> registerSummaryIt = (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.<AccessionRegisterSummary>getCollection()
                     .find(searchQuery)).iterator()) {
                     if (registerSummaryIt.hasNext()) {

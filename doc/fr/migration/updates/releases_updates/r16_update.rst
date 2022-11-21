@@ -1,27 +1,32 @@
 Notes et procédures spécifiques R16
 ###################################
 
-Supprimer les indexes de configuration kibana
-----------------------------------------------
+Vérification préalable avant la migration
+=========================================
 
-.. caution:: Cette opération doit être effectuée avant la montée de version vers la R16.5 ou supérieur (4.0.5+).
+Gestion des règles de gestion
+-----------------------------
 
-.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
+Dans le cadre d'une correctif concernant la validation stricte des types de règles lors de l'import du référentiel des règles de gestion, il faut impérativement, AVANT la montée de version, vérifier tous les types de règles de gestion existants sur Mongo et ES et les modifier manuellement en cas d'incohérence.
 
-Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
+Pour ce faire, il faut s'assurer que tous les types de règles de gestion (``RuleType``) respectent la casse (les majuscules et les minuscules).
 
-Executez le playbook suivant:
+Ci-après la liste des valeurs valides autorisées :
 
-.. code-block:: bash
+  - ``AppraisalRule``
+  - ``AccessRule``
+  - ``StorageRule``
+  - ``DisseminationRule``
+  - ``ClassificationRule``
+  - ``ReuseRule``
+  - ``HoldRule``
 
-     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_kibana_indexes.yml.yml --ask-vault-pass
+Exemple :
+    ``APPRAISALRULE`` devrait être ``AppraisalRule``
 
-Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
 
-La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
-
-Étapes préalables à la montée de version
-========================================
+Adaptation des sources de déploiement ansible
+=============================================
 
 Déplacement des paramètres relatif à la gestion des tenants
 -----------------------------------------------------------
@@ -35,19 +40,48 @@ Si la montée de version s'effectue à partir d'une R13, il faut supprimer les v
 
 .. seealso:: Se référer à la documentation d'installation pour plus d'informations concernant le fichier ``environments/group_vars/all/advanced/tenants_vars.yml``
 
-Gestion des régles de gestion
------------------------------
+Procédures à exécuter AVANT la montée de version
+================================================
 
-Dans le cadre d'une correction de bug permettant la validation stricte des types de règles lors de l'import du référentiel des règles de gestion,
-il faut impérativement, lors d'une montée de version, vérifier tous les types de règles de gestion existants sur Mongo et ES et les modifier manuellement en cas d'incohérence.
-il faut que les types de règles de gestion respecte la casse (les majuscules et les minuscules)
-Exemple :
-    ``APPRAISALRULE`` devrait être ``AppraisalRule``
+Supprimer les indexes de configuration kibana
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la R16.5 ou supérieur (4.0.5+).
+
+.. caution:: Sans cette opération, l'installation kibana est bloquée et arrête l'installation de Vitam
+
+Lors de la montée de version ELK, les indices de configuration kibana : .kibana et .kibana_task_manager persistent avec une version et des informations incorrectes (celles de la version d'avant). Il est nécessaire des les effacer; autrement la montée de version est bloquée.
+
+Exécutez le playbook suivant:
+
+.. code-block:: bash
+
+     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_kibana_indexes.yml --ask-vault-pass
+
+Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
+
+La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
+
+Réinitialisation de la reconstruction des registres de fond des sites secondaires
+---------------------------------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure vers une version R16.7+ (4.0.7 ou supérieure). Elle permet la réinitialisation de la reconstruction des registre de fonds sur les sites secondaires.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
+
+- S'assurer que les timers de Vitam aient bien été préalablement arrêtés (via le playbook ``ansible-vitam-exploitation/stop_vitam_timers.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_accession_register_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
 
 Contrôle et nettoyage de journaux du storage engine des sites secondaires
 -------------------------------------------------------------------------
 
-Lors d'une montée de version majeure vers une version R16.7+ (4.0.7 ou supérieure), un contrôle / purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires est nécessaire.
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure vers une version R16.7+ (4.0.7 ou supérieure). Elle permet le contrôle et la purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires.
 
 La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
 
@@ -58,19 +92,7 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 
      ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass
 
-Contrôle et nettoyage de journaux du storage engine des sites secondaires
--------------------------------------------------------------------------
-
-Lors d'une montée de version majeure vers une version R16.7+ (4.0.7 ou supérieure), une réinitialisation de la reconstruction des registre de fonds est nécessaire sur les sites secondaires.
-
-La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
-
-- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
-- Exécuter le playbook :
-
-  .. code-block:: bash
-
-     ansible-playbook ansible-vitam-migration/migration_accession_register_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+  ..
 
 Vérification de la bonne migration des données
 ==============================================
