@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.core.graph;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
@@ -109,6 +110,9 @@ public class ReclassificationDistributionServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         operationId = GUIDFactory.newRequestIdGUID(tenant).toString();
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+        File tmpFolder = folder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", tmpFolder.getAbsolutePath());
     }
 
     @Test

@@ -60,19 +60,21 @@ public class GraphComputeCache extends AbstractVitamCache<String, Document> {
     @Override
     protected Map<String, Document> loadByKeys(Iterable<? extends String> keys) {
         Map<String, Document> docs = new HashMap<>();
-        MongoCursor<Document> it = MetadataCollections.UNIT.getCollection().find(in(Unit.ID, keys))
-            .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.UNITUPS)).iterator();
-        while (it.hasNext()) {
-            final Document doc = it.next();
-            docs.put(doc.get(Unit.ID, String.class), doc);
+        try (MongoCursor<Document> it = MetadataCollections.UNIT.getCollection().find(in(Unit.ID, keys))
+            .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
+            .iterator()) {
+            while (it.hasNext()) {
+                final Document doc = it.next();
+                docs.put(doc.get(Unit.ID, String.class), doc);
+            }
         }
         return docs;
     }
 
     @Override
     protected Document loadByKey(String key) {
-        return (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, key))
-            .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.UNITUPS))
+        return MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, key))
+            .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
             .first();
     }
 
