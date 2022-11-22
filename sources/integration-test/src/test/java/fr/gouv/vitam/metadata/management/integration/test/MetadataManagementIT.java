@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -265,6 +266,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
+        VitamConfiguration.setElasticSearchScrollLimit(10_000);
     }
 
     @Before
@@ -1063,6 +1065,86 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 .iterator().next();
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(2).contains("OA4", "OA2");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testComputeUnitAndObjectGroupWithScrollForLargeDataSet() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
+
+        final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+
+        initLargeDataSetWithoutGraph();
+
+        VitamConfiguration.setElasticSearchScrollLimit(100);
+
+        // When
+        final SelectMultiQuery select = new SelectMultiQuery();
+        // For historical reasons, we need to explicitly set depth to 0
+        select.setQuery(QueryHelper.exists("#id").setDepthLimit(0));
+
+        GraphComputeResponse body = metaDataClient.computeGraph(select.getFinalSelect());
+
+        // Then
+        assertThat(body.getUnitCount()).isEqualTo(111);
+        assertThat(body.getGotCount()).isEqualTo(110);
+
+        JsonNode some_unit = metaDataClient.selectUnitbyId(new Select().getFinalSelect(), "AU_88")
+            .get("$results").iterator().next();
+        assertThat(some_unit.get(VitamFieldsHelper.allunitups()).size()).isEqualTo(1);
+        assertThat(some_unit.get(VitamFieldsHelper.originatingAgencies()).size()).isEqualTo(2);
+        assertThat(some_unit.get(VitamFieldsHelper.min()).asInt()).isEqualTo(1);
+        assertThat(some_unit.get(VitamFieldsHelper.max()).asInt()).isEqualTo(2);
+
+        JsonNode some_og = metaDataClient.selectObjectGrouptbyId(new Select().getFinalSelect(), "GOT_101")
+            .get("$results").iterator().next();
+        assertThat(some_og.get(VitamFieldsHelper.allunitups()).size()).isEqualTo(2);
+        assertThat(some_unit.get(VitamFieldsHelper.originatingAgencies()).size()).isEqualTo(2);
+        assertThat(some_unit.get(VitamFieldsHelper.min()).asInt()).isEqualTo(1);
+        assertThat(some_unit.get(VitamFieldsHelper.max()).asInt()).isEqualTo(2);
+    }
+
+    private void initLargeDataSetWithoutGraph() throws DatabaseException {
+
+        Document auRoot = new Document(Unit.ID, "ROOT_AU")
+            .append(Unit.TENANT_ID, 0)
+            .append(Unit.UP, Collections.emptyList())
+            .append(Unit.ORIGINATING_AGENCY, "SP0")
+            .append("fakefake", "fakefake");
+
+        List<Document> units = new ArrayList<>();
+        units.add(auRoot);
+
+        for (int i = 0; i < 110; i++) {
+            Document au = new Document(Unit.ID, "AU_" + i)
+                .append(Unit.TENANT_ID, 0)
+                .append(Unit.UP, List.of("ROOT_AU"))
+                .append(Unit.ORIGINATING_AGENCY, "SP1")
+                .append(Unit.OG, "GOT_" + i);
+            units.add(au);
+        }
+
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
+
+        List<Document> gots = new ArrayList<>();
+
+        for (int i = 0; i < 110; i++) {
+            Document got = new Document(Unit.ID, "GOT_" + i)
+                .append(Unit.TENANT_ID, 0)
+                .append(Unit.UP, List.of("AU_" + i))
+                .append(Unit.ORIGINATING_AGENCY, "SP1");
+            gots.add(got);
+        }
+
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+            .save(gots);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)).save(gots);
     }
 
     //@see graph.png
