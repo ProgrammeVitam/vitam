@@ -1,6 +1,8 @@
 Notes et procédures spécifiques V5
 ##################################
 
+.. caution:: Pour une montée de version depuis la R16 de Vitam, veuillez appliquer les procédures spécifiques de la V5RC en complément des procédures suivantes. Pour une montée de version depuis la V5RC, vous pouvez appliquer la procédure suivante directement.
+
 Adaptation des sources de déploiement ansible
 =============================================
 
@@ -107,12 +109,31 @@ Pour la mise en oeuvre de cette nouvelle application, veuillez éditer les param
 Procédures à exécuter AVANT la montée de version
 ================================================
 
-.. caution:: Pour une montée de version depuis la R16 de Vitam, veuillez appliquer les procédures spécifiques de la V5RC en complément des procédures suivantes. Pour une montée de version depuis la V5RC, vous pouvez appliquer la procédure suivante directement.
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V5
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass
+
+..
 
 Réinitialisation de la reconstruction des registres de fond des sites secondaires
 ---------------------------------------------------------------------------------
 
-.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure depuis une version R16.6- (4.0.6 ou inférieure) ou v5.rc.3- (v5.rc.3 ou inférieure). Elle permet la réinitialisation de la reconstruction des registre de fonds sur les sites secondaires.
+.. caution:: Cette procédure doit être exécutée uniquement en cas de :
+
+  - migration majeure depuis une version R16.6- (4.0.6 ou inférieure)
+  - migration majeure depuis une version v5.rc.3- (v5.rc.3 ou inférieure)
+
+Cette procédure permet la réinitialisation de la reconstruction des registre de fonds sur les sites secondaires.
 
 La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
 
@@ -128,7 +149,12 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 Contrôle et nettoyage de journaux du storage engine des sites secondaires
 -------------------------------------------------------------------------
 
-.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure depuis une version R16.6- (4.0.6 ou inférieure) ou v5.rc.3- (v5.rc.3 ou inférieure). Elle permet le contrôle et la purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires.
+.. caution:: Cette procédure doit être exécutée uniquement en cas de :
+
+  - migration majeure depuis une version R16.6- (4.0.6 ou inférieure)
+  - migration majeure depuis une version v5.rc.3- (v5.rc.3 ou inférieure)
+
+Cette procédure permet le contrôle et la purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires.
 
 La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT l'installation de la nouvelle version :
 
@@ -141,11 +167,28 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 
   ..
 
+Arrêt complet de Vitam
+----------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V5
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Vitam doit être arrêté sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
+
 Procédures à exécuter APRÈS la montée de version
 ================================================
 
 Arrêt des timers et des accès externes à Vitam
 ----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée IMMÉDIATEMENT APRÈS la montée de version vers la V5
 
 Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
 
@@ -163,15 +206,15 @@ Migration des unités archivistiques
 
 Cette migration de données consiste à ajouter les champs ``_acd`` (date de création approximative) et ``_aud`` (date de modification approximative) dans la collection Unit.
 
-Exécutez les commandes suivantes sur **tous les sites** (primaire et secondaire(s)) :
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
 
-- Migration des données mongo (le playbook va stopper les externals et les timers de Vitam avant de procéder à la migration)
+- Migration des unités archivistiques sur mongo-data (le playbook va stopper les externals et les timers de Vitam avant de procéder à la migration) :
 
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_v5.yml --ask-vault-pass
 
-- Réindexation de toutes les unités archivistiques sur elastic-search :
+Après le passage du script de migration, il faut procéder à la réindexation de toutes les unités archivistiques :
 
 .. code-block:: bash
 
@@ -210,7 +253,12 @@ Exécutez la commande suivante uniquement sur **le site primaire** :
 Recalcul du graph des métadonnées des sites secondaires
 -------------------------------------------------------
 
-.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure depuis une version R16.6- (4.0.6 ou inférieure) ou v5.rc.3- (v5.rc.3 ou inférieure). Elle permet le recalcul du graphe des métadonnées sur les sites secondaires
+.. caution:: Cette procédure doit être exécutée uniquement en cas de :
+
+  - migration majeure depuis une version R16.6- (4.0.6 ou inférieure)
+  - migration majeure depuis une version v5.rc.3- (v5.rc.3 ou inférieure)
+
+Cette procédure permet le recalcul du graphe des métadonnées sur les sites secondaires
 
 La procédure est à réaliser sur tous les **sites secondaires** de Vitam APRÈS l'installation de la nouvelle version :
 
@@ -232,3 +280,5 @@ La montée de version est maintenant terminée, vous pouvez réactiver les servi
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass
+
+  ..
