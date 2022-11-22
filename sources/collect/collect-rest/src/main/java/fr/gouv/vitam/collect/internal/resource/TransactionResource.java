@@ -421,7 +421,7 @@ public class TransactionResource {
 
             return Response.status(OK).build();
         } catch (CollectException e) {
-            LOGGER.debug("An error occurs when try to upload the ZIP: {}", e);
+            LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);

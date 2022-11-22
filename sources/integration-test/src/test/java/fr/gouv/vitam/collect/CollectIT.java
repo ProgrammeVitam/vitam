@@ -37,7 +37,6 @@ import fr.gouv.vitam.collect.external.client.CollectClientFactory;
 import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.CollectMain;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -69,6 +68,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -88,12 +88,7 @@ public class CollectIT extends VitamRuleRunner {
     public static VitamServerRunner runner =
         new VitamServerRunner(CollectIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                CollectMain.class));
+            Sets.newHashSet(MetadataMain.class, AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class));
 
 
     private static final String JSON_NODE_UNIT = "collect/upload_au_collect.json";
@@ -118,13 +113,19 @@ public class CollectIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        runner.startMetadataCollectServer();
+        runner.startWorkspaceCollectServer();
+        runner.startCollectServer();
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         collectClient = CollectClientFactory.getInstance().getClient();
         new DataLoader("integration-ingest-internal").prepareData();
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws Exception {
+        runner.stopMetadataCollectServer(false);
+        runner.stopWorkspaceCollectServer();
+        runner.stopCollectServer(false);
         handleAfterClass();
         runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
@@ -434,6 +435,8 @@ public class CollectIT extends VitamRuleRunner {
             .after(LocalDateUtil.getDate(projectDtoResultAfterUpdate.getCreationDate())));
     }
 
+    @Test
+    @Ignore("we'll be fixed lately")
     public void should_upload_project_zip() throws Exception {
         ProjectDto projectDto = initProjectData();
 
