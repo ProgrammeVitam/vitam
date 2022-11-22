@@ -168,6 +168,13 @@ public class CsvMetadataMapper {
                     JsonHandler.createArrayNode().add(node));
             }
         }
+
+        {
+            final JsonNode node = unit.at("/SystemId");
+            if (node != null && node != MissingNode.getInstance() && !node.isArray()) {
+                ((ObjectNode) unit).set("SystemId", JsonHandler.createArrayNode().add(node));
+            }
+        }
     }
 
     private static void arrayOfAgentTypeAndSignatureAndValidation(JsonNode unit, String path) {
@@ -244,11 +251,13 @@ public class CsvMetadataMapper {
                 Matcher matcher = ATTR_PATTERN.matcher(value);
                 if (matcher.find()) {
                     if (fieldName.startsWith(CONTENT + "Title") || fieldName.startsWith(CONTENT + "Description")) {
-                        final ObjectNode obj = (ObjectNode) Objects.requireNonNullElse(
-                            node.get(parseHeader(fieldName.replaceAll(ARRAY_REGEX, "_"))),
+                        var field = fieldName.equals(fieldName.replaceAll(ARRAY_REGEX, "_")) ?
+                            fieldName + "_" :
+                            fieldName.replaceAll(ARRAY_REGEX, "_");
+                        ObjectNode obj = (ObjectNode) Objects.requireNonNullElse(node.get(parseHeader(field)),
                             JsonHandler.createObjectNode());
                         obj.set(matcher.group(2), node.get(parseHeader(fieldName)));
-                        node.set(parseHeader(fieldName.replaceAll(ARRAY_REGEX, "_")), obj);
+                        node.set(parseHeader(field), obj);
                         node.remove(parseHeader(fieldName));
                     } else if (fieldName.equals(CONTENT + "Signature.ReferencedObject.SignedObjectDigest")) {
                         final ObjectNode obj = JsonHandler.createObjectNode();

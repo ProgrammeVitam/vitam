@@ -399,13 +399,6 @@ public class VitamServerRunner extends ExternalResource {
                 AdminExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
-            // ColelctMain
-            if (servers.contains(CollectMain.class)) {
-                startCollectServer();
-            } else {
-                CollectClientFactory.getInstance()
-                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-            }
 
             waitServerStart();
         } catch (IOException | VitamApplicationServerException e) {
@@ -906,8 +899,6 @@ public class VitamServerRunner extends ExternalResource {
 
 
     public void startCollectServer() throws IOException, VitamApplicationServerException {
-        startMetadataCollectServer();
-        startWorkspaceCollectServer();
         if (null != collectMain) {
             CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
             return;
@@ -924,6 +915,22 @@ public class VitamServerRunner extends ExternalResource {
 
         waitServerStart(CollectClientFactory.getInstance().getClient());
         SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    public void stopCollectServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == collectMain) {
+            if (mockWhenStop) {
+                CollectClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner stop  CollectMain");
+        collectMain.stop();
+        collectMain = null;
+
+        if (mockWhenStop) {
+            CollectClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+        }
     }
 
     public void startMetadataServer()
@@ -1306,7 +1313,7 @@ public class VitamServerRunner extends ExternalResource {
     }
 
 
-    private void stopWorkspaceCollectServer() throws VitamApplicationServerException {
+    public void stopWorkspaceCollectServer() throws VitamApplicationServerException {
         if (null == workspaceCollectMain) {
             return;
         }

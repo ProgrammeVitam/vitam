@@ -32,7 +32,6 @@ import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
-import fr.gouv.vitam.collect.internal.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.helpers.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
@@ -62,7 +61,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.error.VitamCode.GLOBAL_EMPTY_QUERY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
