@@ -207,6 +207,22 @@ Exécutez la commande suivante uniquement sur **le site primaire** :
 
 ..
 
+Recalcul du graph des métadonnées des sites secondaires
+-------------------------------------------------------
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration majeure depuis une version R16.6- (4.0.6 ou inférieure) ou v5.rc.3- (v5.rc.3 ou inférieure). Elle permet le recalcul du graphe des métadonnées sur les sites secondaires
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam APRÈS l'installation de la nouvelle version :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam_timers.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_metadata_graph_reconstruction.yml -i environments/hosts.{env} --ask-vault-pass
+
+  ..
+
 Redémarrage des timers et des accès externes à Vitam
 ----------------------------------------------------
 
