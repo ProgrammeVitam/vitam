@@ -37,16 +37,20 @@
     state: latest
   when: inventory_hostname in groups['hosts_mongos_data'] or inventory_hostname in groups['hosts_mongos_offer']
 
-- name: "Start vitam-mongo service"
+- name: "Start vitam-mongos service"
   systemd:
-    name: "vitam-{{ item.svc }}"
-    enabled: yes
+    name: "vitam-mongos"
     state: restarted
-  with_items:
-    - svc: 'mongos'
-      when: inventory_hostname in groups['hosts_mongos_data'] or inventory_hostname in groups['hosts_mongos_offer']
-    - svc: 'mongoc'
-      when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
-    - svc: 'mongod'
-      when: inventory_hostname in groups['hosts_mongod_data'] or inventory_hostname in groups['hosts_mongod_offer']
+  when: inventory_hostname in groups['hosts_mongos_data'] or inventory_hostname in groups['hosts_mongos_offer']
 
+- name: "Start vitam-mongoc service"
+  systemd:
+    name: "vitam-mongoc"
+    state: restarted
+  when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
+
+- name: "Start vitam-mongod service"
+  systemd:
+    name: "vitam-mongod"
+    state: restarted
+  when: inventory_hostname in groups['hosts_mongod_data'] or inventory_hostname in groups['hosts_mongod_offer']
