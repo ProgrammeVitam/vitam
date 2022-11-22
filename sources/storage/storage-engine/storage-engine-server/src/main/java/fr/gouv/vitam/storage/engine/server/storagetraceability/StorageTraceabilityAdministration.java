@@ -45,6 +45,7 @@ import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -64,6 +65,7 @@ public class StorageTraceabilityAdministration {
 
     private final AlertService alertService = new AlertServiceImpl();
     private final TraceabilityStorageService traceabilityLogbookService;
+    private final StorageDistribution distribution;
     private final LogbookOperationsClient logbookOperations;
     private final WorkspaceClient workspaceClient;
     private final TimestampGenerator timestampGenerator;
@@ -72,9 +74,10 @@ public class StorageTraceabilityAdministration {
     private final File tmpFolder;
 
     public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
-        String tmpFolder, TimestampGenerator timestampGenerator, Integer operationTraceabilityOverlapDelay,
-        int storageLogTraceabilityThreadPoolSize) {
+        StorageDistribution distribution, String tmpFolder, TimestampGenerator timestampGenerator,
+        Integer operationTraceabilityOverlapDelay, int storageLogTraceabilityThreadPoolSize) {
         this.traceabilityLogbookService = traceabilityLogbookService;
+        this.distribution = distribution;
         this.timestampGenerator = timestampGenerator;
         this.workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         this.logbookOperations = LogbookOperationsClientFactory.getInstance().getClient();
@@ -89,10 +92,11 @@ public class StorageTraceabilityAdministration {
 
     @VisibleForTesting
     public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
-        LogbookOperationsClient mockedLogbookOperations, File tmpFolder, WorkspaceClient mockedWorkspaceClient,
-        TimestampGenerator timestampGenerator, Integer operationTraceabilityOverlapDelay,
-        int storageLogTraceabilityThreadPoolSize) {
+        StorageDistribution distribution, LogbookOperationsClient mockedLogbookOperations, File tmpFolder,
+        WorkspaceClient mockedWorkspaceClient, TimestampGenerator timestampGenerator,
+        Integer operationTraceabilityOverlapDelay, int storageLogTraceabilityThreadPoolSize) {
         this.traceabilityLogbookService = traceabilityLogbookService;
+        this.distribution = distribution;
         this.logbookOperations = mockedLogbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.workspaceClient = mockedWorkspaceClient;
@@ -170,7 +174,7 @@ public class StorageTraceabilityAdministration {
 
             LogbookTraceabilityHelper traceabilityHelper =
                 new LogbookStorageTraceabilityHelper(logbookOperations, workspaceClient, traceabilityLogbookService,
-                    requestId, operationTraceabilityOverlapDelayInSeconds);
+                    distribution, requestId, operationTraceabilityOverlapDelayInSeconds);
 
             TraceabilityService service =
                 new TraceabilityService(timestampGenerator, traceabilityHelper, tenantId, tmpFolder);

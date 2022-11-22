@@ -9,8 +9,11 @@
 {% endif %}
     "port": {{ vitam_struct.port_service }},
     "enable_tag_override": false,
+{% if vitam_struct.vitam_component == vitam.storageengine.vitam_component %}
+    "tags": ["vitam","{{ vitam_struct.vitam_component }}", "{{ vitam_struct.vitam_component }}-{{ groups.hosts_storage_engine.index(inventory_hostname) + 1 }}"],
+{% else %}
     "tags": ["vitam","{{ vitam_struct.vitam_component }}"],
-
+{% endif %}
     "checks": [
       {
         "name": "{{ vitam_struct.vitam_component }} : business service check",
@@ -62,6 +65,5 @@
       }
 {% endif %}
     ]
-
   }
 }

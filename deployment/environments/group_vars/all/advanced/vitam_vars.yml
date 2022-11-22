@@ -102,7 +102,12 @@ vitam_timers:
           frequency_logbook_reconstruction: "0 0/5 * * * ?"
     storage:
         # Sécurisation du journal des écritures
-          frequency_traceability_log: "0 40 0/4 * * ?" # every 4 hours
+        frequency_traceability_log: "0 40 0/4 * * ?" # every 4 hours
+        # Sauvegarde des journaux d'accès
+        vitam_storage_accesslog_backup: "0 10 0/4 * * ?" # every 4 hours
+        # Sauvegarde des journaux des écritures
+        vitam_storage_log_backup: "0 15 0/4 * * ?" # every 4 hours
+
     functional_administration:
           frequency_create_accession_register_symbolic: "0 50 0 * * ?"
           frequency_accession_register_reconstruction: "0 0/5 * * * ?"
@@ -368,10 +373,6 @@ vitam:
         storageLogBackupThreadPoolSize: 16
         # Storage write log traceability thread pool size
         storageLogTraceabilityThreadPoolSize: 16
-        # Storage log backup frequency in minutes (default 4 hours)
-        storageLogBackupFrequency: 240
-        # Storage accesslog backup frequency in minutes (default 4 hours)
-        storageAccessLogBackupFrequency: 240
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
         offerSyncThreadPoolSize: 32

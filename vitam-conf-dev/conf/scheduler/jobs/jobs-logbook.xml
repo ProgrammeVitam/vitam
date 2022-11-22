@@ -5,15 +5,10 @@
         xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData https://www.quartz-scheduler.org/xml/job_scheduling_data_1_8.xsd"
         version="1.8">
 
-    <!--<pre-processing-commands>
-        <delete-jobs-in-group>*</delete-jobs-in-group>
-        <delete-triggers-in-group>*</delete-triggers-in-group>
-    </pre-processing-commands>-->
-
     <processing-directives>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), overwrite them -->
-        <overwrite-existing-data>false</overwrite-existing-data>
+        <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>

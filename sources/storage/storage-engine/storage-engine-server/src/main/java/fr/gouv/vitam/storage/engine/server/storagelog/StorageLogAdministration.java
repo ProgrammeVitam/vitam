@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -50,13 +49,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -75,9 +71,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Business class for Storage Log Administration (backup)
@@ -90,36 +83,42 @@ public class StorageLogAdministration {
     public static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
 
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final StorageClientFactory storageClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     private final AlertService alertService = new AlertServiceImpl();
     private final StorageLog storageLogService;
     private final int storageLogBackupThreadPoolSize;
 
+    private final StorageDistribution distribution;
 
-    public StorageLogAdministration(StorageLog storageLogService, StorageConfiguration configuration) {
-        this(storageLogService, configuration, WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(),
+
+    public StorageLogAdministration(StorageLog storageLogService, StorageDistribution distribution,
+        StorageConfiguration configuration) {
+        this(storageLogService, distribution, configuration, WorkspaceClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public StorageLogAdministration(StorageLog storageLogService, StorageConfiguration configuration,
-        WorkspaceClientFactory workspaceClientFactory, StorageClientFactory storageClientFactory,
+    public StorageLogAdministration(StorageLog storageLogService, StorageDistribution distribution,
+        StorageConfiguration configuration, WorkspaceClientFactory workspaceClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.storageLogService = storageLogService;
+        this.distribution = distribution;
         this.workspaceClientFactory = workspaceClientFactory;
-        this.storageClientFactory = storageClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageLogBackupThreadPoolSize = configuration.getStorageLogBackupThreadPoolSize();
-        final long storageLogBackupFrequency = configuration.getStorageLogBackupFrequency();
-        final long storageAccessLogBackupFrequency = configuration.getStorageAccessLogBackupFrequency();
-        final ScheduledExecutorService scheduledExecutorService =
-            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
-        scheduledExecutorService.scheduleAtFixedRate(new StorageLogBackupThread(this, alertService),
-            Math.min(15, storageLogBackupFrequency), storageLogBackupFrequency, TimeUnit.MINUTES);
-        scheduledExecutorService.scheduleAtFixedRate(new StorageAccessLogBackupThread(this, alertService),
-            Math.min(15, storageAccessLogBackupFrequency), storageAccessLogBackupFrequency, TimeUnit.MINUTES);
+    }
+
+
+    public List<StorageLogBackupResult> backupStorageWriteLog(String strategyId,
+        List<Integer> tenants) throws StorageLogException {
+        return backupStorageLog(strategyId, true, tenants);
+    }
+
+
+    public List<StorageLogBackupResult> backupStorageAccessLog(String strategyId,
+        List<Integer> tenants) throws StorageLogException {
+        return backupStorageLog(strategyId, false, tenants);
     }
 
     /**
@@ -134,7 +133,7 @@ public class StorageLogAdministration {
      * @return backup result list
      * @throws StorageLogException if storage log backup failed
      */
-    public synchronized List<StorageLogBackupResult> backupStorageLog(String strategyId, Boolean backupWriteLog,
+    private synchronized List<StorageLogBackupResult> backupStorageLog(String strategyId, Boolean backupWriteLog,
         List<Integer> tenants)
         throws StorageLogException {
 
@@ -250,19 +249,16 @@ public class StorageLogAdministration {
 
                 workspaceClient.putObject(containerName, fileName, inputStream);
 
-                try (final StorageClient storageClient = storageClientFactory.getClient()) {
+                try {
 
                     final ObjectDescription description = new ObjectDescription();
                     description.setWorkspaceContainerGUID(containerName);
                     description.setWorkspaceObjectURI(fileName);
 
-                    // TODO ? Should we put accessLog in another DataCategory ?
-                    storageClient.storeFileFromWorkspace(strategyId,
-                        isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG,
-                        fileName, description);
+                    distribution.storeDataInAllOffers(strategyId, fileName, description,
+                        isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG, null);
 
-                } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                         StorageServerClientException e) {
+                } catch (StorageException e) {
                     LOGGER.error("unable to store log file", e);
                     createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
                     throw new StorageLogException(e);

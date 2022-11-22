@@ -30,11 +30,10 @@ package fr.gouv.vitam.storage.engine.server.storagelog;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -74,9 +73,9 @@ public class StorageLogAdministrationTest {
     @Mock
     private StorageLog storageService;
     @Mock
-    private WorkspaceClient workspaceClient;
+    private StorageDistribution distribution;
     @Mock
-    private StorageClient storageClient;
+    private WorkspaceClient workspaceClient;
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -87,14 +86,13 @@ public class StorageLogAdministrationTest {
     public void setUp() {
         final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
         final LogbookOperationsClientFactory logbookOperationsClientFactory =
             mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        storageLogAdministration = new StorageLogAdministration(storageService,
-            configuration, workspaceClientFactory, storageClientFactory, logbookOperationsClientFactory);
+        storageLogAdministration =
+            new StorageLogAdministration(storageService, distribution, configuration, workspaceClientFactory,
+                logbookOperationsClientFactory);
     }
 
 
@@ -107,14 +105,14 @@ public class StorageLogAdministrationTest {
         );
 
         final List<StorageLogBackupResult> storageLogBackupResults =
-            storageLogAdministration.backupStorageLog(STRATEGY_ID, true, List.of(TENANT_ID));
+            storageLogAdministration.backupStorageWriteLog(STRATEGY_ID, List.of(TENANT_ID));
 
 
         assertThat(storageLogBackupResults).isNotEmpty();
         assertThat(storageLogBackupResults).extracting(StorageLogBackupResult::getTenantId).contains(TENANT_ID);
 
-        verify(storageClient).storeFileFromWorkspace(eq(STRATEGY_ID), eq(DataCategory.STORAGELOG), anyString(),
-            any(ObjectDescription.class));
+        verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
+            eq(DataCategory.STORAGELOG), eq(null));
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
         verify(logbookOperationsClient).bulkCreate(anyString(), any());
     }
@@ -126,13 +124,13 @@ public class StorageLogAdministrationTest {
         );
 
         final List<StorageLogBackupResult> storageLogBackupResults =
-            storageLogAdministration.backupStorageLog(STRATEGY_ID, false, List.of(TENANT_ID));
+            storageLogAdministration.backupStorageAccessLog(STRATEGY_ID, List.of(TENANT_ID));
 
         assertThat(storageLogBackupResults).isNotEmpty();
         assertThat(storageLogBackupResults).extracting(StorageLogBackupResult::getTenantId).contains(TENANT_ID);
 
-        verify(storageClient).storeFileFromWorkspace(eq(STRATEGY_ID), eq(DataCategory.STORAGEACCESSLOG), anyString(),
-            any(ObjectDescription.class));
+        verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
+            eq(DataCategory.STORAGEACCESSLOG), eq(null));
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
         verify(logbookOperationsClient).bulkCreate(anyString(), any());
     }
@@ -142,13 +140,13 @@ public class StorageLogAdministrationTest {
         when(storageService.rotateLogFile(eq(TENANT_ID), eq(false))).thenReturn(
             List.of(new LogInformation(tempFolder.newFile().toPath(), LocalDateTime.now(), LocalDateTime.now())));
 
-        when(storageClient.storeFileFromWorkspace(eq(STRATEGY_ID), eq(DataCategory.STORAGEACCESSLOG), anyString(),
-            any())).thenThrow(
-            StorageServerClientException.class
+        when(distribution.storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
+            eq(DataCategory.STORAGEACCESSLOG), eq(null))).thenThrow(
+            StorageException.class
         );
 
         assertThatCode(
-            () -> storageLogAdministration.backupStorageLog(STRATEGY_ID, false, List.of(TENANT_ID))).isInstanceOf(
+            () -> storageLogAdministration.backupStorageAccessLog(STRATEGY_ID, List.of(TENANT_ID))).isInstanceOf(
             StorageLogException.class).hasMessageContaining("One or more StorageAccessLog operations failed");
 
         // ensure workspace clean
