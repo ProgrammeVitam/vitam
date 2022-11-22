@@ -59,16 +59,12 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -109,6 +105,9 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private final LogbookOperationsClient logbookOperationsClient;
     private final TraceabilityStorageService traceabilityLogbookService;
     private final WorkspaceClient workspaceClient;
+
+    private final StorageDistribution distribution;
+
     private final GUID operationID;
     private final int delay;
 
@@ -127,10 +126,12 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookStorageTraceabilityHelper(LogbookOperationsClient logbookOperations, WorkspaceClient workspaceClient,
-        TraceabilityStorageService traceabilityLogbookService, GUID operationID, int overlapDelayInSeconds) {
+        TraceabilityStorageService traceabilityLogbookService, StorageDistribution distribution, GUID operationID,
+        int overlapDelayInSeconds) {
         this.logbookOperationsClient = logbookOperations;
         this.workspaceClient = workspaceClient;
         this.traceabilityLogbookService = traceabilityLogbookService;
+        this.distribution = distribution;
         this.operationID = operationID;
         this.delay = overlapDelayInSeconds;
     }
@@ -327,23 +328,23 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, fileName, inputStream);
 
-            final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(fileName);
 
-            try (final StorageClient storageClient = storageClientFactory.getClient()) {
+            try {
 
-                storageClient.storeFileFromWorkspace(
-                    strategyId, DataCategory.STORAGETRACEABILITY, fileName, description);
+
+                distribution.storeDataInAllOffers(strategyId, fileName, description, DataCategory.STORAGETRACEABILITY,
+                    null);
+
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);
 
 
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+            } catch (StorageException | ContentAddressableStorageNotFoundException e) {
                 LOGGER.error("unable to store zip file", e);
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, StatusCode.FATAL, event);
                 throw new TraceabilityException(e);
@@ -404,7 +405,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         return LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate);
     }
 
-    private void extractPreviousEvent() throws InvalidParseOperationException {
+    private void extractPreviousEvent() {
         if (lastTraceabilityData != null) {
             previousTimestampToken = lastTraceabilityData.token;
             previousStartDate = LocalDateUtil.getString(lastTraceabilityData.startDate);

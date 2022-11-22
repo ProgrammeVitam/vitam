@@ -187,7 +187,7 @@ public class TraceabilityLFCJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-            MetadataType metadataType = MetadataType.valueOf(jobDataMap.get(ITEM).toString());
+            MetadataType metadataType = MetadataType.fromName(jobDataMap.get(ITEM).toString());
             while (true) {
                 boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(metadataType);
 

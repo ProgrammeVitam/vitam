@@ -87,7 +87,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.ReadOnlyShieldStorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionFactory;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -172,7 +171,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
-                new StorageLogAdministration(storageLogService, configuration);
+                new StorageLogAdministration(storageLogService, distribution, configuration);
 
             traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
@@ -191,6 +190,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             // TODO Must have conf for logOpeClient ?
             traceabilityLogbookAdministration =
                 new StorageTraceabilityAdministration(traceabilityLogbookService,
+                    distribution,
                     configuration.getZippingDirecorty(), timestampGenerator,
                     configuration.getStorageTraceabilityOverlapDelay(),
                     configuration.getStorageLogTraceabilityThreadPoolSize());
@@ -1195,13 +1195,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
 
         try {
-            List<StorageLogBackupResult> backupResultList = storageLogAdministration.backupStorageLog(
-                VitamConfiguration.getDefaultStrategy(), false, tenants);
+            List<StorageLogBackupResult> backupResultList =
+                storageLogAdministration.backupStorageAccessLog(VitamConfiguration.getDefaultStrategy(), tenants);
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<StorageLogBackupResult>()
-                    .addAllResults(backupResultList))
-                .build();
+                .entity(new RequestResponseOK<StorageLogBackupResult>().addAllResults(backupResultList)).build();
 
         } catch (StorageLogException e) {
             LOGGER.error("Unable to generate backup log", e);
@@ -1227,13 +1225,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
 
         try {
-            List<StorageLogBackupResult> backupResultList = storageLogAdministration.backupStorageLog(
-                VitamConfiguration.getDefaultStrategy(), true, tenants);
+            List<StorageLogBackupResult> backupResultList =
+                storageLogAdministration.backupStorageWriteLog(VitamConfiguration.getDefaultStrategy(), tenants);
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<StorageLogBackupResult>()
-                    .addAllResults(backupResultList))
-                .build();
+                .entity(new RequestResponseOK<StorageLogBackupResult>().addAllResults(backupResultList)).build();
 
         } catch (StorageLogException e) {
             LOGGER.error("Unable to generate backup log", e);

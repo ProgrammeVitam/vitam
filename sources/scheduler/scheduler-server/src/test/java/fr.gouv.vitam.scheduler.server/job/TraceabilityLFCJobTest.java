@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
-import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
@@ -91,7 +90,7 @@ public class TraceabilityLFCJobTest {
     public void setup() {
         doReturn(logbookOperationsClient).when(logbookOperationsClientFactory).getClient();
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("item", MetadataType.UNIT.name());
+        jobDataMap.put("item", MetadataType.UNIT.getName());
         when(context.getJobDetail()).thenReturn(jobDetail);
         when(context.getJobDetail().getJobDataMap()).thenReturn(jobDataMap);
         VitamConfiguration.setAdminTenant(1);

@@ -8,7 +8,7 @@
     <processing-directives>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), overwrite them -->
-        <overwrite-existing-data>false</overwrite-existing-data>
+        <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>

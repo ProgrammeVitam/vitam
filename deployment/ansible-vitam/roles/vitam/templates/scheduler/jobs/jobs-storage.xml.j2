@@ -28,6 +28,55 @@
                 <cron-expression>{{ vitam_timers.storage.frequency_traceability_log | default('0 40 0/4 * * ?') }}</cron-expression>
             </cron>
         </trigger>
+
+        <job>
+            <name>StorageBackupLogJob</name>
+            <group>storage</group>
+            <description>Job for StorageLog backup</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.StorageBackupLogJob</job-class>
+        </job>
+
+
+        <trigger>
+            <cron>
+                <name>StorageBackupAccessLogTrigger</name>
+                <group>storage</group>
+                <job-name>StorageBackupLogJob</job-name>
+                <job-group>storage</job-group>
+                <job-data-map>
+                    <entry>
+                        <key>StorageBackupType</key>
+                        <value>AccessLog</value>
+                    </entry>
+                    <entry>
+                        <key>StorageServerHosts</key>
+                        <value>{% for item in groups['hosts_storage_engine'] %}{{vitam.storageengine.vitam_component}}-{{loop.index}}.{{vitam.storageengine.vitam_component}}.service.{{ consul_domain }}:{{vitam.storageengine.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
+                    </entry>
+                </job-data-map>
+                <cron-expression>{{ vitam_timers.storage.vitam_storage_accesslog_backup | default('0 10 0/4 * * ?') }}</cron-expression>
+            </cron>
+        </trigger>
+
+        <trigger>
+            <cron>
+                <name>StorageBackupWriteLogTrigger</name>
+                <group>storage</group>
+                <job-name>StorageBackupLogJob</job-name>
+                <job-group>storage</job-group>
+                <job-data-map>
+                    <entry>
+                        <key>StorageBackupType</key>
+                        <value>WriteLog</value>
+                    </entry>
+                    <entry>
+                        <key>StorageServerHosts</key>
+                        <value>{% for item in groups['hosts_storage_engine'] %}{{vitam.storageengine.vitam_component}}-{{loop.index}}.{{vitam.storageengine.vitam_component}}.service.{{ consul_domain }}:{{vitam.storageengine.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
+                    </entry>
+                </job-data-map>
+                <cron-expression>{{ vitam_timers.storage.vitam_storage_log_backup | default('0 15 0/4 * * ?') }}</cron-expression>
+            </cron>
+        </trigger>
+
     </schedule>
 {% endif %}
 

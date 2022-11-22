@@ -1152,7 +1152,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void test_all_case_of_reclassification() throws Exception {
         try {
-            StorageClientFactory.changeMode(null); // If test storage needed uncomment
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
             VitamThreadUtils.getVitamSession().setContractId("aName5");
             AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true);

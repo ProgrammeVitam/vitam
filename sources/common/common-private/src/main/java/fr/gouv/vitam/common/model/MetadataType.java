@@ -26,11 +26,13 @@
  */
 package fr.gouv.vitam.common.model;
 
+import java.util.Arrays;
+
 public enum MetadataType {
     UNIT("Unit"),
     OBJECTGROUP("ObjectGroup");
 
-    private String name;
+    private final String name;
 
     MetadataType(String name) {
         this.name = name;
@@ -38,5 +40,12 @@ public enum MetadataType {
 
     public String getName() {
         return name;
+    }
+
+    public static MetadataType fromName(String name) {
+        return Arrays.stream(MetadataType.values())
+            .filter(metadataType -> metadataType.getName().equals(name))
+            .findFirst()
+            .orElse(null);
     }
 }
