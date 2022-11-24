@@ -41,10 +41,14 @@ function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -t
 mkdir -p ./_build/src/github.com/richardlehane
 ln -s $(pwd) ./_build/src/github.com/richardlehane/siegfried
 export GOPATH=$(pwd)/_build
+
+go version
 # fix for strange behavior in dependencies required
 go mod vendor
 gobuild -o sf github.com/richardlehane/siegfried/cmd/sf
+if [ $? != 0 ]; then echo "ERROR build sf"; exit 1; fi
 gobuild -o roy github.com/richardlehane/siegfried/cmd/roy
+if [ $? != 0 ]; then echo "ERROR build roy"; exit 1; fi
 
 # fix for strange behavior change ; give write access to delete...
 chmod -R 700 ./_build
@@ -55,11 +59,10 @@ find . -type f -name '*.rpm' -exec rm -f {} \;
 %install
 # On pousse les binaire
 mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}/
-cp sf %{buildroot}/vitam/bin/%{vitam_service_name}/
-cp roy %{buildroot}/vitam/bin/%{vitam_service_name}/
+mv -v sf roy %{buildroot}/vitam/bin/%{vitam_service_name}/
 # On copie le rep data
 mkdir -p %{buildroot}/vitam/app/%{vitam_service_name}/
-cp -r ./cmd/roy/data/* %{buildroot}/vitam/app/%{vitam_service_name}/
+mv -v ./cmd/roy/data/* %{buildroot}/vitam/app/%{vitam_service_name}/
 # conf
 mkdir -p %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig
 cp %{SOURCE1} %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig/%{vitam_service_name}
