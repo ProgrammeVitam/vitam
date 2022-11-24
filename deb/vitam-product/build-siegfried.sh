@@ -1,54 +1,59 @@
 #!/bin/bash
-
-SIEGFRIED_VERSION="1.7.12"
+SIEGFRIED_VERSION="1.9.1"
+SIEGFRIED_URL="https://github.com/richardlehane/siegfried/archive/v${SIEGFRIED_VERSION}.tar.gz"
 WORKING_FOLDER=$(dirname $0)
-GO_PROGRAM="go"
-#GO_PROGRAM="/usr/bin/go"
 
-# Inspired by RPM build script as dh-make-golang seems to have vendors dependencies issues since go 1.6
-# https://github.com/Debian/dh-make-golang/issues/46
-# TODO: When dh-make-golang issue will be fixed, use it:
-# apt-get install git-buildpackage
-# apt-get install dh-make-golang
-# git-pbuilder create # we may need to edit the repo url in /etc/pbuilderrc for ubuntu distros
-# dh-make-golang github.com/richardlehane/siegfried
-# cd siegfried
-# git add debian && git commit -a -m 'Packaging'
-# gbp buildpackage --git-pbuilder
-# what next ???
+function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v "$@"; }
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
-	mkdir ${WORKING_FOLDER}/target
+  mkdir ${WORKING_FOLDER}/target
 fi
 
 pushd ${WORKING_FOLDER}/vitam-siegfried
 
 # Get & extract the archive
-curl -k -L https://github.com/richardlehane/siegfried/archive/v${SIEGFRIED_VERSION}.tar.gz -o v${SIEGFRIED_VERSION}.tar.gz
+curl -k -L ${SIEGFRIED_URL} -o v${SIEGFRIED_VERSION}.tar.gz
+if [ $? != 0 ]; then
+  echo "ERROR downloading siegfried: ${SIEGFRIED_URL}"
+  exit 1
+fi
+echo "untar v${SIEGFRIED_VERSION}.tar.gz"
 tar xzf v${SIEGFRIED_VERSION}.tar.gz
+if [ $? != 0 ]; then echo "ERROR untar: $?"; exit 1; fi
 
 # Create a GOPATH env var
 mkdir -p siegfried-${SIEGFRIED_VERSION}/_build/src/github.com/richardlehane
 ln -s $(pwd)/siegfried-${SIEGFRIED_VERSION} siegfried-${SIEGFRIED_VERSION}/_build/src/github.com/richardlehane/siegfried
 export GOPATH=$(pwd)/siegfried-${SIEGFRIED_VERSION}/_build
 
+go version
+# fix for strange behavior in dependencies required
+go mod init vendor
 # Build sf & roy, then move the binary to the vitam directories
-${GO_PROGRAM} build -o sf github.com/richardlehane/siegfried/cmd/sf
-${GO_PROGRAM} build -o roy github.com/richardlehane/siegfried/cmd/roy
-mv sf vitam/bin/siegfried
-mv roy vitam/bin/siegfried
+go get -d github.com/richardlehane/siegfried/cmd/sf@v${SIEGFRIED_VERSION}
+gobuild -o sf github.com/richardlehane/siegfried/cmd/sf
+if [ $? != 0 ]; then echo "ERROR build sf"; exit 1; fi
+go get -d github.com/richardlehane/siegfried/cmd/sf@v${SIEGFRIED_VERSION}
+gobuild -o roy github.com/richardlehane/siegfried/cmd/roy
+if [ $? != 0 ]; then echo "ERROR build roy"; exit 1; fi
+mv -v sf roy vitam/bin/siegfried
 
 # Copy the roy data files
-mv siegfried-${SIEGFRIED_VERSION}/cmd/roy/data/* vitam/app/siegfried/
+mv -v siegfried-${SIEGFRIED_VERSION}/cmd/roy/data/* vitam/app/siegfried/
 
 # Delete the sources
-rm -rf siegfried-${SIEGFRIED_VERSION}
+# fix for strange behavior change ; give write access to delete...
+chmod -R 700 siegfried-${SIEGFRIED_VERSION}/
+rm -rf siegfried-${SIEGFRIED_VERSION}/
 rm -f v${SIEGFRIED_VERSION}.tar.gz
 
 popd
 pushd ${WORKING_FOLDER}
 
 dpkg-deb --build vitam-siegfried ${WORKING_FOLDER}/target
+if [ $? != 0 ]; then echo "ERROR dpkg-deb --build vitam-siegfried"; exit 1; fi
+
+# Cleaning files after pkg build
 rm -rf vitam-siegfried/vitam/app/siegfried/*
 rm -rf vitam-siegfried/vitam/bin/siegfried/*
 
