@@ -1,0 +1,17 @@
+---
+
+- name: installer le package docker
+  package:
+    name: ['docker','docker-python']
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+
+  # KWA : check if still useful with newer docker versions
+- name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
+  sysctl:
+    name: net.ipv4.ip_forward
+    sysctl_set: yes
+    value: '1'
