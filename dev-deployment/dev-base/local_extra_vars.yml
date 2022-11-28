@@ -9,6 +9,11 @@ vitam:
     ihm_recette:
         secure_cookie: false
 
+
+vitam_defaults:
+    services:
+        at_boot: true
+
 #ES
 elasticsearch:
     log:
