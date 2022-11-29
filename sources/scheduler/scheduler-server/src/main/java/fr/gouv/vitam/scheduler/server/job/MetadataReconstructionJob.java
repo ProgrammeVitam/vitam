@@ -28,10 +28,8 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -42,10 +40,14 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.scheduler.server.model.ReconstructionRequestItem;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @DisallowConcurrentExecution
 public class MetadataReconstructionJob implements Job {
@@ -78,18 +80,25 @@ public class MetadataReconstructionJob implements Job {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             LOGGER.info("Process of reconstruction in progress...");
-            final ObjectNode reconstructionPayload = JsonHandler.createObjectNode();
+            List<ReconstructionRequestItem> requestItemList = new ArrayList<>();
             VitamConfiguration.getTenants().forEach(tenant -> {
-                reconstructionPayload.put(UNIT, tenant);
-                reconstructionPayload.put(OBJECTGROUP, tenant);
+                requestItemList.add(getReconstructionRequestItem(tenant, UNIT));
+                requestItemList.add(getReconstructionRequestItem(tenant, OBJECTGROUP));
             });
-            reconstructionPayload.put(UNIT_GRAPH, VitamConfiguration.getAdminTenant());
-            reconstructionPayload.put(OBJECTGROUP_GRAPH, VitamConfiguration.getAdminTenant());
+            requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), UNIT_GRAPH));
+            requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), OBJECTGROUP_GRAPH));
 
-            metaDataClient.reconstructCollection(reconstructionPayload);
+            metaDataClient.reconstructCollection(JsonHandler.toJsonNode(requestItemList));
             LOGGER.info("End of process reconstruction");
         } catch (InvalidParseOperationException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new JobExecutionException(e);
         }
     }
+
+    private ReconstructionRequestItem getReconstructionRequestItem(Integer tenant, String collection) {
+        ReconstructionRequestItem requestItem = new ReconstructionRequestItem();
+        requestItem.setCollection(collection).setTenant(tenant).setLimit(VitamConfiguration.getRestoreBulkSize());
+        return requestItem;
+    }
+
 }
