@@ -1,4 +1,4 @@
-Collect
+Scheduler
 ######
 
 .. toctree::
