@@ -48,6 +48,7 @@ import java.util.Set;
 
 public class VitamAutoClosableResponse extends Response {
 
+    private VitamAutoClosableResponseInputStream autoClosableResponseInputStream;
     private final Response response;
 
     public VitamAutoClosableResponse(Response response) {
@@ -56,6 +57,14 @@ public class VitamAutoClosableResponse extends Response {
 
     @Override
     public void close() {
+
+        if (autoClosableResponseInputStream != null && !autoClosableResponseInputStream.isClosed) {
+            // An input stream of the response has been opened.
+            // Do not close the response, since the inner input stream would also be closed.
+            // The response will be closed automatically when the input stream is closed by the caller.
+            return;
+        }
+
         StreamUtils.consumeAnyEntityAndClose(response);
     }
 
@@ -101,7 +110,8 @@ public class VitamAutoClosableResponse extends Response {
 
     private <T> T wrapInputStreamEntity(T entity) {
         if (entity instanceof InputStream) {
-            return (T) new VitamAutoClosableResponseInputStream((InputStream) entity);
+            autoClosableResponseInputStream = new VitamAutoClosableResponseInputStream((InputStream) entity);
+            return (T) autoClosableResponseInputStream;
         }
         return entity;
     }
@@ -209,9 +219,13 @@ public class VitamAutoClosableResponse extends Response {
             if (isClosed) {
                 return;
             }
-            // When closed, closes parent response & inner input stream
+            // When jax-rs response is closed, its inner input stream is also closed automatically
             StreamUtils.consumeAnyEntityAndClose(response);
             isClosed = true;
+        }
+
+        public boolean isClosed() {
+            return isClosed;
         }
     }
 }

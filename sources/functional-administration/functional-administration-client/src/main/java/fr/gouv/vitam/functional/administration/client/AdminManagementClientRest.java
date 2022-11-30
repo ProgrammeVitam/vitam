@@ -92,7 +92,6 @@ import java.util.List;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -162,14 +161,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withOctetContentType()
             .withJsonAccept();
 
-        Response response;
+        Response response = null;
         try {
             response = make(request);
             checkWithSpecificException(response);
             return response;
         } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                response.close();
+            }
         }
     }
 
@@ -267,7 +269,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withBody(stream)
             .withOctetContentType()
             .withOctetAccept();
-        Response response;
+        Response response = null;
         try {
             response = make(request);
             checkWithSpecificException(response);
@@ -277,6 +279,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                response.close();
+            }
         }
     }
 
@@ -301,8 +307,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             throw new FileRulesException(e);
         } catch (ForbiddenClientException e) {
             throw new ReferentialImportInProgressException(e);
-        } catch (DatabaseConflictException e) {
-            throw new DatabaseConflictException("Collection input conflic");
         }
     }
 
@@ -342,7 +346,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (BadRequestException e) {
-            throw new FileRulesNotFoundException("Agency Not found ");
+            throw new FileRulesNotFoundException("Agency Not found", e);
         }
     }
 
@@ -394,7 +398,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (ReferentialNotFoundException e) {
-            throw new FileRulesNotFoundException("Rule Not found ");
+            throw new FileRulesNotFoundException("Rule Not found", e);
         }
     }
 
@@ -415,7 +419,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (ReferentialNotFoundException e) {
-            throw new FileRulesNotFoundException("Rule Not found ");
+            throw new FileRulesNotFoundException("Rule Not found", e);
         }
     }
 
@@ -874,7 +878,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1042,7 +1045,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1060,7 +1062,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1080,7 +1081,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             checkCreation(response);
             return fromStatusCode(response.getStatus());
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1099,7 +1099,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1140,7 +1139,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             throw new AdminManagementClientBadRequestException(e);
         } catch (VitamClientInternalException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1159,7 +1157,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response, ReindexationResult.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1177,7 +1174,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response, ReindexationResult.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1195,7 +1191,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1228,7 +1223,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error ", e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1264,7 +1258,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response, OntologyModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new VitamRuntimeException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1319,7 +1312,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
@@ -1395,7 +1387,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             return RequestResponse.parseFromResponse(response, GriffinModel.class);
         } catch (VitamClientInternalException | AccessUnauthorizedException | ReferentialNotFoundException |
             DatabaseConflictException | ForbiddenClientException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
@@ -1523,7 +1514,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private void check(Response response) throws VitamClientInternalException {
         final Status status = fromStatusCode(response.getStatus());
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
@@ -1536,9 +1527,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private void checkCreation(Response response)
         throws VitamClientInternalException, AdminManagementClientBadRequestException {
         final Status status = fromStatusCode(response.getStatus());
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
+
         if (status == Status.BAD_REQUEST) {
             String reason = (response.hasEntity()) ? response.readEntity(String.class)
                 : Status.BAD_REQUEST.getReasonPhrase();
@@ -1556,14 +1548,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ForbiddenClientException, DatabaseConflictException {
         final Status status = fromStatusCode(response.getStatus());
 
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
         switch (status) {
-            case OK:
-            case CREATED:
-                return;
             case NOT_FOUND:
                 throw new ReferentialNotFoundException(status.getReasonPhrase());
             case BAD_REQUEST:
@@ -1581,7 +1570,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             default:
                 throw new VitamClientInternalException(
                     String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                        status.getReasonPhrase()));
         }
     }
 }

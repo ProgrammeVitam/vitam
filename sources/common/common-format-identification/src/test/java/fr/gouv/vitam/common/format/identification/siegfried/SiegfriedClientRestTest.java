@@ -55,7 +55,6 @@ import static org.mockito.Mockito.when;
 
 public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
-    private static final String HOSTNAME = "localhost";
     private static SiegfriedClientRest client;
 
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";

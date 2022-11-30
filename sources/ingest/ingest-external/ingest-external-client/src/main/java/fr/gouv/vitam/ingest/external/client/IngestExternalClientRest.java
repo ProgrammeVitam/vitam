@@ -51,7 +51,6 @@ import java.io.InputStream;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
@@ -130,6 +129,11 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             throw new VitamClientException(e);
         } catch (IngestExternalClientNotFoundException e) {
             return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()
+                && Status.NOT_FOUND.getStatusCode() != response.getStatus()) {
+                response.close();
+            }
         }
     }
 
@@ -174,7 +178,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         throws IngestExternalException, IngestExternalClientServerException,
         IngestExternalClientNotFoundException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
@@ -203,7 +207,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             case NOT_FOUND:
                 throw new IngestExternalClientNotFoundException("Not Found");
             default:
-                throw new IngestExternalException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+                throw new IngestExternalException(status.getReasonPhrase());
         }
     }
 }

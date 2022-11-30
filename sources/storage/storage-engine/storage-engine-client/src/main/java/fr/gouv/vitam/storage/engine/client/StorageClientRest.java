@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -88,7 +87,6 @@ import java.util.Optional;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
@@ -371,7 +369,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             default:
                 final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
-                LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
         return result;
@@ -388,7 +385,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             default:
                 final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
-                LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
 
@@ -403,6 +399,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     "Unknown status code " + response.getStatus());
         }
+
         switch (status) {
             case OK:
             case CREATED:
@@ -462,20 +459,19 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
         Response response = null;
         try {
-            try {
-                response = make(request);
-                checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
-                return handleCommonResponseStatus(response);
-            } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
-                final String errorMessage =
-                    VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-                throw new StorageServerClientException(errorMessage, e);
-            } catch (StorageNotFoundClientException e) {
-                throw new StorageNotFoundException(e);
+            response = make(request);
+            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
+            return handleCommonResponseStatus(response);
+        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        } catch (StorageNotFoundClientException e) {
+            throw new StorageNotFoundException(e);
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
             }
-        } catch (Exception e) {
-            StreamUtils.consumeAnyEntityAndClose(response);
-            throw e;
         }
     }
 
@@ -489,17 +485,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
 
-        Response response = null;
-        try {
-            try {
-                response = make(request);
-                return new ObjectEntryReader(handleCommonResponseStatus(response).readEntity(InputStream.class));
-            } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
-                throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
-            }
-        } catch (Exception e) {
-            StreamUtils.consumeAnyEntityAndClose(response);
-            throw e;
+        try (Response response = make(request)) {
+
+            handleCommonResponseStatus(response);
+            return new ObjectEntryReader(response.readEntity(InputStream.class));
+
+        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
+            throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -842,7 +834,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 

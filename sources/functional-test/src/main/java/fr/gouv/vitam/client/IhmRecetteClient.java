@@ -31,8 +31,6 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -40,12 +38,9 @@ import java.util.List;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 public class IhmRecetteClient extends DefaultClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmRecetteClient.class);
 
     private static final List<String> COLLECTION_TO_EMPTY = Arrays.asList(
         "delete/logbook/operation",
@@ -80,13 +75,12 @@ public class IhmRecetteClient extends DefaultClient {
 
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
         String message =
             String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase());
-        LOGGER.error(message);
+                status.getReasonPhrase());
         throw new VitamClientInternalException(message);
     }
 }

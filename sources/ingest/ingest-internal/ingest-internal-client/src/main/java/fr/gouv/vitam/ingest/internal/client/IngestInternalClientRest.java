@@ -65,7 +65,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 /**
@@ -187,7 +186,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         } catch (IngestInternalClientNotFoundException e) {
             throw new IngestInternalClientNotFoundException(e);
         } finally {
-            if (Status.fromStatusCode(response.getStatus()).getFamily() != SUCCESSFUL) {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
                 response.close();
             }
         }
@@ -253,106 +252,76 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        Response response = null;
-        try {
-            response = make(delete()
-                .withPath(OPERATION_URI + "/" + id)
-                .withJsonAccept()
-            );
+        try (Response response = make(delete()
+            .withPath(OPERATION_URI + "/" + id)
+            .withJsonAccept()
+        )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
         } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(get()
-                .withPath(OPERATION_URI)
-                .withBody(JsonHandler.toJsonNode(query))
-                .withJson()
-            );
+        try (Response response = make(get()
+            .withPath(OPERATION_URI)
+            .withBody(JsonHandler.toJsonNode(query))
+            .withJson()
+        )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
         } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(get()
-                .withPath(WORKFLOWS_URI)
-                .withJsonAccept()
-            );
+        try (Response response = make(get()
+            .withPath(WORKFLOWS_URI)
+            .withJsonAccept()
+        )) {
             check(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
         } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientInternalException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
     @Override
     public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(get()
-                .withPath(WORKFLOWS_URI + "/" + workflowIdentifier)
-                .withJsonAccept()
-            );
+        try (Response response = make(get()
+            .withPath(WORKFLOWS_URI + "/" + workflowIdentifier)
+            .withJsonAccept()
+        )) {
             check(response);
             return Optional.of(response.readEntity(WorkFlow.class));
         } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException e) {
-            throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
+            throw new VitamClientException("Internal Error Server", e);
         } catch (IngestInternalClientNotFoundException e) {
             return Optional.empty();
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
     @Override
     public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)
         throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(put()
-                .withPath("workspace" + "/" + id + "/" + objectName)
-                .withBody(inputStream)
-                .withJson()
-            );
+        try (Response response = make(put()
+            .withPath("workspace" + "/" + id + "/" + objectName)
+            .withBody(inputStream)
+            .withJson()
+        )) {
             check(response);
         } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
-            throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
-        } finally {
-            if (response != null) {
-                response.close();
-            }
+            throw new VitamClientException("Internal Error Server", e);
         }
     }
 
@@ -361,7 +330,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         WorkspaceClientServerException, InvalidParseOperationException, IngestInternalClientNotFoundException,
         NotAcceptableClientException {
         Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
@@ -385,7 +354,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             case UNAUTHORIZED:
                 throw new VitamClientInternalException(UNAUTHORIZED);
             default:
-                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+                throw new VitamClientException(status.getReasonPhrase());
         }
     }
 }

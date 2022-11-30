@@ -100,7 +100,6 @@ import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_CHECK_TRACEAB
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
@@ -374,7 +373,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (AdminExternalClientException e) {
             throw new AccessExternalNotFoundException("Error while download profile file : " + profileMetadataId, e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -503,7 +502,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             }
             throw new AccessExternalClientServerException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -868,7 +867,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -930,7 +929,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -951,7 +950,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -976,6 +975,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         }
+        // DO NOT CLOSE response in finally block as it would break external API
     }
 
     @Override
@@ -994,7 +994,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -1016,7 +1016,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
         }
@@ -1232,7 +1232,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private void check(Response response) throws AdminExternalClientException {
         Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
