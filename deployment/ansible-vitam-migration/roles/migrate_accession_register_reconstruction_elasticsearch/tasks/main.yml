@@ -20,10 +20,6 @@
       uri:
         method: POST
         url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ item }}/_refresh"
-        body_format: json
-        body:
-          query:
-            match_all: { }
         timeout: "{{ vitam_defaults.services.api_call_timeout }}"
       with_items:
         - accessionregisterdetail
