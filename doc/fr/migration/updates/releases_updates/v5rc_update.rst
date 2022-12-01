@@ -4,6 +4,22 @@ Notes et procédures spécifiques V5RC
 Procédures à exécuter AVANT la montée de version
 ================================================
 
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V5RC
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass
+
+..
+
 Supprimer les indexes de configuration kibana
 ----------------------------------------------
 
@@ -55,11 +71,28 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam AVANT
 
   ..
 
+Arrêt complet de Vitam
+----------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V5RC
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Vitam doit être arrêté sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
+
 Procédures à exécuter APRÈS la montée de version
 ================================================
 
 Arrêt des timers et des accès externes à Vitam
 ----------------------------------------------
+
+.. caution:: Cette opération doit être effectuée IMMÉDIATEMENT APRÈS la montée de version vers la V5RC
 
 Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
 
@@ -93,6 +126,8 @@ Après le passage du script de migration, il faut procéder à la réindexation 
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --tags unit --ask-vault-pass
+
+  ..
 
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
@@ -159,3 +194,5 @@ La montée de version est maintenant terminée, vous pouvez réactiver les servi
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass
+
+  ..
