@@ -49,6 +49,46 @@ documentation:
       - Comment
       - LegalStatus
       - Name
+  post:
+    description: |
+      - request body : JSON object
+      - response : JSON of saved project / HTTP CODE 200
+    is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    headers:
+     x-tenant-id:
+        required: true
+    body:
+       application/json:
+          type: object
+          example: !include libraries/examples/projectObjectRequest.json
+    responses:
+       200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/projectObjectResponse.json
+  put:
+        description: |
+          - request body : JSON object
+          - response : JSON of saved project / HTTP CODE 200
+        is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        body:
+           application/json:
+              type: object
+              example: !include libraries/examples/projectObjectPutRequest.json
+        responses:
+           200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/projectObjectResponse.json
   get:
     description: |
       - request body : JSON object
@@ -65,6 +105,18 @@ documentation:
             application/json:
               type: object
               example: !include libraries/examples/listProjectsObjectResponse.json
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer un projet.
+    delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
   /{id}/units:
         is: [ StandardTraits.StandardOptionalHeader,
               StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -153,7 +205,6 @@ documentation:
                 application/json:
                   type: object
                   example: !include libraries/examples/transactionResponse.json
-
   /{id}/units:
     displayName: Ajout d'une unité archivistique
     is: [ StandardTraits.StandardOptionalHeader,
@@ -215,6 +266,18 @@ documentation:
                     application/json:
                       type: object
                       example: !include libraries/examples/CollectIngestObjectResponse.json
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer une transaction.
+    delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
   /{id}/upload:
     displayName: upload d'une archive Zip
     is: [ StandardTraits.StandardOptionalHeader,
@@ -232,46 +295,7 @@ documentation:
         200:
           body:
             application/json:
-  /{id}/abort:
-        displayName: Abandonner une une transaction -> statut ABORTED
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-        post:
-         description: |
-           Permet d'abandonner une transaction
-         body:
-          application/json:
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
 
-  /{id}/reopen:
-        displayName: Rouvrir une une transaction -> statut ABORTED
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-        post:
-         description: |
-           Permet de rouvrir une transaction
-         body:
-          application/json:
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
-  
 /units:
   displayName: Units
   description: |
@@ -279,6 +303,23 @@ documentation:
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+
+  get:
+     description: |
+       Permet de récuperer une ou plusieurs unité archivistique par DSL QUERY
+     body:
+      application/json:
+        type: object
+        example: !include libraries/examples/getCollectUnitByDslQuery.json
+     headers:
+      X-tenant-Id:
+       required: true
+     responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/CollectUnitResponse.json
   /{id}:
         is: [ StandardTraits.StandardOptionalHeader,
               StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -350,3 +391,4 @@ documentation:
                 application/json:
                   type: object
                   example: !include libraries/examples/CollectBinaryObjectResponse.json
+

@@ -1,13 +1,4 @@
 {
-    "httpCode": 200,
-    "$hits": {
-        "total": 1,
-        "offset": 0,
-        "limit": 0,
-        "size": 1
-    },
-    "$results": [
-        {
             "#id": "aeeaaaaaachago4caajvgamet3sv5riaaaaq",
             "ArchivalAgreement": "IC-000001",
             "MessageIdentifier": "20220302-000005",
@@ -17,8 +8,4 @@
             "SubmissionAgencyIdentifier": "MICHEL_MERCIER",
             "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
             "#tenant": 0
-        }
-    ],
-    "$facetResults": [],
-    "$context": {}
 }
