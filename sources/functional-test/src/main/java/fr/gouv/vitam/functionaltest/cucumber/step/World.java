@@ -84,6 +84,8 @@ public class World {
     private String unitId;
     private String objectGroupId;
     private String applicationSessionId;
+    private String projectId;
+    private String TransactionId;
     private List<JsonNode> results;
     private LogbookEvent logbookEvent;
     private Path sipFile;
@@ -541,5 +543,21 @@ public class World {
     public World setAtrFile(Path atrFile) {
         this.atrFile = atrFile;
         return this;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getTransactionId() {
+        return TransactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        TransactionId = transactionId;
     }
 }
