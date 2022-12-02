@@ -42,22 +42,31 @@ custom_scan () {
     # Examples output:
     # avast: /vitam/data/ingest-external/upload/SIP_Test_decompression.zip|>content/ID6999.docx|>word/media/image8.emf: The file is a decompression bomb
     # avast: /vitam/data/ingest-external/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq|>content/ID15.docx|>word/embeddings/Microsoft_PowerPoint_Presentation1.pptx|>ppt/media/image1.emf: The file is a decompression bomb
-    local DECOMPRESSION_BOMBS=$(cat ${WORKING_DIR}/scan.log | grep -e 'The file is a decompression bomb' | cut -d':' -f2 | cut -d'>' -f2-)
+    local DECOMPRESSION_BOMBS=$(cat ${WORKING_DIR}/scan.log | grep -e 'The file is a decompression bomb' | cut -d':' -f2 | grep -E '^.*\|>' | cut -d'>' -f2-)
     if [ -n "$DECOMPRESSION_BOMBS" ]; then
+
       # Whitelist => emf,wmf,log
-      local REAL_BOMBS=$(echo $DECOMPRESSION_BOMBS | grep -vE '^.*\.(emf|wmf|log)$')
+      for BOMB in $DECOMPRESSION_BOMBS; do
+        if [ -n "$(echo $BOMB | grep -vE '^.*\.(emf|wmf|log)$')" ]; then
+          REAL_BOMBS+="$BOMB "
+        else
+          IGNORED_BOMBS+="$BOMB "
+        fi
+      done
 
       # If we don't have real decompression bomb (maybe we have too big files)
+      if [ -n "$IGNORED_BOMBS" ]; then
+        echo "INFO: $(printf '%s\n' $IGNORED_BOMBS | wc -l) decompression bombs ignored..." |& tee -a ${WORKING_DIR}/scan.log
+        printf '  %s\n' $IGNORED_BOMBS |& tee -a ${WORKING_DIR}/scan.log
+        RET=$RET_VIRUS_FOUND_FIXED
+      fi
       if [ -n "$REAL_BOMBS" ]; then
         REASON="$(printf '%s\n' $REAL_BOMBS | wc -l) real decompression bombs found !"
         echo "ERROR: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
         printf ' %s\n' $REAL_BOMBS |& tee -a ${WORKING_DIR}/scan.log
         RET=$RET_VIRUS_FOUND_NOTFIXED
-      else
-        echo "INFO: $(printf '%s\n' $DECOMPRESSION_BOMBS | wc -l) decompression bombs ignored..." |& tee -a ${WORKING_DIR}/scan.log
-        printf '  %s\n' $DECOMPRESSION_BOMBS |& tee -a ${WORKING_DIR}/scan.log
-        RET=$RET_VIRUS_FOUND_FIXED
       fi
+
     fi
 
     # Specific case for corrupted archive
