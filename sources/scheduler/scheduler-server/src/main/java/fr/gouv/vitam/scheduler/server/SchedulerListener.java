@@ -80,7 +80,7 @@ public class SchedulerListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.warn("Scheduler destroyed");
         try {
-            scheduler.shutdown();
+            scheduler.shutdown(true);
         } catch (SchedulerException e) {
             LOGGER.error("Cannot shutdown scheduler", e);
         }
