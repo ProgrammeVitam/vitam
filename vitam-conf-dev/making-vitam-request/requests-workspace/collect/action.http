@@ -1,6 +1,6 @@
 ### Configuration
-@transaction-id = aeeaaaaaagffmfhuax2koamdvxkoomqaaaaq
-@project-id = aeaaaaaaaaffmfhuax2koamdvxkoneyaaaaq
+@transaction-id = aeeaaaaaagfuviy5abdwcame2lioz4iaaaaq
+@project-id = aeaaaaaaaafuviy5abdwcame2lhwlniaaaaq
 @unit-id = aeeaaaaaachbhdsaaa2zaal7jikmv4aaaaaq
 @tenant = 1
 
@@ -138,6 +138,34 @@ Content-Type: application/json
 X-Tenant-Id: {{tenant}}
 
 {
+  "Name": "Versement des objets binaires",
+  "ArchivalAgreement": "IC-000001",
+  "MessageIdentifier": "Transaction de test",
+  "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
+  "TransferringAgencyIdentifier": "TransferingAgencyIdentifier5",
+  "OriginatingAgencyIdentifier": "FRAN_NP_009913",
+  "SubmissionAgencyIdentifier": "FRAN_NP_005761",
+  "ArchiveProfile": "ArchiveProfile5",
+  "Comment": "Commentaires"
+}
+
+### Récupérer une transaction
+GET  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+}
+
+### maj d'une transaction
+PUT  {{url-collect}}/collect-external/v1/transactions
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "#id": "aeeaaaaaagfuviy5abdwcame2lioz4iaaaaq",
   "Name": "Versement des objets binaires",
   "ArchivalAgreement": "IC-000001",
   "MessageIdentifier": "Transaction de test",

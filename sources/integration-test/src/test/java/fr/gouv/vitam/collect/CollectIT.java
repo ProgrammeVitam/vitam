@@ -64,6 +64,7 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -79,7 +80,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+import static org.apache.hc.core5.http.HttpStatus.SC_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class CollectIT extends VitamRuleRunner {
@@ -260,6 +264,9 @@ public class CollectIT extends VitamRuleRunner {
     private TransactionDto initTransaction() throws VitamClientException, InvalidParseOperationException {
 
         TransactionDto transaction = new TransactionDto();
+        transaction.setName("Vitam Name");
+        transaction.setArchivalAgreement("Archival agreement");
+        transaction.setAcquisitionInformation("AcquisitionInformation");
         transaction.setArchivalAgencyIdentifier("Vitam");
         transaction.setTransferringAgencyIdentifier("AN");
         transaction.setOriginatingAgencyIdentifier("MICHEL_MERCIER");
@@ -617,18 +624,38 @@ public class CollectIT extends VitamRuleRunner {
         ProjectDto projectDtoResult =
             JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                 ProjectDto.class);
+        TransactionDto initialTransaction = initTransaction();
 
-        TransactionDto transactiondto = initTransaction();
-
-        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
+        // INSERT TRANSACTION
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(vitamContext, initialTransaction, projectDtoResult.getId());
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(SC_OK);
         RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
         TransactionDto transactionDtoResult = JsonHandler.getFromString(requestResponseOK.getFirstResult().toString(), TransactionDto.class);
-        assertThat(transactionDtoResult.getComment()).isNotEqualTo(newComment);
+
+        // GET PERSISTED TRANSACTION
+        RequestResponse<JsonNode> persistedTransactionResponse =
+            collectClient.getTransactionById(vitamContext, transactionDtoResult.getId());
+        Assertions.assertThat(persistedTransactionResponse.getStatus()).isEqualTo(SC_OK);
+        TransactionDto persistedTransaction = JsonHandler.getFromString((((RequestResponseOK) persistedTransactionResponse).getFirstResult()).toString(), TransactionDto.class);
+        assertNotNull(persistedTransaction.getCreationDate());
+        assertEquals(persistedTransaction.getCreationDate(), persistedTransaction.getLastUpdate());
+        assertEquals(TransactionStatus.OPEN.toString(), persistedTransaction.getStatus());
+        assertEquals(initialTransaction.getName(), persistedTransaction.getName());
+        assertEquals(initialTransaction.getArchivalProfile(), persistedTransaction.getArchivalProfile());
+        assertEquals(initialTransaction.getAcquisitionInformation(), persistedTransaction.getAcquisitionInformation());
+        assertEquals(initialTransaction.getMessageIdentifier(), persistedTransaction.getMessageIdentifier());
+
+        assertThat(persistedTransaction.getComment()).isNotEqualTo(newComment);
+
+        // Update Transaction
         transactionDtoResult.setComment(newComment);
-        RequestResponse<JsonNode> response = collectClient.updateTransaction(vitamContext, transactionDtoResult);
-        assertThat(response.getStatus()).isEqualTo(200);
+        RequestResponse<JsonNode> updatedTransactionResponse = collectClient.updateTransaction(vitamContext, transactionDtoResult);
+        assertThat(updatedTransactionResponse.getStatus()).isEqualTo(SC_OK);
+        TransactionDto updatedTransaction = JsonHandler.getFromString((((RequestResponseOK) updatedTransactionResponse).getFirstResult()).toString(), TransactionDto.class);
+
         assertThat(transactionDtoResult.getComment()).isEqualTo(newComment);
+        assertNotNull(updatedTransaction.getCreationDate());
+        assertNotNull(updatedTransaction.getLastUpdate());
+        assertThat(updatedTransaction.getLastUpdate()).isGreaterThan(updatedTransaction.getCreationDate());
     }
 }

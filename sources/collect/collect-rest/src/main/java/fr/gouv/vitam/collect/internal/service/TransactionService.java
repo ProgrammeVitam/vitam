@@ -272,6 +272,7 @@ public class TransactionService {
     public void changeStatusTransaction(TransactionStatus transactionStatus, TransactionModel transactionModel)
         throws CollectException {
         transactionModel.setStatus(transactionStatus);
+        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
         replaceTransaction(transactionModel);
     }
 
@@ -437,6 +438,10 @@ public class TransactionService {
         transactionModel.setTenant(transactionDto.getTenant());
         transactionModel.setProjectId(transactionDto.getProjectId());
         transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));
+        // Update Dates
+        transactionModel.setCreationDate(transactionDto.getCreationDate());
+        transactionModel.setLastUpdate(transactionDto.getLastUpdate());
+
         transactionRepository.replaceTransaction(transactionModel);
     }
 
