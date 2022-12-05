@@ -42,6 +42,7 @@ import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
@@ -153,17 +154,21 @@ public class TransactionResource {
     @Secured(permission = TRANSACTION_UPDATE, description = "Mise à jour d'une transaction")
     public Response updateTransaction(TransactionDto transactionDto) {
         try {
-            ParametersChecker.checkParameter("You must supply transaction datas!", transactionDto);
+            ParametersChecker.checkParameter("You must supply transaction data!", transactionDto);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(transactionDto));
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionDto.getId());
             if (transactionModel.isEmpty()) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
+
+            // TODO : Move setting internal Fields to the service
             Integer tenantId = ParameterHelper.getTenantParameter();
             transactionDto.setTenant(tenantId);
             transactionDto.setStatus(transactionModel.get().getStatus().name());
             transactionDto.setProjectId(transactionModel.get().getProjectId());
+            transactionDto.setCreationDate(transactionModel.get().getCreationDate());
+            transactionDto.setLastUpdate(LocalDateUtil.now().toString());
             transactionService.replaceTransaction(transactionDto);
 
             return CollectRequestResponse.toResponseOK(transactionDto);
