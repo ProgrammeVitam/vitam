@@ -231,7 +231,7 @@ public class TransactionRepository {
     public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectException {
         LOGGER.debug("Transactions to delete : {}");
         try {
-            Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_ERROR", "ABORTED") );
+            Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_WARNING", "ABORTED") );
             List<TransactionModel> listTransactionToDelete = new ArrayList<>();
             MongoCursor<Document> transactionCursor =
                 transactionCollection.find(query).cursor();
