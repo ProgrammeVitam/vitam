@@ -374,7 +374,7 @@ public class TransactionResource {
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Envoi vers VITAM la transaction")
-    public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) throws CollectException {
+    public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) {
         try {
             SanityChecker.checkParameter(transactionId);
 
@@ -385,8 +385,13 @@ public class TransactionResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
             TransactionModel transaction = transactionModel.get();
-            fluxService.updateUnits(transaction.getId(), is,
-                !Objects.isNull(transaction.getManifestContext().getUnitUp()));
+
+            Optional<ProjectDto> projectDto = projectService.findProject(transaction.getProjectId());
+            if (projectDto.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+            fluxService.updateUnits(transaction.getId(), is, !Objects.isNull(projectDto.get().getUnitUp()));
 
             return Response.ok(new RequestResponseOK<>()).build();
         } catch (CollectException | IOException e) {
@@ -397,14 +402,14 @@ public class TransactionResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
-    
-   @Path("/{transactionId}/upload")
+
+    @Path("/{transactionId}/upload")
     @POST
     @Consumes({CommonMediaType.ZIP})
     @Produces(APPLICATION_JSON)
-
     @Secured(permission = TRANSACTION_ZIP_CREATE, description = "Charge les binaires d'une transaction")
-    public Response uploadTransactionZip(@PathParam("transactionId") String transactionId, InputStream inputStreamObject) {
+    public Response uploadTransactionZip(@PathParam("transactionId") String transactionId,
+        InputStream inputStreamObject) {
         try {
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
 
@@ -422,7 +427,8 @@ public class TransactionResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-            fluxService.processStream(inputStreamObject, CollectHelper.convertTransactionModelToTransactionDto(transactionModel.get()), projectDto.get());
+            fluxService.processStream(inputStreamObject,
+                CollectHelper.convertTransactionModelToTransactionDto(transactionModel.get()), projectDto.get());
 
             return Response.status(OK).build();
         } catch (CollectException e) {
