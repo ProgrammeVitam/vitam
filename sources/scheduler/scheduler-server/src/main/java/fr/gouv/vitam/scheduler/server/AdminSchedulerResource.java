@@ -28,6 +28,7 @@
 package fr.gouv.vitam.scheduler.server;
 
 import fr.gouv.vitam.scheduler.server.util.VitamJobsDataProcessorPlugin;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -39,6 +40,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 @Path("/scheduler/v1")
 public class AdminSchedulerResource {
@@ -63,10 +65,16 @@ public class AdminSchedulerResource {
     public Response pauseScheduling(@PathParam("group") String group) throws SchedulerException {
         final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
         if (group.equals("ALL")) {
-            scheduler.pauseAll();
+            final Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.anyGroup());
+            if (!jobKeys.isEmpty()) {
+                scheduler.pauseAll();
+            }
         } else {
-            scheduler.pauseJobs(GroupMatcher.groupEquals(group));
-            scheduler.pauseTriggers(GroupMatcher.groupEquals(group));
+            final Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(group));
+            if (!jobKeys.isEmpty()) {
+                scheduler.pauseJobs(GroupMatcher.groupEquals(group));
+                scheduler.pauseTriggers(GroupMatcher.groupEquals(group));
+            }
         }
         return Response.accepted().build();
     }

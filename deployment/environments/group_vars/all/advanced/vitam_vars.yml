@@ -80,15 +80,15 @@ vitam_timers:
 # Please ensure timer execution is spread so that not all timers run concurrently (eg. *:05:00, *:35:00, *:50:00..),
 # Special care for heavy-load timers that run on same machines or use same resources (eg. vitam-traceability-*).
 #
-# systemd nomenclature
-#    minutely → *-*-* *:*:00
-#    hourly → *-*-* *:00:00
-#    daily → *-*-* 00:00:00
-#    monthly → *-*-01 00:00:00
-#    weekly → Mon *-*-* 00:00:00
-#    yearly → *-01-01 00:00:00
-#    quarterly → *-01,04,07,10-01 00:00:00
-#    semiannually → *-01,07-01 00:00:00
+# Quartz cron nomenclature
+#    minutely → 0 * * * * ?
+#    hourly → 0 0 * * * ?
+#    daily → 0 0 0 * * ?
+#    monthly → 0 0 0 1 * ?
+#    weekly →  0 0 0 ? * MON *
+#    yearly → 0 0 0 1 1 ?
+#    quarterly → 0 0 0 1 1/3 ?
+#    semiannually → 0 0 0 1 1/6 ?
     logbook: # all have to run on only one machine
         # Sécurisation des journaux des opérations
           frequency_traceability_operations: "* 05 0/1 * * ?" # every hour
@@ -134,7 +134,7 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/consul"
 
 # Workspace should be useless but storage have a dependency to it...
 # elastic-kibana-interceptor is present as kibana is present, if kibana-data & interceptor are not needed in the secondary site, just do not add them in the hosts file
-vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
+vitam_secondary_site_components: [ "scheduler", "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
 
 # containers list
 containers_list: ['units', 'objects', 'objectgroups', 'logbooks', 'reports', 'manifests', 'profiles', 'storagelog', 'storageaccesslog', 'storagetraceability', 'rules', 'dip', 'agencies', 'backup', 'backupoperations', 'unitgraph', 'objectgroupgraph', 'distributionreports', 'accessionregistersdetail', 'accessionregisterssymbolic', 'tmp', 'archivaltransferreply']
