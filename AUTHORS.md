@@ -1,16 +1,17 @@
 # Authors of Vitam
 
-## Release 15 (V2) active development team (11/2019)
+## Release 19 (V6.RC) active development team (11/2022)
 
 ### French government team
 
-* Mehdi Afnaï
+
 * Emmanuel Laborde
-* Jean-Séverin Lair
 * Marion Ville
-* Nathalie Morin
 * Thierry Devillechabrolle
 * Alice Grippon
+* Julien Georges
+* Isabelle Josse
+* Polina Grigorieva
 
 ### Smile - Ulteam
 
@@ -23,6 +24,31 @@
 * Gaëlle Fournier
 * Aziz Darkaoui
 * Guillaume Bulart
+
+### MAC - Clafouteam & Nougateam
+
+* Saief eddine GHRAB
+* Abdelmoez Guetat
+* Anass Haifi
+* Passam Kassam
+* Mohamed Tizaoui
+* Souhaib Fatan
+* Benaissa Benarbia
+* Oussama Zerouali
+* Alexandre Paris
+
+### QA Team
+
+* Raouaa Bertoul
+* Soufyane SERIR
+* Rabah Tamezait
+
+### Devops Team
+
+* Mohamed Achoubie
+* Saad Amrani
+* Sadok Hemdane
+* Mathieu Colin
 
 ### Thales integration team
 
@@ -37,7 +63,7 @@
 * Gabriel Arena
 * Emmanuel Castro
 * Jean-Paul Pham
-* Julien Georges - Adamant
+* Romain Gordolo
 
 ## Those who have gone a long (or short) way with us
 
@@ -94,7 +120,14 @@
 * Mahmoud Sayad
 * Olga Zviezdicheva
 * Germain Ledroit
-
+* Mehdi Afnaï
+* Jean-Séverin Lair
+* Nathalie Morin
+* Frédéric Brégier
+* Agnès Cunegatti
+* Badr Chakkouri
+* Abdellah Aoudia
+* Clément Sol
 
 ## Thanks for collaboration
 
