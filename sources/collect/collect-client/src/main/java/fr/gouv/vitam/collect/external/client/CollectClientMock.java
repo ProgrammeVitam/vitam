@@ -27,12 +27,10 @@
 package fr.gouv.vitam.collect.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.collect.external.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -40,145 +38,129 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.UUID;
 
 /**
- * Collect Client implementation for integration tests
+ * Collect Client implementation MOCK for integration tests
  */
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
-    ObjectMapper mapper = new ObjectMapper();
-
     @Override
     public RequestResponse<JsonNode> initProject(VitamContext vitamContext,
-        ProjectDto projectDto) throws VitamClientException {
-        return null;
+        ProjectDto projectDto) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponse<JsonNode> updateProject(VitamContext vitamContext,
-        ProjectDto projectDto) throws VitamClientException {
-        return null;
+        ProjectDto projectDto) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponse<JsonNode> getProjectById(VitamContext vitamContext,
-        String projectId) throws VitamClientException {
-        return null;
-    }
-
-    @Override
-    public RequestResponse<JsonNode> getTransactionByProjectId(VitamContext vitamContext, String projectId)
-        throws VitamClientException {
-        return null;
-    }
-
-    @Override
-    public RequestResponse<JsonNode> getTransactionById(VitamContext vitamContext, String transactionId)
-        throws VitamClientException {
+        String projectId) {
         throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) throws VitamClientException {
-        return null;
+    public RequestResponse<JsonNode> getTransactionByProjectId(VitamContext vitamContext, String projectId) {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getTransactionById(VitamContext vitamContext, String transactionId) {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getProjects(VitamContext vitamContext) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponse<JsonNode> deleteTransactionById(VitamContext vitamContext, String transactionId) {
-        return null;
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponse<JsonNode> deleteProjectById(VitamContext vitamContext, String projectId) {
-        return null;
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId)
-        throws VitamClientException {
-        return null;
+    public RequestResponseOK<JsonNode> getUnitById(VitamContext vitamContext, String unitId) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponseOK<JsonNode> getUnitsByTransaction(VitamContext vitamContext,
-        String transactionId, JsonNode query) throws VitamClientException {
-        return null;
+        String transactionId, JsonNode query) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public RequestResponseOK<JsonNode> getObjectById(VitamContext vitamContext,
-        String gotId) throws VitamClientException {
-        return null;
+    public RequestResponseOK<JsonNode> getObjectById(VitamContext vitamContext, String gotId) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponse<JsonNode> initTransaction(VitamContext vitamContext,
-        TransactionDto transactionDto, String projectId) throws VitamClientException {
-        transactionDto.setId(UUID.randomUUID().toString());
-        return new RequestResponseOK<JsonNode>()
-            .setHttpCode(Response.Status.OK.getStatusCode())
-            .addResult(mapper.valueToTree(transactionDto));
+        TransactionDto transactionDto, String projectId) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponseOK<JsonNode> uploadArchiveUnit(VitamContext vitamContext,
-        JsonNode unitJsonNode, String transactionId)
-        throws VitamClientException {
-        return null;
+        JsonNode unitJsonNode, String transactionId) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponseOK<JsonNode> addObjectGroup(VitamContext vitamContext,
-        String unitId, Integer version, JsonNode objectJsonNode, String usage) throws VitamClientException {
-        return null;
+        String unitId, Integer version, JsonNode objectJsonNode, String usage) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public Response addBinary(VitamContext vitamContext, String unitId, Integer version,
-        InputStream inputStreamUploaded, String usage)
-        throws VitamClientException {
-        return null;
-    }
-
-    @Override
-    public Response closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
-        return null;
-    }
-
-    @Override
-    public RequestResponseOK<JsonNode> ingest(VitamContext vitamContext,
-        String transactionId) throws VitamClientException {
-        return null;
-    }
-
-    @Override
-    public Response abortTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
+        InputStream inputStreamUploaded, String usage) {
         throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public Response reopenTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException {
+    public Response closeTransaction(VitamContext vitamContext, String transactionId) {
         throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded)
-        throws VitamClientException {
-        return null;
+    public RequestResponseOK<JsonNode> ingest(VitamContext vitamContext, String transactionId) {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public Response abortTransaction(VitamContext vitamContext, String transactionId) {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public Response reopenTransaction(VitamContext vitamContext, String transactionId) {
+        throw new NotImplementedException("Not implemented");
+    }
+
+    @Override
+    public Response uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public RequestResponseOK<JsonNode> getUnitsByProjectId(VitamContext vitamContext, String projectId,
-        JsonNode dslQuery)
-        throws VitamClientException {
-        return null;
+        JsonNode dslQuery) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
-    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
-        throws VitamClientException {
-        return null;
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
@@ -187,13 +169,11 @@ public class CollectClientMock extends AbstractMockClient implements CollectClie
     }
 
     @Override
-    public RequestResponse<JsonNode> updateTransaction(VitamContext vitamContext, TransactionDto transactionDto)
-        throws VitamClientException {
+    public RequestResponse<JsonNode> updateTransaction(VitamContext vitamContext, TransactionDto transactionDto) {
         throw new NotImplementedException("Not implemented");
     }
-    
-    public RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
-        throws VitamClientException {
+
+    public RequestResponseOK<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is) {
         throw new NotImplementedException("Not implemented");
     }
 
