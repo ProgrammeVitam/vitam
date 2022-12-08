@@ -24,49 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.collect.internal.resource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.gouv.vitam.collect.external.dto.FileInfoDto;
-import fr.gouv.vitam.collect.external.dto.ObjectDto;
-import fr.gouv.vitam.collect.external.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.dto.ProjectDto;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
-import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
+import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.service.FluxService;
 import fr.gouv.vitam.collect.internal.service.MetadataService;
 import fr.gouv.vitam.collect.internal.service.ProjectService;
 import fr.gouv.vitam.collect.internal.service.SipService;
 import fr.gouv.vitam.collect.internal.service.TransactionService;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.time.LocalDateTime;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 public class TransactionResourceTest {
-    private static final String SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME = "init_transaction_response.json";
-    private static final String SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME = "upload_au_response.json";
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
+    private static final String PROJECT_ID = "PROJECT_ID";
+    private static final String TRANSACTION_ID = "TRANSACTION_ID";
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     private TransactionResource transactionResource;
+
     @Mock
     private TransactionService transactionService;
-    @Mock
-    private CollectConfiguration collectConfiguration;
     @Mock
     private MetadataService metadataService;
     @Mock
@@ -77,148 +81,100 @@ public class TransactionResourceTest {
     private ProjectService projectService;
 
     @Before
-    public void setUp() {
-        given(collectConfiguration.getWorkspaceUrl()).willReturn("http://localhost:8082");
+    public void setUp() throws Exception {
         transactionResource =
             new TransactionResource(transactionService, sipService, metadataService, fluxService, projectService);
+
+        final ProjectDto projectDto = new ProjectDto();
+        projectDto.setId(PROJECT_ID);
+
+        final TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setId(TRANSACTION_ID);
+        transactionModel.setStatus(TransactionStatus.OPEN);
+        transactionModel.setProjectId(PROJECT_ID);
+        when(transactionService.findTransaction(eq(TRANSACTION_ID))).thenReturn(Optional.of(transactionModel));
+        when(projectService.findProject(eq(PROJECT_ID))).thenReturn(Optional.of(projectDto));
+    }
+
+    @After
+    public void tearDown() throws Exception {
     }
 
     @Test
-    public void initTransactionTest_OK() throws Exception {
+    public void getTransactionById() {
+    }
+
+    @Test
+    public void updateTransaction() {
+    }
+
+    @Test
+    public void deleteTransactionById() {
+    }
+
+    @Test
+    public void uploadArchiveUnit() throws Exception {
+    }
+
+    @Test
+    public void selectUnits() {
+    }
+
+    @Test
+    public void closeTransaction() {
+    }
+
+    @Test
+    public void abortTransaction() {
+    }
+
+    @Test
+    public void reopenTransaction() {
+    }
+
+    @Test
+    public void generateAndSendSip() {
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_error_when_update_units_using_empty_stream() {
         // Given
-        final JsonNode fromFile =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-        Mockito.doNothing().when(transactionService).createTransaction(any(TransactionDto.class), anyString());
+        final InputStream is = new ByteArrayInputStream(new byte[0]);
+
+        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
+
         // When
-        //        RequestResponseOK result = transactionResource.initTransaction(null);
+        Response result = transactionResource.updateUnits(TRANSACTION_ID, is);
         // Then
-        //        Assertions.assertThat(result.toString()).hasToString(sampleInitTransaction.toString());
+        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
-    public void initTransactionTest_KO() throws Exception {
+    public void should_upload_transaction_zip_when_transaction_is_open() throws Exception {
         // Given
-        final JsonNode fromFile =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-        Mockito.doNothing().when(transactionService).createTransaction(Mockito.isA(TransactionDto.class), anyString());
+        final InputStream inputStreamZip =
+            PropertiesUtils.getResourceAsStream("streamZip/transaction.zip");
+
+        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
+
         // When
-        //        RequestResponseOK result = transactionResource.initTransaction(null);
+        Response result = transactionResource.uploadTransactionZip(TRANSACTION_ID, inputStreamZip);
         // Then
-        //        Assertions.assertThat(result.toString()).isNotEqualTo(sampleInitTransaction.toString());
-    }
-
-
-    //    @Test
-    //    public void upload_OK() throws Exception {
-    //        // Given
-    //        String TransactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-    //        final InputStream inputStreamZip =
-    //                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-    //        sampleInitTransaction = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-    //        Optional<CollectModel> collectModel = Optional.of(new CollectModel(TransactionId));
-    //        given(collectService.findCollect(TransactionId)).willReturn(collectModel);
-    //        TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-    //        Mockito.doNothing().when(transactionResourceSpy).pushSipStreamToWorkspace(Mockito.any(), Mockito.any());
-    //        // When
-    //        Response result = transactionResourceSpy.upload(TransactionId, inputStreamZip);
-    //        // Then
-    //        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-    //    }
-
-    //    @Test
-    //    public void upload_KO() throws Exception {
-    //        // Given
-    //        String TransactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-    //        final InputStream inputStreamZip =
-    //                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-    //        sampleInitTransaction = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_INIT_TRANSACTION_RESPONSE_FILENAME));
-    //        Optional<CollectModel> collectModel = Optional.empty();
-    //        given(collectService.findCollect(TransactionId)).willReturn(collectModel);
-    //        TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-    //        Mockito.doNothing().when(transactionResourceSpy).pushSipStreamToWorkspace(Mockito.any(), Mockito.any());
-    //        // When
-    //        Response result = transactionResourceSpy.upload(TransactionId, inputStreamZip);
-    //        // Then
-    //        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
-    //    }
-
-
-
-    @Test
-    public void uploadAu_OK() throws Exception {
-        // Given
-        ObjectMapper mapper = new ObjectMapper();
-        String resultMetaData = "{\"httpCode\": 200}";
-        JsonNode jsonResultMetaData = mapper.readTree(resultMetaData);
-        String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-        final JsonNode fromFile =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
-        given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
-        //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
-        TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        given(metadataService.saveArchiveUnit(Mockito.any())).willReturn(jsonResultMetaData);
-        //Mockito.doReturn(jsonResultMetaData).when(transactionResourceSpy).saveArchiveUnitInMetaData(Mockito.any());
-        // When
-        //        RequestResponseOK result = transactionResourceSpy.uploadArchiveUnit(TransactionId, archiveCollectUnitDto);
-        //        // Then
-        //        Assertions.assertThat(result.toString()).hasToString(sampleUploadArchiveUnit.toString());
-    }
-
-
-    @Test
-    public void uploadAu_KO() throws Exception {
-        // Given
-        ObjectMapper mapper = new ObjectMapper();
-        String resultMetaData = "{\"httpCode\": 200}";
-        JsonNode jsonResultMetaData = mapper.readTree(resultMetaData);
-        String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-        final JsonNode fromFile =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
-        given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
-        //        CollectUnitDto archiveCollectUnitDto = new CollectUnitDto(null,new ArchiveUnitContent("title", "description", "Item"),null, null, null, new ManagementModel());
-        TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        //Mockito.doReturn(jsonResultMetaData).when(transactionResourceSpy).saveArchiveUnitInMetaData(Mockito.any());
-        // When
-        //        RequestResponseOK result = transactionResourceSpy.uploadArchiveUnit(TransactionId, archiveCollectUnitDto);
-        //        // Then
-        //        Assertions.assertThat(result.toString()).isNotEqualTo(sampleUploadArchiveUnit.toString());
+        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
     @Test
-    public void uploadGot_OK() throws Exception {
+    public void should_not_upload_transaction_zip_when_transaction_is_not_open() throws Exception {
         // Given
-        ObjectMapper mapper = new ObjectMapper();
-        String lastModified = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
-        String sampleUploadGotResponse =
-            "{\"httpCode\":200,\"$hits\":{\"total\":1,\"offset\":0,\"limit\":0,\"size\":1},\"$results\":[{\"id\":\"082aba2d-817f-4e5f-8fa4-f12ba7d7642f\",\"fileInfo\":{\"LastModified\":\"" +
-                lastModified + "\",\"filename\":\"Pereire.txt\"}}],\"$facetResults\":[],\"$context\":{}}";
-        String resultMetaData = "{\"httpCode\": 200}";
-        String resultArchiveUnitMetaData =
-            "[{\"data\":\"data1\",\"Description\":\"pop\",\"Title\":\"titre exemple\",\"DescriptionLevel\":\"Item\",\"#id\":\"1a9a3e4e-26b6-45eb-b8d1-5fd41cba8a59\",\"#tenant\":1,\"#object\":\"efaef0d4-762d-4c06-884d-6127d906cade\",\"#unitups\":[],\"#min\":1,\"#max\":1,\"#allunitups\":[],\"#management\":{},\"#originating_agencies\":[],\"#version\":2}]";
-        JsonNode jsonResultMetaData = mapper.readTree(resultMetaData);
-        ArrayNode jsonResultArchiveUnit = (ArrayNode) mapper.readTree(resultArchiveUnitMetaData);
-        String transactionId = "082aba2d-817f-4e5f-8fa4-f12ba7d7642f";
-        String archiveUnitId = "1a9a3e4e-26b6-45eb-b8d1-5fd41cba8a59";
-        final JsonNode fromFile =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_UPLOAD_ARCHIVE_UNIT_FILENAME));
-        Optional<TransactionModel> collectModel =
-            Optional.of(new TransactionModel(transactionId, null, null, null, null, null, null, null));
-        given(transactionService.findTransaction(transactionId)).willReturn(collectModel);
+        final InputStream inputStreamZip =
+            PropertiesUtils.getResourceAsStream("streamZip/transaction.zip");
 
-        ObjectDto objectDto = new ObjectDto();
-        objectDto.setFileInfo(new FileInfoDto("Pereire.txt", lastModified));
-        TransactionResource transactionResourceSpy = Mockito.spy(transactionResource);
-        //given(transactionService.saveObjectGroupInMetaData(Mockito.any(), Mockito.any())).willReturn(jsonResultMetaData);
-        //given(transactionService.getArchiveUnitById(Mockito.any())).willReturn(jsonResultArchiveUnit);
+        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(false);
+
         // When
-        //RequestResponseOK result = transactionResourceSpy.uploadObjectGroup(transactionId, archiveUnitId, objectGroupDto);
+        Response result = transactionResource.uploadTransactionZip(TRANSACTION_ID, inputStreamZip);
         // Then
-        //Assertions.assertThat(result.toString()).hasToString(sampleUploadGotResponse);
+        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
-
-
 }

@@ -139,7 +139,7 @@ public class BusinessApplication extends ConfigurationApplication {
             new PurgeTransactionThread(configuration, transactionService);
             new ManageStatusThread(configuration, transactionService);
 
-            CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
+            CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication(true);
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new InternalSecurityFilter());

@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FilenameUtils;
 
@@ -81,6 +82,7 @@ public class CsvMetadataMapper {
     public static Map.Entry<String, JsonNode> map(CSVRecord record, List<String> headerNames) {
         ObjectNode node = JsonHandler.createObjectNode();
         try {
+            SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(record.toMap()));
             mapContent(node, headerNames, record);
             mapManagement(node, headerNames, record);
             unflatSingleElementInArrays(node);

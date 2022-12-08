@@ -248,23 +248,6 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>${jetty.version}</version>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                    <systemPropertyVariables>
-                        <log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
-                        <org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
-                        <org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
-                        <org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi
-                        </org.owasp.esapi.resources>
-                    </systemPropertyVariables>
-                    <classpathDependencyExcludes>
-                        <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
-                    </classpathDependencyExcludes>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <artifactId>jdeb</artifactId>
