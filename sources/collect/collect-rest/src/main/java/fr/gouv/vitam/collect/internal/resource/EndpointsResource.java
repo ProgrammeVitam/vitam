@@ -37,7 +37,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Path("/collect-external/v1")
 public class EndpointsResource extends ApplicationStatusResource {
@@ -48,17 +51,25 @@ public class EndpointsResource extends ApplicationStatusResource {
     }
 
     /**
-     * Récupère la liste des endpoints de la resource
-     *
-     * @return response
+     * Get all Endpoints
+     * @return Response of EndpointInfo
      */
     @Path("/")
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
     @Unsecured()
     public Response listResourceEndpoints() {
-        String resourcePath = TransactionResource.class.getAnnotation(Path.class).value();
-        List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
-        return Response.status(Response.Status.OK).entity(securedEndpointList).build();
+        final List<EndpointInfo> allCollectSecuredEndpoints =
+            Stream.of(
+                    this.secureEndpointRegistry.getEndPointsByResourcePath(
+                        ProjectResource.class.getAnnotation(Path.class).value()),
+                    this.secureEndpointRegistry.getEndPointsByResourcePath(
+                        TransactionResource.class.getAnnotation(Path.class).value()),
+                    this.secureEndpointRegistry.getEndPointsByResourcePath(
+                        CollectMetadataResource.class.getAnnotation(Path.class).value())
+                )
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        return Response.status(Response.Status.OK).entity(allCollectSecuredEndpoints).build();
     }
 }

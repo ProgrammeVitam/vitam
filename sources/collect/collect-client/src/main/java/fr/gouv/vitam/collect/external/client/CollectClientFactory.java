@@ -78,12 +78,9 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
     }
 
     /**
-     * @param configuration null for MOCK
+     * @param configurationFile
+     * Generate MOCK vitamClientType for null configuration
      */
-    public static void changeMode(SecureClientConfiguration configuration) {
-        getInstance().initialisation(configuration, getInstance().getResourcePath());
-    }
-
     public static void changeMode(String configurationFile) {
         SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
