@@ -2,8 +2,7 @@
 
 1. Clone repositories:
 	1. Clone with git vitam at `https://gitlab.dev.programmevitam.fr/vitam/vitam.git`.
-	2. git-lfs should be installed and enabled on vitam-itests (https://git-lfs.github.com/)
-	3. Clone with git vitam-itest at `https://gitlab.dev.programmevitam.fr/vitam/vitam-itests.git`.
+    2. Clone with git vitam-itest at `https://github.com/ProgrammeVitam/vitam-itests.git`.
 
 3. Initialize project settings (npm/maven/certificates):
 	1. Install Java JDK and Maven `sudo apt install openjdk-11-jre-headless`, `sudo apt install openjdk-11-jdk-headless`, `sudo apt install maven`
@@ -29,6 +28,9 @@
 127.0.0.1       batch-report.service.consul
 127.0.0.1       offer-fs-1.service.consul
 127.0.0.1       offer-fs-2.service.consul
+127.0.0.1       metadata-collect.service.consul
+127.0.0.1       workspace-collect.service.consul
+127.0.0.1       collect.service.consul
 127.0.0.1       offer-tape-1.service.consul' > /etc/hosts`
 
 Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .bashrc before launch run_cots
@@ -43,6 +45,7 @@ Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .ba
 	3. If `/etc/resolv.conf` contains `options ends0`, it must be disabled.
 	3. In cots: Run command `vitam-build-repo` to create/download all components.
 	4. In cots: Run command `vitam-deploy-cots` to deploy necessary component for vitam.
+    5. In cots: Using the command `systemctl -a | grep vitam`, check that all cots services :  `vitam-mongos.service`, `vitam-mongoc.service`,`vitam-mongod.service`, `vitam-elasticsearch-data.service` and `vitam-siegfried.service` are UP, otherwise restart those that are down.
 
 7. While vitam-build-repo / vitam-deploy-cots is building, configure VITAM module launch from IDE (Example conf are explain for IntelliJ IDE)
 	1. Create '/vitam'
@@ -113,3 +116,13 @@ Redirection of ElastiSearch traffic to docker (loopback) with:
 Add in elasticsearch conf to connect everywhere with:
 * `vim /vitam/conf/elasticsearch-data/elasticsearch.yml`
 * `> transport.host: 0.0.0.0`
+
+# Notices
+
+* To get a vitam service status, run : `systemctl status -l vitam-[SERVICE_NAME].service`
+* To restart a vitam service, run : `sudo systemctl start vitam-[SERVICE_NAME].service`
+* When using ES cluster, and in case memory use exeeds 95%, run those commands to disable the control that ES apply on the memory use :
+   1. curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_cluster/settings -d '{ "transient": { "cluster.routing.allocation.disk.threshold_enabled": false } }'
+   2. curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_all/_settings -d '{"index.blocks.read_only_allow_delete": null}'
+* After running Cucumber Tests ( TNR), you can find the Cucumber report in : `vitam-conf-dev/conf/ihm-recette/ report.json`
+* Other documentation and Testing scripts are available in gitlab repository : `vitam-internal-toolbox`   
