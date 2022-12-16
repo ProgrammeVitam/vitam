@@ -24,68 +24,736 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.collect.internal.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.external.dto.ProjectDto;
+import fr.gouv.vitam.collect.external.dto.TransactionDto;
+import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
-import fr.gouv.vitam.collect.internal.service.FluxService;
-import fr.gouv.vitam.collect.internal.service.MetadataService;
-import fr.gouv.vitam.collect.internal.service.ProjectService;
-import fr.gouv.vitam.collect.internal.service.SipService;
-import fr.gouv.vitam.collect.internal.service.TransactionService;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import io.restassured.http.ContentType;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
-public class TransactionResourceTest {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
+public class TransactionResourceTest extends CollectResourceBaseTest {
 
-    private static final String PROJECT_ID = "PROJECT_ID";
-    private static final String TRANSACTION_ID = "TRANSACTION_ID";
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    private static final int TENANT = 0;
+    public static final String TRANSACTIONS = "/transactions";
+    private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
 
-    private TransactionResource transactionResource;
+    public static final String QUERY_INIT = "{ "
+        + "\"#id\": \"1\","
+        + "\"ArchivalAgencyIdentifier\": \"Identifier0\","
+        + "\"TransferringAgencyIdentifier\": \"Identifier3\","
+        + "\"OriginatingAgencyIdentifier\": \"FRAN_NP_009915\","
+        + "\"SubmissionAgencyIdentifier\": \"FRAN_NP_005061\","
+        + "\"MessageIdentifier\": \"20220302-000005\","
+        + "\"Name\": \"This is my Name\","
+        + "\"LegalStatus\": \"Archives privées\","
+        + "\"AcquisitionInformation\": \"Versement\","
+        + "\"ArchivalAgreement\":\"IC-000001\","
+        + "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\","
+        + "\"UnitUp\": \"aeaqaaaaaahgnz5dabg42amava5kfoqaaaba\"}";
 
-    @Mock
-    private TransactionService transactionService;
-    @Mock
-    private MetadataService metadataService;
-    @Mock
-    private SipService sipService;
-    @Mock
-    private FluxService fluxService;
-    @Mock
-    private ProjectService projectService;
+    @Test
+    public void getTransactionById() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .get(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
 
-    @Before
-    public void setUp() throws Exception {
-        transactionResource =
+    @Test
+    public void getTransactionById_ko_with_empty_result() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .get(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void getTransactionById_ko_with_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .get(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void getTransactionById_ko_with_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .get(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void updateTransaction() throws Exception {
+        TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setStatus(TransactionStatus.OPEN);
+        transactionModel.setProjectId("1");
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionModel));
+        doNothing().when(transactionService).replaceTransaction(any(TransactionDto.class));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString(QUERY_INIT))
+            .when()
+            .put(TRANSACTIONS)
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void updateTransaction_ko_with_not_found_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString(QUERY_INIT))
+            .when()
+            .put(TRANSACTIONS)
+            .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void updateTransaction_ko_with_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString(QUERY_INIT))
+            .when()
+            .put(TRANSACTIONS)
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void updateTransaction_ko_with_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString(QUERY_INIT))
+            .when()
+            .put(TRANSACTIONS)
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void deleteTransactionById() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .delete(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void deleteTransactionById_ko_not_found_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .delete(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void deleteTransactionById_ko_collection_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .delete(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void deleteTransactionById_ko_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .delete(TRANSACTIONS + "/1")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void uploadArchiveUnit() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(metadataService.saveArchiveUnit(any())).thenReturn(JsonHandler.getFromString("{}"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .post(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+
+    @Test
+    public void uploadArchiveUnit_ko_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .post(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void uploadArchiveUnit_ko_not_found_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .post(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void uploadArchiveUnit_ko_not_open_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .post(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void uploadArchiveUnit_ko_saving_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(metadataService.saveArchiveUnit(any())).thenReturn(null);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .post(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void selectUnits_ko_collect_error() throws Exception {
+        when(metadataService.selectUnits(any(JsonNode.class), eq("1"))).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .get(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void selectUnits() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .get(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void closeTransaction() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/close")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void closeTransaction_ko_collect_error() throws Exception {
+        doThrow(new CollectException("error")).when(transactionService).closeTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/close")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void closeTransaction_ko_parsing_error() throws Exception {
+        doThrow(new IllegalArgumentException("error")).when(transactionService).closeTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/close")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void abortTransaction() {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/abort")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void abortTransaction_ko_collect_error() throws Exception {
+        doThrow(new CollectException("error")).when(transactionService).abortTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/abort")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void abortTransaction_ko_parsing_error() throws Exception {
+        doThrow(new IllegalArgumentException("error")).when(transactionService).abortTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/abort")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void reopenTransaction() {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/reopen")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void reopenTransaction_ko_collect_error() throws Exception {
+        doThrow(new CollectException("error")).when(transactionService).reopenTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/reopen")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void reopenTransaction_ko_parsing_error() throws Exception {
+        doThrow(new IllegalArgumentException("error")).when(transactionService).reopenTransaction(any());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .put(TRANSACTIONS + "/1/reopen")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.READY))).thenReturn(true);
+        when(sipService.generateSip(any())).thenReturn("digest");
+        when(sipService.ingest(any(), eq("digest"))).thenReturn("operationGuiid");
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_not_found_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_not_ready_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.READY))).thenReturn(
+            false);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_digest_i_null() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.READY))).thenReturn(true);
+        when(sipService.generateSip(any())).thenReturn(null);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_operation_is_null() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.READY))).thenReturn(true);
+        when(sipService.generateSip(any())).thenReturn("digest");
+        when(sipService.ingest(any(), eq("digest"))).thenReturn(null);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSip_ko_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .when()
+            .post(TRANSACTIONS + "/1/send")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void updateUnits_ko_with_status_not_open() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .put(TRANSACTIONS + "/1/units")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    public void updateUnits_ko_with_not_found_transaction() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .put(TRANSACTIONS + "/1/units")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    public void updateUnits_ko_with_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .put(TRANSACTIONS + "/1/units")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        }
+    }
+
+    @Test
+    public void updateUnits_ko_with_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .put(TRANSACTIONS + "/1/units")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip() throws Exception {
+        TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setProjectId("1");
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionModel));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(projectService.findProject("1")).thenReturn(Optional.of(new ProjectDto()));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_ko_with_status_not_open() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_with_not_found_transaction() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(Optional.empty());
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_with_collect_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new CollectException("error"));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_ko_with_parsing_error() throws Exception {
+        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_ko_with_project_not_found() throws Exception {
+        TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setProjectId("1");
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionModel));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(projectService.findProject("1")).thenReturn(Optional.empty());
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                .contentType("application/zip")
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(TRANSACTIONS + "/1/upload")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_error_when_update_units_using_empty_stream() {
+        // Given
+        final InputStream resourceAsStream = new ByteArrayInputStream(new byte[0]);
+        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
+
+        // When - Then
+        given()
+            .contentType(ContentType.BINARY)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(resourceAsStream)
+            .when()
+            .put(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void should_upload_transaction_zip_when_transaction_is_open() throws Exception {
+        // TODO to redo to follow the model of the other tests
+        // Given
+        TransactionResource transactionResource =
             new TransactionResource(transactionService, sipService, metadataService, fluxService, projectService);
 
         final ProjectDto projectDto = new ProjectDto();
+        String PROJECT_ID = "PROJECT_ID";
+        String TRANSACTION_ID = "TRANSACTION_ID";
+
         projectDto.setId(PROJECT_ID);
 
         final TransactionModel transactionModel = new TransactionModel();
@@ -94,65 +762,6 @@ public class TransactionResourceTest {
         transactionModel.setProjectId(PROJECT_ID);
         when(transactionService.findTransaction(eq(TRANSACTION_ID))).thenReturn(Optional.of(transactionModel));
         when(projectService.findProject(eq(PROJECT_ID))).thenReturn(Optional.of(projectDto));
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-
-    @Test
-    public void getTransactionById() {
-    }
-
-    @Test
-    public void updateTransaction() {
-    }
-
-    @Test
-    public void deleteTransactionById() {
-    }
-
-    @Test
-    public void uploadArchiveUnit() throws Exception {
-    }
-
-    @Test
-    public void selectUnits() {
-    }
-
-    @Test
-    public void closeTransaction() {
-    }
-
-    @Test
-    public void abortTransaction() {
-    }
-
-    @Test
-    public void reopenTransaction() {
-    }
-
-    @Test
-    public void generateAndSendSip() {
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_throw_error_when_update_units_using_empty_stream() {
-        // Given
-        final InputStream is = new ByteArrayInputStream(new byte[0]);
-
-        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
-
-        // When
-        Response result = transactionResource.updateUnits(TRANSACTION_ID, is);
-        // Then
-        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    public void should_upload_transaction_zip_when_transaction_is_open() throws Exception {
-        // Given
         final InputStream inputStreamZip =
             PropertiesUtils.getResourceAsStream("streamZip/transaction.zip");
 
@@ -164,17 +773,4 @@ public class TransactionResourceTest {
         Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
-    @Test
-    public void should_not_upload_transaction_zip_when_transaction_is_not_open() throws Exception {
-        // Given
-        final InputStream inputStreamZip =
-            PropertiesUtils.getResourceAsStream("streamZip/transaction.zip");
-
-        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(false);
-
-        // When
-        Response result = transactionResource.uploadTransactionZip(TRANSACTION_ID, inputStreamZip);
-        // Then
-        Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
-    }
 }

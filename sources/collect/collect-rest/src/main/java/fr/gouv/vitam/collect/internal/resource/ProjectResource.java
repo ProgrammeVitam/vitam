@@ -124,11 +124,11 @@ public class ProjectResource {
     @Secured(permission = PROJECT_QUERY_READ, description = "Récupérer une liste des projets par query")
     public Response searchProject(CriteriaProjectDto criteriaProjectDto) {
         try {
-                ParametersChecker.checkParameter("You must supply criteria of Project!", criteriaProjectDto);
+            ParametersChecker.checkParameter("You must supply criteria of Project!", criteriaProjectDto);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteriaProjectDto));
             List<ProjectDto> listProjects = projectService.searchProject(criteriaProjectDto.getQuery());
             return CollectRequestResponse.toResponseOK(listProjects);
-        } catch (InvalidParseOperationException | CollectException e) {
+        } catch (InvalidParseOperationException | CollectException | IllegalArgumentException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -149,7 +149,7 @@ public class ProjectResource {
             return CollectRequestResponse.toResponseOK(projectDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -174,7 +174,7 @@ public class ProjectResource {
             projectService.updateProject(projectDto);
 
             return CollectRequestResponse.toResponseOK(projectDto);
-        } catch (InvalidParseOperationException | CollectException e) {
+        } catch (InvalidParseOperationException | CollectException | IllegalArgumentException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -281,7 +281,7 @@ public class ProjectResource {
             return CollectRequestResponse.toResponseOK(results);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -305,7 +305,7 @@ public class ProjectResource {
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }

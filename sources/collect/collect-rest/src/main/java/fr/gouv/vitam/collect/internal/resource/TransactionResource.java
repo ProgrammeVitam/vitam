@@ -180,7 +180,7 @@ public class TransactionResource {
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Error when trying to parse : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
@@ -367,7 +367,7 @@ public class TransactionResource {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -425,11 +425,8 @@ public class TransactionResource {
         } catch (CollectException | IOException e) {
             LOGGER.error("An error occurs when try to update metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to update metadata : {}", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to read stream : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

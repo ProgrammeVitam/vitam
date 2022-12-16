@@ -166,7 +166,8 @@ public class SipService {
 
                 select.setQuery(in);
 
-                JsonNode response = metadataService.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
+                JsonNode response =
+                    metadataService.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
                 ArrayNode objects = (ArrayNode) response.get(RequestResponseOK.TAG_RESULTS);
                 for (JsonNode object : objects) {
                     List<String> linkedUnits =
@@ -184,7 +185,8 @@ public class SipService {
             StreamSupport.stream(scrollRequest, false)
                 .forEach(result -> {
                     try {
-                        ArchiveUnitModel archiveUnitModel = UnitMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
+                        ArchiveUnitModel archiveUnitModel =
+                            UnitMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
                         manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                     } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
                         e.printStackTrace();
@@ -297,5 +299,4 @@ public class SipService {
         LOGGER.debug(" zip from workspace finished");
         return sipInputStream;
     }
-
 }
