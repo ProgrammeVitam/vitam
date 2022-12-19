@@ -28,6 +28,7 @@ package fr.gouv.vitam.export;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -139,6 +140,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TransferAndDipIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
@@ -257,6 +259,12 @@ public class TransferAndDipIT extends VitamRuleRunner {
             "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>");
         assertThat(manifest).contains("<TextContent>").contains("</TextContent>");
         assertThat(manifest).contains("<DataObjectProfile>AUP_IDENTIFIER</DataObjectProfile>");
+
+        JsonNode logbook = VitamTestHelper.findLogbook(exportOperationId);
+        ArrayNode events = (ArrayNode) RequestResponseOK.getFromJsonNode(logbook).getResults().get(0).get("events");
+        JsonNode evDetData = events.get(events.size() - 2).get("evDetData");
+        assertTrue(evDetData.asText().contains("Digest"));
+        assertTrue(evDetData.asText().contains("DigestType"));
     }
 
     @Test
@@ -799,7 +807,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
                 tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
             );
         assertThat(atr).contains(
-            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
+            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
+                SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()));
     }
@@ -851,7 +860,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
                 tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
             );
         assertThat(atr).contains(
-            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
     }

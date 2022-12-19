@@ -404,7 +404,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    RequestResponse<String> computeObjectDigest(String containerName, String objectName, DigestType algo)
+    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
@@ -412,7 +412,7 @@ public class WorkspaceClient extends DefaultClient {
         try (Response response = make(head().withPath(CONTAINERS + containerName + OBJECTS + objectName)
             .withHeader(X_DIGEST_ALGORITHM, algo.getName()).withJsonAccept())) {
             check(response);
-            return new RequestResponseOK().addResult(response.getHeaderString(X_DIGEST));
+            return response.getHeaderString(X_DIGEST);
         } catch (VitamClientInternalException e) {
             throw new ContentAddressableStorageServerException(e);
         }
@@ -435,9 +435,7 @@ public class WorkspaceClient extends DefaultClient {
     boolean checkObject(String containerName, String objectId, String digest,
         DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
-        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm)
-            .toJsonNode().get("$results").get(0).asText();
-        return offerDigest.equals(digest);
+        return computeObjectDigest(containerName, objectId, digestAlgorithm).equals(digest);
     }
 
     public void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)

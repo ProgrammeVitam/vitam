@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -64,6 +66,8 @@ public class StoreExports extends ActionHandler {
     static final String DIP_CONTAINER = "DIP";
     public static final String TRANSFER_CONTAINER = "TRANSFER";
     private static final String JSONL_EXTENSION = ".jsonl";
+    private static final String DIGEST = "Digest";
+    private static final String DIGEST_TYPE = "DigestType";
     private final StorageClientFactory storageClientFactory;
 
     public StoreExports() {
@@ -101,7 +105,15 @@ public class StoreExports extends ActionHandler {
                 storeReportToOffers(params.getContainerName());
             }
 
-            zipWorkspace(handler, tenantFolder, zipFileName, container);
+            try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
+                if (workspaceClient.isExistingObject(handler.getContainerName(), SEDA_FILE)) {
+                    zipWorkspace(workspaceClient, handler.getContainerName(), tenantFolder, zipFileName, container);
+                    ObjectNode eventDetailDataNode = JsonHandler.createObjectNode();
+                    eventDetailDataNode.put(DIGEST, computeObjectDigest(handler, container, tenantFolder, zipFileName));
+                    eventDetailDataNode.put(DIGEST_TYPE, VitamConfiguration.getDefaultDigestType().getName());
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(eventDetailDataNode));
+                }
+            }
 
             itemStatus.increment(StatusCode.OK);
         } catch (ContentAddressableStorageException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
@@ -125,25 +137,33 @@ public class StoreExports extends ActionHandler {
         }
     }
 
-    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container)
+    private void zipWorkspace(WorkspaceClient workspaceClient, String operationId, String outputDir, String outputFile, String container)
         throws ContentAddressableStorageException {
-
         LOGGER.debug("Try to compress into workspace...");
-        try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
-            if (workspaceClient.isExistingObject(handler.getContainerName(), SEDA_FILE)) {
-                // Ensure target folder exists
-                workspaceClient.createContainer(container);
-                workspaceClient.createFolder(container, outputDir);
-                workspaceClient.createFolder(handler.getContainerName(), CONTENT);
 
-                // compress
-                CompressInformation compressInformation = new CompressInformation();
-                compressInformation.getFiles().add(SEDA_FILE);
-                compressInformation.getFiles().add(CONTENT);
-                compressInformation.setOutputFile(outputDir + "/" + outputFile);
-                compressInformation.setOutputContainer(container);
-                workspaceClient.compress(handler.getContainerName(), compressInformation);
-            }
+        // Create Content folder if not exists
+        workspaceClient.createFolder(operationId, CONTENT);
+
+        // Ensure target folder exists
+        workspaceClient.createContainer(container);
+        workspaceClient.createFolder(container, outputDir);
+
+        // compress
+        CompressInformation compressInformation = new CompressInformation();
+        compressInformation.getFiles().add(SEDA_FILE);
+        compressInformation.getFiles().add(CONTENT);
+        compressInformation.setOutputFile(outputDir + "/" + outputFile);
+        compressInformation.setOutputContainer(container);
+        workspaceClient.compress(operationId, compressInformation);
+    }
+
+    private String computeObjectDigest(HandlerIO handler, String container, String tenantFolder, String fileName)
+        throws ContentAddressableStorageException {
+        LOGGER.debug("Compute object digest from workspace...");
+        try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
+            return workspaceClient
+                .computeObjectDigest(container, tenantFolder + "/" + fileName,
+                    VitamConfiguration.getDefaultDigestType());
         }
     }
 

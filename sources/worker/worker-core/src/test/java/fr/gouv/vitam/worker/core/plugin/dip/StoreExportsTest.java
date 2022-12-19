@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.dip;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -40,11 +41,14 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.VitamConstants.JSONL_EXTENSION;
@@ -52,6 +56,9 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.DIP_CONTAINER;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -62,6 +69,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 public class StoreExportsTest {
 
     static String EXPORT_DIP = "EXPORT_DIP";
+    static final String TRANSFER_DIP = "TRANSFER_DIP";
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -163,5 +171,46 @@ public class StoreExportsTest {
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(
             VitamThreadUtils.getVitamSession().getRequestId());
         assertThat(description.getWorkspaceObjectURI()).isEqualTo(reportName);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void computeObjectDigestTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(2);
+        String requestId = GUIDFactory.newRequestIdGUID(2).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(requestId);
+
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        doReturn(workspaceClientFactory).when(handlerIO).getWorkspaceClientFactory();
+        doReturn(workspaceClient).when(workspaceClientFactory).getClient();
+
+        WorkerParameters params = mock(WorkerParameters.class);
+        doReturn(requestId).when(params).getContainerName();
+        doReturn(requestId).when(handlerIO).getContainerName();
+        doReturn(ARCHIVE_TRANSFER).when(params).getWorkflowIdentifier();
+
+        StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+        StorageClient storageClient = mock(StorageClient.class);
+        doReturn(storageClient).when(storageClientFactory).getClient();
+
+        doReturn(true).when(handlerIO).isExistingFileInWorkspace(requestId + JSONL_EXTENSION);
+        doReturn(true).when(workspaceClient).isExistingObject(Mockito.any(), Mockito.any());
+        doReturn("e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804").when(workspaceClient).computeObjectDigest(Mockito.any(), Mockito.any(), Mockito.any());
+
+        StoreExports storeExports = new StoreExports(storageClientFactory);
+
+        // When
+        ItemStatus itemStatus = storeExports.execute(params, handlerIO);
+
+        // Then
+        Assert.assertNotNull(itemStatus);
+        Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
+        assertNotNull(imap);
+        assertFalse(imap.isEmpty());
+        assertEquals("{\"Digest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\",\"DigestType\":\"SHA-512\"}", imap.get(TRANSFER_DIP).getEvDetailData());
+
+
     }
 }
