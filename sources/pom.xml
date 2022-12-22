@@ -291,53 +291,6 @@
             </properties>
 
         </profile>
-
-        <profile>
-            <!-- Profile to use for upstream release -->
-            <id>bintray</id>
-            <distributionManagement>
-                <repository>
-                    <id>bintray-releases</id>
-                    <name>vitam-maven-release</name>
-                    <url>https://api.bintray.com/maven/programmevitam/vitam-maven-release/vitam/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <!-- Add source jar generation -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- Add javadoc jars generation -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <doclint>none</doclint>
-                            <failOnError>false</failOnError>
-                            <quiet>true</quiet>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
 
