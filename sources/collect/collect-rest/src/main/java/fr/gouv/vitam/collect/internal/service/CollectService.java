@@ -82,9 +82,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
@@ -281,7 +283,7 @@ public class CollectService {
         String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
         String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
         CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
-        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, fileName);
+        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream, CONTENT_FOLDER.concat(File.separator).concat(fileName));
         DbFormatIdentificationModel formatIdentifierResponse =
             getFormatIdentification(dbObjectGroupModel.getOpi(), fileName, fileName);
 
@@ -323,7 +325,7 @@ public class CollectService {
             }
             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
             InputStream digestInputStream = digest.getDigestInputStream(uploadedInputStream);
-            workspaceClient.putObject(containerName, CONTENT_FOLDER.concat(File.separator).concat(fileName), digestInputStream);
+            workspaceClient.putObject(containerName, fileName, digestInputStream);
             LOGGER.debug("Push stream to workspace finished");
             return digest.digestHex();
         } catch (ContentAddressableStorageException e) {
@@ -335,7 +337,7 @@ public class CollectService {
     public InputStream getInputStreamFromWorkspace(String containerName, String fileName) throws CollectException {
         try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             final Response response =
-                workspaceClient.getObject(containerName, CONTENT_FOLDER.concat("/").concat(fileName));
+                workspaceClient.getObject(containerName, fileName);
             if (response.getStatus() != Response.Status.OK.getStatusCode()) {
                 throw new CollectException("Cannot find stream");
             }
