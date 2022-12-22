@@ -135,9 +135,9 @@ public class MetadataService {
     public JsonNode selectObjectGroupById(String objectGroupId, boolean isRaw) throws CollectException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
             final SelectMultiQuery select = new SelectMultiQuery();
-            if(isRaw) {
+            if (isRaw) {
                 return JsonHandler.toJsonNode(client.getObjectGroupByIdRaw(objectGroupId));
-            }else {
+            } else {
                 return client.selectObjectGrouptbyId(select.getFinalSelect(), objectGroupId);
             }
         } catch (final MetaDataException | InvalidParseOperationException | VitamClientException e) {
@@ -235,4 +235,5 @@ public class MetadataService {
             queries.set(queryList.size() - 1, mergedQuery);
         }
     }
+
 }

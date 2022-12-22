@@ -26,12 +26,30 @@
  */
 package fr.gouv.vitam.collect.internal.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.collect.external.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.exception.CollectException;
 import fr.gouv.vitam.collect.internal.model.ProjectModel;
 import fr.gouv.vitam.collect.internal.model.TransactionModel;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.Assertions;
@@ -44,32 +62,57 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.model.VitamConstants.DETAILS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TransactionServiceTest {
+
+    private static final String UNITS_WITH_GRAPH_PATH = "streamZip/units_with_graph.json";
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @InjectMocks
     private TransactionService transactionService;
+
     @Mock
     private TransactionRepository transactionRepository;
 
     @Mock
     private ProjectService projectService;
-
     @Mock
     private WorkspaceClientFactory workspaceCollectClientFactory;
-
     @Mock
     private WorkspaceClient workspaceClient;
+    @Mock
+    private AccessExternalClient accessExternalClient;
+    @Mock
+    private AccessExternalClientFactory accessExternalClientFactory;
+    @Mock
+    private AdminExternalClientFactory adminExternalClientFactory;
+    @Mock
+    private AdminExternalClient adminExternalClient;
+    @Mock
+    private MetadataService metadataService;
 
     @Before
     public void setup() {
@@ -88,7 +131,6 @@ public class TransactionServiceTest {
 
         // When
         ProjectModel project = new ProjectModel();
-        //project.setId("id");
         doReturn(Optional.of(project)).when(projectService).findProject("id");
         transactionService.createTransaction(transactionDto, "id");
 
@@ -103,8 +145,8 @@ public class TransactionServiceTest {
 
     @Test
     public void testFindCollect() throws CollectException {
-        final String idCollect = "XXXX000002222222";
         // Given
+        final String idCollect = "XXXX000002222222";
         TransactionDto transactionDto =
             new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null,
                 null, null,
@@ -120,11 +162,109 @@ public class TransactionServiceTest {
     }
 
     @Test
+    public void testCheckStatus_OK() {
+        // Given
+        final String idCollect = "XXXX000002222222";
+        TransactionModel transactionModel =
+            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
+
+        // When
+        boolean checkStatus =
+            transactionService.checkStatus(transactionModel, TransactionStatus.OPEN, TransactionStatus.ACK_KO);
+
+        // Then
+        Assertions.assertThat(checkStatus).isTrue();
+    }
+
+    @Test
+    public void testCheckStatus_KO() {
+        // Given
+        final String idCollect = "XXXX000002222222";
+        TransactionModel transactionModel =
+            new TransactionModel(idCollect, null, null, TransactionStatus.OPEN, null, null, null, null);
+
+        // When
+        boolean checkStatus =
+            transactionService.checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_KO);
+
+        // Then
+        Assertions.assertThat(checkStatus).isFalse();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void manageTransactionsStatus() throws Exception {
+        // Given
+        when(accessExternalClientFactory.getClient()).thenReturn(accessExternalClient);
+        LogbookOperation logbookOperation = new LogbookOperation();
+        logbookOperation.setId("1");
+        LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
+        logbookEventOperation
+            .setEvDetData(JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("data", "data")));
+        logbookEventOperation.setEvType("ACTION_KEY");
+        logbookEventOperation.setOutMessg(
+            "My awesome message" + DETAILS + "OK:" + 3 + " WARNING:" + 0 + " KO:" + 0);
+        List<LogbookEventOperation> logbookEventOperations = new ArrayList<>();
+        logbookEventOperations.add(logbookEventOperation);
+        logbookOperation.setEvents(logbookEventOperations);
+        when(accessExternalClient.selectOperations(any(), any())).thenReturn(
+            new RequestResponseOK().addAllResults(Arrays.asList(logbookOperation)));
+        when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
+        ProcessDetail processDetail1 = new ProcessDetail();
+        processDetail1.setOperationId("4321");
+        processDetail1.setGlobalState("RUNNING");
+        processDetail1.setStepStatus("OK");
+        ProcessDetail processDetail2 = new ProcessDetail();
+        processDetail2.setOperationId("1234");
+        processDetail2.setGlobalState("RUNNING");
+        processDetail2.setStepStatus("OK");
+        when(adminExternalClient.listOperationsDetails(any(), any())).thenReturn(
+            new RequestResponseOK().addAllResults(Arrays.asList(processDetail1, processDetail2)));
+        TransactionModel transactionModel1 = new TransactionModel();
+        transactionModel1.setVitamOperationId("1234");
+        transactionModel1.setId("1234");
+        TransactionModel transactionModel2 = new TransactionModel();
+        transactionModel2.setVitamOperationId("5");
+        transactionModel2.setId("5");
+        List<TransactionModel> transactionModels = new ArrayList<>();
+        transactionModels.add(transactionModel1);
+        transactionModels.add(transactionModel2);
+        when(transactionRepository.findTransactionsByQuery(any())).thenReturn(transactionModels);
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When - Then
+        assertThatCode(() -> transactionService.manageTransactionsStatus())
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void deleteTransaction() throws Exception {
+        // Given
+        when(workspaceCollectClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(any())).thenReturn(true);
+        final List<JsonNode> unitsJson =
+            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(UNITS_WITH_GRAPH_PATH),
+                new TypeReference<>() {
+                });
+        when(metadataService.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
+            new ScrollSpliterator<>(mock(SelectMultiQuery.class),
+                (query) -> new RequestResponseOK<JsonNode>().addAllResults(new ArrayList<>(unitsJson)), 0, 0));
+        doNothing().when(workspaceClient).deleteContainer(any(), eq(true));
+        // When
+        transactionService.deleteTransaction("1");
+        // Then
+        verify(metadataService, times(1)).deleteUnits(
+            List.of("aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq", "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq",
+                "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaba", "aeaqaaaaaacpbveraqxzuamdvda5lcyaaaaq",
+                "aeaqaaaaaacpbveraqxzuamdvda5l5qaaaaq", "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq",
+                "aeaqaaaaaacpbveraqxzuamdvda5l3qaaaaq"));
+    }
+
+    @Test
     public void isTransactionContentNotEmptyTest() throws Exception {
         final String idTransaction = "XXXX000002222222";
         // Given
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
-
+        // When - Then
         assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction))
             .doesNotThrowAnyException();
     }
@@ -134,7 +274,7 @@ public class TransactionServiceTest {
         final String idTransaction = "XXXX000002222222";
         // Given
         when(workspaceClient.isExistingContainer(any())).thenReturn(false);
-
+        // When _ Then
         assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction))
             .isInstanceOf(CollectException.class);
     }
