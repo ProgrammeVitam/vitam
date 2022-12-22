@@ -101,13 +101,21 @@ Content-Length: 143
     "$roots": [],
     "$query": [
         {
-            "$match": {
-                "Title": "Saint"
-            }
+            "$exists": "Title"
         }
     ],
     "$filter": {},
     "$projection": {}
+}
+
+### Récupération d'une unité archivistique par ID
+GET {{url-collect}}/collect-external/v1/units/aeaqaaaaaafuviy5aan7kamexz37yzyaaaaq
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+Content-Length: 143
+
+{
 }
 
 
