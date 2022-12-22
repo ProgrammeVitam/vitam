@@ -48,7 +48,7 @@
 			<version>${project.version}</version>
 			<classifier>bundle</classifier>
 			<type>zip</type>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -137,7 +137,8 @@
 							<includeGroupIds>fr.gouv.vitam</includeGroupIds>
 							<includeArtifactIds>ihm-demo-front</includeArtifactIds>
 							<classifier>bundle</classifier>
-							<includeTypes>zip</includeTypes>
+							<type>zip</type>
+							<failOnMissingClassifierArtifact>true</failOnMissingClassifierArtifact>
 						</configuration>
 					</execution>
 					<execution>
