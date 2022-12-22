@@ -82,17 +82,15 @@ public class CollectMetadataResource {
     @Path("/units/{unitId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "Récupére une unité archivistique")
+    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "Récupére une unité archivistique par ID")
     public Response getUnitById(@PathParam("unitId") String unitId) {
         try {
-            SanityChecker.checkParameter(unitId);
-            final RequestResponseOK<JsonNode> response =
-                RequestResponseOK.getFromJsonNode(metadataService.selectUnitById(unitId));
-            return response.toResponse();
+            JsonNode response = metadataService.selectUnitById(unitId);
+            return Response.status(OK).entity(response).build();
         } catch (CollectException e) {
             LOGGER.error("Error when fetching unit in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.error("Error when fetching unit in metadata : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
