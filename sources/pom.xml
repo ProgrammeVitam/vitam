@@ -227,7 +227,7 @@
         <cucumber-html.version>0.2.6</cucumber-html.version>
         <xstream.version>1.4.15</xstream.version>
         <batik-css.version>1.11</batik-css.version>
-        <antisamy.version>1.6.4</antisamy.version>
+        <antisamy.version>1.6.7</antisamy.version>
         <jdeb.vafer.version>1.5</jdeb.vafer.version>
         <json-schema-core.version>1.2.5</json-schema-core.version>
         <json-patch.version>1.9</json-patch.version>
