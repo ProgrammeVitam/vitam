@@ -151,7 +151,7 @@
         <!-- object storing-->
         <jclouds.version>2.2.1</jclouds.version>
         <openstack4j.version>3.10</openstack4j.version>
-        <awssdk.v1.version>1.11.720</awssdk.v1.version>
+        <awssdk.v1.version>1.12.261</awssdk.v1.version>
 
         <!-- jetty -->
         <jetty.version>10.0.7</jetty.version>
