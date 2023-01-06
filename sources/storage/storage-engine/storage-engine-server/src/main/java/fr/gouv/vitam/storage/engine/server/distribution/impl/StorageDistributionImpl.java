@@ -151,7 +151,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 // TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
     private static final String DEFAULT_SIZE_WHEN_UNKNOWN = "1000000";
-    private static final int DELETE_TIMEOUT = 120000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
@@ -178,13 +177,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String OBJECT_ID_IS_MANDATORY = "Object id is mandatory";
     private static final String NO_MESSAGE_RETURNED = "No message returned";
     private static final String ERROR_ON_OFFER_ID = "Error on offer ID ";
-    private static final String INVALID_NUMBER_OF_COPY = "Invalid number of copy";
     private static final String CANNOT_CREATE_MULTIPLE_INPUT_STREAM = "Cannot create multipleInputStream";
     private static final String ERROR_ENCOUNTERED_IS = "Error encountered is ";
     private static final String INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID = "Interrupted after timeout on offer ID ";
     private static final String NO_NEED_TO_RETRY = ", no need to retry";
-    private static final String TIMEOUT_ON_OFFER_ID = "Timeout on offer ID ";
-    private static final String OBJECT_NOT_DELETED = "Object not deleted: ";
     private static final String ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY =
         "Error with the storage: object not found. Take next offer in strategy (by priority)";
     private static final String ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY =
@@ -212,7 +208,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private final DigestType digestType;
 
-    private StorageLog storageLogService;
+    private final StorageLog storageLogService;
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final BulkStorageDistribution bulkStorageDistribution;
@@ -223,7 +219,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param configuration the configuration of the storage
      * @param storageLogService service that allow write and access log
      */
-    public StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService) {
+    StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService) {
         ParametersChecker.checkParameter(STORAGE_SERVICE_CONFIGURATION_IS_MANDATORY, configuration);
         urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);

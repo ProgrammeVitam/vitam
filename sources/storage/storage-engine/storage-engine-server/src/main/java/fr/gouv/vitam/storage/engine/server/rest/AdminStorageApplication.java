@@ -27,13 +27,14 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionFactory;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
+import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 
@@ -42,7 +43,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -76,16 +76,17 @@ public class AdminStorageApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
 
-            final StorageLog storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
+            final StorageLog storageLogService = StorageLogFactory.getInstance(storageConfiguration);
 
-            final StorageDistribution distribution =
-                new StorageDistributionImpl(storageConfiguration, storageLogService);
+            // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
+            final StorageDistribution distribution = StorageDistributionFactory.createStorageDistribution(
+                storageConfiguration, storageLogService, new AlertServiceImpl());
 
             singletons.add(new AdminOfferSyncResource(distribution, storageConfiguration));
             singletons.add(new AdminOfferDiffResource(new OfferDiffService(distribution)));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
             singletons.add(new AdminRequestIdFilter());
+            singletons.add(new WriteProtectionScanner(new AlertServiceImpl(), storageConfiguration.isReadOnly()));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

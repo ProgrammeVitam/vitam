@@ -24,34 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.rest.writeprotection;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
-import java.io.IOException;
-import java.nio.file.Paths;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public final class StorageLogFactory {
+/**
+ * Annotation for Storage Engine endpoints for to prevent access to Write APIs (reserved for primary site only)
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+public @interface WriteProtection {
 
-    private static StorageLog instance;
+    boolean value();
 
-    public static synchronized StorageLog getInstance(StorageConfiguration storageConfiguration) throws IOException {
-        if (storageConfiguration.isReadOnly()) {
-            return new ReadOnlyStorageLog(new AlertServiceImpl());
-        }
-
-        if (instance == null) {
-            instance = new StorageLogService(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
-        }
-        return instance;
-    }
-
-    @VisibleForTesting
-    public static synchronized void resetForTesting() {
-        instance = null;
-    }
 }

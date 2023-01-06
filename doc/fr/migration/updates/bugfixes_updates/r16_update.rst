@@ -58,3 +58,17 @@ Executez le playbook suivant:
 Ce playbook clone les indices de configuration (.kibana et .kibana_task_manager) et efface les originaux. Les clones d'indice sont conservés.
 
 La montée de version va recréer ces indices avec les nouvelles configurations relatives au nouvel ELK.
+
+Contrôle et nettoyage de journaux du storage engine des sites secondaires
+-------------------------------------------------------------------------
+
+En cas de migrations depuis une version R16.6- (4.0.6 ou inférieure) vers une version R16.7+ (4.0.7 ou supérieure), un contrôle / purge des journaux d'accès et des journaux d'écriture du storage engine des sites secondaires est nécessaire.
+
+La procédure est à réaliser sur tous les **sites secondaires** de Vitam :
+
+- S'assurer que Vitam soit bien préalablement arrêté (via le playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+- Exécuter le playbook :
+
+  .. code-block:: bash
+
+     ansible-playbook ansible-vitam-migration/migration_purge_storage_logs_secondary_sites.yml -i environments/hosts.{env} --ask-vault-pass

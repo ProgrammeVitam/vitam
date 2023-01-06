@@ -80,6 +80,7 @@ import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
@@ -626,6 +627,7 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start  StorageMain");
         storageMain.stop();
         storageMain = null;
+        StorageLogFactory.resetForTesting();
         // Wait stop then mock
         if (mockWhenStop) {
             StorageClientFactory.getInstance()
