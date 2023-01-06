@@ -1071,17 +1071,17 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Given initial unit data
             final List<Document> unitList =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units),
-                    new TypeReference<List<Document>>() {
+                    new TypeReference<>() {
                     });
 
             final List<Document> gotList =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_gots),
-                    new TypeReference<List<Document>>() {
+                    new TypeReference<>() {
                     });
 
             final List<JsonNode> unitsLfcJsonNodes =
                 JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units_lfc),
-                    new TypeReference<List<JsonNode>>() {
+                    new TypeReference<>() {
                     });
 
             List<Document> unitsLfc = unitsLfcJsonNodes.stream()
@@ -1506,7 +1506,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+                Lists.newArrayList("OA2"));
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
