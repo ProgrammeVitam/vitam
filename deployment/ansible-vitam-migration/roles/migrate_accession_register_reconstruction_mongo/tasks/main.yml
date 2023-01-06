@@ -1,0 +1,28 @@
+---
+
+- block:
+
+    - name: Ensure that current site is a secondary site.
+      fail:
+        msg: "Cannot run this migration playbook on a primary site"
+      when: primary_site | lower != 'false'
+
+    - name: Wait for mongos to be up'n'running
+      wait_for:
+        host: "{{ ip_service }}"
+        port: "{{ mongodb.mongos_port }}"
+        timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+    - name: Copy mongodb update scripts
+      template:
+        src: "reset_reconstruction.js.j2"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/reset_reconstruction.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+    - name: Reset accession registers in mongo-data
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/reset_reconstruction.js"
+      no_log: "{{ hide_passwords_during_deploy }}"
+
+  run_once: true

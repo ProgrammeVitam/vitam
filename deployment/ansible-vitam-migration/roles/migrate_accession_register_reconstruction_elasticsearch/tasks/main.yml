@@ -1,0 +1,33 @@
+---
+
+- block:
+
+    - name: Ensure that current site is a secondary site.
+      fail:
+        msg: "Cannot run this migration playbook on a primary site"
+      when: primary_site | lower != 'false'
+
+    - name: Ensure Elasticsearch data cluster is in "green" state
+      uri:
+        method: GET
+        url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cluster/health"
+      register: result
+      until: result.json.status == "green"
+      retries: "{{ vitam_defaults.services.status_retries_number }}"
+      delay: "{{ vitam_defaults.services.status_retries_delay }}"
+
+    - name: Reset accession registers in elasticsearch data
+      uri:
+        method: POST
+        url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ item }}/_delete_by_query"
+        body_format: json
+        body:
+          query:
+            match_all: { }
+        timeout: "{{ vitam_defaults.services.api_call_timeout }}"
+      with_items:
+        - accessionregisterdetail
+        - accessionregistersummary
+        - accessionregistersymbolic
+
+  run_once: true
