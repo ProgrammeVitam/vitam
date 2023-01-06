@@ -137,6 +137,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         "functional-admin/accession-register/accession-register-detail-2.json";
     private static final String ACCESSION_REGISTER_DETAIL_DATA_3 =
         "functional-admin/accession-register/accession-register-detail-3.json";
+    private static final String ACCESSION_REGISTER_DETAIL_DATA_4 =
+        "functional-admin/accession-register/accession-register-detail-4.json";
 
     private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
@@ -501,7 +503,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         AccessionRegisterDetailModel register1;
         AccessionRegisterDetailModel register2;
         AccessionRegisterDetailModel register3;
-
+        AccessionRegisterDetailModel register4;
 
         OffsetRepository offsetRepository;
 
@@ -529,8 +531,15 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
                     AccessionRegisterDetailModel.class);
             client.createOrUpdateAccessionRegister(register3);
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+            register4 =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_4),
+                    AccessionRegisterDetailModel.class);
+            client.createOrUpdateAccessionRegister(register4);
         }
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         final VitamMongoRepository ardMongo =
@@ -599,13 +608,36 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register3.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register3.getEndDate());
 
+        registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register4.getId());
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register4.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
+
+        registerDetailDoc = ardEs.getByID(register4.getId(), TENANT_0);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register4.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
+
         ArrayNode registerSummaryDocs = (ArrayNode) JsonHandler.toJsonNode(
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
 
-        assertThat(registerSummaryDocs.size()).isEqualTo(2);
+        assertThat(registerSummaryDocs.size()).isEqualTo(3);
 
         for (JsonNode doc : registerSummaryDocs) {
-            if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
+            if (doc.get("_tenant").asInt() == TENANT_0) {
+                assertEquals(1000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("remained").asInt());
+
+                assertEquals(9999, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
+            } else if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
                 assertEquals(2000, doc.get("TotalObjectGroups").get("ingested").asInt());
                 assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
                 assertEquals(2000, doc.get("TotalObjectGroups").get("remained").asInt());
@@ -623,7 +655,6 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
             }
         }
-
 
         ardMongo.purge();
         ardEs.purge();
@@ -639,17 +670,27 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         registerDetailDoc = ardMongo.getByID(register3.getId(), TENANT_1);
         assertThat(registerDetailDoc).isEmpty();
 
+        registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
+        assertThat(registerDetailDoc).isEmpty();
+
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
                 functionalAdminIndexManager);
 
-        // Reconstruct Accession Register Detail
-        ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
-        reconstructionItem.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
-        reconstructionItem.setTenant(TENANT_1);
-        reconstructionItem.setLimit(1000);
-        reconstructionService.reconstruct(reconstructionItem);
+        // First reconstruct Accession Register Details + summary (with limit 2)
+
+        ReconstructionRequestItem reconstructionItemTenant0 = new ReconstructionRequestItem();
+        reconstructionItemTenant0.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        reconstructionItemTenant0.setTenant(TENANT_0);
+        reconstructionItemTenant0.setLimit(2);
+        reconstructionService.reconstruct(reconstructionItemTenant0);
+
+        ReconstructionRequestItem reconstructionItemTenant1 = new ReconstructionRequestItem();
+        reconstructionItemTenant1.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        reconstructionItemTenant1.setTenant(TENANT_1);
+        reconstructionItemTenant1.setLimit(2);
+        reconstructionService.reconstruct(reconstructionItemTenant1);
 
         registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -658,6 +699,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register1.getId());
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register1.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register1.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
 
         registerDetailDoc = ardMongo.getByID(register2.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -666,6 +708,75 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register2.getId());
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register2.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register2.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
+
+        registerDetailDoc = ardMongo.getByID(register3.getId(), TENANT_1);
+        assertThat(registerDetailDoc).isEmpty();
+
+        registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register4.getId());
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register4.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
+
+        registerSummaryDocs = (ArrayNode) JsonHandler
+            .toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
+
+        assertThat(registerSummaryDocs.size()).isEqualTo(3);
+
+        for (JsonNode doc : registerSummaryDocs) {
+            assertEquals(0, doc.get("_v").asInt());
+            assertEquals(1000, doc.get("TotalObjectGroups").get("ingested").asInt());
+            assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+            assertEquals(1000, doc.get("TotalObjectGroups").get("remained").asInt());
+
+            assertEquals(9999, doc.get("ObjectSize").get("ingested").asInt());
+            assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+            assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
+        }
+
+        long offset0 = offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        long offset1 = offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        assertThat(offset0).isEqualTo(4L);
+        assertThat(offset1).isEqualTo(2L);
+
+        // Another reconstruction for Accession Register Details + summary (with limit 2)
+
+        reconstructionItemTenant0 = new ReconstructionRequestItem();
+        reconstructionItemTenant0.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        reconstructionItemTenant0.setTenant(TENANT_0);
+        reconstructionItemTenant0.setLimit(2);
+        reconstructionService.reconstruct(reconstructionItemTenant0);
+
+        reconstructionItemTenant1 = new ReconstructionRequestItem();
+        reconstructionItemTenant1.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        reconstructionItemTenant1.setTenant(TENANT_1);
+        reconstructionItemTenant1.setLimit(2);
+        reconstructionService.reconstruct(reconstructionItemTenant1);
+
+        registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register1.getId());
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register1.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register1.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
+
+        registerDetailDoc = ardMongo.getByID(register2.getId(), TENANT_1);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register2.getId());
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register2.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register2.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
 
         registerDetailDoc = ardMongo.getByID(register3.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -674,17 +785,35 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register3.getId());
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register3.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register3.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
+
+        registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
+        assertThat(registerDetailDoc).isNotNull();
+        assertThat(registerDetailDoc).isNotEmpty();
+        inMogo22Reconstructed = registerDetailDoc.get();
+        assertThat(inMogo22Reconstructed.getString("_id")).isEqualTo(register4.getId());
+        assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register4.getOpc());
+        assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
+        assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
 
         registerSummaryDocs = (ArrayNode) JsonHandler
             .toJsonNode(
                 Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
 
-        assertThat(registerSummaryDocs.size()).isEqualTo(2);
+        assertThat(registerSummaryDocs.size()).isEqualTo(3);
 
         for (JsonNode doc : registerSummaryDocs) {
             assertEquals(0, doc.get("_v").asInt());
 
-            if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
+            if (doc.get("_tenant").asInt() == TENANT_0) {
+                assertEquals(1000, doc.get("TotalObjectGroups").get("ingested").asInt());
+                assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
+                assertEquals(1000, doc.get("TotalObjectGroups").get("remained").asInt());
+
+                assertEquals(9999, doc.get("ObjectSize").get("ingested").asInt());
+                assertEquals(0, doc.get("ObjectSize").get("deleted").asInt());
+                assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
+            } else if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
                 assertEquals(2000, doc.get("TotalObjectGroups").get("ingested").asInt());
                 assertEquals(0, doc.get("TotalObjectGroups").get("deleted").asInt());
                 assertEquals(2000, doc.get("TotalObjectGroups").get("remained").asInt());
@@ -702,6 +831,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
             }
         }
+
+        long newOffset0 = offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        long newOffset1 = offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        assertThat(newOffset0).isEqualTo(4L);
+        assertThat(newOffset1).isEqualTo(3L);
     }
 
     @Test
