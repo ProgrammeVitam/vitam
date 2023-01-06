@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * This class get units where calculated data are modified
@@ -60,7 +60,7 @@ public interface GraphComputeService {
      * This collection contains got's id of concerning units.
      * Empty collection is returned if computeGraph of object group.
      */
-    GraphComputeResponse computeGraph(MetadataCollections metadataCollections, Set<String> unitsId,
+    GraphComputeResponse computeGraph(MetadataCollections metadataCollections, Collection<String> unitsId,
         boolean computeObjectGroupGraph, boolean invalidateComputedInheritedRules);
 
     boolean isInProgress();
