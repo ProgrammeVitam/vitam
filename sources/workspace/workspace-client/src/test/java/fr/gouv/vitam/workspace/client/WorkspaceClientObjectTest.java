@@ -316,8 +316,7 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnTrue()
         throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
-        assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO)
-            .toJsonNode().get("$results").get(0).asText().equals(MESSAGE_DIGEST));
+        assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO).equals(MESSAGE_DIGEST));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
