@@ -520,6 +520,7 @@
                         the specified project. -->
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven.javadoc.version}</version>
+                    <inherited>false</inherited>
                     <configuration>
                         <!-- hack for javadoc generation in java 8 format to avoid missing elasticsearch dependency from class path in javadoc:aggregate-jar -->
                         <source>8</source>

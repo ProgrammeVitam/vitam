@@ -257,6 +257,15 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.version}</version>
+                <configuration>
+                    <sourcepath>${project.build.sourceDirectory};${project.build.directory}/generated-sources/xjc
+                    </sourcepath>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>com.mycila</groupId>
@@ -275,6 +284,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>
