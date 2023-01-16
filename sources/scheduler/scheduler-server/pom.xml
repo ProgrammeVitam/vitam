@@ -127,11 +127,6 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>storage-engine-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 
