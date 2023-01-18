@@ -1,5 +1,5 @@
 Name:          vitam-siegfried
-Version:       1.9.1
+Version:       1.9.6
 Release:       1%{?dist}
 Summary:       Siegfried is a signature-based file format identification tool
 Group:         Applications/File
@@ -9,6 +9,9 @@ URL:           http://www.itforarchivists.com/siegfried
 Source0:       https://github.com/richardlehane/siegfried/archive/v%{version}.tar.gz
 Source1:       siegfried.env
 Source2:       vitam-siegfried.service
+
+%global SIEGFRIED_URL_BUILD  https://github.com/richardlehane/siegfried/releases/download/v%{version}/siegfried_1-9-6_linux64.zip
+%global SIEGFRIED_URL_DATA   https://github.com/richardlehane/siegfried/releases/download/v%{version}/data_1-9-6.zip
 
 BuildRequires: systemd-units
 BuildRequires: golang >= 1.6
@@ -35,20 +38,10 @@ It implements:
 %build
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
 # cf https://fedoraproject.org/wiki/PackagingDrafts/Go#Debuginfo
-# TODO: we disabled debug_package build, so we should be able to build siegfried normally -> remove gobuild function
-function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v "$@"; }
 
 mkdir -p ./_build/src/github.com/richardlehane
 ln -s $(pwd) ./_build/src/github.com/richardlehane/siegfried
 export GOPATH=$(pwd)/_build
-
-go version
-# fix for strange behavior in dependencies required
-go mod vendor
-gobuild -o sf github.com/richardlehane/siegfried/cmd/sf
-if [ $? != 0 ]; then echo "ERROR build sf"; exit 1; fi
-gobuild -o roy github.com/richardlehane/siegfried/cmd/roy
-if [ $? != 0 ]; then echo "ERROR build roy"; exit 1; fi
 
 # fix for strange behavior change ; give write access to delete...
 chmod -R 700 ./_build
@@ -59,10 +52,17 @@ find . -type f -name '*.rpm' -exec rm -f {} \;
 %install
 # On pousse les binaire
 mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}/
-mv -v sf roy %{buildroot}/vitam/bin/%{vitam_service_name}/
+curl -L %{SIEGFRIED_URL_BUILD} -o siegfried_%{version}.zip
+mv -v siegfried_%{version}.zip %{buildroot}/vitam/bin/%{vitam_service_name}/
+unzip -q %{buildroot}/vitam/bin/%{vitam_service_name}/siegfried_%{version}.zip -d %{buildroot}/vitam/bin/%{vitam_service_name}/
+rm %{buildroot}/vitam/bin/%{vitam_service_name}/siegfried_%{version}.zip
 # On copie le rep data
+curl -L %{SIEGFRIED_URL_DATA} -o data_%{version}.zip
 mkdir -p %{buildroot}/vitam/app/%{vitam_service_name}/
-mv -v ./cmd/roy/data/* %{buildroot}/vitam/app/%{vitam_service_name}/
+mv -v data_%{version}.zip %{buildroot}/vitam/app/%{vitam_service_name}/
+unzip -q %{buildroot}/vitam/app/%{vitam_service_name}/data_%{version}.zip -d %{buildroot}/vitam/app/%{vitam_service_name}/
+rm %{buildroot}/vitam/app/%{vitam_service_name}/data_%{version}.zip
+
 # conf
 mkdir -p %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig
 cp %{SOURCE1} %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig/%{vitam_service_name}
@@ -82,8 +82,7 @@ cp %{SOURCE2} %{buildroot}/%{_unitdir}/
 %systemd_postun %{name}.service
 
 %clean
-rm -rf %{buildroot}
-rm -f %{SOURCE0}
+# rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
