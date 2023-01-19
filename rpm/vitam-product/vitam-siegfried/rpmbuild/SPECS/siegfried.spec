@@ -58,10 +58,10 @@ unzip -q %{buildroot}/vitam/bin/%{vitam_service_name}/siegfried_%{version}.zip -
 rm %{buildroot}/vitam/bin/%{vitam_service_name}/siegfried_%{version}.zip
 # On copie le rep data
 curl -L %{SIEGFRIED_URL_DATA} -o data_%{version}.zip
-mkdir -p %{buildroot}/vitam/app/%{vitam_service_name}/
-mv -v data_%{version}.zip %{buildroot}/vitam/app/%{vitam_service_name}/
-unzip -q %{buildroot}/vitam/app/%{vitam_service_name}/data_%{version}.zip -d %{buildroot}/vitam/app/%{vitam_service_name}/
-rm %{buildroot}/vitam/app/%{vitam_service_name}/data_%{version}.zip
+mkdir -p %{buildroot}/vitam/app/
+mv -v data_%{version}.zip %{buildroot}/vitam/app/
+unzip -q %{buildroot}/vitam/app/data_%{version}.zip -d %{buildroot}/vitam/app/
+rm %{buildroot}/vitam/app/data_%{version}.zip
 
 # conf
 mkdir -p %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig

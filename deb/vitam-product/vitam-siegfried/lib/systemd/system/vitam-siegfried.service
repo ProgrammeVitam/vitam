@@ -9,7 +9,6 @@ User=vitam
 Group=vitam
 EnvironmentFile=/vitam/conf/siegfried/sysconfig/siegfried
 ExecStart=/vitam/bin/siegfried/sf -home /vitam/app/siegfried -serve $LISTEN
-ExecStartPre=/vitam/bin/siegfried/sf -home /vitam/app/siegfried -update
 
 [Install]
 WantedBy=multi-user.target
