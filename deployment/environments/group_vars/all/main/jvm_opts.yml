@@ -102,3 +102,18 @@ vitam:
             memory: "-Xms32m -Xmx128m"
             # gc: ""
             # java: ""
+    collect:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    metadata_collect:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    workspace_collect:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
