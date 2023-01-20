@@ -166,6 +166,9 @@ prometheus:
         enabled: true
         port: 9114
         metrics_path: /metrics
+        log_level: "warn"
+        logrotate: enabled # or disabled
+        history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     alertmanager:
         api_port: 9093
         cluster_port: 9094

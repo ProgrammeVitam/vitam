@@ -10,6 +10,15 @@
   delay: "{{ packages_install_retries_delay | default(10) }}"
   notify: "prometheus-elasticsearch-exporter - restart service"
 
+- name: Deploy systemd service file for elasticsearch_exporter
+  template:
+    src: vitam-elasticsearch-exporter.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-elasticsearch-exporter.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "prometheus-elasticsearch-exporter - restart service"
+
 - name: Check that elasticsearch_exporter directories exist
   file:
     path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/elasticsearch_exporter"
@@ -26,6 +35,21 @@
     - data
     - tmp
   notify: "prometheus-elasticsearch-exporter - restart service"
+
+- name: Enable logrotate for elasticsearch_exporter
+  template:
+    src: elasticsearch-exporter.logrotate.j2
+    dest: /etc/logrotate.d/elasticsearch-exporter
+    owner: root
+    group: root
+    mode: 0644
+  when: prometheus.elasticsearch_exporter.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Disable logrotate for elasticsearch_exporter
+  file:
+    path: /etc/logrotate.d/elasticsearch-exporter
+    state: absent
+  when: prometheus.elasticsearch_exporter.logrotate | default('enabled') | lower == 'disabled'
 
 - name: Apply elasticsearch_exporter sysconfig settings
   template:
