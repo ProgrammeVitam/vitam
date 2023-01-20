@@ -1,6 +1,11 @@
 ---
 ### global ###
 
+# Vitam deployment mode. Allowed values are :
+# - "prod" (default): Enforces additional security checks (disallow development/debug tools, reverse proxy does NOT forward traffic to vitam service ports...)
+# - "dev" (NOT for sensitive / production environments): Allow development/debug tools, reverse proxy forwards traffic to vitam service ports.
+deployment_mode: prod
+
 # TODO MAYBE : permettre la surcharge avec une syntax du genre vitamopts.folder_root | default(vitam_default.folder_root) dans les templates ?
 droid_filename: "DROID_SignatureFile_V97.xml"
 droid_container_filename: "container-signature-20201001.xml"
