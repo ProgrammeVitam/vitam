@@ -23,10 +23,11 @@
 
 - block:
 
-  - name: install curl & apt-transport-https
+  - name: install curl & apt-transport-https & gnupg
     apt:
       name:
         - curl
+        - gnupg
         - apt-transport-https
       state: latest
     register: result
@@ -41,6 +42,8 @@
       owner: root
       group: root
       mode: 0640
+
+
 
   - name: add GPG key
     shell: "export https_proxy={{ http_proxy_environnement }} && curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"

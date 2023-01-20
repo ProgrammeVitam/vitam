@@ -9,9 +9,9 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
-- name: Make sure curl is installed
+- name: Make sure curl and gnupg is installed
   apt:
-    name: curl
+    name: ['curl','gnupg']
     state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -56,6 +56,17 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  when: ansible_distribution_version == "10"
+
+- name: installer docker & pip3
+  apt:
+    name: ['docker-ce','python3-pip']
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  when: ansible_distribution_version == "11"
 
 - name: upgrade pip & install docker python package
   pip:
