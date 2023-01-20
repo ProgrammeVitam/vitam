@@ -3,3 +3,4 @@
 vitam_reverse_external_protocol: https
 reverse_connection_params: "acquire=5000 connectiontimeout=300 timeout=600 retry=5"
 reverse_connection_short_params: "acquire=5000 connectiontimeout=300 timeout=50 retry=5"
+deployment_mode: "prod"

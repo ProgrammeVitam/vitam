@@ -58,8 +58,11 @@
                   {% if groups['hosts_ihm_demo']|length >0 %}
                   <a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">ihm-demo</a>
                   {% endif %}
+                  {# <IHMRecette> #}
+                  {% if deployment_mode == "dev" %}
                   {% if groups['hosts_ihm_recette']|length >0 %}
                   <a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">ihm-recette</a>
+                  {% endif %}
                   {% endif %}
                 </div>
               </p>
@@ -95,24 +98,28 @@
                 </div>
               </p>
               {% endif %}
+              {# <KibanaData> #}
+              {% if deployment_mode == "dev" %}
               {% if groups['hosts_kibana_data']|length >0 %}
               <p class="row" style="vertical-align: middle">
                 <div class="col-md-3">Kibana Data</div>
                 <div class="col-md-9">
                   <a href="/kibana_data/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a>
-                  <a href="/kibana_data/api/status" class="btn btn-primary btn-xs" target="_blank">Status</a>
                 </div>
               </p>
               {% endif %}
+              {% endif %}
+              {# </KibanaData> #}
               {% if groups['hosts_kibana_log']|length >0 %}
               <p class="row" style="vertical-align: middle">
                 <div class="col-md-3">Kibana Log</div>
                 <div class="col-md-9">
                   <a href="/kibana_log/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a>
-                  <a href="/kibana_log/api/status" class="btn btn-primary btn-xs" target="_blank">Status</a>
                 </div>
               </p>
               {% endif %}
+              {# <ElasticData> #}
+              {% if deployment_mode == "dev" %}
               {% if groups['hosts_elasticsearch_data']|length >0 %}
               <p class="row" style="vertical-align: middle">
                 <div class="col-md-3">Elasticsearch Data</div>
@@ -128,6 +135,8 @@
                 </div>
               </p>
               {% endif %}
+              {% endif %}
+              {# </ElasticData> #}
               {% if groups['hosts_elasticsearch_log']|length >0 %}
               <p class="row" style="vertical-align: middle">
                 <div class="col-md-3">Elasticsearch Log</div>
@@ -135,14 +144,23 @@
                   {% if groups['hosts_cerebro']|length >0 %}
                   <a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
                   {% endif %}
+
+                  {# <DevTools> #}
+                  {% if deployment_mode == "dev" %}
                   {% if groups['hosts_dev_tools']|length >0 %}
                   <a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
                   {% endif %}
+                  {% endif %}
+                  {# </DevTools> #}
+
                   <a href="/{{ elasticsearch.log.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
                   <a href="/{{ elasticsearch.log.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Health</a>
                 </div>
               </p>
               {% endif %}
+
+              {# <DevTools> #}
+              {% if deployment_mode == "dev" %}
               {% if groups['hosts_dev_tools']|length >0 %}
               <p class="row" style="vertical-align: middle">
                 <div class="col-md-3">Mongo Express</div>
@@ -153,9 +171,15 @@
                 </div>
               </p>
               {% endif %}
+              {% endif %}
+              {# </DevTools> #}
             </div>
           </div>
+
+          {# BEGIN PLACEHOLDER - DO NOT UPDATE #}
           <!-- Vitam UI - Liens -->
+          {# PLACEHOLDER END - DO NOT UPDATE #}
+
           <div class="panel panel-default col-md-12 container">
             <a class="panel-header no-toggle" href="#">
               <h2>Vitam - Debug</h2>
@@ -169,12 +193,18 @@
                   {% for group in groups %}
                   {% if item in groups[group] %}
                   {% if (group not in ('hosts','all','vitam','prometheus','reverse','elasticsearch','mongo_common')) and (not(group is search('^zone'))) %}
+                  {% if deployment_mode == "dev" %}
+                  {# <Metrics> #}
                   {% if group|regex_replace('hosts_', '')| replace('_','-') == 'metadata' %}
                   <a href="/nodes/{{ item }}/metadata/metrics" class="btn btn-primary btn-xs" target="_blank">metadata</a><br/>
                   {% elif group|regex_replace('hosts_', '')| replace('_','-') == 'processing' %}
                   <a href="/nodes/{{ item }}/processing/metrics" class="btn btn-primary btn-xs" target="_blank">processing</a><br/>
                   {% elif group|regex_replace('hosts_', '')| replace('_','-') == 'storage-engine' %}
                   <a href="/nodes/{{ item }}/storage/metrics" class="btn btn-primary btn-xs" target="_blank">storage-engine</a><br/>
+                  {% else %}
+                  {{ group|regex_replace('hosts_', '')| replace('_','-') }}<br/>
+                  {% endif %}
+                  {# </Metrics> #}
                   {% else %}
                   {{ group|regex_replace('hosts_', '')| replace('_','-') }}<br/>
                   {% endif %}
@@ -192,9 +222,16 @@
                   {% endfor %}
                 </div>
                 <div class="col-md-3">
+                {# <Browser> #}
+                {% if deployment_mode == "dev" %}
                 {% if browser.enabled | default(false) | bool == true %}
                   <a href="/nodes/{{ item }}/browse/" class="btn btn-primary btn-xs" target="_blank">Browser</a>
                 {% endif %}
+                {% endif %}
+                {# </Browser> #}
+
+                {# <Metrics> #}
+                {% if deployment_mode == "dev" %}
                 {% if prometheus.node_exporter.enabled | default(false) | bool == true %}
                   <a href="/nodes/{{ item }}/node-exporter" class="btn btn-primary btn-xs" target="_blank">Node Exporter</a>
                 {% endif %}
@@ -206,12 +243,18 @@
                   <a href="/nodes/{{ item }}/elasticsearch-exporter" class="btn btn-primary btn-xs" target="_blank">Elasticsearch Exporter</a>
                 {% endif %}
                 {% endif %}
+                {% endif %}
+                {# </Metrics> #}
                 </div>
               </div>
               {% endfor %}
             </div>
           </div>
+
+          {# BEGIN PLACEHOLDER - DO NOT UPDATE #}
           <!-- Vitam UI - Debug -->
+          {# PLACEHOLDER END - DO NOT UPDATE #}
+
         </div>
       </div>
     </div>

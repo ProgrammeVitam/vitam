@@ -27,6 +27,7 @@ ldap
 
 [hosts_dev_tools]
 # TODO: Put here servers where this service will be deployed : mongo-express, elasticsearch-head
+# /!\ WARNING !!! NOT FOR PRODUCTION
 
 
 [elasticsearch:children] # EXTRA : elasticsearch
@@ -51,13 +52,17 @@ hosts_ihm_demo
 hosts_ihm_recette
 
 [hosts_ihm_demo]
-# TODO: Put here servers where this service will be deployed : ihm-demo. If you own another frontend, it is recommended to leave this group blank
+# TODO: Put here servers where this service will be deployed : ihm-demo. If you use vitam-ui or your own frontend, it is recommended to leave this group blank
 # If you don't need consul for ihm-demo, you can set this var after each hostname :
 # consul_disabled=true
+# DEPRECATED / We'll soon be removed. Please consider using vitam-ui or your own front-end
+# /!\ WARNING !!! NOT recommended for PRODUCTION
 
 
 [hosts_ihm_recette]
 # TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
+# DEPRECATED / We'll soon be removed.
+# /!\ WARNING !!! NOT FOR PRODUCTION
 
 
 ##### Zone access
@@ -106,7 +111,7 @@ hosts_workspace_collect
 
 [hosts_workspace]
 # TODO: Put the server where this service will be deployed : workspace
-# WARNING: put only one server for this service, not more !
+# WARNING: put only ONE server for this service, not more !
 
 
 [hosts_ingest_internal]
@@ -124,9 +129,11 @@ hosts_workspace_collect
 [hosts_functional_administration]
 # TODO: Put here servers where this service will be deployed : functional-administration
 
+
 [hosts_scheduler]
 # TODO: Put here servers where this service will be deployed : scheduler
 # Optional parameter after each host : vitam_scheduler_thread_count=<integer> ; This is the number of threads that are available for concurrent execution of jobs. ; default is 3 thread
+
 
 [hosts_processing]
 # TODO: Put the server where this service will be deployed : processing
@@ -156,7 +163,7 @@ hosts_workspace_collect
 
 [hosts_workspace_collect]
 # TODO: Put the server where this service will be deployed : workspace_collect
-# WARNING: put only one server for this service, not more !
+# WARNING: put only ONE server for this service, not more !
 
 
 
@@ -343,14 +350,18 @@ hosts_grafana
 
 [hosts_cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
+# /!\ WARNING !!! NOT recommended for PRODUCTION
 
 
 [hosts_consul_server]
 # TODO: Put here servers where this service will be deployed : consul
+# Recommended practice in production: use 3 instances
 
 
 [hosts_kibana_data]
 # TODO: Put here servers where this service will be deployed : kibana (for data cluster)
+# WARNING : DEPRECATED / We'll soon be removed.
+# /!\ WARNING !!! NOT FOR PRODUCTION
 
 
 [log_servers:children]
