@@ -9,6 +9,11 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
 
+- name: Remove logrotate configuration for elasticsearch-exporter
+  file:
+    path: /etc/logrotate.d/elasticsearch-exporter
+    state: absent
+
 - name: Remove consul agent service declaration for elasticsearch-exporter
   file:
     path: "{{ consul_folder_conf }}/service-elasticsearch-exporter.json"

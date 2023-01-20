@@ -1,0 +1,18 @@
+# -*- mode: conf -*-
+
+[Unit]
+Description=Prometheus Elasticsearch Exporter
+Documentation=https://github.com/prometheus-community/elasticsearch_exporter
+After=network.target
+
+[Service]
+EnvironmentFile=-/vitam/conf/elasticsearch_exporter/sysconfig/elasticsearch_exporter
+User=vitam
+Group=vitam
+ExecStart=/bin/bash -c 'exec /vitam/bin/elasticsearch_exporter/elasticsearch_exporter $ELASTICSEARCH_EXPORTER_OPTS >>{{ vitam_defaults.folder.root_path | default('/vitam') }}/log/elasticsearch_exporter/elasticsearch-exporter.log'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
