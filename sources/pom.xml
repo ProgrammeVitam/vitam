@@ -184,9 +184,9 @@
         <commons-logging.version>1.2</commons-logging.version>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-lang3>3.9</commons-lang3>
-        <commons-text>1.8</commons-text>
+        <commons-text>1.10.0</commons-text>
         <easymock.version>4.0.2</easymock.version>
-        <jackson.version>2.12.6</jackson.version>
+        <jackson.version>2.14.1</jackson.version>
         <apache-shiro.version>1.8.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>4.3.0</rest-assured.version>
@@ -640,39 +640,39 @@
                         </execution>
                     </executions>
                 </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <version>${maven.dependency.version}</version>
-                        <configuration>
-                            <failOnWarning>false</failOnWarning>
-                            <ignoreNonCompile>false</ignoreNonCompile>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven.dependency.version}</version>
+                    <configuration>
+                        <failOnWarning>false</failOnWarning>
+                        <ignoreNonCompile>false</ignoreNonCompile>
 
-                            <!-- ignore jsr305 for both "used but undeclared" and "declared but unused" -->
-                            <ignoredDependencies>
-                                <ignoredDependency>com.google.code.findbugs:jsr305</ignoredDependency>
-                            </ignoredDependencies>
+                        <!-- ignore jsr305 for both "used but undeclared" and "declared but unused" -->
+                        <ignoredDependencies>
+                            <ignoredDependency>com.google.code.findbugs:jsr305</ignoredDependency>
+                        </ignoredDependencies>
 
-                            <!-- ignore annotations for "used but undeclared" warnings -->
-                            <ignoredUsedUndeclaredDependencies>
-                                <ignoredUsedUndeclaredDependency>com.google.code.findbugs:annotations
-                                </ignoredUsedUndeclaredDependency>
-                            </ignoredUsedUndeclaredDependencies>
+                        <!-- ignore annotations for "used but undeclared" warnings -->
+                        <ignoredUsedUndeclaredDependencies>
+                            <ignoredUsedUndeclaredDependency>com.google.code.findbugs:annotations
+                            </ignoredUsedUndeclaredDependency>
+                        </ignoredUsedUndeclaredDependencies>
 
-                            <!-- ignore annotations for "unused but declared" warnings -->
-                            <ignoredUnusedDeclaredDependencies>
-                                <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-log4j12
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.glassfish.jaxb:jaxb-runtime
-                                </ignoredUnusedDeclaredDependency>
-                                <!-- if any others... -->
-                                <ignoredUnusedDeclaredDependency>com.google.code.findbugs:annotations
-                                </ignoredUnusedDeclaredDependency>
-                            </ignoredUnusedDeclaredDependencies>
-                        </configuration>
-                    </plugin>
+                        <!-- ignore annotations for "unused but declared" warnings -->
+                        <ignoredUnusedDeclaredDependencies>
+                            <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-log4j12
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.glassfish.jaxb:jaxb-runtime
+                            </ignoredUnusedDeclaredDependency>
+                            <!-- if any others... -->
+                            <ignoredUnusedDeclaredDependency>com.google.code.findbugs:annotations
+                            </ignoredUnusedDeclaredDependency>
+                        </ignoredUnusedDeclaredDependencies>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <!-- Environmental constraint checking (Maven Version, JDK etc), User
                         Custom Rule Execution. -->
