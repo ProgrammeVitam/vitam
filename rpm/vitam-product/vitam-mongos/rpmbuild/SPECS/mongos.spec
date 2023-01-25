@@ -11,7 +11,7 @@ Source0:       vitam-mongos.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      mongodb-org >= 5.0.9
+Requires:      mongodb-org >= 5.0.14
 Requires:      vitam-user-vitamdb
 
 %description
@@ -45,9 +45,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Feb 14 2023 Bumped to 5.0.14 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Mon Jun 14 2022 Bumped to 5.0.9 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
-* Fri Oct 29 2021 Bumped to 5.0.3 ongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
-* Fri Jun 7 2019 Bumped to 4.0.10 ongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
+* Fri Oct 29 2021 Bumped to 5.0.3 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
+* Fri Jun 7 2019 Bumped to 4.0.10 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Mon Nov 5 2018 Bumped to 4.0.3 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Mon Aug 27 2018 Bumped to 4.0.1 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Fri Oct 6 2017 Bumped to 3.4.9 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
