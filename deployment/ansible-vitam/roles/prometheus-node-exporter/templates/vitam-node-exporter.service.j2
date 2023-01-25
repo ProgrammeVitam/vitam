@@ -1,0 +1,18 @@
+# -*- mode: conf -*-
+
+[Unit]
+Description=Prometheus Node Exporter.
+Documentation=https://github.com/prometheus/node_exporter
+After=network.target
+
+[Service]
+EnvironmentFile=-/vitam/conf/node_exporter/sysconfig/node_exporter
+User=vitam
+Group=vitam
+ExecStart=/bin/bash -c 'exec /vitam/bin/node_exporter/node_exporter $NODE_EXPORTER_OPTS 2>> {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/node_exporter/node-exporter.log'
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
