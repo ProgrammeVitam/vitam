@@ -9,6 +9,11 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
 
+- name: Remove logrotate configuration for node-exporter
+  file:
+    path: /etc/logrotate.d/node-exporter
+    state: absent
+
 - name: Remove consul agent service declaration for node-exporter
   file:
     path: "{{ consul_folder_conf }}/service-node-exporter.json"
