@@ -27,7 +27,7 @@
 {% if deployment_mode == "dev" %}
     # Warning: Should never be on production.
     # This directive allows direct call to API by using reverse certificate (if configured on admin_context_certs list).
-    SSLProxyMachineCertificateFile /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem
+    # SSLProxyMachineCertificateFile /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem
     # Client CA path
     SSLProxyCACertificatePath /etc/{{ apache_service }}/ca/{{ vitam_site_name }}
 {% endif %}
