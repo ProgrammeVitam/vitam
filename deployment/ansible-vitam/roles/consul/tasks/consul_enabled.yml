@@ -16,6 +16,16 @@
   notify:
     - "consul - restart service"
 
+- name: Deploy systemd service file for vitam-consul
+  template:
+    src: vitam-consul.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-consul.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "consul - restart service"
+
 #### Configuration ####
 
 - name: Check that the consul directories exist
@@ -36,17 +46,23 @@
   notify:
     - "consul - restart service"
 
-- name: Deploy consul common configuration files
+- name: Deploy consul sysconfig file
   template:
-    src: "{{ item }}.j2"
-    dest: "{{ consul_folder_conf }}/{{ item }}"
+    src: sysconfig.j2
+    dest: "{{ consul_folder_conf }}/sysconfig"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_items:
-    - "consul.json"
-  notify:
-      - "consul - restart service"
+  notify: "consul - restart service"
+
+- name: Deploy consul common configuration files
+  template:
+    src: consul.json.j2
+    dest: "{{ consul_folder_conf }}/consul.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  notify: "consul - restart service"
 
 # Ensure that the installation is complete and consul up before setting up the system-wide dns resolver...
 - meta: flush_handlers
