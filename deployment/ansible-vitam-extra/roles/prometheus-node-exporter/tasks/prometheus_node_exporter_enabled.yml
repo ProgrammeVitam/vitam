@@ -49,6 +49,30 @@
   tags:
     - update_node_exporter_configuration
 
+- name: Deploy systemd service file for node_exporter
+  template:
+    src: vitam-node-exporter.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-node-exporter.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "prometheus-node-exporter - restart service"
+
+- name: Enable logrotate for node_exporter
+  template:
+    src: node-exporter.logrotate.j2
+    dest: /etc/logrotate.d/node-exporter
+    owner: root
+    group: root
+    mode: 0644
+  when: prometheus.node_exporter.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Disable logrotate for node_exporter
+  file:
+    path: /etc/logrotate.d/node-exporter
+    state: absent
+  when: prometheus.node_exporter.logrotate | default('enabled') | lower == 'disabled'
+
 #### Consul configuration ####
 - name: Ensure consul config dir is OK
   file:
