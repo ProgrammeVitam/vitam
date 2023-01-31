@@ -84,6 +84,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -128,11 +129,13 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String PROFILES_UPDATE_EVENT = "STP_UPDATE_PROFILE_JSON";
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
     private static final String PROFILE_NOT_FOUND = "Update a not found profile";
+    private static final String PROFILE_NOT_FOUND_WITH_IDENTIFIER = "No profile metadata found with identifier : ";
+    private static final String MANDATORY_PROFILE_METADATA = ", to import the file, the metadata profile must be created first";
     private static final String UPDATED_DIFFS = "updatedDiffs";
     private static final String THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The profile status must be ACTIVE or INACTIVE but not ";
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
+    private static final String TENANT = "_tenant";
+    private static final String ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
@@ -256,11 +259,11 @@ public class ProfileServiceImpl implements ProfileService {
                 /* contract is valid, add it to the list to persist */
 
                 if (jsonNode != null) {
-                    profileNode.set(_ID, jsonNode);
+                    profileNode.set(ID, jsonNode);
                 }
                 JsonNode hashTenant = profileNode.remove(VitamFieldsHelper.tenant());
                 if (hashTenant != null) {
-                    profileNode.set(_TENANT, hashTenant);
+                    profileNode.set(TENANT, hashTenant);
                 }
                 profilesToPersist.add(profileNode);
             }
@@ -315,15 +318,15 @@ public class ProfileServiceImpl implements ProfileService {
                 .setHttpCode(
                     Response.Status.BAD_REQUEST.getStatusCode());
         if (null == profileMetadata) {
-            LOGGER.error("No profile metadata found with identifier : " + profileIdentifier +
-                ", to import the file, the metadata profile must be created first");
+            LOGGER.error(PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
+                MANDATORY_PROFILE_METADATA);
 
             manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
-                "No profile metadata found with identifier : " + profileIdentifier +
-                    ", to import the file, the metadata profile must be created first", ProfileManager.IMPORT_KO);
+                PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
+                    MANDATORY_PROFILE_METADATA, ProfileManager.IMPORT_KO);
             return vitamError.addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
-                "No profile metadata found with identifier : " + profileIdentifier +
-                    ", to import the file, the metadata profile must be created first"));
+                PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
+                    MANDATORY_PROFILE_METADATA));
         }
 
         manager.logStarted(PROFILES_FILE_IMPORT_EVENT, null);
@@ -432,9 +435,9 @@ public class ProfileServiceImpl implements ProfileService {
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
         if (null == profileMetadata) {
             LOGGER.error("No profile metadata found with id : " + profileIdentifier +
-                ", to import the file, the metadata profile must be created first");
+                MANDATORY_PROFILE_METADATA);
             throw new ProfileNotFoundException("No profile metadata found with id : " + profileIdentifier +
-                ", to import the file, the metadata profile must be created first");
+                MANDATORY_PROFILE_METADATA);
         }
 
         if (Strings.isNullOrEmpty(profileMetadata.getPath()) || profileMetadata.getPath().isEmpty()) {
@@ -521,7 +524,7 @@ public class ProfileServiceImpl implements ProfileService {
             }
         }
 
-        if (error.getErrors() != null && error.getErrors().size() > 0) {
+        if (error.getErrors() != null && CollectionUtils.isNotEmpty(error.getErrors())) {
             final String errorsDetails =
                 error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
             manager.logValidationError(PROFILES_UPDATE_EVENT, profileModel.getId(), errorsDetails,
@@ -582,8 +585,7 @@ public class ProfileServiceImpl implements ProfileService {
     private void validateUpdateAction(ProfileModel profileModel, final VitamError<ProfileModel> error,
         final String field,
         final JsonNode value, ProfileManager manager) {
-        if (Profile.STATUS.equals(field)) {
-            if (!(ProfileStatus.ACTIVE.name().equals(value.asText()) || ProfileStatus.INACTIVE
+            if (Profile.STATUS.equals(field) && !(ProfileStatus.ACTIVE.name().equals(value.asText()) || ProfileStatus.INACTIVE
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
@@ -591,10 +593,8 @@ public class ProfileServiceImpl implements ProfileService {
                     .setMessage(ProfileManager.UPDATE_VALUE_NOT_IN_ENUM)
                 );
             }
-        }
 
-        if (Profile.FORMAT.equals(field)) {
-            if (!(ProfileFormat.XSD.name().equals(value.asText()) || ProfileFormat.RNG
+            if (Profile.FORMAT.equals(field) && !(ProfileFormat.XSD.name().equals(value.asText()) || ProfileFormat.RNG
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG + value.asText())
@@ -602,7 +602,6 @@ public class ProfileServiceImpl implements ProfileService {
                     .setMessage(ProfileManager.UPDATE_KO)
                 );
             }
-        }
 
         if (ProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
