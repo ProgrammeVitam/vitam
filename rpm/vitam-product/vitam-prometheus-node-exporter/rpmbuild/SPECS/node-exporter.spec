@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:    vitam-node-exporter
-Version: 1.0.0
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: Prometheus exporter for hardware and OS metrics.
 License: ASL 2.0
