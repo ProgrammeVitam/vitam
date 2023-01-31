@@ -12,7 +12,7 @@ services:
       start_period: 30s
     command: [ "mongod", "--bind_ip_all","--replSet", "rs0" ]
   elasticsearch:
-    image: elasticsearch:7.16.3
+    image: elasticsearch:7.17.8
     environment:
       - xpack.security.enabled=false
       - cluster.name=docker-cluster
