@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:	 vitam-prometheus
-Version: 2.19.0
+Version: 2.42.0
 Release: 1%{?dist}
 Summary: The Prometheus monitoring system and time series database.
 License: ASL 2.0
@@ -44,7 +44,6 @@ mkdir -p %{buildroot}%{prometheus_datafolder}
 
 install -D -m 755 prometheus %{buildroot}%{prometheus_binfolder}/prometheus
 install -D -m 755 promtool %{buildroot}%{prometheus_binfolder}/promtool
-install -D -m 755 tsdb %{buildroot}%{prometheus_binfolder}/tsdb
 
 for dir in console_libraries consoles; do
   for file in ${dir}/*; do
@@ -76,7 +75,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
  %{prometheus_binfolder}/prometheus
  %{prometheus_binfolder}/promtool
- %{prometheus_binfolder}/tsdb
 
 %dir %attr(755, vitam, vitam) %{prometheus_datafolder}
 %dir %attr(750, vitam, vitam) %{prometheus_binfolder}
@@ -95,7 +93,6 @@ rm -rf %{buildroot}
 
 %attr(755, vitam, vitam) %{prometheus_binfolder}/prometheus
 %attr(755, vitam, vitam) %{prometheus_binfolder}/promtool
-%attr(755, vitam, vitam) %{prometheus_binfolder}/tsdb
 
 %doc
 
