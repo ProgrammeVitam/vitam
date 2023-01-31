@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus/alertmanager
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring system and time series database
-Version: 0.21.0
+Version: 0.25.0
