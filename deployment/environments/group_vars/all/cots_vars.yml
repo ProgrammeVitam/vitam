@@ -173,6 +173,9 @@ prometheus:
         enabled: true
         port: 9101
         metrics_path: /metrics
+        log_level: "warn"
+        logrotate: enabled # or disabled
+        history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     consul_exporter:
         enabled: true
         port: 9107
