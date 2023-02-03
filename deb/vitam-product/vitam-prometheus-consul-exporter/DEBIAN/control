@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus/consul_exporter
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring consul by prometheus
-Version: 0.8.0
+Version: 0.9.0

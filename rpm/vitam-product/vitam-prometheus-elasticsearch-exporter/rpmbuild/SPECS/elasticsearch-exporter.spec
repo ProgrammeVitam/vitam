@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:    vitam-elasticsearch-exporter
-Version: 1.3.0
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: Elasticsearch Exporter for Prometheus
 License: AL 2.0

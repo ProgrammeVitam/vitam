@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus-community/elasticsearch_exporter
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Elasticsearch Exporter for Prometheus
-Version: 1.3.0
+Version: 1.5.0

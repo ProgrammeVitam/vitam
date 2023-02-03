@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:    vitam-consul-exporter
-Version: 0.8.0
+Version: 0.9.0
 Release: 1%{?dist}
 Summary: Consul exporter for prometheus.
 License: ASL 2.0
@@ -23,7 +23,7 @@ Requires:      vitam-user-vitam
 
 %description
 
-Consul exporter 
+Consul exporter
 This package contains binary to export node metrics to prometheus.
 
 
