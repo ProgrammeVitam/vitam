@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus/prometheus
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring system and time series database
-Version: 2.19.0
+Version: 2.42.0
