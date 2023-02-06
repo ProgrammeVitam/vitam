@@ -95,8 +95,9 @@ public class ProfileManager {
     public static final String UPDATE_KO = "STP_UPDATE_PROFILE_JSON.KO";
     private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
     private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
+    private static final String PARSE_PROFILE_DATE_ERROR = "Error profile parse dates";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileManager.class);
-    private final Map<ProfileValidator, String> validators;
+    private final Map<ProfileValidator, String> validators = new HashMap<>();
 
     private final GUID eip;
 
@@ -105,11 +106,9 @@ public class ProfileManager {
     public ProfileManager(LogbookOperationsClient logbookClient, GUID eip) {
         this.logbookClient = logbookClient;
         this.eip = eip;
-        validators = new HashMap<ProfileValidator, String>() {{
-            put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
-            put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
-            put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
-        }};
+        validators.put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+        validators.put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
+        validators.put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
     }
 
     public boolean validateProfile(ProfileModel profile,
@@ -240,18 +239,18 @@ public class ProfileManager {
      * @param eventType
      * @param objectId
      * @param errorsDetails
-     * @param KOEventType
+     * @param eventTypeKO
      */
     public void logValidationError(String eventType, String objectId, String errorsDetails,
-        String KOEventType) throws VitamException {
+        String eventTypeKO) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
-        logbookMessageError(objectId, errorsDetails, logbookParameters, KOEventType);
+                VitamLogbookMessages.getFromFullCodeKey(eventTypeKO), eip);
+        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventTypeKO);
+        logbookMessageError(objectId, errorsDetails, logbookParameters, eventTypeKO);
 
         logbookClient.update(logbookParameters);
 
@@ -276,12 +275,12 @@ public class ProfileManager {
     }
 
     private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters, String KOEventType) {
+        LogbookOperationParameters logbookParameters, String eventTypeKO) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
-                String evDetDataKey = "profileCheck";
-                switch (KOEventType) {
+                String evDetDataKey;
+                switch (eventTypeKO) {
                     case EMPTY_REQUIRED_FIELD:
                         evDetDataKey = "Mandatory Fields";
                         break;
@@ -298,6 +297,9 @@ public class ProfileManager {
                         break;
                     case UPDATE_VALUE_NOT_IN_ENUM:
                         evDetDataKey = "Not in Enum";
+                        break;
+                    default:
+                        evDetDataKey = " profileCheck";
                         break;
                 }
 
@@ -378,7 +380,7 @@ public class ProfileManager {
      * @return
      */
     public ProfileValidator createMandatoryParamsValidator() {
-        return (profile) -> {
+        return profile -> {
             List<String> missingParams = new ArrayList<>();
 
             if (profile.getFormat() == null ||
@@ -389,7 +391,7 @@ public class ProfileManager {
                 missingParams.add(Profile.NAME);
             }
 
-            return (missingParams.size() == 0) ? Optional.empty() :
+            return (missingParams.isEmpty()) ? Optional.empty() :
                 Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
         };
     }
@@ -400,7 +402,7 @@ public class ProfileManager {
      * @return
      */
     public ProfileValidator createWrongFieldFormatValidator() {
-        return (profile) -> {
+        return profile -> {
             RejectionCause rejection = null;
 
 
@@ -427,7 +429,7 @@ public class ProfileManager {
                 }
 
             } catch (Exception e) {
-                LOGGER.error("Error profile parse dates", e);
+                LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
                 rejection = RejectionCause.rejectMandatoryMissing("Creationdate");
             }
             try {
@@ -438,7 +440,7 @@ public class ProfileManager {
 
                 }
             } catch (Exception e) {
-                LOGGER.error("Error profile parse dates", e);
+                LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
                 rejection = RejectionCause.rejectMandatoryMissing("ActivationDate");
             }
             try {
@@ -450,7 +452,7 @@ public class ProfileManager {
                     profile.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getDeactivationdate()));
                 }
             } catch (Exception e) {
-                LOGGER.error("Error profile parse dates", e);
+                LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
                 rejection = RejectionCause.rejectMandatoryMissing("deactivationdate");
             }
 
@@ -466,7 +468,7 @@ public class ProfileManager {
      * @return
      */
     public ProfileValidator checkEmptyIdentifierSlaveModeValidator() {
-        return (profileModel) -> {
+        return profileModel -> {
             if (profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()) {
                 return Optional.of(ProfileValidator.RejectionCause.rejectMandatoryMissing(
                     AccessContract.IDENTIFIER));
@@ -482,7 +484,7 @@ public class ProfileManager {
      * @return
      */
     public ProfileValidator createCheckDuplicateInDatabaseValidator() {
-        return (profile) -> {
+        return profile -> {
             if (ParametersChecker.isNotEmpty(profile.getIdentifier())) {
                 int tenant = ParameterHelper.getTenantParameter();
                 Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
