@@ -60,6 +60,7 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
+import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.IngestAccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.IngestPrepareActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
@@ -194,8 +195,17 @@ public class WorkerImpl implements Worker {
 
         actions.put(CheckHeaderActionHandler.getId(),
             CheckHeaderActionHandler::new);
-        actions.put(CheckDataObjectPackageActionHandler.getId(),
-            CheckDataObjectPackageActionHandler::new);
+
+        CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
+        CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
+        ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
+        CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
+            new CheckObjectUnitConsistencyActionHandler();
+        CheckDataObjectPackageActionHandler checkDataObjectPackageActionHandler =
+            new CheckDataObjectPackageActionHandler(checkNoObjectsActionHandler, checkObjectsNumberActionHandler,
+                extractSedaActionHandler, checkObjectUnitConsistencyActionHandler);
+        actions.put(CheckDataObjectPackageActionHandler.getId(), () -> checkDataObjectPackageActionHandler);
+
         actions.put(ListRunningIngestsActionHandler.getId(),
             ListRunningIngestsActionHandler::new);
         actions.put(ListArchiveUnitsActionHandler.getId(),

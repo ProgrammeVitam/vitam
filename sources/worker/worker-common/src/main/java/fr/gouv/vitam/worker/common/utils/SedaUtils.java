@@ -72,6 +72,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -111,14 +112,6 @@ public class SedaUtils {
     public static final String INVALID_DATAOBJECT_VERSION = "INVALID_DATAOBJECT_VERSION";
     public static final String VALID_DATAOBJECT_VERSION = "VALID_DATAOBJECT_VERSION";
 
-    private final Map<String, String> binaryDataObjectIdToGuid;
-    private final Map<String, String> objectGroupIdToGuid;
-    // objectGroup referenced before declaration
-    private final Map<String, String> unitIdToGuid;
-
-    private final Map<String, String> binaryDataObjectIdToObjectGroupId;
-    private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
-    private final Map<String, String> unitIdToGroupId;
     private final HandlerIO handlerIO;
 
     private static final Pattern namespacePattern =
@@ -128,55 +121,7 @@ public class SedaUtils {
     private SedaIngestParams sedaIngestParams;
 
     protected SedaUtils(HandlerIO handlerIO) {
-        binaryDataObjectIdToGuid = new HashMap<>();
-        objectGroupIdToGuid = new HashMap<>();
-        objectGroupIdToBinaryDataObjectId = new HashMap<>();
-        unitIdToGuid = new HashMap<>();
-        binaryDataObjectIdToObjectGroupId = new HashMap<>();
-        unitIdToGroupId = new HashMap<>();
         this.handlerIO = handlerIO;
-    }
-
-    /**
-     * @return A map reflects BinaryDataObject and File(GUID)
-     */
-    public Map<String, String> getBinaryDataObjectIdToGuid() {
-        return binaryDataObjectIdToGuid;
-    }
-
-    /**
-     * @return A map reflects relation ObjectGroupId and BinaryDataObjectId
-     */
-    public Map<String, List<String>> getObjectGroupIdToBinaryDataObjectId() {
-        return objectGroupIdToBinaryDataObjectId;
-    }
-
-    /**
-     * @return A map reflects ObjectGroup and File(GUID)
-     */
-    public Map<String, String> getObjectGroupIdToGuid() {
-        return objectGroupIdToGuid;
-    }
-
-    /**
-     * @return A map reflects Unit and File(GUID)
-     */
-    public Map<String, String> getUnitIdToGuid() {
-        return unitIdToGuid;
-    }
-
-    /**
-     * @return A map reflects BinaryDataObject and ObjectGroup
-     */
-    public Map<String, String> getBinaryDataObjectIdToGroupId() {
-        return binaryDataObjectIdToObjectGroupId;
-    }
-
-    /**
-     * @return A map reflects Unit and ObjectGroup
-     */
-    public Map<String, String> getUnitIdToGroupId() {
-        return unitIdToGroupId;
     }
 
     /**
@@ -379,11 +324,9 @@ public class SedaUtils {
     }
 
     private Optional<SupportedSedaVersions> getSupportedSedaModelByVersion(String sedaVersion) {
-        Optional<SupportedSedaVersions> sedaSupportedVersionModel =
-            Arrays.stream(SupportedSedaVersions.values())
-                .filter(elmt -> elmt.getVersion().equals(sedaVersion))
-                .findFirst();
-        return sedaSupportedVersionModel;
+        return Arrays.stream(SupportedSedaVersions.values())
+            .filter(e -> e.getVersion().equals(sedaVersion))
+            .findFirst();
     }
 
     /**
@@ -564,7 +507,7 @@ public class SedaUtils {
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate
                     checkDuplicatedUri(extractUriResponse, uri);
-                    extractUriResponse.getUriSetManifest().add(new URI(URLEncoder.encode(uri, CharsetUtils.UTF_8)));
+                    extractUriResponse.getUriSetManifest().add(new URI(URLEncoder.encode(uri, StandardCharsets.UTF_8)));
                     break;
                 }
             }

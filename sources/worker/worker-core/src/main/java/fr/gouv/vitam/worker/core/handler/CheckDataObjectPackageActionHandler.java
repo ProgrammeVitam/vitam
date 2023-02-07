@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -55,19 +56,39 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final SedaUtilsFactory sedaUtilsFactory;
 
-    public CheckDataObjectPackageActionHandler() {
+    private final CheckNoObjectsActionHandler checkNoObjectsActionHandler;
+    private  final CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
+    private final ExtractSedaActionHandler extractSedaActionHandler;
+    private final CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler;
+
+    public CheckDataObjectPackageActionHandler(CheckNoObjectsActionHandler checkNoObjectsActionHandler,
+        CheckObjectsNumberActionHandler checkObjectsNumberActionHandler,
+        ExtractSedaActionHandler extractSedaActionHandler,
+        CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler) {
         this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
-            SedaUtilsFactory.getInstance());
+            LogbookLifeCyclesClientFactory.getInstance(), SedaUtilsFactory.getInstance(), checkNoObjectsActionHandler,
+            checkObjectsNumberActionHandler, extractSedaActionHandler, checkObjectUnitConsistencyActionHandler);
     }
 
     public CheckDataObjectPackageActionHandler(MetaDataClientFactory metaDataClientFactory,
         AdminManagementClientFactory adminManagementClientFactory,
-        SedaUtilsFactory sedaUtilsFactory) {
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        SedaUtilsFactory sedaUtilsFactory,
+        CheckNoObjectsActionHandler checkNoObjectsActionHandler,
+        CheckObjectsNumberActionHandler checkObjectsNumberActionHandler,
+        ExtractSedaActionHandler extractSedaActionHandler,
+        CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.sedaUtilsFactory = sedaUtilsFactory;
+        this.checkNoObjectsActionHandler = checkNoObjectsActionHandler;
+        this.checkObjectsNumberActionHandler = checkObjectsNumberActionHandler;
+        this.extractSedaActionHandler = extractSedaActionHandler;
+        this.checkObjectUnitConsistencyActionHandler = checkObjectUnitConsistencyActionHandler;
     }
 
     public static String getId() {
@@ -79,12 +100,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
             if (Boolean.valueOf((String) handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
-                try (CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
-                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler(
-                        sedaUtilsFactory);
-                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler(
-                        metaDataClientFactory, adminManagementClientFactory)) {
-
                     Stopwatch checkNoObject = Stopwatch.createStarted();
 
                     ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
@@ -117,7 +132,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                         resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
-                }
 
             } else {
                 try (CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler(
@@ -125,7 +139,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler(
                         sedaUtilsFactory);
                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler(
-                        metaDataClientFactory, adminManagementClientFactory);
+                        metaDataClientFactory, adminManagementClientFactory, logbookLifeCyclesClientFactory);
                     CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler = new CheckObjectUnitConsistencyActionHandler()) {
 
                     Stopwatch checkVersion = Stopwatch.createStarted();

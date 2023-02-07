@@ -56,7 +56,6 @@ public class DescriptiveMetadataMapper {
     /**
      * element Mapper.
      */
-    private final ElementMapper elementMapper;
 
     /**
      * CustodialHistory mapper
@@ -67,7 +66,6 @@ public class DescriptiveMetadataMapper {
      * constructor
      */
     public DescriptiveMetadataMapper() {
-        this.elementMapper = new ElementMapper();
         this.custodialHistoryMapper = new CustodialHistoryMapper();
     }
 
@@ -84,7 +82,7 @@ public class DescriptiveMetadataMapper {
             LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getAcquiredDate()));
         descriptiveMetadataModel.getAddressee().addAll(metadataContentType.getAddressee());
 
-        descriptiveMetadataModel.setAny(elementMapper.toMap(metadataContentType.getAny()));
+        descriptiveMetadataModel.setAny(ElementMapper.toMap(metadataContentType.getAny()));
         descriptiveMetadataModel
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());
 

@@ -1,4 +1,4 @@
-<LogBook>
+<LogBook xmlns="fr:gouv:culture:archivesdefrance:seda:v2">
     <Event>
         <EventIdentifier>aedqaaaaacglsdgpaa3ikalnhzhaxfiaaaaq</EventIdentifier>
         <EventTypeCode>INGEST</EventTypeCode>

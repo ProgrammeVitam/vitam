@@ -267,7 +267,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void bulkUpdateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+    void bulkUpdateUnit(String objectIdentifier, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
@@ -298,7 +298,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void bulkUpdateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+    void bulkUpdateObjectGroup(String objectIdentifier, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
 
     /**

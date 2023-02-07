@@ -38,6 +38,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
@@ -45,15 +46,15 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingNotValidLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,14 +63,10 @@ import org.junit.rules.TemporaryFolder;
 import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -80,16 +77,28 @@ public class ArchiveUnitListenerTest {
     private static final Integer TENANT_ID = 0;
     private static MetaDataClientFactory metaDataClientFactory;
     private static MetaDataClient metaDataClient;
+
+    private IngestContext ingestContext;
+
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setup() {
+    public static void setupClass() {
         metaDataClientFactory = mock(MetaDataClientFactory.class);
         metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+    }
+
+    @Before
+    public void setup() {
+        ingestContext = new IngestContext();
+        ingestContext.setWorkflowUnitType(UnitType.INGEST);
+        ingestContext.setOperationId("OperationID");
+        ingestContext.setTypeProcess(LogbookTypeProcess.INGEST_TEST);
     }
 
     @Test
@@ -98,14 +107,10 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null,
-                null,
-                null, null, null, null);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -120,15 +125,11 @@ public class ArchiveUnitListenerTest {
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingNotFoundException ");
-        } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingNotFoundException.class);
-            ProcessingNotFoundException exception = (ProcessingNotFoundException) e.getCause();
-            // Case of a not valid SystemId (not valid guid) is test in ProcessingIT testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo
-            assertThat(exception.isValidGuid()).isTrue();
-        }
+        // Case of a not valid SystemId (not valid guid) is test in ProcessingIT testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).isInstanceOf(
+                VitamRuntimeException.class).hasCauseInstanceOf(ProcessingNotFoundException.class)
+            .extracting(e -> ((ProcessingNotFoundException) e.getCause()).isValidGuid()).isEqualTo(true);
+
     }
 
 
@@ -138,13 +139,10 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null, null
-                , null, null, null, null);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -159,14 +157,9 @@ public class ArchiveUnitListenerTest {
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingNotFoundException ");
-        } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingNotFoundException.class);
-            ProcessingNotFoundException exception = (ProcessingNotFoundException) e.getCause();
-            assertThat(exception.isValidGuid()).isFalse();
-        }
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).isInstanceOf(
+                VitamRuntimeException.class).hasCauseInstanceOf(ProcessingNotFoundException.class)
+            .extracting(e -> ((ProcessingNotFoundException) e.getCause()).isValidGuid()).isEqualTo(false);
     }
 
     /**
@@ -180,14 +173,11 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
+        ingestContext.setWorkflowUnitType(UnitType.FILING_UNIT);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT,
-                null,
-                null, null, null, null, null, null);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -208,12 +198,8 @@ public class ArchiveUnitListenerTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingUnitLinkingException ");
-        } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingUnitLinkingException.class);
-        }
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).isInstanceOf(
+            VitamRuntimeException.class).hasCauseInstanceOf(ProcessingUnitLinkingException.class);
 
     }
 
@@ -229,14 +215,11 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
+        ingestContext.setWorkflowUnitType(UnitType.HOLDING_UNIT);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT,
-                null,
-                null, null, null, null, null, null);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -257,12 +240,8 @@ public class ArchiveUnitListenerTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingUnitLinkingException ");
-        } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingUnitLinkingException.class);
-        }
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).isInstanceOf(
+            VitamRuntimeException.class).hasCauseInstanceOf(ProcessingUnitLinkingException.class);
     }
 
 
@@ -272,19 +251,12 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
         List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                null,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null, null);
+            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -311,13 +283,7 @@ public class ArchiveUnitListenerTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("Should not throws an exception");
-        }
-
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).doesNotThrowAnyException();
         assertThat(agenciesList).hasSize(0);
     }
 
@@ -327,19 +293,13 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
-        List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+
+        IngestSession ingestSession = new IngestSession();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                null,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null, null);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, ingestSession, metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -365,14 +325,9 @@ public class ArchiveUnitListenerTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("Should not throws an exception");
-        }
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).doesNotThrowAnyException();
 
-        assertThat(agenciesList).hasSize(2);
+        assertThat(ingestSession.getOriginatingAgencies()).hasSize(2);
     }
 
 
@@ -382,19 +337,12 @@ public class ArchiveUnitListenerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArchiveUnitType target = mock(ArchiveUnitType.class);
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
-        List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+        IngestSession ingestSession = new IngestSession();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                null,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null, null);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -423,14 +371,9 @@ public class ArchiveUnitListenerTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
-        try {
-            archiveUnitListener.afterUnmarshal(target, parent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("Should not throws an exception");
-        }
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).doesNotThrowAnyException();
 
-        assertThat(agenciesList).hasSize(2);
+        assertThat(ingestSession.getOriginatingAgencies()).hasSize(2);
     }
 
     @Test
@@ -438,23 +381,15 @@ public class ArchiveUnitListenerTest {
     public void testAfterUnmarshalCustodialHistoryShouldNotThrowException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        JAXBElement parent = mock(JAXBElement.class);
-
-        List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
-        Map<String, String> objectGroupIdToGuid = new HashMap<>();
-        Map<String, String> dataObjectIdToObjectGroupId = new HashMap<>();
-        objectGroupIdToGuid.put("ID0011", "aeaaaaaaaaaam7mxabxccakzrw466heqaaaaq");
-        dataObjectIdToObjectGroupId.put("ID22", "ID0011");
+        JAXBElement<?> parent = mock(JAXBElement.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+
+        IngestSession ingestSession = new IngestSession();
+        ingestSession.getObjectGroupIdToGuid().put("ID0011", "aeaaaaaaaaaam7mxabxccakzrw466heqaaaaq");
+        ingestSession.getDataObjectIdToObjectGroupId().put("ID22", "ID0011");
+
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                dataObjectIdToObjectGroupId,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, objectGroupIdToGuid, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null, null);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -468,15 +403,7 @@ public class ArchiveUnitListenerTest {
         content.setCustodialHistory(custodialHistoryType);
         archiveUnitType.setContent(content);
 
-        boolean throwException = false;
-        try {
-            archiveUnitListener.afterUnmarshal(archiveUnitType, parent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throwException = true;
-            fail("Should not throws an exception");
-        }
-        Assert.assertFalse(throwException);
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
     }
 
     @Test
@@ -484,19 +411,11 @@ public class ArchiveUnitListenerTest {
     public void testAfterUnmarshalCustodialHistoryShouldThrowException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
-        List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                null,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null, null, null);
+            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), metaDataClientFactory);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -510,14 +429,9 @@ public class ArchiveUnitListenerTest {
         content.setCustodialHistory(custodialHistoryType);
         archiveUnitType.setContent(content);
 
-        boolean throwException = false;
-        try {
-            archiveUnitListener.afterUnmarshal(archiveUnitType, parent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throwException = true;
-        }
-        Assert.assertTrue(throwException);
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).isInstanceOf(
+            VitamRuntimeException.class).hasCauseInstanceOf(ProcessingNotValidLinkingException.class);
+
     }
 
     @Test
@@ -525,27 +439,19 @@ public class ArchiveUnitListenerTest {
     public void testAfterUnmarshalRelatedDataObjectReferenceFull() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        JAXBElement parent = mock(JAXBElement.class);
+        JAXBElement<?> parent = mock(JAXBElement.class);
 
-        List<String> agenciesList = new ArrayList<>();
-        Map<String, String> unitIdToGuid = new HashMap<>();
-        Map<String, String> guidToUnitId = new HashMap<>();
-        Map<String, Boolean> isThereManifestRelatedReferenceRemained = new HashMap<>();
-        Map<String, String> dataObjectIdToGuid = new HashMap<>();
-        dataObjectIdToGuid.put("ID06", "GUID_ID06");
-        dataObjectIdToGuid.put("ID20", "GUID_ID20");
-        dataObjectIdToGuid.put("ID0009", "GUID_ID0009");
-        Map<String, String> objectGroupIdToGuid = new HashMap<>();
-        objectGroupIdToGuid.put("ID0009", "GUID_ID0009");
+        IngestSession ingestSession = new IngestSession();
+        ingestSession.getDataObjectIdToGuid().put("ID06", "GUID_ID06");
+        ingestSession.getDataObjectIdToGuid().put("ID20", "GUID_ID20");
+        ingestSession.getDataObjectIdToGuid().put("ID0009", "GUID_ID0009");
+        ingestSession.getObjectGroupIdToGuid().put("ID0009", "GUID_ID0009");
+
         HandlerIO handlerIO = mock(HandlerIO.class);
-        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null,
-                null,
-                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, objectGroupIdToGuid, dataObjectIdToGuid, null, UnitType.INGEST,
-                agenciesList, null, null, isThereManifestRelatedReferenceRemained, null, null,
-                null);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -557,7 +463,7 @@ public class ArchiveUnitListenerTest {
         RelatedObjectReferenceType relatedObjectReferenceType = new RelatedObjectReferenceType();
 
         List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReferenceType =
-            new ArrayList<DataObjectOrArchiveUnitReferenceType>();
+            new ArrayList<>();
 
         DataObjectOrArchiveUnitReferenceType dataObjectOrArchiveUnitReferenceType1 =
             new DataObjectOrArchiveUnitReferenceType();
@@ -580,7 +486,6 @@ public class ArchiveUnitListenerTest {
 
         archiveUnitType.setContent(content);
 
-        assertThatCode(() -> archiveUnitListener.afterUnmarshal(archiveUnitType, parent)).doesNotThrowAnyException();
-
+        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
     }
 }

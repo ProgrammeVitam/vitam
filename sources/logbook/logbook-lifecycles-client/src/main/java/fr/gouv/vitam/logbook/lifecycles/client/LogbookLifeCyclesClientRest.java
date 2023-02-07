@@ -370,18 +370,18 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+    public void bulkUpdateUnit(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         bulkUpdate(eventIdProc, queue, UNIT_LIFECYCLES_URL);
     }
 
     @Override
-    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         bulkUpdate(eventIdProc, queue, OBJECT_GROUP_LIFECYCLES_URL);
     }
 
-    private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue, String uri)
+    private void bulkUpdate(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue, String uri)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         if (queue == null) {
             throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());

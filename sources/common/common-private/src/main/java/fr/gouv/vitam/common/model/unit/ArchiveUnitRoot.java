@@ -32,7 +32,7 @@ import java.util.List;
 
 public class ArchiveUnitRoot {
 
-    private ArchiveUnitInternalModel archiveUnit;
+    private final ArchiveUnitInternalModel archiveUnit;
     private List<LogbookEvent> LogbookLifeCycleExternal;
 
     public ArchiveUnitRoot() {

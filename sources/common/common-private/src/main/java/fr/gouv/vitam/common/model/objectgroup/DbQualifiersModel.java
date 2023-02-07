@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,38 +21,46 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 
-/**
- * DbStorageModel
- */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class DbStorageModel {
+public class DbQualifiersModel {
 
-    @JsonProperty("strategyId")
-    private String strategyId;
+    @JsonProperty("qualifier")
+    private String qualifier;
 
     @JsonProperty("_nbc")
     private int nbc;
 
-    @Deprecated
-    @JsonProperty("offerIds")
-    private List<String> offerIds;
+    @JsonProperty("versions")
+    private List<DbVersionsModel> versions;
 
-    public String getStrategyId() {
-        return strategyId;
+    public DbQualifiersModel(String qualifier, int nbc, List<DbVersionsModel> versions) {
+        this.qualifier = qualifier;
+        this.nbc = nbc;
+        this.versions = versions;
     }
 
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
+    public DbQualifiersModel() {
+        // empty constructor for deserialization
+    }
+
+    public String getQualifier() {
+        return qualifier;
+    }
+
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
     }
 
     public int getNbc() {
@@ -63,11 +71,28 @@ public class DbStorageModel {
         this.nbc = nbc;
     }
 
-    public List<String> getOfferIds() {
-        return offerIds;
+    public List<DbVersionsModel> getVersions() {
+        return versions;
     }
 
-    public void setOfferIds(List<String> offerIds) {
-        this.offerIds = offerIds;
+    public void setVersions(List<DbVersionsModel> versions) {
+        this.versions = versions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DbQualifiersModel that = (DbQualifiersModel) o;
+        return nbc == that.nbc
+            && qualifier.equals(that.qualifier)
+            && CollectionUtils.isEqualCollection(versions, that.versions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(qualifier, nbc, versions);
     }
 }

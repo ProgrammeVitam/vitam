@@ -36,7 +36,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.mapping.dip.VitamObjectMapper.buildObjectMapper;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;

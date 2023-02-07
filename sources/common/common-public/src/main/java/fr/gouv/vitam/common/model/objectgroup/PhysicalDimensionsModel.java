@@ -28,8 +28,8 @@ package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * PhysicalDimensions for physical Object
@@ -54,7 +54,7 @@ public class PhysicalDimensionsModel {
     @JsonProperty("NumberOfPage")
     private Integer numberOfPage;
 
-    protected List<Object> any;
+    protected Map<String, Object> any;
 
     public MeasurementModel getWidth() {
         return width;
@@ -128,14 +128,14 @@ public class PhysicalDimensionsModel {
         this.numberOfPage = numberOfPage;
     }
 
-    public List<Object> getAny() {
+    public Map<String, Object> getAny() {
         if (any == null) {
-            any = new ArrayList<>();
+            any = new HashMap<>();
         }
         return any;
     }
 
-    public void setAny(List<Object> any) {
+    public void setAny(Map<String, Object> any) {
         this.any = any;
     }
 }

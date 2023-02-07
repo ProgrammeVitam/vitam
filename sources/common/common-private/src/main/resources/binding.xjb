@@ -109,7 +109,16 @@
                 </jxb:baseType>
             </jxb:property>
         </jxb:bindings>
+    </jxb:bindings>
 
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-technical.xsd">
+        <jxb:bindings node="//xs:element[@name='DataObjectGroupReferenceId']">
+            <jxb:property>
+                <jxb:baseType>
+                    <jxb:javaType name="java.lang.String"></jxb:javaType>
+                </jxb:baseType>
+            </jxb:property>
+        </jxb:bindings>
     </jxb:bindings>
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-ontology.xsd">

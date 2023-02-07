@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -93,7 +94,7 @@ public class ObjectGroupMapperTest {
         JAXBException {
         final JsonNode GOTMetadataResponse = JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA));
-        ObjectMapper objectMapper = UnitMapper.buildObjectMapper();
+        ObjectMapper objectMapper = VitamObjectMapper.buildObjectMapper();
         ObjectGroupResponse objectGroupSource =
             objectMapper.treeToValue(GOTMetadataResponse, ObjectGroupResponse.class);
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();
@@ -120,7 +121,7 @@ public class ObjectGroupMapperTest {
             dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
 
         assertNotNull(binaryDataObjectOrPhysicalDataObject);
-        assertTrue(!binaryDataObjectOrPhysicalDataObject.isEmpty());
+        assertFalse(binaryDataObjectOrPhysicalDataObject.isEmpty());
 
         if (binaryDataObjectOrPhysicalDataObject.get(1) instanceof BinaryDataObjectType) {
             BinaryDataObjectType binaryDataObjectType =
@@ -165,9 +166,8 @@ public class ObjectGroupMapperTest {
             DescriptiveTechnicalMetadataType otherMetadadata =
                 ((BinaryDataObjectType) minimalDataObjectType).getOtherMetadata();
             assertNotNull(otherMetadadata);
-            assertEquals(((List) otherMetadadata.getAny()).size(), otherMetadataFromVersionModel.size());
-            assertEquals(((List) otherMetadadata.getAny()).size(), 1);
-            assertTrue(otherMetadadata.getAny() instanceof List);
+            assertEquals(otherMetadadata.getAny().size(), otherMetadataFromVersionModel.size());
+            assertEquals(otherMetadadata.getAny().size(), 1);
 
             Element eleNsImplObject = ((Element) otherMetadadata.getAny().get(0));
             String optionalMDkey = otherMetadataFromVersionModel.keySet().iterator().next();

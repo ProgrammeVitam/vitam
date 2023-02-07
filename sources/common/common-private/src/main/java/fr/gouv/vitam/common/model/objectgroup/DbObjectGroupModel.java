@@ -24,37 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model.unit;
+package fr.gouv.vitam.common.model.objectgroup;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
- * This object content the new technical object group guid and the an boolean. It is created when the BDO not
- * contains an GO with isVisited=false. When the list of AU is browsed, if an AU referenced and the BDO not contains
- * an GO, the boolean of this object change to true
+ * ObjectGroupInternalModel
  */
-public class GotObj {
-    private String gotId;
-    private boolean isVisited;
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class DbObjectGroupModel extends ObjectGroup {
 
-    public GotObj(String gotId, boolean isVisited) {
-        this.gotId = gotId;
-        this.isVisited = isVisited;
+    @JsonProperty("_qualifiers")
+    private List<DbQualifiersModel> qualifiers;
+
+    public List<DbQualifiersModel> getQualifiers() {
+        return qualifiers;
     }
 
-    public String getGotId() {
-        return gotId;
+    public void setQualifiers(List<DbQualifiersModel> qualifiers) {
+        this.qualifiers = qualifiers;
     }
 
-    @SuppressWarnings("unused")
-    public void setGotId(String gotId) {
-        this.gotId = gotId;
-    }
 
-    @SuppressWarnings("unused")
-    public boolean isVisited() {
-        return isVisited;
-    }
-
-    public void setVisited(boolean visited) {
-        isVisited = visited;
-    }
 }

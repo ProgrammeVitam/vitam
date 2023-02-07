@@ -213,7 +213,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (contractModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-        contractModelList.forEach(IngestContractModel::setDefaultParams);
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.INGEST_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());

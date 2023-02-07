@@ -147,6 +147,8 @@ public class IngestWorkflowConstants {
      */
     public static final String STP_UPLOAD_RESULT_JSON = "stpUploadResult.json";
 
+    public static final String LOGBOOK_OG_FILE_SUFFIX = "_logbook_OG";
+
     private IngestWorkflowConstants() {
     }
 

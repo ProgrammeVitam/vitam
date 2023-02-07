@@ -26,41 +26,25 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
 
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.AgentTypeModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Result;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.validation.Schema;
-import java.io.InputStream;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

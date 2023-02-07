@@ -39,8 +39,8 @@ import java.util.Map;
 
 public class LogbookMapper {
 
-    private static final String AGENT_IDENTIFIER = "AgentIdentifier";
-    private static final String OBJECT_IDENTIFIER = "ObjectIdentifier";
+    public static final String AGENT_IDENTIFIER = "AgentIdentifier";
+    public static final String OBJECT_IDENTIFIER = "ObjectIdentifier";
     private static final String LOGBOOK_EVENT_OBJECT_IDENTIFIER = "obId";
     private static final String LOGBOOK_EVENT_AGENT_IDENTIFIER = "agId";
 

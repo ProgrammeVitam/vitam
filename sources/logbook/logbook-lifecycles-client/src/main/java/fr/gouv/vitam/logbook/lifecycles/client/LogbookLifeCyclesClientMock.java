@@ -246,7 +246,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         }
     }
 
-    private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+    private void bulkUpdate(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
             for (LogbookLifeCycleParameters logbookLifeCycleParameters : queue) {
@@ -266,7 +266,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+    public void bulkUpdateUnit(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         bulkUpdate(eventIdProc, queue);
     }
@@ -278,7 +278,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<? extends LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         bulkUpdate(eventIdProc, queue);
     }
