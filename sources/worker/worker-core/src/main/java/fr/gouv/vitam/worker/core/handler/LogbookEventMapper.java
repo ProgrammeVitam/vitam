@@ -24,37 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model.unit;
+package fr.gouv.vitam.worker.core.handler;
 
-/**
- * This object content the new technical object group guid and the an boolean. It is created when the BDO not
- * contains an GO with isVisited=false. When the list of AU is browsed, if an AU referenced and the BDO not contains
- * an GO, the boolean of this object change to true
- */
-public class GotObj {
-    private String gotId;
-    private boolean isVisited;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.worker.core.mapping.ElementMapper;
 
-    public GotObj(String gotId, boolean isVisited) {
-        this.gotId = gotId;
-        this.isVisited = isVisited;
-    }
+import java.util.List;
+import java.util.Map;
 
-    public String getGotId() {
-        return gotId;
-    }
+import static fr.gouv.vitam.common.manifest.LogbookMapper.AGENT_IDENTIFIER;
+import static fr.gouv.vitam.common.manifest.LogbookMapper.OBJECT_IDENTIFIER;
 
-    @SuppressWarnings("unused")
-    public void setGotId(String gotId) {
-        this.gotId = gotId;
-    }
+public class LogbookEventMapper {
 
-    @SuppressWarnings("unused")
-    public boolean isVisited() {
-        return isVisited;
-    }
+    @SuppressWarnings("unchecked")
+    public static LogbookEvent map(EventLogBookOgType eventLogBookOgType) {
+        LogbookEvent logbookEvent = new LogbookEvent();
 
-    public void setVisited(boolean visited) {
-        isVisited = visited;
+        logbookEvent.setEvId(eventLogBookOgType.getEventIdentifier());
+        logbookEvent.setEvTypeProc(eventLogBookOgType.getEventTypeCode());
+        logbookEvent.setEvType(eventLogBookOgType.getEventType());
+        logbookEvent.setEvDateTime(eventLogBookOgType.getEventDateTime());
+        logbookEvent.setOutcome(eventLogBookOgType.getOutcome());
+        logbookEvent.setOutDetail(eventLogBookOgType.getOutcomeDetail());
+        logbookEvent.setOutMessg(eventLogBookOgType.getOutcomeDetailMessage());
+        logbookEvent.setEvDetData(eventLogBookOgType.getEventDetailData());
+
+        Map<String, Object> any = ElementMapper.toMap(eventLogBookOgType.getAny());
+        Object agentIdentifier = any.get(AGENT_IDENTIFIER);
+        if (agentIdentifier instanceof List) {
+            logbookEvent.setAgId(((List<String>) agentIdentifier).get(0));
+        }
+        Object objectIdentifier = any.get(OBJECT_IDENTIFIER);
+        if (objectIdentifier instanceof List) {
+            logbookEvent.setObId(((List<String>) objectIdentifier).get(0));
+        }
+
+        return logbookEvent;
     }
 }

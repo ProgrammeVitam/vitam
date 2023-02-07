@@ -39,7 +39,8 @@ public class OtherMetadata extends HashMap<String, List<Object>> {
         // Empty constructor for deserialization
     }
 
-    public OtherMetadata(Map<? extends String, ? extends List<Object>> m) {
-        super(m);
+    @SuppressWarnings("unchecked")
+    public OtherMetadata(Map<? extends String, ?> m) {
+        super((Map<? extends String, ? extends List<Object>>) m);
     }
 }

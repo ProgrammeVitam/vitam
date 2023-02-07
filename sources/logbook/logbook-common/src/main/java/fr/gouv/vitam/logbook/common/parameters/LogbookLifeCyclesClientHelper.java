@@ -62,7 +62,7 @@ public class LogbookLifeCyclesClientHelper {
      * @param parameters to check
      * @return the primary key
      */
-    public static final String checkLogbookParameters(LogbookLifeCycleParameters parameters) {
+    public static String checkLogbookParameters(LogbookLifeCycleParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
@@ -78,7 +78,7 @@ public class LogbookLifeCyclesClientHelper {
      * @param source to copy and reuse
      * @return the copy of the source
      */
-    public static final LogbookLifeCycleParameters copy(LogbookLifeCycleParameters source) {
+    public static LogbookLifeCycleParameters copy(LogbookLifeCycleParameters source) {
         LogbookLifeCycleParameters copy;
         if (source instanceof LogbookLifeCycleObjectGroupParameters) {
             copy = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
@@ -136,7 +136,7 @@ public class LogbookLifeCyclesClientHelper {
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for creation
      */
-    public Queue<LogbookLifeCycleParameters> removeCreateDelegate(String key) {
+    public Queue<? extends LogbookLifeCycleParameters> removeCreateDelegate(String key) {
         return delegatedCreations.remove(key);
     }
 
@@ -144,7 +144,7 @@ public class LogbookLifeCyclesClientHelper {
      * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */
-    public Queue<LogbookLifeCycleParameters> removeUpdateDelegate(String key) {
+    public Queue<? extends LogbookLifeCycleParameters> removeUpdateDelegate(String key) {
         return delegatedUpdates.remove(key);
     }
 

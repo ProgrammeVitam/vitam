@@ -55,7 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.manifest.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
-import fr.gouv.vitam.common.mapping.dip.UnitMapper;
+import fr.gouv.vitam.common.mapping.dip.VitamObjectMapper;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -186,7 +186,7 @@ public class SipService {
                 .forEach(result -> {
                     try {
                         ArchiveUnitModel archiveUnitModel =
-                            UnitMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
+                            VitamObjectMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
                         manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                     } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
                         e.printStackTrace();

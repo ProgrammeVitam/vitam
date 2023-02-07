@@ -55,7 +55,7 @@ public class ElementMapper {
      * @param elements to be transformed
      * @return the map
      */
-    public Map<String, Object> toMap(List<Object> elements) {
+    public static Map<String, Object> toMap(List<Object> elements) {
         Map<String, List<Object>> collect = elements.stream()
             .filter(item -> item instanceof Element)
             .map(item -> (Element) item)
@@ -64,11 +64,10 @@ public class ElementMapper {
                 SimpleImmutableEntry::getKey,
                 SimpleImmutableEntry::getValue,
                 (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
-
         return (Map) collect;
     }
 
-    private List<Object> elementToMap(Element item) {
+    private static List<Object> elementToMap(Element item) {
         NodeList childNodes = item.getChildNodes();
         Multimap<String, Node> objectObjectHashMap = ArrayListMultimap.create();
         for (int i = 0; i < childNodes.getLength(); i++) {
@@ -83,7 +82,7 @@ public class ElementMapper {
             }
         }
 
-        Map<String, List> maps = new HashMap<>();
+        Map<String, List<Object>> maps = new HashMap<>();
         for (String s : objectObjectHashMap.keySet()) {
             List<Object> objects = new ArrayList<>();
             for (Node child : objectObjectHashMap.get(s)) {

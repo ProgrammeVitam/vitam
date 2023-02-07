@@ -49,7 +49,6 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -263,8 +262,8 @@ public class ArchiveUnitMapperTest {
         File sample_unit = PropertiesUtils.getResourceFile(SIMPLE_UNIT_WITH_ORG_DESC_METADATA);
         JsonNode node = JsonHandler.getFromFile(sample_unit);
 
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> map = mapper.convertValue(node, new TypeReference<Map<String, Object>>() {
+        ObjectMapper mapper = VitamObjectMapper.buildObjectMapper();
+        Map<String, Object> map = mapper.convertValue(node, new TypeReference<>() {
         });
 
         OrganizationType organizationType = new OrganizationType();

@@ -32,20 +32,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FileParams {
 
     @JsonProperty("size")
-    private Long size;
+    private long size;
 
     public FileParams() {
     }
 
-    public FileParams(Long size) {
+    public FileParams(long size) {
         this.size = size;
     }
 
-    public Long getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(Long size) {
+    public void setSize(long size) {
         this.size = size;
     }
 }

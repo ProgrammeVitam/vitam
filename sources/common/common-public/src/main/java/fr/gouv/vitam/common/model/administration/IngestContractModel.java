@@ -82,12 +82,12 @@ public class IngestContractModel extends AbstractContractModel {
      * masterMandatory is true by default if no value is specified
      */
     @JsonProperty(MASTER_MANDATORY)
-    private Boolean masterMandatory;
+    private boolean masterMandatory = true;
     /**
      * everyDataObjectVersion is false by default if no value is specified
      */
     @JsonProperty(EVERY_DATA_OBJECT_VERSION)
-    private Boolean everyDataObjectVersion;
+    private boolean everyDataObjectVersion = false;
 
     @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
@@ -95,17 +95,17 @@ public class IngestContractModel extends AbstractContractModel {
      * formatUnidentifiedAuthorized is false  by default if no value is specified
      */
     @JsonProperty(FORMAT_UNIDENTIFIED_AUTHORIZED)
-    private Boolean formatUnidentifiedAuthorized;
+    private boolean formatUnidentifiedAuthorized = false;
     /**
      * computedInheritedRules is false  by default if no value is specified
      */
     @JsonProperty(COMPUTE_INHERITED_RULES_AT_INGEST)
-    private Boolean computeInheritedRulesAtIngest;
+    private boolean computeInheritedRulesAtIngest = false;
     /**
      * everyFormatType is True by default if no value is specified.
      */
     @JsonProperty(EVERY_FORMAT_TYPE)
-    private Boolean everyFormatType;
+    private boolean everyFormatType = true;
 
     @JsonProperty(FORMAT_TYPE)
     private Set<String> formatType;
@@ -170,20 +170,20 @@ public class IngestContractModel extends AbstractContractModel {
         return this;
     }
 
-    public Boolean isMasterMandatory() {
+    public boolean isMasterMandatory() {
         return masterMandatory;
     }
 
-    public IngestContractModel setMasterMandatory(Boolean masterMandatory) {
+    public IngestContractModel setMasterMandatory(boolean masterMandatory) {
         this.masterMandatory = masterMandatory;
         return this;
     }
 
-    public Boolean isEveryDataObjectVersion() {
+    public boolean isEveryDataObjectVersion() {
         return everyDataObjectVersion;
     }
 
-    public IngestContractModel setEveryDataObjectVersion(Boolean everyDataObjectVersion) {
+    public IngestContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
         this.everyDataObjectVersion = everyDataObjectVersion;
         return this;
     }
@@ -198,28 +198,28 @@ public class IngestContractModel extends AbstractContractModel {
     }
 
 
-    public Boolean isFormatUnidentifiedAuthorized() {
+    public boolean isFormatUnidentifiedAuthorized() {
         return formatUnidentifiedAuthorized;
     }
 
-    public IngestContractModel setFormatUnidentifiedAuthorized(Boolean formatUnidentifiedAuthorized) {
+    public IngestContractModel setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
         this.formatUnidentifiedAuthorized = formatUnidentifiedAuthorized;
         return this;
     }
 
-    public Boolean isComputeInheritedRulesAtIngest() {
+    public boolean isComputeInheritedRulesAtIngest() {
         return computeInheritedRulesAtIngest;
     }
 
-    public void setComputeInheritedRulesAtIngest(Boolean computeInheritedRulesAtIngest) {
+    public void setComputeInheritedRulesAtIngest(boolean computeInheritedRulesAtIngest) {
         this.computeInheritedRulesAtIngest = computeInheritedRulesAtIngest;
     }
 
-    public Boolean isEveryFormatType() {
+    public boolean isEveryFormatType() {
         return everyFormatType;
     }
 
-    public IngestContractModel setEveryFormatType(Boolean everyFormatType) {
+    public IngestContractModel setEveryFormatType(boolean everyFormatType) {
         this.everyFormatType = everyFormatType;
         return this;
     }
@@ -247,24 +247,5 @@ public class IngestContractModel extends AbstractContractModel {
 
     public void setManagementContractId(String managementContractId) {
         this.managementContractId = managementContractId;
-    }
-
-    public void setDefaultParams() {
-        if (this.everyDataObjectVersion == null) {
-            this.everyDataObjectVersion = Boolean.FALSE;
-        }
-        if (this.formatUnidentifiedAuthorized == null) {
-            this.formatUnidentifiedAuthorized = Boolean.FALSE;
-        }
-        if (this.computeInheritedRulesAtIngest == null) {
-            this.computeInheritedRulesAtIngest = Boolean.FALSE;
-        }
-
-        if (this.masterMandatory == null) {
-            this.masterMandatory = Boolean.TRUE;
-        }
-        if (this.everyFormatType == null) {
-            this.everyFormatType = Boolean.TRUE;
-        }
     }
 }

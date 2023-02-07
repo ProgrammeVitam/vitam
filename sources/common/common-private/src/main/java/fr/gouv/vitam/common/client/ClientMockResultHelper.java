@@ -593,7 +593,7 @@ public class ClientMockResultHelper {
      * @return a RequestResponse containing contracts json
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getIngestContracts() throws InvalidParseOperationException {
+    public static RequestResponse<IngestContractModel> getIngestContracts() throws InvalidParseOperationException {
         return createResponse(INGEST_CONTRACTS, IngestContractModel.class);
     }
 

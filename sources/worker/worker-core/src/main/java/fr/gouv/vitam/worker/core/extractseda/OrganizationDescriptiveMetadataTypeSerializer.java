@@ -52,8 +52,7 @@ public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer
     public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen,
         SerializerProvider provider)
         throws IOException {
-        ElementMapper elementMapper = new ElementMapper();
-        Map<String, Object> stringObjectMap = elementMapper.toMap(organizationDescriptiveMetadataType.getAny());
+        Map<String, Object> stringObjectMap = ElementMapper.toMap(organizationDescriptiveMetadataType.getAny());
         provider.defaultSerializeValue(stringObjectMap, gen);
     }
 

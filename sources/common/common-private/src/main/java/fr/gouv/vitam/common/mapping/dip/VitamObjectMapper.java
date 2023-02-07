@@ -48,7 +48,7 @@ import fr.gouv.vitam.common.model.unit.TextByLang;
 /**
  *
  */
-public interface UnitMapper {
+public interface VitamObjectMapper {
 
     static ObjectMapper buildObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();

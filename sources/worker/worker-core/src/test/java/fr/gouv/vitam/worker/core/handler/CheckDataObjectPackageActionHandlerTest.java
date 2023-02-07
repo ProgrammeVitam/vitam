@@ -27,8 +27,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -61,12 +62,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -93,15 +92,16 @@ public class CheckDataObjectPackageActionHandlerTest {
     private static final String STORAGE_INFO_JSON = "CheckDataObjectPackageActionHandler/storageInfo.json";
     private static final String INGEST_CONTRACT = "CheckDataObjectPackageActionHandler/ingestContractWithDetails.json";
     private static final String SEDA_INGEST_PARAMS = "CheckDataObjectPackageActionHandler/SedaParams.json";
+
+    private static final String CHECK_NO_OBJECTS_ACTION_HANDLER_ITEM_STATUS_FILE =
+        "CheckDataObjectPackageActionHandler/checkNoObjectsActionHandler.json";
+    private static final String CHECK_OBJECTS_NUMBER_ACTION_HANDLER_ITEM_STATUS_FILE =
+        "CheckDataObjectPackageActionHandler/checkObjectsNumberActionHandler.json";
+    private static final String EXTRACT_SEDA_ACTION_HANDLER_ITEM_STATUS_FILE =
+        "CheckDataObjectPackageActionHandler/extractSedaActionHandler.json";
     private AdminManagementClient adminManagementClient;
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private MetaDataClientFactory metadataClientFactory;
-    private MetaDataClient metadataClient;
     private SedaUtilsFactory sedaUtilsFactory;
 
     private SedaUtils sedaUtils;
@@ -113,71 +113,85 @@ public class CheckDataObjectPackageActionHandlerTest {
     private final Set<URI> uriSetWorkspaceOK = new HashSet<>();
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList("objectName.json"))
             .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
-            .setContainerName("ExtractSedaActionHandlerTest");
+            .setLogbookTypeProcess(LogbookTypeProcess.INGEST).setContainerName("ExtractSedaActionHandlerTest");
 
     private CheckDataObjectPackageActionHandler handler;
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @Rule public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule public TempFolderRule temporaryFolder = new TempFolderRule();
 
     @Before
-    public void setUp() throws URISyntaxException, IOException {
-
-        File tempFolder = temporaryFolder.newFolder();
-        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-        SystemPropertyUtil.refresh();
-
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+    public void setUp() throws URISyntaxException, IOException, InvalidParseOperationException {
+        LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         sedaUtilsFactory = mock(SedaUtilsFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
         adminManagementClient = mock(AdminManagementClient.class);
-        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        metadataClient = mock(MetaDataClient.class);
-        metadataClientFactory = mock(MetaDataClientFactory.class);
+        MetaDataClient metadataClient = mock(MetaDataClient.class);
+        MetaDataClientFactory metadataClientFactory = mock(MetaDataClientFactory.class);
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
 
         sedaUtils = mock(SedaUtils.class);
 
+        CheckNoObjectsActionHandler checkNoObjectsActionHandler = mock(CheckNoObjectsActionHandler.class);
+        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+            CHECK_NO_OBJECTS_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+            ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
+            when(checkNoObjectsActionHandler.execute(any(), any())).thenReturn(itemStatus);
+        }
+
+        CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = mock(CheckObjectsNumberActionHandler.class);
+        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+            CHECK_OBJECTS_NUMBER_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+            ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
+            when(checkObjectsNumberActionHandler.execute(any(), any())).thenReturn(itemStatus);
+        }
+
+        ExtractSedaActionHandler extractSedaActionHandler = mock(ExtractSedaActionHandler.class);
+        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+            EXTRACT_SEDA_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+            ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
+            when(extractSedaActionHandler.execute(any(), any())).thenReturn(itemStatus);
+        }
+
         handler = new CheckDataObjectPackageActionHandler(metadataClientFactory, adminManagementClientFactory,
-            sedaUtilsFactory);
+            logbookLifeCyclesClientFactory, sedaUtilsFactory, checkNoObjectsActionHandler,
+            checkObjectsNumberActionHandler, extractSedaActionHandler,
+            mock(CheckObjectUnitConsistencyActionHandler.class));
 
 
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "ExtractSedaActionHandlerTest", "workerId", newArrayList(objectId));
+        action =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
+                "workerId", newArrayList(objectId));
         action.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(
-            new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
-        out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
         out.add(
             new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
-        out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/GUID_TO_ARCHIVE_ID_MAP.json")));
 
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
@@ -192,16 +206,12 @@ public class CheckDataObjectPackageActionHandlerTest {
             new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json")));
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
-        out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
         uriSetWorkspaceOK.add(new URI("content/file1.pdf"));
         uriSetWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -220,12 +230,9 @@ public class CheckDataObjectPackageActionHandlerTest {
     public void testHandlerWorking() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(CheckDataObjectPackageActionHandler.getId());
-        final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
-        final InputStream storageInfo =
-            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
-        final InputStream ingestContract =
-            PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
+        final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+        final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
         SedaIngestParams sedaIngestParams =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS),
                 SedaIngestParams.class);
@@ -238,19 +245,18 @@ public class CheckDataObjectPackageActionHandlerTest {
             Response.status(Status.OK).entity(sedaIngestParams).build());
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
-        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriSetWorkspaceOK));
-        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
-            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
-        when(workspaceClient.getObject(any(), eq("Maps/sedaParams.json")))
-            .thenReturn(
-                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
-        when(adminManagementClient.findIngestContractsByID(anyString()))
-            .thenReturn(ClientMockResultHelper.getIngestContracts());
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(seda_arborescence).build());
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any())).thenReturn(
+            new RequestResponseOK<List<URI>>().addResult(List.copyOf(uriSetWorkspaceOK)));
+        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json"))).thenReturn(
+            Response.status(Status.OK).entity(storageInfo).build());
+        when(workspaceClient.getObject(any(), eq("referential/contracts.json"))).thenReturn(
+            Response.status(Status.OK).entity(ingestContract).build());
+        when(workspaceClient.getObject(any(), eq("Maps/sedaParams.json"))).thenReturn(
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
+        when(adminManagementClient.findIngestContractsByID(anyString())).thenReturn(
+            ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
@@ -258,12 +264,9 @@ public class CheckDataObjectPackageActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         action.reset();
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
@@ -278,5 +281,4 @@ public class CheckDataObjectPackageActionHandlerTest {
         final ItemStatus response2 = handler.execute(params, action);
         assertEquals(StatusCode.KO, response2.getGlobalStatus());
     }
-
 }
