@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.extractseda;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
@@ -39,6 +40,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
@@ -51,6 +54,7 @@ import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.LogbookEventMapper;
 import fr.gouv.vitam.worker.core.mapping.ObjectGroupMapper;
+import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
@@ -70,12 +74,16 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
     private final HandlerIO handlerIO;
     private final IngestSession ingestSession;
 
+    private final JsonLineDataBase objectsDatabase;
+
 
     public ExtractMetadataListener(HandlerIO handlerIO, IngestContext ingestContext, IngestSession ingestSession,
-        MetaDataClientFactory metaDataClientFactory) {
-        archiveUnitListener = new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+        JsonLineDataBase unitsDatabase, JsonLineDataBase objectsDatabase, MetaDataClientFactory metaDataClientFactory) {
+        archiveUnitListener =
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, unitsDatabase, metaDataClientFactory);
         this.handlerIO = handlerIO;
         this.ingestSession = ingestSession;
+        this.objectsDatabase = objectsDatabase;
     }
 
     /*
@@ -142,9 +150,12 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
     private void extractDataObject(String currentGroupId, String objectGroupGuid, MinimalDataObjectType dataObject) {
         try {
             final String objectGuid = GUIDFactory.newObjectGUID(ParameterHelper.getTenantParameter()).toString();
-            DbVersionsModel versionsModel = ObjectGroupMapper.map(dataObject, objectGroupGuid, null);
-            final File tmpFile = handlerIO.getNewLocalFile(objectGuid + JSON_EXTENSION);
-            JsonHandler.writeAsFile(JsonHandler.toJsonNode(versionsModel), tmpFile);
+            DbVersionsModel versionsModel = ObjectGroupMapper.map(dataObject, objectGroupGuid);
+
+            JsonNode value =
+                VitamObjectMapper.buildSerializationObjectMapper().convertValue(versionsModel, JsonNode.class);
+            objectsDatabase.write(objectGuid, value);
+
             final DataObjectDetail detail = new DataObjectDetail();
             if (dataObject instanceof BinaryDataObjectType) {
                 DataObjectInfo dataObjectInfo = new DataObjectInfo();
@@ -156,22 +167,29 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
 
                 long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
                 dataObjectInfo.setSize(gotSize);
-
-                detail.setVersion(dataObject.getDataObjectVersion());
+                detail.setVersion(Objects.requireNonNullElse(dataObject.getDataObjectVersion(),
+                    DataObjectVersionType.BINARY_MASTER.getName()));
                 detail.setPhysical(false);
                 ingestSession.getObjectGuidToDataObject().put(objectGuid, dataObjectInfo);
+                if (dataObject.getDataObjectVersion() == null || dataObject.getDataObjectVersion().startsWith(DataObjectVersionType.BINARY_MASTER.getName())) {
+                    ingestSession.getDataObjectGroupMasterMandatory().put(currentGroupId, true);
+                } else {
+                    ingestSession.getDataObjectGroupMasterMandatory().putIfAbsent(currentGroupId, false);
+                }
 
             } else {
-                detail.setVersion(dataObject.getDataObjectVersion());
+                detail.setVersion(Objects.requireNonNullElse(dataObject.getDataObjectVersion(),
+                    DataObjectVersionType.PHYSICAL_MASTER.getName()));
                 detail.setPhysical(true);
                 ingestSession.getPhysicalDataObjetsGuids().add(objectGuid);
+                ingestSession.getDataObjectGroupMasterMandatory().put(currentGroupId, true);
             }
 
             ingestSession.getDataObjectIdToDetailDataObject().put(dataObject.getId(), detail);
             ingestSession.getDataObjectIdToObjectGroupId().put(versionsModel.getId(), currentGroupId);
             ingestSession.getDataObjectIdToGuid().put(versionsModel.getId(), objectGuid);
             ingestSession.getObjectGroupIdToGuid().put(currentGroupId, objectGroupGuid);
-
+            ingestSession.getUsageToObjectGroupId().put(dataObject.getDataObjectVersion(), objectGroupGuid);
 
             if (currentGroupId.equals(dataObject.getId()) &&
                 ingestSession.getDataObjectIdWithoutObjectGroupId().get(dataObject.getId()) == null) {
@@ -180,8 +198,7 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             }
 
 
-        } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException |
-                 InvalidParseOperationException e) {
+        } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
             throw new VitamRuntimeException(e);
         }
     }

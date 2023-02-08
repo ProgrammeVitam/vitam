@@ -38,6 +38,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -148,8 +149,8 @@ public class ArchiveUnitMapperTest {
         assertThat(management.getClassificationRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
         ruleIdType = (RuleIdType) management.getClassificationRule().getRuleAndStartDate().get(0);
         assertThat(ruleIdType.getValue()).isEqualTo("R3");
-        assertThat(management.getClassificationRule().getRuleAndStartDate().get(1))
-            .isInstanceOf(XMLGregorianCalendar.class);
+        assertThat(management.getClassificationRule().getRuleAndStartDate().get(1)).isInstanceOf(
+            XMLGregorianCalendar.class);
         date = (XMLGregorianCalendar) management.getClassificationRule().getRuleAndStartDate().get(1);
         assertThat(date.getYear()).isEqualTo(2000);
         assertThat(date.getMonth()).isEqualTo(1);
@@ -169,8 +170,8 @@ public class ArchiveUnitMapperTest {
         assertThat(management.getDisseminationRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
         ruleIdType = (RuleIdType) management.getDisseminationRule().getRuleAndStartDate().get(0);
         assertThat(ruleIdType.getValue()).isEqualTo("R3");
-        assertThat(management.getDisseminationRule().getRuleAndStartDate().get(1))
-            .isInstanceOf(XMLGregorianCalendar.class);
+        assertThat(management.getDisseminationRule().getRuleAndStartDate().get(1)).isInstanceOf(
+            XMLGregorianCalendar.class);
         date = (XMLGregorianCalendar) management.getDisseminationRule().getRuleAndStartDate().get(1);
         assertThat(date.getYear()).isEqualTo(2000);
         assertThat(date.getMonth()).isEqualTo(1);
@@ -230,24 +231,24 @@ public class ArchiveUnitMapperTest {
         assertThat(holdRuleDefGroup.get(3).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_HOLD_OWNER);
         assertThat(holdRuleDefGroup.get(3).getValue()).isEqualTo("Owner");
 
-        assertThat(holdRuleDefGroup.get(4).getName().getLocalPart())
-            .isEqualTo(SedaConstants.TAG_RULE_HOLD_REASSESSING_DATE);
+        assertThat(holdRuleDefGroup.get(4).getName().getLocalPart()).isEqualTo(
+            SedaConstants.TAG_RULE_HOLD_REASSESSING_DATE);
         assertThat(holdRuleDefGroup.get(4).getValue()).isInstanceOf(XMLGregorianCalendar.class);
         assertThat(holdRuleDefGroup.get(4).getValue().toString()).isEqualTo("2009-02-02");
 
         assertThat(holdRuleDefGroup.get(5).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_HOLD_REASON);
         assertThat(holdRuleDefGroup.get(5).getValue()).isEqualTo("Reason");
 
-        assertThat(holdRuleDefGroup.get(6).getName().getLocalPart())
-            .isEqualTo(SedaConstants.TAG_RULE_PREVENT_REARRANGEMENT);
+        assertThat(holdRuleDefGroup.get(6).getName().getLocalPart()).isEqualTo(
+            SedaConstants.TAG_RULE_PREVENT_REARRANGEMENT);
         assertThat(holdRuleDefGroup.get(6).getValue()).isInstanceOf(Boolean.class);
         assertThat(holdRuleDefGroup.get(6).getValue()).isEqualTo(true);
 
         assertThat(holdRuleDefGroup).hasSize(7);
 
         // OrganizationType
-        Assert
-            .assertEquals(archiveUnitType.getContent().getOriginatingAgency().getIdentifier().getValue(), "Identifier");
+        Assert.assertEquals(archiveUnitType.getContent().getOriginatingAgency().getIdentifier().getValue(),
+            "Identifier");
         Assert.assertEquals(
             archiveUnitType.getContent().getOriginatingAgency().getOrganizationDescriptiveMetadata().getAny().size(),
             3);
@@ -262,7 +263,7 @@ public class ArchiveUnitMapperTest {
         File sample_unit = PropertiesUtils.getResourceFile(SIMPLE_UNIT_WITH_ORG_DESC_METADATA);
         JsonNode node = JsonHandler.getFromFile(sample_unit);
 
-        ObjectMapper mapper = VitamObjectMapper.buildObjectMapper();
+        ObjectMapper mapper = VitamObjectMapper.buildDeserializationObjectMapper();
         Map<String, Object> map = mapper.convertValue(node, new TypeReference<>() {
         });
 

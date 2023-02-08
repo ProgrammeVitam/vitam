@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.mapping;
+package fr.gouv.vitam.common.mapping.mapper;
 
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.junit.Before;
@@ -52,7 +52,6 @@ public class ElementMapperTest {
 
     private static JAXBContext jaxbContext;
 
-    private ElementMapper elementMapper;
     private Unmarshaller unmarshaller;
 
     @BeforeClass
@@ -62,7 +61,6 @@ public class ElementMapperTest {
 
     @Before
     public void init() throws Exception {
-        elementMapper = new ElementMapper();
         unmarshaller = jaxbContext.createUnmarshaller();
     }
 
@@ -73,14 +71,14 @@ public class ElementMapperTest {
             "/element_with_complex_data.xml"));
 
         // When
-        Map<String, Object> map = elementMapper.toMap(content.elements);
+        Map<String, Object> map = ElementMapper.toMap(content.elements);
 
         // Then
         assertThat(map).hasSize(2);
         assertThat(map.get("metadata")).isNotNull();
         assertThat(map.get("locator")).isNotNull();
         assertThat((List<String>) map.get("locator")).containsExactlyInAnyOrder("tata", "toto");
-        List<Map> metadata = (List<Map>) map.get("metadata");
+        List<Map<String,Object>> metadata = (List<Map<String, Object>>) map.get("metadata");
         assertThat(metadata).hasSize(2);
 
         assertThat(metadata.get(0)).containsEntry("Addressee", newArrayList("a"))
@@ -96,13 +94,13 @@ public class ElementMapperTest {
             "/element_with_complex_free_data.xml"));
 
         // When
-        Map<String, Object> map = elementMapper.toMap(content.elements);
+        Map<String, Object> map = ElementMapper.toMap(content.elements);
 
         // Then
         assertThat(map).hasSize(7);
         assertThat(map.get("DataInTestTab0")).isNotNull();
         assertThat(map.get("Description")).isNotNull();
-        List<Map> dataInTestTab0 = (List<Map>) map.get("DataInTestTab0");
+        List<Map<String,String>> dataInTestTab0 = (List<Map<String,String>>) map.get("DataInTestTab0");
         assertThat(dataInTestTab0).hasSize(1);
         assertThat(
             dataInTestTab0.toString()
@@ -130,7 +128,7 @@ public class ElementMapperTest {
         Content content = getXMLFromString(xml, Content.class);
 
         // When
-        Map<String, Object> elements = elementMapper.toMap(content.elements);
+        Map<String, Object> elements = ElementMapper.toMap(content.elements);
 
         // Then
         assertThat(elements.toString()).isEqualTo(

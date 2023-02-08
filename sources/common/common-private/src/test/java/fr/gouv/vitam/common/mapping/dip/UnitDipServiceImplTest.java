@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.mapping.dip;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -36,7 +37,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.mapping.dip.VitamObjectMapper.buildObjectMapper;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -49,7 +49,7 @@ public class UnitDipServiceImplTest {
     public void should_map_json_unit_to_xml() throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream("/unit_with_rules.json");
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
@@ -83,7 +83,7 @@ public class UnitDipServiceImplTest {
     public void should_map_json_unit_to_xml_with_keyword() throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream("/unit_with_keyword.json");
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
@@ -109,7 +109,7 @@ public class UnitDipServiceImplTest {
     public void should_map_json_unit_to_xml_with_agent_type() throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream("/unit_with_agent_type.json");
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
@@ -135,7 +135,7 @@ public class UnitDipServiceImplTest {
         throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream(
             "/unit_originating_agency_with_organization_descriptive_metadata.json");
@@ -166,7 +166,7 @@ public class UnitDipServiceImplTest {
         throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream(
             "/unit_submission_agency_with_organization_descriptive_metadata.json");
@@ -197,7 +197,7 @@ public class UnitDipServiceImplTest {
         throws InvalidParseOperationException {
         // Given
         ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, VitamObjectMapper.buildDeserializationObjectMapper());
 
         InputStream inputStream = getClass().getResourceAsStream(
             "/unit_with_related_object_reference_metadata.json");

@@ -24,13 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.extractseda;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
-import fr.gouv.vitam.worker.core.mapping.ElementMapper;
+import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,8 +50,7 @@ public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer
 
     @Override
     public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen,
-        SerializerProvider provider)
-        throws IOException {
+        SerializerProvider provider) throws IOException {
         Map<String, Object> stringObjectMap = ElementMapper.toMap(organizationDescriptiveMetadataType.getAny());
         provider.defaultSerializeValue(stringObjectMap, gen);
     }

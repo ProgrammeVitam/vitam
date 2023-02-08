@@ -1,0 +1,18 @@
+{
+  "_id": "aeaqaaaaaahk64ngaaudyamgscsjluqaaabq",
+  "DescriptionLevel": "RecordGrp",
+  "Title": "Oxford Street",
+  "StartDate": "2014-12-07T09:52:56",
+  "EndDate": "2014-12-07T09:52:56",
+  "_mgt": {
+    "DisseminationRule": {
+      "Rules": [
+        {
+          "Rule": "DIS-00001",
+          "StartDate": "2008-07-14",
+          "EndDate": "2033-07-14"
+        }
+      ]
+    }
+  }
+}

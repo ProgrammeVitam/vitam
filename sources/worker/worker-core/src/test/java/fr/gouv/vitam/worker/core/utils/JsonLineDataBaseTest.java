@@ -24,43 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.worker.core.utils;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
-import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
 
-import static fr.gouv.vitam.common.manifest.LogbookMapper.AGENT_IDENTIFIER;
-import static fr.gouv.vitam.common.manifest.LogbookMapper.OBJECT_IDENTIFIER;
+public class JsonLineDataBaseTest {
 
-public class LogbookEventMapper {
+    @ClassRule public static TempFolderRule tempFolderRule = new TempFolderRule();
 
-    @SuppressWarnings("unchecked")
-    public static LogbookEvent map(EventLogBookOgType eventLogBookOgType) {
-        LogbookEvent logbookEvent = new LogbookEvent();
+    public static JsonLineDataBase dataBase;
 
-        logbookEvent.setEvId(eventLogBookOgType.getEventIdentifier());
-        logbookEvent.setEvTypeProc(eventLogBookOgType.getEventTypeCode());
-        logbookEvent.setEvType(eventLogBookOgType.getEventType());
-        logbookEvent.setEvDateTime(eventLogBookOgType.getEventDateTime());
-        logbookEvent.setOutcome(eventLogBookOgType.getOutcome());
-        logbookEvent.setOutDetail(eventLogBookOgType.getOutcomeDetail());
-        logbookEvent.setOutMessg(eventLogBookOgType.getOutcomeDetailMessage());
-        logbookEvent.setEvDetData(eventLogBookOgType.getEventDetailData());
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+        dataBase = new JsonLineDataBase(tempFolderRule.newFile());
+    }
 
-        Map<String, Object> any = ElementMapper.toMap(eventLogBookOgType.getAny());
-        Object agentIdentifier = any.get(AGENT_IDENTIFIER);
-        if (agentIdentifier instanceof List) {
-            logbookEvent.setAgId(((List<String>) agentIdentifier).get(0));
-        }
-        Object objectIdentifier = any.get(OBJECT_IDENTIFIER);
-        if (objectIdentifier instanceof List) {
-            logbookEvent.setObId(((List<String>) objectIdentifier).get(0));
-        }
+    @Test
+    public void should_write_then_read() {
+        dataBase.write("A1", JsonHandler.createObjectNode().put("_id", "A1"));
+        dataBase.write("A2", JsonHandler.createObjectNode().put("_id", "A2"));
+        dataBase.write("B1", JsonHandler.createObjectNode().put("_id", "B1"));
+        dataBase.write("A3", JsonHandler.createObjectNode().put("_id", "A3"));
 
-        return logbookEvent;
+        JsonNode read = dataBase.read("B1");
+        assertEquals("B1", read.get("_id").asText());
     }
 }

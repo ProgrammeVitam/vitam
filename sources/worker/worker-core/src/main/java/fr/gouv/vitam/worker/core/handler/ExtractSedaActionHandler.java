@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
@@ -141,6 +142,7 @@ import fr.gouv.vitam.worker.core.extractseda.ExtractMetadataListener;
 import fr.gouv.vitam.worker.core.extractseda.IngestContext;
 import fr.gouv.vitam.worker.core.extractseda.IngestSession;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -176,6 +178,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -393,14 +396,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             ingestContext.setSedaVersion(sedaUtils.getSedaIngestParams().getVersion());
 
-
+            JsonLineDataBase unitsDatabase = new JsonLineDataBase(handlerIO.getNewLocalFile("units.jsonl"));
+            JsonLineDataBase objectsDatabase = new JsonLineDataBase(handlerIO.getNewLocalFile("objects.jsonl"));
 
             ExtractMetadataListener listener =
-                new ExtractMetadataListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+                new ExtractMetadataListener(handlerIO, ingestContext, ingestSession, unitsDatabase, objectsDatabase,
+                    metaDataClientFactory);
 
             unmarshaller.setListener(listener);
             ObjectNode evDetData =
-                extractSEDA(handlerIO, unmarshaller, ingestContext, ingestSession, globalCompositeItemStatus);
+                extractSEDA(handlerIO, unmarshaller, ingestContext, ingestSession, unitsDatabase, objectsDatabase,
+                    globalCompositeItemStatus);
 
             if (!ingestSession.getExistingUnitGuids().isEmpty()) {
                 evDetData.set(ATTACHMENT_IDS, JsonHandler.toJsonNode(ingestSession.getExistingUnitGuids()));
@@ -709,7 +715,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @throws CycleFoundException when a cycle is found in data extract
      */
     private ObjectNode extractSEDA(HandlerIO handlerIO, Unmarshaller unmarshaller, IngestContext ingestContext,
-        IngestSession ingestSession, ItemStatus globalCompositeItemStatus)
+        IngestSession ingestSession, JsonLineDataBase unitsDatabase, JsonLineDataBase objectsDatabase,
+        ItemStatus globalCompositeItemStatus)
         throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", ingestContext);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
@@ -1054,9 +1061,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             Stopwatch saveObjectGroupToWorkspaceStopWatch = Stopwatch.createStarted();
 
-            checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup(handlerIO, ingestSession,
+            checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup(ingestSession,
                 ingestContext.getIngestContract());
-            saveObjectGroupsToWorkspace(handlerIO, ingestContext, ingestSession, storageObjectGroupInfo,
+            saveObjectGroupsToWorkspace(handlerIO, ingestContext, ingestSession, objectsDatabase,
+                storageObjectGroupInfo,
                 storageObjectInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveObjectGroup",
@@ -1068,7 +1076,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             Stopwatch saveArchiveUnitStopWatch = Stopwatch.createStarted();
 
             finalizeAndSaveArchiveUnitToWorkspace(handlerIO, ingestContext, ingestSession,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, storageUnitInfo);
+                unitsDatabase,
+                storageUnitInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveArchiveUnit",
                 saveArchiveUnitStopWatch.elapsed(TimeUnit.MILLISECONDS));
@@ -1346,7 +1355,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void finalizeAndSaveArchiveUnitToWorkspace(HandlerIO handlerIO, IngestContext ingestContext,
-        IngestSession ingestSession, String path, JsonNode storageUnitInfo)
+        IngestSession ingestSession, JsonLineDataBase unitsDatabase, JsonNode storageUnitInfo)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         ProcessingException, InvalidParseOperationException {
 
@@ -1372,47 +1381,41 @@ public class ExtractSedaActionHandler extends ActionHandler {
             createUnitLifeCycle(handlerIO, ingestSession, unitGuid, ingestContext.getOperationId());
 
             // 2- Update temporary files
-            final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
             final File unitCompleteTmpFile = handlerIO.getNewLocalFile(unitGuid);
 
-            if (unitTmpFileForRead.exists()) {
-                // Get the archiveUnit
-                ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
+            // Get the archiveUnit
+            ObjectNode archiveUnit = (ObjectNode) unitsDatabase.read(unitGuid);
 
-                JsonNode logbookLifeCycleAsNode = archiveUnit.get("LogbookLifeCycleExternal");
-                if (logbookLifeCycleAsNode != null) {
-                    logbookLifeCycle = JsonHandler.getFromJsonNode(logbookLifeCycleAsNode, LIST_TYPE_REFERENCE);
-                }
-
-                // Management rules id to add
-                Set<String> globalMgtIdExtra = new HashSet<>();
-
-                // Add storage information to archive unit
-                addStorageInformation(archiveUnit, storageUnitInfo);
-
-                addValidComputedInheritedRulesInformation(ingestContext, archiveUnit);
-
-                isRootArchive =
-                    attachmentByIngestContractAndManageRulesInformation(ingestContext, ingestSession, archiveUnit,
-                        manifestUnitId, unitGuid, globalMgtIdExtra);
-
-                updateManagementAndAppendGlobalMgtRule(ingestContext, ingestSession, archiveUnit, globalMgtIdExtra,
-                    isRootArchive);
-
-                if (ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId) != null &&
-                    ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId)) {
-                    postReplaceInternalReferenceForRelatedObjectReference(ingestSession, archiveUnit);
-                }
-                // Write to new File
-                JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
-                // Write to workspace
-                try {
-                    handlerIO.transferFileToWorkspace(path + File.separator + unitGuid + JSON_EXTENSION,
-                        unitCompleteTmpFile, true, asyncIO);
-                } finally {
-                    deleteFileIfExist(unitTmpFileForRead);
-                }
+            JsonNode logbookLifeCycleAsNode = archiveUnit.get("LogbookLifeCycleExternal");
+            if (logbookLifeCycleAsNode != null) {
+                logbookLifeCycle = JsonHandler.getFromJsonNode(logbookLifeCycleAsNode, LIST_TYPE_REFERENCE);
             }
+
+            // Management rules id to add
+            Set<String> globalMgtIdExtra = new HashSet<>();
+
+            // Add storage information to archive unit
+            addStorageInformation(archiveUnit, storageUnitInfo);
+
+            addValidComputedInheritedRulesInformation(ingestContext, archiveUnit);
+
+            isRootArchive =
+                attachmentByIngestContractAndManageRulesInformation(ingestContext, ingestSession, archiveUnit,
+                    manifestUnitId, unitGuid, globalMgtIdExtra);
+
+            updateManagementAndAppendGlobalMgtRule(ingestContext, ingestSession, archiveUnit, globalMgtIdExtra,
+                isRootArchive);
+
+            if (ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId) != null &&
+                ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId)) {
+                postReplaceInternalReferenceForRelatedObjectReference(ingestSession, archiveUnit);
+            }
+            // Write to new File
+            JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
+            // Write to workspace
+            handlerIO.transferFileToWorkspace(
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + unitGuid + JSON_EXTENSION,
+                unitCompleteTmpFile, true, asyncIO);
 
             // 3- Update created Unit life cycles
             addFinalStatusToUnitLifeCycle(handlerIO, ingestContext, ingestSession, unitGuid, manifestUnitId,
@@ -1979,7 +1982,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void checkArchiveUnitIdReference(IngestSession ingestSession, String llcEvDetData)
         throws ProcessingException {
-
         if (ingestSession.getUnitIdToGroupId() != null && !ingestSession.getUnitIdToGroupId().isEmpty()) {
             for (final Entry<String, String> entry : ingestSession.getUnitIdToGroupId().entrySet()) {
                 if (ingestSession.getObjectGroupIdToGuid().get(entry.getValue()) == null) {
@@ -2094,47 +2096,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
 
-    private void checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup(HandlerIO handlerIO,
-        IngestSession ingestSession, IngestContractModel ingestContract) throws ProcessingException {
-        try {
-            Map<String, String> usageToObjectGroupId = getUsageToObjectGroupId(handlerIO, ingestSession);
-            Set<String> updatedObjectGroupIds = getUpdatedObjectGroupIds(ingestSession);
-            checkMasterMandatory(ingestSession, ingestContract, updatedObjectGroupIds);
-            checkIngestContractForObjectGroupAttachment(ingestSession, ingestContract, usageToObjectGroupId,
-                updatedObjectGroupIds);
-        } catch (InvalidParseOperationException e) {
-            throw new ProcessingException(e);
-        }
-
-    }
-
-    private Map<String, String> getUsageToObjectGroupId(HandlerIO handlerIO, IngestSession ingestSession)
-        throws InvalidParseOperationException {
-        Map<String, String> usageToObjectGroupId = new HashMap<>();
-        for (final Entry<String, List<String>> entry : ingestSession.getObjectGroupIdToDataObjectId().entrySet()) {
-            ingestSession.getDataObjectGroupMasterMandatory().put(entry.getKey(), false);
-            for (int index = 0; index < entry.getValue().size(); index++) {
-                final String id = entry.getValue().get(index);
-                final File dataObjectFile =
-                    handlerIO.getNewLocalFile(ingestSession.getDataObjectIdToGuid().get(id) + JSON_EXTENSION);
-                JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile);
-                String nodeCategory = "";
-                if (dataObjectNode.get(SedaConstants.TAG_DO_VERSION) != null) {
-                    nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
-                }
-                if (nodeCategory.split("_").length == 1) {
-                    final String nodeCategoryNumbered = nodeCategory + "_1";
-                    ((ObjectNode) dataObjectNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
-                }
-                nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
-                if ((BINARY_MASTER.equals(nodeCategory.split("_")[0]) ||
-                    PHYSICAL_MASTER.equals(nodeCategory.split("_")[0]))) {
-                    ingestSession.getDataObjectGroupMasterMandatory().replace(entry.getKey(), true);
-                }
-                usageToObjectGroupId.put(nodeCategory.split("_")[0], entry.getKey());
-            }
-        }
-        return usageToObjectGroupId;
+    private void checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup(IngestSession ingestSession,
+        IngestContractModel ingestContract) throws ProcessingException {
+        Set<String> updatedObjectGroupIds = getUpdatedObjectGroupIds(ingestSession);
+        checkMasterMandatory(ingestSession, ingestContract, updatedObjectGroupIds);
+        checkIngestContractForObjectGroupAttachment(ingestSession, ingestContract,
+            ingestSession.getUsageToObjectGroupId(), updatedObjectGroupIds);
     }
 
     private Set<String> getUpdatedObjectGroupIds(IngestSession ingestSession) {
@@ -2166,7 +2133,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void checkIngestContractForObjectGroupAttachment(IngestSession ingestSession, IngestContractModel contract,
-        Map<String, String> usages, Set<String> objectGroupIdUpdated)
+        Multimap<String, String> usages, Set<String> updatedObjectGroupIds)
         throws ProcessingObjectGroupEveryDataObjectVersionException {
 
         if (!ingestSession.getExistingUnitIdWithExistingObjectGroup().isEmpty() &&
@@ -2174,9 +2141,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final Set<String> dataObjectVersion = contract.getDataObjectVersion();
             if (dataObjectVersion != null && !dataObjectVersion.isEmpty()) {
                 Set<String> usageInObjectVersion =
-                    usages.entrySet().stream().filter(entry -> objectGroupIdUpdated.contains(entry.getValue()))
-                        .filter(entry -> dataObjectVersion.contains(entry.getKey())).map(Entry::getKey)
-                        .collect(Collectors.toSet());
+                    usages.asMap().entrySet().stream().filter(entry -> dataObjectVersion.contains(entry.getKey()))
+                        .map(entry -> {
+                            Set<String> values = new HashSet<>(entry.getValue());
+                            List<String> updatedObjectGroupGuids = updatedObjectGroupIds.stream().map(e -> ingestSession.getObjectGroupIdToGuid().get(e)).collect(Collectors.toList());
+                            values.retainAll(updatedObjectGroupGuids);
+                            return new AbstractMap.SimpleEntry<>(entry.getKey(), values);
+                        }).filter(entry -> !entry.getValue().isEmpty()).map(Entry::getKey).collect(Collectors.toSet());
                 if (usageInObjectVersion.size() == dataObjectVersion.size()) {
                     return;
                 }
@@ -2195,8 +2166,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void saveObjectGroupsToWorkspace(HandlerIO handlerIO, IngestContext ingestContext,
-        IngestSession ingestSession, JsonNode storageObjectGroupInfo, JsonNode storageObjectInfo)
-        throws ProcessingException {
+        IngestSession ingestSession, JsonLineDataBase objectsDatabase, JsonNode storageObjectGroupInfo,
+        JsonNode storageObjectInfo) throws ProcessingException {
         boolean existingGot = false;
         Map<String, ObjectNode> listObjectToValidate = new HashMap<>();
 
@@ -2268,9 +2239,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final Set<String> dataObjectVersions = new HashSet<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);
-                    final File dataObjectFile =
-                        handlerIO.getNewLocalFile(ingestSession.getDataObjectIdToGuid().get(id) + JSON_EXTENSION);
-                    JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile);
+                    JsonNode dataObjectNode = objectsDatabase.read(ingestSession.getDataObjectIdToGuid().get(id));
 
                     boolean isPhysical = ingestSession.getPhysicalDataObjetsGuids()
                         .contains(ingestSession.getDataObjectIdToGuid().get(id));
@@ -2331,7 +2300,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             objectGroupType = dataObjectNode.get(METADATA).fieldNames().next();
                         }
                     }
-                    deleteFileIfExist(dataObjectFile);
                 }
 
                 File newLocalFile =
@@ -2489,12 +2457,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
                  InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
-        }
-    }
-
-    private void deleteFileIfExist(File file) {
-        if (!file.delete()) {
-            LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
         }
     }
 

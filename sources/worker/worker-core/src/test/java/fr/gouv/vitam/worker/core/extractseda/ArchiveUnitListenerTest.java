@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingNotValidLinkingExcept
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -81,8 +82,7 @@ public class ArchiveUnitListenerTest {
     private IngestContext ingestContext;
 
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @Rule public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -110,7 +110,8 @@ public class ArchiveUnitListenerTest {
         JAXBElement<?> parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(),
+                mock(JsonLineDataBase.class), metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -142,7 +143,8 @@ public class ArchiveUnitListenerTest {
         JAXBElement<?> parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(),
+                mock(JsonLineDataBase.class), metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -177,7 +179,8 @@ public class ArchiveUnitListenerTest {
 
         ingestContext.setWorkflowUnitType(UnitType.FILING_UNIT);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(),
+                mock(JsonLineDataBase.class), metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -219,7 +222,8 @@ public class ArchiveUnitListenerTest {
 
         ingestContext.setWorkflowUnitType(UnitType.HOLDING_UNIT);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, new IngestSession(),
+                mock(JsonLineDataBase.class), metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -256,7 +260,8 @@ public class ArchiveUnitListenerTest {
         List<String> agenciesList = new ArrayList<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), mock(JsonLineDataBase.class),
+                metaDataClientFactory);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -299,7 +304,8 @@ public class ArchiveUnitListenerTest {
 
         IngestSession ingestSession = new IngestSession();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, ingestSession, metaDataClientFactory);
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), ingestContext, ingestSession,
+                mock(JsonLineDataBase.class), metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -342,7 +348,8 @@ public class ArchiveUnitListenerTest {
         HandlerIO handlerIO = mock(HandlerIO.class);
         IngestSession ingestSession = new IngestSession();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, mock(JsonLineDataBase.class),
+                metaDataClientFactory);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -389,7 +396,8 @@ public class ArchiveUnitListenerTest {
         ingestSession.getDataObjectIdToObjectGroupId().put("ID22", "ID0011");
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, mock(JsonLineDataBase.class),
+                metaDataClientFactory);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -403,7 +411,8 @@ public class ArchiveUnitListenerTest {
         content.setCustodialHistory(custodialHistoryType);
         archiveUnitType.setContent(content);
 
-        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
+        assertThatCode(
+            () -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
     }
 
     @Test
@@ -415,7 +424,8 @@ public class ArchiveUnitListenerTest {
 
         HandlerIO handlerIO = mock(HandlerIO.class);
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), metaDataClientFactory);
+            new ArchiveUnitListener(handlerIO, ingestContext, new IngestSession(), mock(JsonLineDataBase.class),
+                metaDataClientFactory);
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
@@ -450,7 +460,8 @@ public class ArchiveUnitListenerTest {
         HandlerIO handlerIO = mock(HandlerIO.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, metaDataClientFactory);
+            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, mock(JsonLineDataBase.class),
+                metaDataClientFactory);
 
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
@@ -462,8 +473,7 @@ public class ArchiveUnitListenerTest {
 
         RelatedObjectReferenceType relatedObjectReferenceType = new RelatedObjectReferenceType();
 
-        List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReferenceType =
-            new ArrayList<>();
+        List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReferenceType = new ArrayList<>();
 
         DataObjectOrArchiveUnitReferenceType dataObjectOrArchiveUnitReferenceType1 =
             new DataObjectOrArchiveUnitReferenceType();
@@ -486,6 +496,7 @@ public class ArchiveUnitListenerTest {
 
         archiveUnitType.setContent(content);
 
-        assertThatCode(() -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
+        assertThatCode(
+            () -> archiveUnitListener.extractArchiveUnit(archiveUnitType, parent)).doesNotThrowAnyException();
     }
 }

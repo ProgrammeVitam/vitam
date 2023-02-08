@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.extractseda;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
@@ -42,13 +36,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -63,12 +52,7 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeSerializer;
-import fr.gouv.vitam.common.mapping.serializer.KeywordTypeSerializer;
-import fr.gouv.vitam.common.mapping.serializer.LevelTypeSerializer;
-import fr.gouv.vitam.common.mapping.serializer.TextByLangSerializer;
-import fr.gouv.vitam.common.mapping.serializer.TextTypeSerializer;
-import fr.gouv.vitam.common.mapping.serializer.XMLGregorianCalendarSerializer;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
@@ -81,7 +65,6 @@ import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -107,12 +90,11 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
 import fr.gouv.vitam.worker.core.mapping.RuleMapper;
+import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 
 import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -147,13 +129,12 @@ public class ArchiveUnitListener {
 
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
     private final ArchiveUnitMapper archiveUnitMapper;
-
-    private final ObjectMapper objectMapper;
-
     private final IngestContext ingestContext;
     private final IngestSession ingestSession;
 
     private final HandlerIO handlerIO;
+
+    private final JsonLineDataBase unitsDatabase;
 
     private boolean attachByIngestContractChecked = false;
     private final MetaDataClientFactory metaDataClientFactory;
@@ -162,40 +143,15 @@ public class ArchiveUnitListener {
      * @param handlerIO
      */
     public ArchiveUnitListener(HandlerIO handlerIO, IngestContext ingestContext, IngestSession ingestSession,
-        MetaDataClientFactory metaDataClientFactory) {
+        JsonLineDataBase unitsDatabase, MetaDataClientFactory metaDataClientFactory) {
         this.handlerIO = handlerIO;
-        this.objectMapper = getObjectMapper();
         this.ingestContext = ingestContext;
         this.ingestSession = ingestSession;
+        this.unitsDatabase = unitsDatabase;
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         RuleMapper ruleMapper = new RuleMapper();
         archiveUnitMapper = new ArchiveUnitMapper(descriptiveMetadataMapper, ruleMapper);
         this.metaDataClientFactory = metaDataClientFactory;
-    }
-
-
-    private static ObjectMapper getObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(TextType.class, new TextTypeSerializer());
-        module.addSerializer(LevelType.class, new LevelTypeSerializer());
-        module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
-        module.addSerializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeSerializer());
-        module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
-        module.addSerializer(TextByLang.class, new TextByLangSerializer());
-        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
-
-        objectMapper.registerModule(module);
-        JavaTimeModule module1 = new JavaTimeModule();
-        objectMapper.registerModule(module1);
-
-        return objectMapper;
     }
 
     /**
@@ -297,7 +253,7 @@ public class ArchiveUnitListener {
 
         // If unit does not already exists then create lifecycle
         if (!ingestSession.getExistingUnitGuids().contains(elementGUID)) {
-            storeArchiveUnit(elementGUID, archiveUnitRoot);
+            storeArchiveUnit(unitsDatabase, elementGUID, archiveUnitRoot);
             createUnitLifeCycle(elementGUID, ingestContext.getOperationId(), ingestContext.getTypeProcess());
         }
 
@@ -869,13 +825,10 @@ public class ArchiveUnitListener {
         ingestSession.getArchiveUnitTree().set(childArchiveUnitRef, childArchiveUnitNode);
     }
 
-    private void storeArchiveUnit(String elementGuid, ArchiveUnitRoot archiveUnitRoot) {
-        File tmpFile = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + elementGuid);
-        try {
-            objectMapper.writeValue(tmpFile, archiveUnitRoot);
-        } catch (IOException e) {
-            throw new RuntimeException(new ProcessingException(e));
-        }
+    private void storeArchiveUnit(JsonLineDataBase unitsDatabase, String elementGuid, ArchiveUnitRoot archiveUnitRoot) {
+        JsonNode jsonNode =
+            VitamObjectMapper.buildSerializationObjectMapper().convertValue(archiveUnitRoot, JsonNode.class);
+        unitsDatabase.write(elementGuid, jsonNode);
     }
 
     /**
