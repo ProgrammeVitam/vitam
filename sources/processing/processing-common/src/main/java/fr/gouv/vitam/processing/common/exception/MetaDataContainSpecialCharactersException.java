@@ -29,28 +29,28 @@ package fr.gouv.vitam.processing.common.exception;
 /**
  * Define a Processing Exception to be thrown when an archive unit contains a special character
  */
-public class ArchiveUnitContainSpecialCharactersException extends ProcessingException {
+public class MetaDataContainSpecialCharactersException extends ProcessingException {
     private static final long serialVersionUID = -8063612650088096556L;
 
     /**
      * @param message associated message
      * @param cause associated cause
      */
-    public ArchiveUnitContainSpecialCharactersException(String message, Throwable cause) {
+    public MetaDataContainSpecialCharactersException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param cause associated cause
      */
-    public ArchiveUnitContainSpecialCharactersException(Throwable cause) {
+    public MetaDataContainSpecialCharactersException(Throwable cause) {
         super(cause);
     }
 
     /**
      * @param message associated message
      */
-    public ArchiveUnitContainSpecialCharactersException(String message) {
+    public MetaDataContainSpecialCharactersException(String message) {
         super(message);
     }
 }

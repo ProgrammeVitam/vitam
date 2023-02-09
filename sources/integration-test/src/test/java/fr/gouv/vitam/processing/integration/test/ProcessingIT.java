@@ -204,6 +204,7 @@ import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.administration.RuleType.AccessRule;
 import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
@@ -2758,7 +2759,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void test_attach_to_au_then_add_object_to_with_invalid_type_external_ontology() throws Exception {
+    public void test_ingest_with_invalid_type_external_ontology() throws Exception {
         prepareVitamSession();
         // 1. First we create an AU by sip
         String containerName = createOperationContainer();
@@ -2793,76 +2794,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(COMPLETED, processWorkflow.getState());
-        assertEquals(WARNING, processWorkflow.getStatus());
-
-        Document operation =
-            LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
-        System.out.println(JsonHandler.prettyPrint(operation));
-
-        // 2. Add object to an existing GOT
-        containerName = createOperationContainer();
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
-        // prepare zip
-        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find(exists("_og", true));
-        Document unit = resultUnits.first();
-        assertNotNull(unit);
-        String idUnit = unit.getString("_id");
-        String idGot = unit.getString("_og");
-
-        replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-            idUnit);
-        String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
-
-
-        // use link sip
-        zipStream = new FileInputStream(new File(
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                "/" + zipName));
-
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipStream);
-        // Insert sanityCheck file & StpUpload
-        insertWaitForStepEssentialFiles(containerName);
-
-        StreamUtils.closeSilently(zipStream);
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        requestResponse =
-            processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-        assertNotNull(requestResponse);
-        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
-
-        waitOperation(containerName);
-        processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-        assertNotNull(processWorkflow.getSteps());
-        operation =
-            LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
-        System.out.println(JsonHandler.prettyPrint(operation));
-
-        MongoIterable<Document> resultGots = MetadataCollections.OBJECTGROUP.getCollection().find(eq("_id", idGot));
-        Document got = resultGots.first();
-        assertNotNull(got);
-        JsonNode gotJson = JsonHandler.getFromString(got.toJson());
-        List<JsonNode> versions = gotJson.findValues("versions");
-        assertEquals(1, versions.size());
-
-        try {
-            Files.delete(new File(zipPath).toPath());
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
+        assertEquals(KO, processWorkflow.getStatus());
     }
 
 
@@ -3298,7 +3230,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(version).isNotNull().isNotEmpty();
         Document fileInfo = version.get("FileInfo", Document.class);
         assertNotNull(fileInfo);
-        assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
+        assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
 
     }

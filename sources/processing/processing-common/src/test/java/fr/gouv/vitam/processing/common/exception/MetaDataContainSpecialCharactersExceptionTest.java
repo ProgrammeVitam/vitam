@@ -30,19 +30,19 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class ArchiveUnitContainSpecialCharactersExceptionTest {
+public class MetaDataContainSpecialCharactersExceptionTest {
 
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION =
-        "fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException";
+        "fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException";
 
     @Test
     public void testConstructor() {
-        ArchiveUnitContainSpecialCharactersException exception =
-            new ArchiveUnitContainSpecialCharactersException(ERROR, new Exception());
+        MetaDataContainSpecialCharactersException exception =
+            new MetaDataContainSpecialCharactersException(ERROR, new Exception());
         assertEquals(EXCEPTION + ": " + ERROR,
             exception.toString());
-        exception = new ArchiveUnitContainSpecialCharactersException(ERROR);
+        exception = new MetaDataContainSpecialCharactersException(ERROR);
         assertEquals(ERROR, exception.getMessage());
     }
 

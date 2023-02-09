@@ -293,6 +293,12 @@
               }
             ]
           }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_OBJECT_GROUP_SCHEMA",
+            "behavior": "BLOCKING"
+          }
         }
       ]
     },

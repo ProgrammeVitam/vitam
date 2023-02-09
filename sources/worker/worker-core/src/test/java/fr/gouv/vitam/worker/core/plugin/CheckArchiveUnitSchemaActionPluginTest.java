@@ -26,12 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -39,10 +42,12 @@ import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.validation.MetadataValidationProvider;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -121,6 +126,9 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
+    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE =
+        new TypeReference<List<OntologyModel>>() {
+        };
 
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -159,10 +167,6 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
-        UnitValidator unitValidator = new UnitValidator(null, null);
-        plugin = new CheckArchiveUnitSchemaActionPlugin(unitValidator);
-
         String objectId = "objectId";
         action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
             com.google.common.collect.Lists.newArrayList(objectId));
@@ -182,6 +186,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
         File tempFolder = temporaryFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        final File ontologyFile = (File) action.getInput(0);
+        if (ontologyFile == null) {
+            throw new IllegalStateException("Ontology file not found");
+        }
+        List<OntologyModel> ontologies = JsonHandler.getFromFileAsTypeReference(ontologyFile, LIST_TYPE_REFERENCE);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologies);
+        UnitValidator unitValidator = new UnitValidator(null, null);
+        MetadataValidationProvider metadataValidationProvider =
+            new MetadataValidationProvider(ontologyValidator, null, unitValidator);
+
+        plugin = new CheckArchiveUnitSchemaActionPlugin(metadataValidationProvider);
+
     }
 
     @After

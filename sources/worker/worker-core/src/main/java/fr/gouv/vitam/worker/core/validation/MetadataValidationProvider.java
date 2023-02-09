@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.validation;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.model.MetadataType;
@@ -50,6 +51,13 @@ public final class MetadataValidationProvider {
     }
 
     private MetadataValidationProvider() {
+    }
+
+    @VisibleForTesting
+    public MetadataValidationProvider(OntologyValidator unitOntologyValidator, OntologyValidator objectGroupOntologyValidator, UnitValidator unitValidator) {
+        this.unitValidator = unitValidator;
+        this.unitOntologyValidator = unitOntologyValidator;
+        this.objectGroupOntologyValidator = objectGroupOntologyValidator;
     }
 
     public void initialize(

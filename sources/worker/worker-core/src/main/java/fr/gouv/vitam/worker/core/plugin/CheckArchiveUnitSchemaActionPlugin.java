@@ -43,9 +43,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
-import fr.gouv.vitam.metadata.core.validation.UnitValidator;
-import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
+import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -97,15 +95,16 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         new TypeReference<List<OntologyModel>>() {
         };
 
-    private final UnitValidator unitValidator;
+    private final MetadataValidationProvider metadataValidationProvider;
+
 
     public CheckArchiveUnitSchemaActionPlugin() {
-        this(MetadataValidationProvider.getInstance().getUnitValidator());
+        this(MetadataValidationProvider.getInstance());
     }
 
     @VisibleForTesting
-    CheckArchiveUnitSchemaActionPlugin(UnitValidator unitValidator) {
-        this.unitValidator = unitValidator;
+    CheckArchiveUnitSchemaActionPlugin(MetadataValidationProvider metadataValidationProvider) {
+        this.metadataValidationProvider = metadataValidationProvider;
     }
 
     @Override
@@ -176,7 +175,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
 
             }
-        } catch (final ArchiveUnitContainSpecialCharactersException e) {
+        } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.error(e);
             itemStatus.setItemId(UNIT_SANITIZE);
             itemStatus.increment(StatusCode.KO);
@@ -217,15 +216,14 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         } catch (InvalidParseOperationException e) {
             itemStatus.setGlobalOutcomeDetailSubcode(INVALID_UNIT);
             final String err = "Sanity Checker failed for Archive Unit: " + e.getMessage();
-            throw new ArchiveUnitContainSpecialCharactersException(err, e);
+            throw new MetaDataContainSpecialCharactersException(err, e);
         }
 
         // Ontology verification and format conversion in needed
         Stopwatch ontologyTime = Stopwatch.createStarted();
 
         JsonNode archiveUnitJson = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        ObjectNode updatedArchiveUnitJson =
-            checkFieldLengthAndForceFieldTypingUsingOntologies(handlerIO, archiveUnitJson, itemStatus);
+        ObjectNode updatedArchiveUnitJson = metadataValidationProvider.getUnitOntologyValidator().verifyAndReplaceFields(archiveUnitJson);
         archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, updatedArchiveUnitJson);
         boolean isUpdateJsonMandatory = !archiveUnitJson.equals(updatedArchiveUnitJson);
 
@@ -242,32 +240,11 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         // Start / End Date validation + Internal schema validation
         Stopwatch validationJson = Stopwatch.createStarted();
 
-        this.unitValidator.validateStartAndEndDates(updatedArchiveUnitJson);
+        this.metadataValidationProvider.getUnitValidator().validateStartAndEndDates(updatedArchiveUnitJson);
 
-        this.unitValidator.validateInternalSchema(updatedArchiveUnitJson);
+        this.metadataValidationProvider.getUnitValidator().validateInternalSchema(updatedArchiveUnitJson);
 
         PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", CHECK_UNIT_SCHEMA_TASK_ID, "validationJson",
             validationJson.elapsed(TimeUnit.MILLISECONDS));
-    }
-
-    private ObjectNode checkFieldLengthAndForceFieldTypingUsingOntologies(HandlerIO handlerIO, JsonNode
-        archiveUnitJson,
-        ItemStatus itemStatus) throws ProcessingException, MetadataValidationException {
-
-        try {
-            final File ontologyFile = (File) handlerIO.getInput(ONTOLOGY_IN_RANK);
-            if (ontologyFile == null) {
-                throw new IllegalStateException("Ontology file not found");
-            }
-
-            List<OntologyModel> ontologies = JsonHandler.getFromFileAsTypeReference(ontologyFile, LIST_TYPE_REFERENCE);
-            OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologies);
-
-            return ontologyValidator.verifyAndReplaceFields(archiveUnitJson);
-
-        } catch (InvalidParseOperationException e) {
-            itemStatus.increment(StatusCode.FATAL);
-            throw new ProcessingException(UNKNOWN_TECHNICAL_EXCEPTION, e);
-        }
     }
 }
