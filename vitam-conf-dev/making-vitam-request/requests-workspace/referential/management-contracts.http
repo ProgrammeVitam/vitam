@@ -1,16 +1,36 @@
 # Configuration
 @tenant = 0
 
-@contractId = contractWithoutPolicy 20
+@contractIdentifier = contractWithoutPolicy 20
 
-### Récupérer un contrat de gestion
-GET {{url}}/admin-external/v1/managementcontracts/{{contractId}}
+### Récupérer un contrat de gestion par son identifiant
+GET {{url}}/admin-external/v1/managementcontracts/{{contractIdentifier}}
 Accept: application/json
 Content-Type: application/json
-X-Tenant-Id: {{tenant}} 
+X-Tenant-Id: {{tenant}}
 
 {
 }
+
+### MAJ la stratégie de stockage d'un contrat de gestion
+PUT {{url}}/admin-external/v1/managementcontracts/{{contractIdentifier}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "Storage.UnitStrategy" : "default",
+        "Storage.ObjectGroupStrategy" : "default",
+        "Storage.ObjectStrategy" : "default",
+
+      }
+    }
+  ]
+}
+
 
 ### import des contrats de gestions
 POST {{url}}/admin-external/v1/managementcontracts/
@@ -53,7 +73,7 @@ X-Tenant-Id: {{tenant}}
 ]
 
 ### MAJ d'un contrat de gestion
-PUT {{url}}/admin-external/v1/managementcontracts/{{contractId}}
+PUT {{url}}/admin-external/v1/managementcontracts/{{contractIdentifier}}
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}} 
