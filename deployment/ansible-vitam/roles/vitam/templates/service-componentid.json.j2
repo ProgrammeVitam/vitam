@@ -44,7 +44,7 @@
         "interval": "{{ vitam_struct.consul_business_check | default(consul_business_check) }}s"
       }
 {% endif %}
-{% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component) %}
+{% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component) or (vitam_struct.vitam_component == vitam.collect.vitam_component) %}
       ,{
         "name": "Siegfried check",
         "notes": "Is siegfried running ?",
