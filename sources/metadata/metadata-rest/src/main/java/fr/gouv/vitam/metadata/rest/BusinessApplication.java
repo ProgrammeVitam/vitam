@@ -106,16 +106,19 @@ public class BusinessApplication extends Application {
             MetadataResource metaDataResource =
                 new MetadataResource(metadata, metadataRuleService, metaDataConfiguration);
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
-            MetadataManagementResource metadataReconstruction =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata,
+            MetadataManagementResource metadataManagementResource =
+                new MetadataManagementResource(vitamRepositoryProvider, metadata,
                     metaDataConfiguration, indexManager);
+            MetadataReconstructionResource metadataReconstructionResource = new MetadataReconstructionResource(
+                vitamRepositoryProvider, offsetRepository, metaDataConfiguration, indexManager);
             final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(metaDataResource);
             singletons.add(metadataRawResource);
-            singletons.add(metadataReconstruction);
+            singletons.add(metadataManagementResource);
+            singletons.add(metadataReconstructionResource);
             singletons.add(metadataAuditResource);
             singletons.add(new SanityDynamicFeature());
         } catch (IOException e) {

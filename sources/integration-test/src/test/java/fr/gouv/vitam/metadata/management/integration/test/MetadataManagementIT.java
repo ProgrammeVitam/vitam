@@ -79,14 +79,16 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -122,14 +124,11 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
-import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
-import retrofit2.http.POST;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -325,7 +324,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_0_guid, 0, 8);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_1_guid, 0, 8);
 
-        // 3. Rest offset and relaunch reconstruct for unit and got
+        // 3. Reset offset and relaunch reconstruct for unit and got
         offsetRepository
             .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(),
                 0L);
@@ -369,18 +368,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
             .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(),
                 0L);
 
-        Response<List<ReconstructionResponseItem>> response;
-
         List<ReconstructionRequestItem> reconstructionItems = Arrays.asList(
             new ReconstructionRequestItem().setCollection(DataCategory.UNIT.name()).setTenant(TENANT_0).setLimit(2),
             new ReconstructionRequestItem().setCollection(DataCategory.MANIFEST.name()).setTenant(TENANT_0).setLimit(2)
         );
 
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body()).hasSize(2);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
+        List<ReconstructionResponseItem> reconstructionResponseItems =
+            reconstructCollection(reconstructionItems);
+        assertThat(reconstructionResponseItems.get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(reconstructionResponseItems.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
             .isEqualTo(2L);
@@ -476,18 +472,17 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void reconstruction(DataCategory dataCategory,
         MetadataCollections metadataCollection, int limit, int tenant, String strategy,
-        long expectedOffset) throws IOException {
+        long expectedOffset) {
         List<ReconstructionRequestItem> unitReconstructionItems = singletonList(
             new ReconstructionRequestItem()
                 .setCollection(dataCategory.name())
                 .setLimit(limit)
                 .setTenant(tenant));
-        Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection(unitReconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body()).hasSize(1);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(tenant);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        List<ReconstructionResponseItem> reconstructionResponseItems =
+            reconstructCollection(unitReconstructionItems);
+        assertThat(reconstructionResponseItems).hasSize(1);
+        assertThat(reconstructionResponseItems.get(0).getTenant()).isEqualTo(tenant);
+        assertThat(reconstructionResponseItems.get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(offsetRepository.findOffsetBy(tenant, strategy, metadataCollection.getName()))
             .isEqualTo(expectedOffset);
     }
@@ -620,15 +615,14 @@ public class MetadataManagementIT extends VitamRuleRunner {
         reconstructionItem.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem);
 
-        Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(1);
+        List<ReconstructionResponseItem> response =
+            reconstructCollection(reconstructionItems);
+        assertThat(response.size()).isEqualTo(1);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
             .isEqualTo(4L);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getTenant()).isEqualTo(0);
+        assertThat(response.get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
         assertThat(metadataResponse.isOk()).isTrue();
@@ -663,9 +657,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         reconstructionItem.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem);
 
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(1);
+        response = reconstructCollection(reconstructionItems);
+        assertThat(response.size()).isEqualTo(1);
 
         // Check Unit
         String expectedUnitJson = "integration-metadata-management/expected/units_1.json";
@@ -678,7 +671,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(
             offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
             .isEqualTo(5L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getStatus()).isEqualTo(StatusCode.OK);
     }
 
 
@@ -763,10 +756,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
         reconstructionItems.add(reconstructionItem);
 
 
-        Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(4);
+        List<ReconstructionResponseItem> response =
+            reconstructCollection(reconstructionItems);
+        assertThat(response.size()).isEqualTo(4);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
             .isEqualTo(4L);
@@ -779,21 +771,21 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(offsetRepository
             .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name()))
             .isEqualTo(9L);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getTenant()).isEqualTo(0);
+        assertThat(response.get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
+        assertThat(response.get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        assertThat(response.body().get(1).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(1).getTenant()).isEqualTo(0);
+        assertThat(response.get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
+        assertThat(response.get(1).getStatus()).isEqualTo(StatusCode.OK);
 
-        assertThat(response.body().get(2).getTenant()).isEqualTo(1);
-        assertThat(response.body().get(2).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
-        assertThat(response.body().get(2).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(2).getTenant()).isEqualTo(1);
+        assertThat(response.get(2).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
+        assertThat(response.get(2).getStatus()).isEqualTo(StatusCode.OK);
 
-        assertThat(response.body().get(3).getTenant()).isEqualTo(1);
-        assertThat(response.body().get(3).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
-        assertThat(response.body().get(3).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(3).getTenant()).isEqualTo(1);
+        assertThat(response.get(3).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
+        assertThat(response.get(3).getStatus()).isEqualTo(StatusCode.OK);
 
 
         // Check Unit
@@ -851,23 +843,22 @@ public class MetadataManagementIT extends VitamRuleRunner {
         reconstructionItem.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem);
 
-        Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
+        List<ReconstructionResponseItem> response =
+            reconstructCollection(reconstructionItems);
+        assertThat(response.size()).isEqualTo(2);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
             .isEqualTo(1L);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name()))
             .isEqualTo(2L);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(1);
-        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getTenant()).isEqualTo(1);
+        assertThat(response.get(0).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
+        assertThat(response.get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        assertThat(response.body().get(1).getTenant()).isEqualTo(1);
-        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(1).getTenant()).isEqualTo(1);
+        assertThat(response.get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
+        assertThat(response.get(1).getStatus()).isEqualTo(StatusCode.OK);
 
 
 
@@ -922,22 +913,21 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         response =
-            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
+            reconstructCollection(reconstructionItems);
+        assertThat(response.size()).isEqualTo(2);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
             .isEqualTo(6L);
         assertThat(offsetRepository
             .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName()))
             .isEqualTo(9L);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getTenant()).isEqualTo(0);
+        assertThat(response.get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
+        assertThat(response.get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        assertThat(response.body().get(1).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(1).getTenant()).isEqualTo(0);
+        assertThat(response.get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
+        assertThat(response.get(1).getStatus()).isEqualTo(StatusCode.OK);
 
 
 
@@ -1462,7 +1452,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Replace _glpd, _acd and _aud with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
             jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
-            if(validateMetadata) {
+            if (validateMetadata) {
                 assertThat(jsonUnit.get(MetadataDocument.APPROXIMATE_CREATION_DATE)).isNotNull();
                 assertThat(jsonUnit.get(MetadataDocument.APPROXIMATE_UPDATE_DATE)).isNotNull();
                 jsonUnit.put(MetadataDocument.APPROXIMATE_CREATION_DATE, "#TIMESTAMP#");
@@ -1643,16 +1633,16 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storageClient.delete(VitamConfiguration.getDefaultStrategy(), type, fileName + extension);
     }
 
+    private static List<ReconstructionResponseItem> reconstructCollection(
+        List<ReconstructionRequestItem> reconstructionItems) {
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            return metadataClient.reconstructCollection(reconstructionItems);
+        } catch (MetaDataNotFoundException | MetaDataClientServerException | InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public interface MetadataManagementResource {
-        @POST("/metadata/v1/reconstruction")
-        @Headers({
-            "Accept: application/json",
-            "Content-Type: application/json"
-        })
-        Call<List<ReconstructionResponseItem>> reconstructCollection(
-            @Body List<ReconstructionRequestItem> reconstructionItems);
-
-
 
         @GET("/metadata/v1/storegraph")
         @Headers({

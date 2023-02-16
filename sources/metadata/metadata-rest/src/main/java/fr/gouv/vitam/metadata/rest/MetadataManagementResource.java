@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -57,7 +56,6 @@ import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -77,11 +75,7 @@ import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
-import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
-import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
@@ -103,9 +97,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
@@ -138,11 +129,7 @@ public class MetadataManagementResource {
     private static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
     private static final String EXPORT_RECLASSIFICATION_CHILD_NODES = "exportReclassificationChildNodes";
 
-    private static final String RECONSTRUCTION_URI = "/reconstruction";
-    private static final String STORE_GRAPH_URI = "/storegraph";
     private static final String COMPUTE_GRAPH_URI = "/computegraph";
-    private static final String PURGE_GRAPH_ONLY_DOCUMENTS_URI = "/purgeGraphOnlyDocuments";
-    private static final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
     private static final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
     private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI =
         "/units/computedInheritedRules/processObsoletes";
@@ -153,16 +140,9 @@ public class MetadataManagementResource {
     /**
      * Error/Exceptions messages.
      */
-    private static final String RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG =
-        "the Json input of reconstruction's parameters is mandatory.";
-    private static final String RECONSTRUCTION_EXCEPTION_MSG =
-        "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
-    private static final String STORE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when sotre graph: ";
     private static final String COMPUTE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when compute graph: ";
     private static final String ERROR_MSG = "{\"ErrorMsg\":\"";
 
-    private final ReconstructionService reconstructionService;
-    private final StoreGraphService storeGraphService;
     private final GraphComputeService graphComputeService;
     private final ReclassificationDistributionService reclassificationDistributionService;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
@@ -171,10 +151,9 @@ public class MetadataManagementResource {
     private final ExportsPurgeService exportsPurgeService;
 
     MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository, MetaDataImpl metadata, MetaDataConfiguration configuration,
+        MetaDataImpl metadata, MetaDataConfiguration configuration,
         ElasticsearchMetadataIndexManager indexManager) {
-        this(new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager),
-            new StoreGraphService(vitamRepositoryProvider),
+        this(
             GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata, indexManager),
             new ReclassificationDistributionService(metadata),
             ProcessingManagementClientFactory.getInstance(),
@@ -186,8 +165,6 @@ public class MetadataManagementResource {
 
     @VisibleForTesting
     MetadataManagementResource(
-        ReconstructionService reconstructionService,
-        StoreGraphService storeGraphService,
         GraphComputeService graphComputeService,
         ReclassificationDistributionService reclassificationDistributionService,
         ProcessingManagementClientFactory processingManagementClientFactory,
@@ -195,8 +172,6 @@ public class MetadataManagementResource {
         WorkspaceClientFactory workspaceClientFactory,
         MetaDataConfiguration configuration,
         ExportsPurgeService exportsPurgeService) {
-        this.reconstructionService = reconstructionService;
-        this.storeGraphService = storeGraphService;
         this.graphComputeService = graphComputeService;
         this.reclassificationDistributionService = reclassificationDistributionService;
         this.processingManagementClientFactory = processingManagementClientFactory;
@@ -208,88 +183,7 @@ public class MetadataManagementResource {
     }
 
     /**
-     * API to access and launch the Vitam reconstruction service for metadatas.<br/>
-     *
-     * @param reconstructionItems list of reconstruction request items
-     * @return the response
-     */
-    @Path(RECONSTRUCTION_URI)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response reconstructCollection(List<ReconstructionRequestItem> reconstructionItems) {
-        ParametersChecker.checkParameter(RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG, reconstructionItems);
-
-        List<ReconstructionResponseItem> responses = new ArrayList<>();
-        if (!reconstructionItems.isEmpty()) {
-            LOGGER.debug(String
-                .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
-
-            reconstructionItems.forEach(item -> {
-                LOGGER.debug(String.format(
-                    "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
-                    item.getCollection(), item.getTenant(), item.getLimit()));
-                try {
-                    responses.add(reconstructionService.reconstruct(item));
-                } catch (IllegalArgumentException e) {
-                    LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
-                    responses.add(new ReconstructionResponseItem(item, StatusCode.KO));
-                }
-            });
-        }
-
-        return Response.ok().entity(responses).build();
-    }
-
-
-    /**
-     * API to access and launch the Vitam store graph service for metadatas.<br/>
-     *
-     * @return the response
-     */
-    @Path(STORE_GRAPH_URI)
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response storeGraph() {
-        try {
-            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
-
-            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-            Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
-            return Response.ok().entity(map).build();
-        } catch (Exception e) {
-            LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
-            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
-        }
-    }
-
-    /**
-     * Check if store graph is in progress.<br/>
-     *
-     * @return the response
-     */
-    @Path(STORE_GRAPH_PROGRESS_URI)
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response storeGraphInProgress() {
-
-        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
-
-        boolean inProgress = this.storeGraphService.isInProgress();
-        if (inProgress) {
-            LOGGER.info("Store graph in progress ...");
-            return Response.ok("{\"msg\": \"Store graph in progress ...\"}").build();
-        } else {
-            LOGGER.info("No active store graph");
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active store graph\"}")
-                .build();
-        }
-    }
-
-    /**
-     * API to access and launch the Vitam graph builder service for metadatas.<br/>
+     * API to access and launch the Vitam graph builder service for metadata.<br/>
      *
      * @return the response
      */
@@ -346,7 +240,7 @@ public class MetadataManagementResource {
 
 
     /**
-     * API to access and launch the Vitam graph builder service for metadatas.<br/>
+     * API to access and launch the Vitam graph builder service for metadata.<br/>
      *
      * @return the response
      */
@@ -394,43 +288,6 @@ public class MetadataManagementResource {
             return Response.ok().build();
         } catch (Exception e) {
             LOGGER.error("Could not export child nodes for reclassification graph update", e);
-            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
-        }
-    }
-
-
-
-    /**
-     * API to purge documents reconstructed but having only graph data
-     * This will remove all documents older than a configured delay (deleteIncompleteReconstructedUnitDelay) in vitam conf
-     *
-     * @return the response
-     */
-    @Path(PURGE_GRAPH_ONLY_DOCUMENTS_URI + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response purgeReconstructedDocumentsWithGraphOnlyData(@PathParam("collection") GraphComputeAction action) {
-        try {
-            switch (action) {
-                case UNIT:
-                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
-                    break;
-                case OBJECTGROUP:
-                    reconstructionService
-                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
-                    break;
-                case UNIT_OBJECTGROUP:
-                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
-                    reconstructionService
-                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Not implemented action :" + action);
-            }
-
-            return Response.ok().build();
-        } catch (Exception e) {
-            LOGGER.error("Could not purge reconstructed documents with graph only data", e);
             return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
@@ -588,8 +445,8 @@ public class MetadataManagementResource {
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException |
-            ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
-            VitamClientException | OperationContextException e) {
+                 ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
+                 VitamClientException | OperationContextException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,

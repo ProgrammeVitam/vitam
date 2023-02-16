@@ -71,8 +71,8 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -83,6 +83,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import io.prometheus.client.Histogram;
@@ -372,7 +373,7 @@ public class ReconstructionService {
             }
             List<StorageStrategy> storageStrategies =
                 ((RequestResponseOK<StorageStrategy>) strategiesResponse).getResults().stream().filter(s ->
-                    s.getOffers().stream().filter(offer -> offer.isReferent()).filter(offer -> offer.isEnabled())
+                    s.getOffers().stream().filter(OfferReference::isReferent).filter(OfferReference::isEnabled)
                         .count() == 1).collect(Collectors.toList());
 
             if (!StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies)) {
