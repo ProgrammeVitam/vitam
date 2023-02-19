@@ -102,13 +102,13 @@ COPY deb/vitam-maven-build-only /usr/bin/
 COPY vitam-redeploy /usr/bin/
 COPY vitam-redeploy-extra /usr/bin/
 COPY vitam-command /usr/bin/
-COPY deb/vitam-deploy-cots /usr/bin/
+COPY deb/vitam-deploy-podman-cots /usr/bin/vitam-deploy-cots
 RUN  chmod a+x /usr/bin/vitam-*
 
 # KWA review : Why remove this script ?
 COPY deb/profile-build-repo.sh /etc/profile.d/
 COPY profile-prompt-usage.sh /etc/profile.d/
-COPY .bashrc /devhome
+COPY .bashrc /root
 COPY vitam-usage.txt /etc/
 COPY deb/sudo-nopwd /etc/sudoers.d/
 RUN chmod 664 /etc/sudoers.d/sudo-nopwd
@@ -119,7 +119,7 @@ ENV TERM xterm
 
 VOLUME [ "/sys/fs/cgroup" ]
 VOLUME [ "/code" ]
-VOLUME [ "/devhome/.m2" ]
+VOLUME [ "/root/.m2" ]
 
 WORKDIR /code
 

@@ -3,3 +3,6 @@
 *.tar
 *.tar.gz
 .config
+**/bin/
+**/app/
+*.yml
