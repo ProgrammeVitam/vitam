@@ -1,0 +1,120 @@
+{
+	"_id": "aebaaaaaaahaaohxabla2amgcgoxu6yaaaaq",
+	"_tenant": 0,
+	"_profil": "",
+	"FileInfo": {},
+	"_qualifiers": [
+		{
+			"qualifier": "BinaryMaster",
+			"_nbc": 1,
+			"versions": [
+				{
+					"_id": "aeaaaaaaaahaaohxabla2amgcgoxu6qaaaba",
+					"DataObjectGroupId": "aebaaaaaaahaaohxabla2amgcgoxu6yaaaaq",
+					"DataObjectVersion": "BinaryMaster_1",
+					"FormatIdentification": {
+						"FormatLitteral": "OpenDocument Text",
+						"MimeType": "application/vnd.oasis.opendocument.text",
+						"FormatId": "fmt/291"
+					},
+					"FileInfo": {
+						"Filename": "idArk2.odt",
+						"LastModified": "2021-07-09T15:04:00"
+					},
+					"Metadata": {
+						"Video": {
+							"VideoStream": {
+								"FormatNameVideo": [
+									"AVC",
+									"AVC"
+								],
+								"FrameHeight": [
+									"720",
+									"720"
+								],
+								"FrameWidth": [
+									"1280",
+									"1280"
+								],
+								"FrameRate": [
+									"29,97",
+									"29,97"
+								],
+								"FrameAspectRatio": [
+									"1,778",
+									"1,778"
+								],
+								"BitRateVideo": [
+									"7880000",
+									"7880000"
+								],
+								"BitDepthVideo": [
+									"8",
+									"8"
+								]
+							},
+							"AudioStream": {
+								"FormatNameAudio": [
+									"AAC",
+									"AAC"
+								],
+								"SamplingRate": [
+									"48000",
+									"48000"
+								],
+								"AudioChannels": [
+									"2",
+									"2"
+								],
+								"BitRateAudio": [
+									"317000",
+									"317000"
+								]
+							}
+						}
+					},
+					"_opi": "aeeaaaaaaceevqftaaxacamgcgoxibaaaaaq",
+					"Size": "24195",
+					"Uri": "content/ID19.odt",
+					"MessageDigest": "2055fa537ca0761f5faa0a95fb2e1c7fc2b27a3773b3727e309b11e034bcb749d65f7f9880643a8fdd9bedd30688cf0f4955d05a30f7484f091d8292849b603f",
+					"Algorithm": "SHA-512"
+				}
+			]
+		}
+	],
+	"_work": {
+		"_qualifiers": {
+			"BinaryMaster_1": {
+				"_nbc": 1,
+				"versions": [
+					{
+						"_id": "aeaaaaaaaahaaohxabla2amgcgoxu6qaaaba",
+						"_opi": "aeeaaaaaaceevqftaaxacamgcgoxibaaaaaq",
+						"Size": "24195",
+						"Uri": "content/ID19.odt",
+						"MessageDigest": "2055fa537ca0761f5faa0a95fb2e1c7fc2b27a3773b3727e309b11e034bcb749d65f7f9880643a8fdd9bedd30688cf0f4955d05a30f7484f091d8292849b603f",
+						"Algorithm": "SHA-512",
+						"_storage": {
+							"strategyId": "default"
+						}
+					}
+				]
+			}
+		}
+	},
+	"_up": [
+		"aeaqaaaaaahaaohxabla2amgcgoxv5iaaaaq"
+	],
+	"_nbc": 1,
+	"_ops": [
+		"aeeaaaaaaceevqftaaxacamgcgoxibaaaaaq"
+	],
+	"_opi": "aeeaaaaaaceevqftaaxacamgcgoxibaaaaaq",
+	"_sp": "Service_producteur",
+	"_sps": [
+		"Service_producteur"
+	],
+	"_storage": {
+		"strategyId": "default"
+	}
+}

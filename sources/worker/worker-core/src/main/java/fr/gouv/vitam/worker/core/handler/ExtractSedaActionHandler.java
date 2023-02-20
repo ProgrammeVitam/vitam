@@ -113,7 +113,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
-import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
+import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentRequiredException;
@@ -507,7 +507,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 getMessageItemStatusAUDeclaringObject(e.getUnitId(), e.getBdoId(), e.getGotId()),
                 EXISTING_OG_NOT_DECLARED);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ArchiveUnitContainSpecialCharactersException e) {
+        } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.debug("ProcessingException: archive unit contains special characters.", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingUnitLinkingException e) {

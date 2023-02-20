@@ -99,7 +99,7 @@ public class OntologyValidator {
         }
 
         if (!errors.isEmpty()) {
-            String error = "Archive unit contains fields declared in ontology with a wrong format : " +
+            String error = "metadata contains fields declared in ontology with a wrong format : " +
                 CollectionUtils.join(errors, ",");
             throw new MetadataValidationException(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE, error);
         }

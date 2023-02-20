@@ -659,7 +659,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             assertThat(reportDetailsByQueryIndex.get(2).get("status").asText()).isEqualTo("KO");
             assertThat(reportDetailsByQueryIndex.get(2).get("resultKey").asText()).isEqualTo("CHECK_UNIT_SCHEMA");
             assertThat(reportDetailsByQueryIndex.get(2).get("message").asText())
-                .contains("Archive unit contains fields declared in ontology with a wrong format");
+                .contains("metadata contains fields declared in ontology with a wrong format");
             assertThat(reportDetailsByQueryIndex.get(2).get("query").asText())
                 .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(2)));
 

@@ -425,5 +425,9 @@
   },
   "DELETE_GOT_VERSIONS_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsFinalizationPlugin"
+  },
+  "CHECK_OBJECT_GROUP_SCHEMA": {
+    "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectGroupSchemaActionPlugin",
+    "propertiesFile": "check_object_group_schema_plugin.properties"
   }
 }

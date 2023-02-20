@@ -347,6 +347,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/OK_OBJECT.zip";
     private static String SIP_WITH_ARCHIVE_PROFILE =
         "integration-ingest-internal/OK_SIPwithProfilRNG.zip";
+    private static String SIP_CHECK_OG_SCHEMA = "integration-ingest-internal/OK_og_schema.zip";
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -499,9 +500,11 @@ public class IngestInternalIT extends VitamRuleRunner {
             checkApproximateDates(dateBeforeIngest, objectGroup);
 
             // Bug 5159: check that all ObjectGroup _up are in _us
-            assertThat(JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.allunitups()), List.class,
-                String.class)).containsAll(
-                JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.unitups()), List.class, String.class));
+            assertThat(
+                JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.allunitups()), List.class,
+                    String.class)).containsAll(
+                JsonHandler.<List<String>>getFromJsonNode(objectGroup.get(VitamFieldsHelper.unitups()), List.class,
+                    String.class));
             final String objectId = objectGroup.get(VitamFieldsHelper.id()).asText();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage =
@@ -1615,7 +1618,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Save units in Elasticsearch
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(unitList);
 
 
@@ -2201,7 +2204,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .contains(operationGuid.getId()));
             assertEquals(operationGuid.getId(),
                 logbookOperation.get(RESULTS).get(0).get(
-                        LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
+                    LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
                     .asText());
             assertEquals(1, logbookOperation.get(RESULTS).get(0).get("events").size());
             logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
@@ -2528,5 +2531,46 @@ public class IngestInternalIT extends VitamRuleRunner {
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.eq(titleType, name));
         return metadataClient.selectUnits(select.getFinalSelect());
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testOgValidSchemaIngestInternal() throws Exception {
+        GUID operationGuid = null;
+        try {
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_CHECK_OG_SCHEMA);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, WARNING);
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            final JsonNode node =
+                getArchiveUnitWithTitle(metadataClient, "Interview de Marie-Laure Moquet-Anger", TITLE);
+            SelectMultiQuery select;
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get(RESULTS);
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+            final String og = unit.get("#object").asText();
+            assertNotNull(og);
+            // Try to check OG
+            select = new SelectMultiQuery();
+            select.addRoots(og);
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+            LOGGER.warn("Result: " + jsonResponse);
+            final JsonNode
+                frameHeight =
+                jsonResponse.get(RESULTS).get(0).get("#qualifiers").get(0).get("versions").get(0).get("Metadata")
+                    .get("Video").get("VideoStream").get(0).get("FrameHeight").get(0);
+            assertThat(frameHeight.isInt());
+            assertThat(frameHeight.asInt()).isEqualTo(720);
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            VitamTestHelper.printLogbook(operationGuid.getId());
+            throw e;
+        }
     }
 }

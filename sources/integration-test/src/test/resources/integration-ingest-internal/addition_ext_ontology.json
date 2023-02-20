@@ -78,5 +78,15 @@
     "Collections": [
       "Unit", "ObjectGroup"
     ]
+  },
+  {
+    "Identifier": "FrameHeight",
+    "ApiField": "FrameHeight",
+    "Origin": "EXTERNAL",
+    "Type": "LONG",
+    "Description": "Extension au SEDA. Elément de type chiffre",
+    "Collections": [
+      "ObjectGroup"
+    ]
   }
 ]
