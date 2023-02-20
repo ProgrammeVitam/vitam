@@ -104,11 +104,11 @@ alertEvents:
 - outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
 
 # Traceability params
-operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay }}
-operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay }}
-operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit }}
-operationTraceabilityThreadPoolSize: {{ vitam.logbook.operationTraceabilityThreadPoolSize }}
-lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityTemporizationDelay }}
-lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay }}
-lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit }}
-lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries }}
+operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay | default(300) }}
+operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay | default(690) }}
+operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+operationTraceabilityThreadPoolSize: {{ vitam.logbook.operationTraceabilityThreadPoolSize | default(16) }}
+lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityTemporizationDelay | default(300) }}
+lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default(690) }}
+lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries | default(100000) }}

@@ -116,8 +116,8 @@ adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
 
-isDataConsistencyAuditRunnable: {{ vitam.metadata.isDataConsistencyAuditRunnable }}
-dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize }}
+isDataConsistencyAuditRunnable: {{ vitam.metadata.isDataConsistencyAuditRunnable | default(false) }}
+dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize | default(100) }}
 mongodShardsConf:
   dbUserName: {{ mongodb['mongo-data']['localadmin']['user'] }}
   dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}

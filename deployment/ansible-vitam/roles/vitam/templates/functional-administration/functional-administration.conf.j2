@@ -70,5 +70,5 @@ listMinimumRuleDuration:
   {% endfor %}
 {% endif %}
 
-accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize }}
-ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize }}
+accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize | default(16) }}
+ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize | default(16) }}
