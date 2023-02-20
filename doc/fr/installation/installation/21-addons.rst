@@ -270,9 +270,9 @@ La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la liste
     vitam:
       worker:
             # api_output_index_tenants : permet d'indexer les règles de gestion, les chemins des règles et les services producteurs
-            api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
+            api_output_index_tenants: [0-9]
             # rules_index_tenants : permet d'indexer les règles de gestion
-            rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
+            rules_index_tenants: [0-9]
 
 Durées minimales permettant de contrôler les valeurs saisies
 ==============================================================
@@ -288,12 +288,12 @@ Exemple:
   vitam_tenant_rule_duration:
     - name: 2 # applied tenant
       rules:
-        - AppraisalRule : "1 year" # rule name : rule value
+        - AppraisalRule: "1 year" # rule name : rule value
     - name: 3
       rules:
-        AppraisaleRule : "5 year"
-        StorageRule : "5 year"
-        ReuseRule : "2 year"
+        - AppraisaleRule: "5 year"
+        - StorageRule: "5 year"
+        - ReuseRule: "2 year"
 
 
 Par `tenant`, les directives possibles sont :
@@ -510,7 +510,7 @@ Exemple:
               tenants: [1]
               tarBufferingTimeoutInMinutes: 60
             prod:
-              tenants: [2,3,4,5,6,7,8,9]
+              tenants: [2-9]
               tarBufferingTimeoutInMinutes: 60
 ..
 

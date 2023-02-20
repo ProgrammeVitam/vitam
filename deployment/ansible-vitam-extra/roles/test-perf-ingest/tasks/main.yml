@@ -52,7 +52,7 @@
   run_once: true # Limit as this upload is not related to tenants
   when: connected.set_cookie != ''
   with_items:
-    - "{{ vitam_tenant_ids|first }}"
+    - "{{ vitam_tenant_ids | expand_list | first }}"
   register: launched
 
 - name: Wait until ingest is finished

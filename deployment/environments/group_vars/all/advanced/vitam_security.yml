@@ -4,7 +4,7 @@ hide_passwords_during_deploy: true
 
 ### Admin context name and tenants ###
 admin_context_name: "admin-context"
-admin_context_tenants: "{{ vitam_tenant_ids }}"
+admin_context_tenants: "{{ vitam_tenant_ids | expand_list }}"
 
 # Indicate context certificates relative paths under {{ inventory_dir }}/certs/client-external/clients
 # vitam-admin-int is mandatory for internal use (PRONOM upload)

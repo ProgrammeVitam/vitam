@@ -42,7 +42,7 @@
                 </entry>
                 <entry>
                     <key>selectedTenants</key>
-                    <value>{{ item.selected_tenants | default([]) | join(',') }}</value>
+                    <value>{{ item.selected_tenants | default([]) | expand_list | join(',') }}</value>
                 </entry>
             </job-data-map>
         </job>
@@ -73,7 +73,7 @@
                 </entry>
                 <entry>
                     <key>selectedTenants</key>
-                    <value>{{ item.selected_tenants | default([]) | join(',') }}</value>
+                    <value>{{ item.selected_tenants | default([]) | expand_list | join(',') }}</value>
                 </entry>
             </job-data-map>
         </job>

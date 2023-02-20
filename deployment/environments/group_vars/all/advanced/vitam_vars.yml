@@ -450,8 +450,8 @@ vitam:
     port_admin: 29104
     baseuri: "worker"
     https_enabled: false
-    api_output_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
-    rules_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
+    api_output_index_tenants: "{{ vitam_tenant_ids }}"
+    rules_index_tenants: "{{ vitam_tenant_ids }}"
     # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
     archiveUnitProfileCacheMaxEntries: 100
     archiveUnitProfileCacheTimeoutInSeconds: 300

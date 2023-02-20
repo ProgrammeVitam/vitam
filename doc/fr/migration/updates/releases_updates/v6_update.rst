@@ -94,7 +94,7 @@ Dans le fichier de configuration suivant: ``environments/group_vars/all/main/mai
     collect_grouped_tenants:
     - name: 'all'
       # Group all tenants for collect's indexes (collect_unit & collect_objectgroup)
-      tenants: "{{ vitam_tenant_ids | join(',') }}"
+      tenants: "{{ vitam_tenant_ids }}"
 
 ..
 
