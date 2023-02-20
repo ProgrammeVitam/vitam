@@ -1,0 +1,10 @@
+### Initialize scheduler on dev machine
+POST http://localhost:28799/scheduler/v1/jobs
+
+
+### Pause scheduling on dev machine
+PUT http://localhost:28799/scheduler/v1/pause/ALL
+
+
+### Resume scheduling on dev machine
+PUT http://localhost:28799/scheduler/v1/resume/ALL
