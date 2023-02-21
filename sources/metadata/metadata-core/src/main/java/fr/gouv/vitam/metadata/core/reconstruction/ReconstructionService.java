@@ -285,7 +285,7 @@ public class ReconstructionService {
 
                     // Read zip file from offer
                     try (InputStream zipFileAsStream = restoreBackupService.loadData(
-                        VitamConfiguration.getDefaultStrategy(), dataCategory, offerLog.getFileName())) {
+                        VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory, offerLog.getFileName())) {
 
                         // Copy file to local tmp to prevent risk of broken stream
                         Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -353,7 +353,10 @@ public class ReconstructionService {
         final List<String> strategies = loadStrategies();
 
         for (String strategy : strategies) {
-            StatusCode currentStatusCode = reconstructCollection(collection, tenant, strategy, limit);
+
+            String referentOffer = getReferentOffer(strategy);
+
+            StatusCode currentStatusCode = reconstructCollection(collection, tenant, strategy, referentOffer, limit);
             if (currentStatusCode.getStatusLevel() > response.getStatus().getStatusLevel()) {
                 response.setStatus(currentStatusCode);
             }
@@ -389,7 +392,8 @@ public class ReconstructionService {
         }
     }
 
-    private StatusCode reconstructCollection(MetadataCollections collection, int tenant, String strategy, int limit) {
+    private StatusCode reconstructCollection(MetadataCollections collection, int tenant, String strategy,
+        String referentOffer, int limit) {
         StatusCode resultStatusCode;
         final long offset = offsetRepository.findOffsetBy(tenant, strategy, collection.getName());
         LOGGER.info(String.format(
@@ -417,7 +421,6 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            String referentOffer = storageClientFactory.getClient().getReferentOffer(strategy);
             Iterator<OfferLog> listing =
                 restoreBackupService.getListing(strategy, referentOffer, type, offset, limit, Order.ASC,
                     VitamConfiguration.getRestoreBulkSize());
@@ -450,7 +453,7 @@ public class ReconstructionService {
                     }
                 }
 
-                processWrittenMetadata(collection, tenant, strategy, writtenMetadata);
+                processWrittenMetadata(collection, tenant, strategy, referentOffer, writtenMetadata);
 
                 processDeletedMetadata(collection, deletedMetadataIds);
 
@@ -485,7 +488,7 @@ public class ReconstructionService {
      * reconstruct Vitam collection from the backup data.
      */
     private void processWrittenMetadata(MetadataCollections collection, int tenant, String strategy,
-        List<OfferLog> writtenMetadata)
+        String referentOffer, List<OfferLog> writtenMetadata)
         throws StorageException, DatabaseException, LogbookClientException, InvalidParseOperationException {
 
         if (writtenMetadata.isEmpty()) {
@@ -494,7 +497,8 @@ public class ReconstructionService {
 
         for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
 
-            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, strategy, writtenMetadata);
+            List<MetadataBackupModel> dataFromOffer =
+                loadMetadataSet(collection, tenant, strategy, referentOffer, writtenMetadata);
 
             if (dataFromOffer.isEmpty()) {
                 // NOP
@@ -530,14 +534,15 @@ public class ReconstructionService {
     }
 
     private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant, String strategy,
-        List<OfferLog> writtenMetadata) throws StorageException {
+        String referentOffer, List<OfferLog> writtenMetadata) throws StorageException {
 
         List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
         for (OfferLog offerLog : writtenMetadata) {
 
             try {
                 MetadataBackupModel model =
-                    restoreBackupService.loadData(strategy, collection, offerLog.getFileName(), offerLog.getSequence());
+                    restoreBackupService.loadData(strategy, referentOffer, collection, offerLog.getFileName(),
+                        offerLog.getSequence());
 
                 if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
                     throw new StorageException(String.format(
@@ -899,6 +904,14 @@ public class ReconstructionService {
             this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).remove(query);
         } catch (DatabaseException e) {
             LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
+        }
+    }
+
+    private String getReferentOffer(String strategy) {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            return storageClient.getReferentOffer(strategy);
+        } catch (StorageServerClientException | StorageNotFoundClientException e) {
+            throw new VitamRuntimeException("ERROR: Cannot retrieve referent offer", e);
         }
     }
 }
