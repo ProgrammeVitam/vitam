@@ -14,7 +14,6 @@
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
 
- 
 
 {% if primary_site | lower == "false" %}
       <schedule>
@@ -94,19 +93,19 @@
               <job-data-map>
                 <entry>
                     <key>operationTraceabilityMaxRenewalDelay</key>
-                    <value>{{ vitam.logbook.operationTraceabilityMaxRenewalDelay | default('12') }}</value>
+                    <value>{{ vitam.logbook.operationTraceabilityMaxRenewalDelay | default(690) }}</value>
                 </entry>
                 <entry>
                     <key>operationTraceabilityMaxRenewalDelayUnit</key>
-                    <value> {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit | default('HOURS') }}</value>
+                    <value> {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}</value>
                 </entry>
                 <entry>
                     <key>lifecycleTraceabilityMaxRenewalDelay</key>
-                    <value>{{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default('12') }}</value>
+                    <value>{{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default(690) }}</value>
                 </entry>
                 <entry>
                     <key>lifecycleTraceabilityMaxRenewalDelayUnit</key>
-                    <value>{{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('HOURS') }}</value>
+                    <value>{{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}</value>
                 </entry>
             </job-data-map>
         </job>

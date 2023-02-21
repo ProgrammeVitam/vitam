@@ -1,4 +1,4 @@
-
+#jinja2: lstrip_blocks: True
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
@@ -27,40 +27,40 @@ elasticsearchNodes:
 elasticsearchTenantIndexation:
   default_config:
     logbookoperation:
-      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards }}
-      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas }}
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards | default('1') }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas | default('2') }}
 
 {% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
   dedicated_tenants:
-{% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
-{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  {% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
   - tenants: '{{ entry.tenants }}'
+    {% if entry.logbookoperation is defined %}
     logbookoperation:
-{% if entry.logbookoperation.number_of_shards is defined %}
+      {% if entry.logbookoperation.number_of_shards is defined %}
       number_of_shards: {{ entry.logbookoperation.number_of_shards }}
-{% endif %}
-{% if entry.logbookoperation.number_of_replicas is defined %}
+      {% endif %}
+      {% if entry.logbookoperation.number_of_replicas is defined %}
       number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
-{% endif %}
-{% endif %}
-{% endfor %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
 {% endif %}
 
 {% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
   grouped_tenants:
-{% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
-{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  {% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
   - name: '{{ entry.name }}'
     tenants: '{{ entry.tenants }}'
+    {% if entry.logbookoperation is defined %}
     logbookoperation:
-{% if entry.logbookoperation.number_of_shards is defined %}
+      {% if entry.logbookoperation.number_of_shards is defined %}
       number_of_shards: {{ entry.logbookoperation.number_of_shards }}
-{% endif %}
-{% if entry.logbookoperation.number_of_replicas is defined %}
+      {% endif %}
+      {% if entry.logbookoperation.number_of_replicas is defined %}
       number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
-{% endif %}
-{% endif %}
-{% endfor %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
 {% endif %}
 
 #Basic Authentication
@@ -104,11 +104,11 @@ alertEvents:
 - outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
 
 # Traceability params
-operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay }}
-operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay }}
-operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit }}
-operationTraceabilityThreadPoolSize: {{ vitam.logbook.operationTraceabilityThreadPoolSize }}
-lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityTemporizationDelay }}
-lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay }}
-lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit }}
-lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries }}
+operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay | default(300) }}
+operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay | default(690) }}
+operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+operationTraceabilityThreadPoolSize: {{ vitam.logbook.operationTraceabilityThreadPoolSize | default(16) }}
+lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityTemporizationDelay | default(300) }}
+lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default(690) }}
+lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries | default(100000) }}

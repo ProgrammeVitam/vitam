@@ -75,6 +75,20 @@ vitam_elasticsearch_tenant_indexation:
     logbookoperation:
       number_of_shards: 1
       number_of_replicas: 2
+    # Default settings for collect_unit indexes
+    collect_unit:
+      number_of_shards: 1
+      number_of_replicas: 2
+    # Default settings for collect_objectgroup indexes
+    collect_objectgroup:
+      number_of_shards: 1
+      number_of_replicas: 2
+
+  collect_grouped_tenants:
+  - name: 'all'
+    # Group all tenants for collect's indexes (collect_unit & collect_objectgroup)
+    tenants: "{{ vitam_tenant_ids | join(',') }}"
+
 elasticsearch:
   log:
     index_templates:

@@ -1,4 +1,4 @@
-
+#jinja2: lstrip_blocks: True
 # Configuration MongoDB
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
@@ -30,45 +30,45 @@ elasticsearchNodes:
 # ElasticSearch tenant indexation
 elasticsearchTenantIndexation:
   default_config:
-    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_shards }}
-    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas }}
+    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_shards | default('1') }}
+    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas | default('2') }}
 
 {% for collection in ["accesscontract", "accessionregisterdetail", "accessionregistersummary", "accessionregistersymbolic", "agencies", "archiveunitprofile", "context", "fileformat", "filerules", "griffin", "ingestcontract", "managementcontract", "ontology", "preservationscenario", "profile", "securityprofile"] %}
-{% if vitam_elasticsearch_tenant_indexation.masterdata[collection] is defined %}
-  {{collection}}:
-{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards is defined %}
+  {% if vitam_elasticsearch_tenant_indexation.masterdata[collection] is defined %}
+  {{ collection }}:
+    {% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards is defined %}
     number_of_shards: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards }}
-{% endif %}
-{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas is defined %}
+    {% endif %}
+    {% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas is defined %}
     number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas }}
-{% endif %}
-{% endif %}
+    {% endif %}
+  {% endif %}
 {% endfor %}
 
 # ExternalId configuration
 listEnableExternalIdentifiers:
 {% if vitam_tenants_usage_external is iterable %}
-{% for tenant in vitam_tenants_usage_external %}
-{% if tenant.identifiers is defined %}
+  {% for tenant in vitam_tenants_usage_external %}
+    {% if tenant.identifiers is defined %}
   {{ tenant.name }}:
-{% for external in tenant.identifiers %}
+      {% for external in tenant.identifiers %}
     - {{ external }}
-{% endfor %}
-{% endif %}
-{% endfor %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
 {% endif %}
 
 listMinimumRuleDuration:
 {% if vitam_tenant_rule_duration is iterable %}
-{% for tenant in vitam_tenant_rule_duration %}
+  {% for tenant in vitam_tenant_rule_duration %}
   {{ tenant.name }}:
-{% for rule in tenant.rules %}
-{% for key, value in rule.items() %}
+    {% for rule in tenant.rules %}
+      {% for key, value in rule.items() %}
     {{ key }}: {{ value }}
-{% endfor %}
-{% endfor %}
-{% endfor %}
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
 {% endif %}
 
-accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize}}
-ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize}}
+accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize | default(16) }}
+ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize | default(16) }}
