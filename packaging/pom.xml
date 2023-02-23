@@ -420,17 +420,30 @@
 		</dependency>
 
         <dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>collect-rest</artifactId>
-			<version>${project.version}</version>
-			<type>rpm</type>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>collect-rest</artifactId>
-			<version>${project.version}</version>
-			<type>deb</type>
-		</dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-internal-rest</artifactId>
+            <version>${project.version}</version>
+            <type>rpm</type>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-internal-rest</artifactId>
+            <version>${project.version}</version>
+            <type>deb</type>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-external-rest</artifactId>
+            <version>${project.version}</version>
+            <type>rpm</type>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-external-rest</artifactId>
+            <version>${project.version}</version>
+            <type>deb</type>
+        </dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

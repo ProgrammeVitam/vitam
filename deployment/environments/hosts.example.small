@@ -55,11 +55,15 @@ small-vm-2
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 small-vm-1
 
 [hosts_access_external]
+small-vm-1
+
+[hosts_collect_external]
 small-vm-1
 
 ##### Zone applicative
@@ -77,6 +81,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect_internal
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 small-vm-2
@@ -114,6 +121,14 @@ small-vm-2
 [hosts_worker]
 small-vm-1
 
+[hosts_collect_internal]
+small-vm-1
+
+[hosts_metadata_collect]
+small-vm-2
+
+[hosts_workspace_collect]
+small-vm-1
 
 ##### Zone storage
 

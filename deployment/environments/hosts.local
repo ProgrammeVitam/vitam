@@ -51,11 +51,15 @@ localhost
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 localhost
 
 [hosts_access_external]
+localhost
+
+[hosts_collect_external]
 localhost
 
 ##### Zone applicative
@@ -73,7 +77,7 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
-hosts_collect
+hosts_collect_internal
 hosts_metadata_collect
 hosts_workspace_collect
 
@@ -113,7 +117,7 @@ localhost
 [hosts_worker]
 localhost
 
-[hosts_collect]
+[hosts_collect_internal]
 localhost
 
 [hosts_metadata_collect]

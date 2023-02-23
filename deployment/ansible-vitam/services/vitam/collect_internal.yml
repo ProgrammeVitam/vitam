@@ -1,0 +1,10 @@
+---
+
+- hosts: hosts_collect_internal
+  any_errors_fatal: true
+  roles:
+    - siegfried
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.collect_internal }}"
+  tags: collect_internal

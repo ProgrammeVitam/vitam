@@ -49,10 +49,13 @@ hosts_ihm_demo
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 
 [hosts_access_external]
+
+[hosts_collect_external]
 
 ##### Zone applicative
 
@@ -69,6 +72,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect_internal
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 
@@ -93,6 +99,12 @@ hosts_security_internal
 [hosts_batch_report]
 
 [hosts_worker]
+
+[hosts_collect_internal]
+
+[hosts_metadata_collect]
+
+[hosts_workspace_collect]
 
 ##### Zone storage
 

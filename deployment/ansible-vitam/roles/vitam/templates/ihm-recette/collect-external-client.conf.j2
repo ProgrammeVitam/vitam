@@ -1,0 +1,11 @@
+serverHost: {{ vitam.collect_external.host }}
+serverPort: {{ vitam.collect_external.port_service }}
+secure: true
+sslConfiguration :
+ keystore :
+  - keyPath: {{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.p12
+    keyPassword: {{ keystores.client_external.ihm_recette }}
+ truststore :
+  - keyPath: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
+    keyPassword: {{ truststores.client_external }}
+hostnameVerification: false

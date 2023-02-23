@@ -9,12 +9,12 @@
     <artifactId>functional-test</artifactId>
     <name>Functional test</name>
 
-	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <!-- Since this is a test part, no need to "sonarize" this module -->
     <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-	<properties>
-		<sonar.skip>true</sonar.skip>
-	</properties>
+    <properties>
+        <sonar.skip>true</sonar.skip>
+    </properties>
 
     <dependencies>
 
@@ -124,7 +124,12 @@
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>collect-client</artifactId>
+            <artifactId>collect-external-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>collect-external-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

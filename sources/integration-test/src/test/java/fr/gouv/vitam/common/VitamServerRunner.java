@@ -35,8 +35,10 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
-import fr.gouv.vitam.collect.external.client.CollectClientFactory;
-import fr.gouv.vitam.collect.internal.CollectMain;
+import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
+import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
+import fr.gouv.vitam.collect.internal.CollectInternalMain;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -119,9 +121,6 @@ public class VitamServerRunner extends ExternalResource {
     public static final long SLEEP_TIME = 20L;
     public static final long NB_TRY = 18000;
 
-
-    public static final int PORT_SERVICE_COLLECT = 8422;
-    public static final int PORT_SERVICE_COLLECT_ADMIN = 28022;
     public static final int PORT_SERVICE_IDENTITY = 8005;
     public static final int PORT_SERVICE_IDENTITY_ADMIN = 28005;
     public static final int PORT_SERVICE_WORKSPACE = 8094;
@@ -150,6 +149,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_ACCESS_EXTERNAL_ADMIN = 28102;
     public static final int PORT_SERVICE_BATCH_REPORT = 8089;
 
+    public static final int PORT_SERVICE_COLLECT_INTERNAL = 8088;
+    public static final int PORT_SERVICE_COLLECT_EXTERNAL = 8488;
 
     public static final String WORKSPACE_COLLECT_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE_COLLECT;
     public static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
@@ -167,8 +168,12 @@ public class VitamServerRunner extends ExternalResource {
     public static final String METADATA_COLLECT_CONF = "common/metadata-collect.conf";
     public static final String ADMIN_MANAGEMENT_CONF = "common/functional-administration.conf";
     public static final String ACCESS_INTERNAL_CONF = "common/access-internal.conf";
+
+    public static final String COLLECT_INTERNAL_CONF = "common/collect-internal.conf";
     public static final String ACCESS_EXTERNAL_CONF = "common/access-external.conf";
+    public static final String COLLECT_EXTERNAL_CONF = "common/collect-external.conf";
     public static final String ACCESS_EXTERNAL_CLIENT_CONF = "common/access-external-client.conf";
+    public static final String COLLECT_EXTERNAL_CLIENT_CONF = "common/collect-external-client.conf";
     public static final String INGEST_INTERNAL_CONF = "common/ingest-internal.conf";
     public static final String INGEST_EXTERNAL_CONF = "common/ingest-external.conf";
     public static final String INGEST_EXTERNAL_CLIENT_CONF = "common/ingest-external-client.conf";
@@ -177,8 +182,6 @@ public class VitamServerRunner extends ExternalResource {
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
-    public static final String COLLECT_CONF = "common/collect.conf";
-    public static final String COLLECT_CLIENT_CONF = "common/collect-client.conf";
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
 
@@ -207,10 +210,12 @@ public class VitamServerRunner extends ExternalResource {
     private static IngestInternalMain ingestInternalMain;
     private static IngestExternalMain ingestExternalMain;
     private static AccessInternalMain accessInternalMain;
+    private static CollectInternalMain collectInternalMain;
     private static AccessExternalMain accessExternalMain;
+
+    private static CollectExternalMain collectExternalMain;
     private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
-    private static CollectMain collectMain;
 
     public final static TempFolderRule tempFolderRule = new TempFolderRule();
 
@@ -897,41 +902,83 @@ public class VitamServerRunner extends ExternalResource {
 
     }
 
-
-    public void startCollectServer() throws IOException, VitamApplicationServerException {
-        if (null != collectMain) {
-            CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
+    public void startCollectInternalServer() throws VitamApplicationServerException {
+        if (null != collectInternalMain) {
+            CollectInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT_INTERNAL);
             return;
         }
-        SystemPropertyUtil.set(CollectMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_COLLECT));
+        SystemPropertyUtil
+            .set(CollectInternalMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_COLLECT_INTERNAL));
+        LOGGER.warn("=== VitamServerRunner start CollectInternalMain");
+        CollectInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT_INTERNAL);
+        collectInternalMain =
+            new CollectInternalMain(COLLECT_INTERNAL_CONF);
+        collectInternalMain.start();
+        SystemPropertyUtil.clear(CollectInternalMain.PARAMETER_JETTY_SERVER_PORT);
 
-        LOGGER.warn("=== VitamServerRunner start  Collect");
-
-        CollectClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT);
-        CollectClientFactory.changeMode(COLLECT_CLIENT_CONF);
-        collectMain = new CollectMain(COLLECT_CONF);
-        collectMain.start();
-
-        waitServerStart(CollectClientFactory.getInstance().getClient());
-        SystemPropertyUtil.clear(CollectMain.PARAMETER_JETTY_SERVER_PORT);
+        // Wait startup
     }
 
-    public void stopCollectServer(boolean mockWhenStop) throws VitamApplicationServerException {
-        if (null == collectMain) {
+
+    public void stopCollectInternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == collectInternalMain) {
             if (mockWhenStop) {
-                CollectClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+                CollectInternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner stop  CollectMain");
-        collectMain.stop();
-        collectMain = null;
+        LOGGER.warn("=== VitamServerRunner stop CollectInternalMain");
+        collectInternalMain.stop();
+        collectInternalMain = null;
 
+        // Wait stop then Mock
         if (mockWhenStop) {
-            CollectClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            CollectInternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         }
     }
+
+
+    public void stopCollectExternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == collectExternalMain) {
+            if (mockWhenStop) {
+                CollectExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner stop CollectExternalMain");
+        collectExternalMain.stop();
+        collectExternalMain = null;
+
+        // Wait stop then Mock
+        if (mockWhenStop) {
+            CollectExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+        }
+    }
+
+    public void startCollectExternalServer() throws VitamApplicationServerException {
+        if (null != collectExternalMain) {
+            CollectExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+            return;
+        }
+        SystemPropertyUtil
+            .set(CollectExternalMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_COLLECT_EXTERNAL));
+        LOGGER.warn("=== VitamServerRunner start CollectExternalMain");
+        CollectExternalClientFactory.changeMode(COLLECT_EXTERNAL_CLIENT_CONF);
+        collectExternalMain = new CollectExternalMain(COLLECT_EXTERNAL_CONF);
+        collectExternalMain.start();
+        SystemPropertyUtil.clear(CollectExternalMain.PARAMETER_JETTY_SERVER_PORT);
+
+        // Wait startup
+    }
+
+
 
     public void startMetadataServer()
         throws IOException, VitamApplicationServerException {

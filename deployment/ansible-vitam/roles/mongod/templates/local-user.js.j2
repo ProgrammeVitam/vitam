@@ -16,7 +16,7 @@ if (! admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
                 { role: "dbAdmin", db: "identity" },
                 { role: "dbAdmin", db: "metadata" },
                 { role: "dbAdmin", db: "report" },
-{% if groups['hosts_collect'] | default([]) | length > 0 and groups['hosts_metadata_collect'] | default([]) | length > 0 %}
+{% if groups['hosts_collect_internal'] | default([]) | length > 0 and groups['hosts_metadata_collect'] | default([]) | length > 0 %}
                 { role: "dbAdmin", db: "metadataCollect" },
                 { role: "dbAdmin", db: "collect" },
 {% endif %}
@@ -37,7 +37,7 @@ else {
                 { role: "dbAdmin", db: "identity" },
                 { role: "dbAdmin", db: "metadata" },
                 { role: "dbAdmin", db: "report" },
-{% if groups['hosts_collect'] | default([]) | length > 0 and groups['hosts_metadata_collect'] | default([]) | length > 0 %}
+{% if groups['hosts_collect_internal'] | default([]) | length > 0 and groups['hosts_metadata_collect'] | default([]) | length > 0 %}
                 { role: "dbAdmin", db: "metadataCollect" },
                 { role: "dbAdmin", db: "collect" },
 {% endif %}
